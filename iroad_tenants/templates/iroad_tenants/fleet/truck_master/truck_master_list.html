@@ -13,21 +13,25 @@
       </li>
       <li class="breadcrumb-item">Operations</li>
       <li class="breadcrumb-item">Fleet Management</li>
-      <li class="breadcrumb-item active" aria-current="page">Truck Master</li>
+      <li class="breadcrumb-item active" aria-current="page">Truck Master List</li>
     </ol>
   </nav>
   <div class="page-header-row">
     <div class="page-header-left">
-      <h1 class="page-title">Truck Master</h1>
+      <h1 class="page-title">Truck Master List</h1>
       <p class="page-subtitle">
-        Register and manage truck details, plate information, and specifications.
+        View and manage all registered trucks and fleet details.
       </p>
     </div>
     <div class="page-header-right">
       <div class="eal-header-actions">
+        <button type="button" class="eal-btn eal-btn-outline">
+          <i class="bi bi-download"></i>
+          <span>Export</span>
+        </button>
         <a href="{% url 'iroad_tenants:truck_master_create' %}" class="eal-btn eal-btn-primary">
           <i class="bi bi-plus-lg"></i>
-          <span>Add New Truck</span>
+          <span>Add Truck</span>
         </a>
       </div>
     </div>
@@ -131,27 +135,84 @@
     <table class="eal-table">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Code</th>
-          <th>Plate Number</th>
-          <th>Country</th>
-          <th>Truck Type</th>
-          <th>Sourcing</th>
-          <th>Owner Name</th>
-          <th>Status</th>
+          <th class="eal-col-check">
+            <input type="checkbox" class="eal-custom-check" />
+          </th>
+          <th>
+            <a href="{{ sort_url_truck_code }}" class="tm-sort-link{% if sort_key == 'truck_code' %} is-active{% endif %}">
+              Truck Code
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'truck_code' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'truck_code' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_owner_name }}" class="tm-sort-link{% if sort_key == 'owner_name' %} is-active{% endif %}">
+              Owner Name
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'owner_name' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'owner_name' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_default_driver_id }}" class="tm-sort-link{% if sort_key == 'default_driver_id' %} is-active{% endif %}">
+              Default Driver
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'default_driver_id' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'default_driver_id' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_sourcing_mode }}" class="tm-sort-link{% if sort_key == 'sourcing_mode' %} is-active{% endif %}">
+              Sourcing Mode
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'sourcing_mode' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'sourcing_mode' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_truck_type }}" class="tm-sort-link{% if sort_key == 'truck_type' %} is-active{% endif %}">
+              Truck Type
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'truck_type' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'truck_type' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_plate_number }}" class="tm-sort-link{% if sort_key == 'plate_number' %} is-active{% endif %}">
+              Plate Number
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'plate_number' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'plate_number' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_status }}" class="tm-sort-link{% if sort_key == 'status' %} is-active{% endif %}">
+              Status
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'status' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'status' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for row in trucks_page %}
         <tr>
-          <td class="text-muted small">{{ trucks_page.start_index|add:forloop.counter0 }}</td>
+          <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
           <td>
             <span class="eal-entity-id">{{ row.truck_code }}</span>
           </td>
-          <td>{{ row.plate_number }}</td>
-          <td>{{ row.registration_country_cell }}</td>
-          <td>{{ row.truck_type.english_label|default:"—" }}</td>
+          <td>{{ row.owner_name|default:"—" }}</td>
+          <td>{{ row.default_driver_id|default:"—" }}</td>
           <td>
             {% if row.sourcing_mode == 'In-Source' %}
             <span class="status-badge sourcing-in-source">
@@ -165,7 +226,8 @@
             <span class="status-badge">{{ row.sourcing_mode }}</span>
             {% endif %}
           </td>
-          <td>{{ row.owner_name|default:"—" }}</td>
+          <td>{{ row.truck_type.english_label|default:"—" }}</td>
+          <td>{{ row.plate_number }}</td>
           <td>
             {% if row.status == 'Active' %}
             <span class="status-badge truck-status-active">
@@ -300,8 +362,19 @@
   /* Designer-aligned list accents ( Truck-master / fleet theme ) */
   .eal-stats-row--tm {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+  }
+  .eal-stats-row--tm .eal-stat-card {
+    min-height: 92px;
+    padding: 14px 16px;
+  }
+  .eal-stats-row--tm .eal-stat-value {
+    font-size: 1.6rem;
+    line-height: 1.1;
+  }
+  .eal-stats-row--tm .eal-stat-label {
+    font-size: 0.92rem;
   }
   .eal-stat-icon.slate { background: #64748b; color: #fff; }
   .eal-stat-icon.orange { background: #fd7e14; color: #fff; }
@@ -324,6 +397,44 @@
     background: #94a3b8;
     color: #fff;
     border: 0;
+  }
+  .tm-sort-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .tm-sort-link:hover {
+    color: inherit;
+    text-decoration: none;
+  }
+  .tm-sort-link.is-active .tm-sort-indicator {
+    opacity: 0.9;
+  }
+  .tm-sort-indicator {
+    display: inline-flex;
+    flex-direction: column;
+    margin-left: 6px;
+    vertical-align: middle;
+    opacity: 0.45;
+    line-height: 0.75;
+  }
+  .tm-sort-indicator i {
+    font-size: 9px;
+    opacity: 0.35;
+  }
+  .tm-sort-indicator i.active {
+    opacity: 1;
+  }
+  @media (max-width: 991.98px) {
+    .eal-stats-row--tm {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 575.98px) {
+    .eal-stats-row--tm {
+      grid-template-columns: 1fr;
+    }
   }
 </style>
 {% endblock %}

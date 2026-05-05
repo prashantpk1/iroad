@@ -434,6 +434,19 @@ def _activate_tenant_workspace_schema(request):
     return registry
 
 
+def _current_tenant_actor_id(request) -> str:
+    """Best-effort actor id from tenant session for audit-style fields."""
+    auth_payload = get_tenant_portal_cookie_payload(request) or {}
+    tenant_id = str(auth_payload.get('tenant_id') or '').strip()
+    jti = str(auth_payload.get('jti') or '').strip()
+    if tenant_id and jti:
+        session_data = get_tenant_session(tenant_id, jti) or {}
+        reference_id = str(session_data.get('reference_id') or '').strip()
+        if reference_id:
+            return reference_id
+    return tenant_id
+
+
 class TenantDashboardView(View):
     """Tenant dashboard rendered from app template copy."""
 
@@ -519,7 +532,22 @@ class TenantCargoMasterListView(View):
             except ValueError:
                 filter_client_id = ''
 
-        qs_ordered = qs.order_by('-created_at')
+        sort_key_raw = (request.GET.get('sort') or 'truck_code').strip().lower()
+        sort_dir_raw = (request.GET.get('dir') or 'asc').strip().lower()
+        sort_map = {
+            'truck_code': 'truck_code',
+            'owner_name': 'owner_name',
+            'default_driver_id': 'default_driver_id',
+            'sourcing_mode': 'sourcing_mode',
+            'truck_type': 'truck_type__english_label',
+            'plate_number': 'plate_number',
+            'status': 'status',
+        }
+        sort_key = sort_map.get(sort_key_raw, 'truck_code')
+        sort_dir = 'desc' if sort_dir_raw == 'desc' else 'asc'
+        order_expr = f'-{sort_key}' if sort_dir == 'desc' else sort_key
+
+        qs_ordered = qs.order_by(order_expr, '-created_at')
         stats = _cargo_master_list_stats(qs_ordered)
         paginator = Paginator(qs_ordered, 10)
         try:
@@ -6036,7 +6064,22 @@ class TenantAddressMasterListView(View):
             except ValueError:
                 filter_client_id = ''
 
-        qs_ordered = qs.order_by('-created_at')
+        sort_key_raw = (request.GET.get('sort') or 'truck_code').strip().lower()
+        sort_dir_raw = (request.GET.get('dir') or 'asc').strip().lower()
+        sort_map = {
+            'truck_code': 'truck_code',
+            'owner_name': 'owner_name',
+            'default_driver_id': 'default_driver_id',
+            'sourcing_mode': 'sourcing_mode',
+            'truck_type': 'truck_type__english_label',
+            'plate_number': 'plate_number',
+            'status': 'status',
+        }
+        sort_key = sort_map.get(sort_key_raw, 'truck_code')
+        sort_dir = 'desc' if sort_dir_raw == 'desc' else 'asc'
+        order_expr = f'-{sort_key}' if sort_dir == 'desc' else sort_key
+
+        qs_ordered = qs.order_by(order_expr, '-created_at')
         stats = _address_master_list_stats(qs_ordered)
         paginator = Paginator(qs_ordered, 10)
         try:
@@ -6064,6 +6107,34 @@ class TenantAddressMasterListView(View):
                 q['page'] = str(pn)
             else:
                 q.pop('page', None)
+            return '?' + q.urlencode()
+
+        def _sort_url(col_key):
+            q = request.GET.copy()
+            q.pop('stype', None)
+            current_key = sort_key_raw if sort_key_raw in sort_map else 'truck_code'
+            current_dir = sort_dir
+            if col_key == current_key:
+                next_dir = 'desc' if current_dir == 'asc' else 'asc'
+            else:
+                next_dir = 'asc'
+            q['sort'] = col_key
+            q['dir'] = next_dir
+            q.pop('page', None)
+            return '?' + q.urlencode()
+
+        def _sort_url(col_key):
+            q = request.GET.copy()
+            q.pop('stype', None)
+            current_key = sort_key_raw if sort_key_raw in sort_map else 'truck_code'
+            current_dir = sort_dir
+            if col_key == current_key:
+                next_dir = 'desc' if current_dir == 'asc' else 'asc'
+            else:
+                next_dir = 'asc'
+            q['sort'] = col_key
+            q['dir'] = next_dir
+            q.pop('page', None)
             return '?' + q.urlencode()
 
         pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
@@ -6515,7 +6586,19 @@ class TruckTypeMasterListView(View):
                 Q(english_label__icontains=sq) | Q(arabic_label__icontains=sq)
             )
 
-        qs_ordered = qs.order_by('english_label')
+        sort_key_raw = (request.GET.get('sort') or 'english_label').strip().lower()
+        sort_dir_raw = (request.GET.get('dir') or 'asc').strip().lower()
+        sort_map = {
+            'truck_type_code': 'truck_type_code',
+            'english_label': 'english_label',
+            'arabic_label': 'arabic_label',
+            'status': 'status',
+        }
+        sort_key = sort_map.get(sort_key_raw, 'english_label')
+        sort_dir = 'desc' if sort_dir_raw == 'desc' else 'asc'
+        order_expr = f'-{sort_key}' if sort_dir == 'desc' else sort_key
+
+        qs_ordered = qs.order_by(order_expr)
         stats = {
             'total_count': tt.objects.count(),
             'active_count': tt.objects.filter(status=tt.Status.ACTIVE).count(),
@@ -6548,6 +6631,20 @@ class TruckTypeMasterListView(View):
                 q.pop('page', None)
             return '?' + q.urlencode()
 
+        def _sort_url(col_key):
+            q = request.GET.copy()
+            q.pop('stype', None)
+            current_key = sort_key
+            current_dir = sort_dir
+            if col_key == current_key:
+                next_dir = 'desc' if current_dir == 'asc' else 'asc'
+            else:
+                next_dir = 'asc'
+            q['sort'] = col_key
+            q['dir'] = next_dir
+            q.pop('page', None)
+            return '?' + q.urlencode()
+
         pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
         prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
         next_url = _page_url(page.next_page_number()) if page.has_next() else None
@@ -6564,6 +6661,12 @@ class TruckTypeMasterListView(View):
                 'pagination_start': ps,
                 'pagination_end': pe,
                 'pagination_total': total_count,
+                'sort_key': sort_key,
+                'sort_dir': sort_dir,
+                'sort_url_truck_type_code': _sort_url('truck_type_code'),
+                'sort_url_english_label': _sort_url('english_label'),
+                'sort_url_arabic_label': _sort_url('arabic_label'),
+                'sort_url_status': _sort_url('status'),
                 'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
             }
         )
@@ -6969,7 +7072,22 @@ class TruckMasterListView(View):
                 | Q(owner_name__icontains=sq)
             )
 
-        qs_ordered = qs.order_by('-created_at')
+        sort_key_raw = (request.GET.get('sort') or 'truck_code').strip().lower()
+        sort_dir_raw = (request.GET.get('dir') or 'asc').strip().lower()
+        sort_map = {
+            'truck_code': 'truck_code',
+            'owner_name': 'owner_name',
+            'default_driver_id': 'default_driver_id',
+            'sourcing_mode': 'sourcing_mode',
+            'truck_type': 'truck_type__english_label',
+            'plate_number': 'plate_number',
+            'status': 'status',
+        }
+        sort_key = sort_map.get(sort_key_raw, 'truck_code')
+        sort_dir = 'desc' if sort_dir_raw == 'desc' else 'asc'
+        order_expr = f'-{sort_key}' if sort_dir == 'desc' else sort_key
+
+        qs_ordered = qs.order_by(order_expr, '-created_at')
         stats = {
             'total_count': tm.objects.count(),
             'active_count': tm.objects.filter(status=tm.Status.ACTIVE).count(),
@@ -7010,6 +7128,20 @@ class TruckMasterListView(View):
                 q.pop('page', None)
             return '?' + q.urlencode()
 
+        def _sort_url(col_key):
+            q = request.GET.copy()
+            q.pop('stype', None)
+            current_key = sort_key_raw if sort_key_raw in sort_map else 'truck_code'
+            current_dir = sort_dir
+            if col_key == current_key:
+                next_dir = 'desc' if current_dir == 'asc' else 'asc'
+            else:
+                next_dir = 'asc'
+            q['sort'] = col_key
+            q['dir'] = next_dir
+            q.pop('page', None)
+            return '?' + q.urlencode()
+
         pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
         prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
         next_url = _page_url(page.next_page_number()) if page.has_next() else None
@@ -7033,6 +7165,15 @@ class TruckMasterListView(View):
                 'pagination_start': ps,
                 'pagination_end': pe,
                 'pagination_total': total_count,
+                'sort_key': sort_key_raw if sort_key_raw in sort_map else 'truck_code',
+                'sort_dir': sort_dir,
+                'sort_url_truck_code': _sort_url('truck_code'),
+                'sort_url_owner_name': _sort_url('owner_name'),
+                'sort_url_default_driver_id': _sort_url('default_driver_id'),
+                'sort_url_sourcing_mode': _sort_url('sourcing_mode'),
+                'sort_url_truck_type': _sort_url('truck_type'),
+                'sort_url_plate_number': _sort_url('plate_number'),
+                'sort_url_status': _sort_url('status'),
                 'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
             }
         )
@@ -7406,7 +7547,7 @@ class TruckMasterDetailView(View):
                 messages.error(request, 'Truck not found.', extra_tags='tenant')
                 return _tenant_redirect(request, 'iroad_tenants:truck_master')
 
-            doc_att_qs = truck.attachments.order_by('-attachment_date', '-created_at')
+            doc_att_qs = truck.attachments.filter(is_deleted=False).order_by('-attachment_date', '-created_at')
             document_attachment_count = doc_att_qs.count()
             document_attachments_preview = list(doc_att_qs[:3])
             reg_country_display = '—'
@@ -7466,7 +7607,7 @@ class TruckAttachmentListView(View):
                 messages.error(request, 'Truck not found.', extra_tags='tenant')
                 return _tenant_redirect(request, 'iroad_tenants:truck_master')
 
-            all_attachments = list(truck.attachments.all())
+            all_attachments = list(truck.attachments.filter(is_deleted=False))
             for row in all_attachments:
                 _ = row.status
 
@@ -7683,6 +7824,7 @@ class TruckAttachmentEditView(View):
             attachment = TruckAttachment.objects.filter(
                 pk=attachment_id,
                 truck=truck,
+                is_deleted=False,
             ).first()
             if not attachment:
                 messages.error(request, 'Attachment not found.', extra_tags='tenant')
@@ -7727,6 +7869,7 @@ class TruckAttachmentEditView(View):
             attachment = TruckAttachment.objects.filter(
                 pk=attachment_id,
                 truck=truck,
+                is_deleted=False,
             ).first()
             if not attachment:
                 messages.error(request, 'Attachment not found.', extra_tags='tenant')
@@ -7810,6 +7953,7 @@ class TruckAttachmentDetailView(View):
             attachment = TruckAttachment.objects.filter(
                 pk=attachment_id,
                 truck=truck,
+                is_deleted=False,
             ).first()
             if not attachment:
                 messages.error(request, 'Attachment not found.', extra_tags='tenant')
@@ -7903,19 +8047,23 @@ class TruckAttachmentDeleteView(View):
                 messages.error(request, 'Truck not found.', extra_tags='tenant')
                 return _tenant_redirect(request, 'iroad_tenants:truck_master')
 
-            att = TruckAttachment.objects.filter(pk=attachment_id, truck_id=truck.truck_id).first()
+            att = TruckAttachment.objects.filter(
+                pk=attachment_id,
+                truck_id=truck.truck_id,
+                is_deleted=False,
+            ).first()
             if att is None:
                 messages.error(request, 'Attachment not found.', extra_tags='tenant')
             else:
                 if att.attachment_file:
                     att.attachment_file.delete(save=False)
-                att.delete()
+                att.attachment_file = ''
+                att.is_deleted = True
+                att.is_deleted_by = _current_tenant_actor_id(request)
+                att.save(update_fields=['attachment_file', 'is_deleted', 'is_deleted_by', 'updated_at'])
                 messages.success(request, 'Attachment deleted.', extra_tags='tenant')
 
-            return redirect(
-                'iroad_tenants:truck_attachment_list',
-                truck_id=truck.truck_id,
-            )
+            return redirect('iroad_tenants:truck_attachment_all_list')
         finally:
             connection.set_schema_to_public()
 
@@ -7949,7 +8097,7 @@ class TruckAttachmentAllListView(View):
         sq = (request.GET.get('q') or '').strip()
 
         try:
-            qs = ta.objects.select_related('truck').order_by(
+            qs = ta.objects.filter(is_deleted=False).select_related('truck').order_by(
                 '-attachment_date',
                 '-created_at',
             )

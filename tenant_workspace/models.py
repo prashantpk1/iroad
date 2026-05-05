@@ -961,6 +961,8 @@ class TruckAttachment(models.Model):
     file_notes = models.TextField(
         help_text=_('Notes about this attachment document'),
     )
+    is_deleted = models.BooleanField(default=False)
+    is_deleted_by = models.CharField(max_length=64, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
