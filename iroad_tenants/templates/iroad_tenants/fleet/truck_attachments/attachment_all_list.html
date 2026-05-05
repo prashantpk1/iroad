@@ -66,7 +66,7 @@
 <div
   class="eal-table-card"
   data-eal-filterable-table
-  data-eal-empty-colspan="10"
+  data-eal-empty-colspan="9"
   data-eal-empty-filter-message="No attachments match the selected filters."
 >
   <form method="get" class="eal-toolbar eal-toolbar--inline-filters">
@@ -102,35 +102,36 @@
     <table class="eal-table">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Truck Code</th>
-          <th>Plate Number</th>
-          <th>Attachment Date</th>
-          <th>Expiry Applicable</th>
-          <th>Expiry Date</th>
+          <th>Attachment No</th>
+          <th>Date</th>
+          <th>Truck</th>
+          <th>Ref Number</th>
+          <th>Arabic Label</th>
+          <th>English Label</th>
+          <th>File Attached</th>
           <th>Status</th>
-          <th>Notes</th>
-          <th>File</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for row in attachments_page %}
         <tr>
-          <td class="text-muted small">{{ attachments_page.start_index|add:forloop.counter0 }}</td>
-          <td>
-            <a href="{% url 'iroad_tenants:truck_master_detail' row.truck.truck_id %}" class="eal-entity-id text-decoration-none">
-              {{ row.truck.truck_code }}
-            </a>
-          </td>
+          <td><span class="eal-entity-id">{{ row.attachment_no|default:"—" }}</span></td>
+          <td>{{ row.attachment_date }}</td>
           <td>
             <a href="{% url 'iroad_tenants:truck_master_detail' row.truck.truck_id %}" class="text-decoration-none">
-              {{ row.truck.plate_number }}
+              {{ row.truck.truck_code }}{% if row.truck.truck_type %} — {{ row.truck.truck_type.english_label }}{% endif %}
             </a>
           </td>
-          <td>{{ row.attachment_date }}</td>
-          <td>{% if row.is_expiry_applicable %}Yes{% else %}No{% endif %}</td>
-          <td>{% if row.is_expiry_applicable %}{{ row.expiry_date|default:"—" }}{% else %}—{% endif %}</td>
+          <td>{{ row.doc_ref_number|default:"—" }}</td>
+          <td>{{ row.arabic_label|default:"—"|truncatechars:24 }}</td>
+          <td>{{ row.english_label|default:"—"|truncatechars:24 }}</td>
+          <td>
+            {% if row.attachment_file %}
+            <a href="{{ row.attachment_file.url }}" target="_blank" rel="noopener" class="text-decoration-none small">{{ row.attachment_file.name }}</a>
+            <small class="text-muted d-block">{{ row.attachment_file.size|filesizeformat }}</small>
+            {% else %}—{% endif %}
+          </td>
           <td>
             {% if row.status == 'Valid' %}
             <span class="status-badge ta-att-valid"><i class="bi bi-check2-circle"></i> Valid</span>
@@ -140,25 +141,18 @@
             <span class="status-badge ta-att-nexp"><i class="bi bi-infinity"></i> Does Not Expire</span>
             {% endif %}
           </td>
-          <td class="small">{{ row.file_notes|default:"—"|truncatechars:48 }}</td>
           <td>
-            {% if row.attachment_file %}
-            <a href="{{ row.attachment_file.url }}" target="_blank" rel="noopener" class="text-decoration-none small">{{ row.attachment_file.name }}</a>
-            <small class="text-muted d-block">{{ row.attachment_file.size|filesizeformat }}</small>
-            {% else %}—{% endif %}
-          </td>
-          <td>
-            <div class="d-flex gap-1 flex-wrap" onclick="event.stopPropagation();">
+            <div class="d-flex gap-1 flex-nowrap" onclick="event.stopPropagation();">
               <a
                 href="{% url 'iroad_tenants:truck_attachment_detail' truck_id=row.truck.truck_id attachment_id=row.attachment_id %}"
-                class="btn btn-sm btn-outline-info"
+                class="btn btn-sm btn-outline-secondary"
                 title="View Attachment"
               >
                 <i class="bi bi-eye"></i>
               </a>
               <a
                 href="{% url 'iroad_tenants:truck_attachment_edit' truck_id=row.truck.truck_id attachment_id=row.attachment_id %}"
-                class="btn btn-sm btn-outline-warning"
+                class="btn btn-sm btn-outline-secondary"
                 title="Edit Attachment"
               >
                 <i class="bi bi-pencil"></i>
@@ -167,7 +161,7 @@
               <a
                 href="{{ row.attachment_file.url }}"
                 download
-                class="btn btn-sm btn-outline-success"
+                class="btn btn-sm btn-outline-secondary"
                 title="Download"
               >
                 <i class="bi bi-download"></i>
@@ -175,7 +169,7 @@
               {% endif %}
               <button
                 type="button"
-                class="btn btn-sm btn-outline-danger ta-delete-trigger"
+                class="btn btn-sm btn-outline-secondary ta-delete-trigger"
                 title="Delete"
                 data-delete-url="{% url 'iroad_tenants:truck_attachment_delete' row.truck.truck_id row.attachment_id %}"
               >
@@ -186,7 +180,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="10" class="text-center text-muted py-5">
+          <td colspan="9" class="text-center text-muted py-5">
             {% if search_q or filter_status %}
             No attachments match your search or filters.
             {% else %}
@@ -245,16 +239,34 @@
 </div>
 
 <style>
+  .page-subtitle { max-width: 700px; }
   .eal-stats-row--ta {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(4, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .eal-stat-card {
+    border: 1px solid #eef1f7;
+    border-radius: 12px;
+    padding: 1rem;
+    background: #fff;
   }
   .eal-stat-icon.red { background: #dc3545; color: #fff; }
   .eal-stat-icon.blue { background: #0d6efd; color: #fff; }
+  .eal-stat-icon.green { background: #e8f9ee; color: #198754; }
+  .eal-stat-icon.purple { background: #f2edff; color: #6f42c1; }
   .status-badge.ta-att-valid { background: #198754; color: #fff; border: 0; }
   .status-badge.ta-att-expired { background: #dc3545; color: #fff; border: 0; }
   .status-badge.ta-att-nexp { background: #0d6efd; color: #fff; border: 0; }
+  .eal-table thead th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: #7f8aa3;
+  }
+  .eal-table td { vertical-align: middle; }
+  .eal-table .btn { min-width: 42px; }
 </style>
 {% endblock %}
 

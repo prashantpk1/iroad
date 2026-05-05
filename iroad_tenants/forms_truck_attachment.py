@@ -24,6 +24,9 @@ class TruckAttachmentForm(forms.ModelForm):
     class Meta:
         model = TruckAttachment
         fields = [
+            'arabic_label',
+            'english_label',
+            'doc_ref_number',
             'attachment_date',
             'is_expiry_applicable',
             'expiry_date',
@@ -31,6 +34,25 @@ class TruckAttachmentForm(forms.ModelForm):
             'file_notes',
         ]
         widgets = {
+            'arabic_label': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Enter Arabic label',
+                    'dir': 'rtl',
+                },
+            ),
+            'english_label': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Enter English label',
+                },
+            ),
+            'doc_ref_number': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Enter document reference number',
+                },
+            ),
             'attachment_date': forms.DateInput(
                 attrs={'type': 'date', 'class': 'form-control has-icon'},
             ),

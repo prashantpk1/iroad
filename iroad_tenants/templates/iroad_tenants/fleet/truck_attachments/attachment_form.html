@@ -81,6 +81,43 @@
     <div class="form-card-body">
       <div class="field-group">
         <h3 class="field-group-title">
+          <i class="bi bi-card-heading"></i>
+          Attachment identity
+        </h3>
+        <div class="fields-grid cols-2">
+          <div class="field">
+            <label class="form-label">Attachment No</label>
+            <input
+              type="text"
+              class="form-control"
+              readonly
+              value="{% if is_edit and attachment.attachment_no %}{{ attachment.attachment_no }}{% else %}{{ attachment_no_preview|default:'Auto-generated' }}{% endif %}"
+              aria-readonly="true"
+            />
+            <span class="field-hint">Auto-generated reference number</span>
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.doc_ref_number.id_for_label }}">{{ form.doc_ref_number.label|default:'Doc Ref Number' }}</label>
+            {{ form.doc_ref_number }}
+            {% if form.doc_ref_number.errors %}<div class="text-danger small">{{ form.doc_ref_number.errors }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="fields-grid cols-2">
+          <div class="field">
+            <label class="form-label" for="{{ form.arabic_label.id_for_label }}">{{ form.arabic_label.label|default:'Arabic Label' }}</label>
+            {{ form.arabic_label }}
+            {% if form.arabic_label.errors %}<div class="text-danger small">{{ form.arabic_label.errors }}</div>{% endif %}
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.english_label.id_for_label }}">{{ form.english_label.label|default:'English Label' }}</label>
+            {{ form.english_label }}
+            {% if form.english_label.errors %}<div class="text-danger small">{{ form.english_label.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <h3 class="field-group-title">
           <i class="bi bi-truck"></i>
           Truck &amp; date
         </h3>

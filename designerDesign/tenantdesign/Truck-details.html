@@ -1,0 +1,2401 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="iRoad Admin Dashboard - Vendor Account" />
+    <title>Vendor Account | iRoad Admin</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap 5 CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Bootstrap Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="Style/style.css" />
+    <link rel="stylesheet" href="Style/responsive.css" />
+    <style>
+      .ch-header-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+      .ch-left {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .ch-title-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .ch-logo {
+        width: 48px;
+        height: 48px;
+        background: #ebecfa;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #5051f9;
+        font-size: 1.25rem;
+      }
+      .ch-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 0;
+        color: #1a1a1a;
+      }
+      .ch-badges {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .ch-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #4a4a4a;
+        background: #fff;
+      }
+      .ch-badge i {
+        color: #6b6b6b;
+      }
+
+      .ch-right {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 250px;
+      }
+      .ch-contact-item {
+        display: flex;
+        align-items: stretch;
+        background: #f4f5f9;
+        border-radius: 6px;
+        overflow: hidden;
+        font-size: 0.85rem;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+      }
+      .ch-contact-icon {
+        padding: 8px 12px;
+        background: #e4e6fb;
+        color: #5051f9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ch-contact-text {
+        padding: 8px 16px;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        color: #1a1a1a;
+        font-weight: 500;
+      }
+      .ch-contact-copy {
+        padding: 8px 12px;
+        background: #ced3fa;
+        color: #5051f9;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .ch-contact-copy:hover {
+        background: #b2baff;
+      }
+
+      .ch-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+      }
+      .ch-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border: 1px solid #c2c4fa;
+        border-radius: 8px;
+        background: #fff;
+        color: #5051f9;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+      }
+      .ch-action-btn:hover {
+        background: #f4f5fc;
+        color: #5051f9;
+      }
+
+      .cd-main-card {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        padding: 20px;
+      }
+      .cd-tabs-container {
+        background: #f4f5fc;
+        border-radius: 8px;
+        padding: 6px;
+        margin-bottom: 24px;
+      }
+      .cd-tabs-list {
+        display: flex;
+        gap: 6px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+      .cd-tabs-list::-webkit-scrollbar {
+        display: none;
+      }
+      .cd-tab {
+        border: none;
+        background: transparent;
+        padding: 8px 20px;
+        font-size: 0.85rem;
+        color: #6b6b6b;
+        cursor: pointer;
+        border-radius: 6px;
+        font-weight: 500;
+        white-space: nowrap;
+        transition: all 0.2s;
+      }
+      .cd-tab.active {
+        background: #5051f9;
+        color: #fff;
+        box-shadow: 0 2px 4px rgba(80, 81, 249, 0.2);
+      }
+      .cd-tab:hover:not(.active) {
+        color: #1a1a1a;
+      }
+
+      .cd-details-section {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .cd-details-header {
+        background: #f4f5fc;
+        padding: 16px 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #1a1a1a;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      }
+      .cd-details-body {
+        background: #fff;
+        padding: 20px;
+      }
+      .cd-grid-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+      }
+      .cd-grid-row:last-child {
+        padding-bottom: 0;
+        margin-bottom: 0;
+        border-bottom: none;
+      }
+      .cd-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .cd-field-label {
+        font-size: 0.8rem;
+        color: #6b6b6b;
+      }
+      .cd-field-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1a1a1a;
+      }
+
+      @media (max-width: 768px) {
+        .ch-header-card {
+          flex-direction: column;
+        }
+        .cd-grid-row {
+          grid-template-columns: 1fr;
+        }
+      }
+      .cd-empty {
+        border: 1px dashed rgba(0, 0, 0, 0.2);
+        border-radius: 14px;
+        padding: 18px;
+        background: rgba(0, 0, 0, 0.02);
+      }
+    </style>
+    <style>
+      .cd-details-section .cd-details-header[data-bs-toggle="collapse"] {
+        cursor: pointer;
+        user-select: none;
+        transition:
+          background-color 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .cd-details-section .cd-details-header[data-bs-toggle="collapse"]:hover {
+        background-color: #f8fafc;
+      }
+      .cd-details-section .collapse-icon {
+        transition: transform 0.3s ease;
+      }
+      .cd-details-section .cd-details-header.collapsed .collapse-icon {
+        transform: rotate(-90deg);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" aria-label="Toggle menu">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="appSidebar">
+      <!-- Sidebar Header -->
+      <div class="sidebar-header">
+        <a href="index.html" class="sidebar-logo">
+          <span class="logo-icon">i</span>
+          <span class="logo-label">Road</span>
+        </a>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="sidebar-nav">
+        <ul class="nav-menu">
+          <!-- Dashboard -->
+          <li class="nav-item">
+            <a
+              href="index.html"
+              class="nav-link active"
+              data-tooltip="Dashboard"
+            >
+              <i class="bi bi-speedometer2"></i>
+              <span class="nav-text">Dashboard</span>
+            </a>
+          </li>
+
+          <!-- --- ADMINISTRATION --- -->
+          <li class="nav-section-title">
+            <span>Administration</span>
+          </li>
+
+          <!-- Account Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Account Management">
+              <i class="bi bi-building"></i>
+              <span class="nav-text">Account Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Organization-profile.html" class="submenu-link">
+                  <i class="bi bi-card-heading"></i>
+                  <span>Organization Profile</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- User Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="User Management">
+              <i class="bi bi-people"></i>
+              <span class="nav-text">User Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Users-administration.html" class="submenu-link">
+                  <i class="bi bi-person-gear"></i>
+                  <span>Users Administration</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Roles--permissions.html" class="submenu-link">
+                  <i class="bi bi-person-lock"></i>
+                  <span>Roles & Permissions</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Subscriptions Management -->
+          <li class="nav-item has-submenu">
+            <a
+              href="#"
+              class="nav-link"
+              data-tooltip="Subscriptions Management"
+            >
+              <i class="bi bi-credit-card-2-front"></i>
+              <span class="nav-text">Subscriptions Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Subscription-plan.html" class="submenu-link">
+                  <i class="bi bi-card-checklist"></i>
+                  <span>Subscription Plan</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Subscription-billing.html" class="submenu-link">
+                  <i class="bi bi-receipt"></i>
+                  <span>Subscription Billing</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Security & Login Settings -->
+          <!-- <li class="nav-item has-submenu">
+                                                    <a
+                                                      href="#"
+                                                      class="nav-link"
+                                                      data-tooltip="Security & Login Settings"
+                                                    >
+                                                      <i class="bi bi-shield-lock"></i>
+                                                      <span class="nav-text">Security & Login Settings</span>
+                                                      <i class="bi bi-chevron-right arrow"></i>
+                                                    </a>
+                                                    <ul class="submenu">
+                                                      <li class="submenu-item">
+                                                        <a href="Sessions--devices.html" class="submenu-link">
+                                                          <i class="bi bi-shield-lock"></i>
+                                                          <span>Sessions & Devices</span>
+                                                        </a>
+                                                      </li>
+                                                      <li class="submenu-item">
+                                                        <a href="Email--password-settings.html" class="submenu-link">
+                                                          <i class="bi bi-shield-lock"></i>
+                                                          <span>Email & Password Settings</span>
+                                                        </a>
+                                                      </li>
+                                                    </ul>
+                                                  </li> -->
+
+          <!-- Audit & Security Logs -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Audit & Security Logs">
+              <i class="bi bi-shield-lock"></i>
+              <span class="nav-text">Audit & Security Logs</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Login--session-events.html" class="submenu-link">
+                  <i class="bi bi-shield-lock"></i>
+                  <span>Login / Session Events</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Role--permission-changes.html" class="submenu-link">
+                  <i class="bi bi-person-lock"></i>
+                  <span>Role / Permission Changes</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Critical-account-changes.html" class="submenu-link">
+                  <i class="bi bi-person-vcard"></i>
+                  <span>Critical Account Changes</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Support Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Support Management">
+              <i class="bi bi-headset"></i>
+              <span class="nav-text">Support Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Support-ticket-master.html" class="submenu-link">
+                  <i class="bi bi-ticket-detailed"></i>
+                  <span>Support Ticket Master</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Ticket-replies.html" class="submenu-link">
+                  <i class="bi bi-ticket-detailed"></i>
+                  <span>Ticket Replies</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- --- CRM --- -->
+          <li class="nav-section-title">
+            <span>CRM</span>
+          </li>
+
+          <!-- Clients Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Clients Management">
+              <i class="bi bi-person-badge"></i>
+              <span class="nav-text">Clients Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Client-account.html" class="submenu-link">
+                  <i class="bi bi-person-vcard"></i>
+                  <span>Client Account</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Client-account-setting.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Client Account Settings</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Client-attachments.html" class="submenu-link">
+                  <i class="bi bi-paperclip"></i>
+                  <span>Client Attachments</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Client-contacts.html" class="submenu-link">
+                  <i class="bi bi-person-rolodex"></i>
+                  <span>Client Contacts</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Client-contract.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Client Contracts</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Client-contract-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Client Contract Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Vendors Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Vendors Management">
+              <i class="bi bi-shop-window"></i>
+              <span class="nav-text">Vendors Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Vendor-account.html" class="submenu-link">
+                  <i class="bi bi-person-vcard"></i>
+                  <span>Vendor Account</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Vendor-account-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Vendor Account Settings</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Vendor-attachments.html" class="submenu-link">
+                  <i class="bi bi-paperclip"></i>
+                  <span>Vendor Attachments</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Vendor-contacts.html" class="submenu-link">
+                  <i class="bi bi-person-rolodex"></i>
+                  <span>Vendor Contacts</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Vendor-contract.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Vendor Contract</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Vendor-contract-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Vendor Contract Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- --- MASTER DATA --- -->
+          <li class="nav-section-title">
+            <span>Master Data</span>
+          </li>
+
+          <!-- Address Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Address Management">
+              <i class="bi bi-map"></i>
+              <span class="nav-text">Address Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="addresses.html" class="submenu-link">
+                  <i class="bi bi-card-heading"></i>
+                  <span>Address Master</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Cargo Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Cargo Management">
+              <i class="bi bi-box-seam"></i>
+              <span class="nav-text">Cargo Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Cargo-master.html" class="submenu-link">
+                  <i class="bi bi-boxes"></i>
+                  <span>Cargo Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Cargo-category-config.html" class="submenu-link">
+                  <i class="bi bi-boxes"></i>
+                  <span>Cargo Category Config</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Route Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Route Management">
+              <i class="bi bi-signpost-split"></i>
+              <span class="nav-text">Route Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Location-master.html" class="submenu-link">
+                  <i class="bi bi-pin-map"></i>
+                  <span>Location Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Route-master.html" class="submenu-link">
+                  <i class="bi bi-signpost"></i>
+                  <span>Route Master</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Currency & FX Management -->
+          <li class="nav-item has-submenu">
+            <a
+              href="#"
+              class="nav-link"
+              data-tooltip="Currency & FX Management"
+            >
+              <i class="bi bi-currency-exchange"></i>
+              <span class="nav-text">Currency & FX </span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Currency-master.html" class="submenu-link">
+                  <i class="bi bi-currency-exchange"></i>
+                  <span>Currency Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Tenant-currency-settings.html" class="submenu-link">
+                  <i class="bi bi-currency-exchange"></i>
+                  <span>Tenant Currency Settings</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="FX-rate-change-log.html" class="submenu-link">
+                  <i class="bi bi-currency-exchange"></i>
+                  <span>FX Rate Change Log</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Services Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Services Management">
+              <i class="bi bi-gear"></i>
+              <span class="nav-text">Services Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Service-item-master.html" class="submenu-link">
+                  <i class="bi bi-tools"></i>
+                  <span>Service Item Master</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Service-item-settings.html" class="submenu-link">
+                  <i class="bi bi-tools"></i>
+                  <span>Service Item Settings</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Price-list.html" class="submenu-link">
+                  <i class="bi bi-tags"></i>
+                  <span>Price List Master</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- --- COMMERCIAL --- -->
+          <li class="nav-section-title">
+            <span>Commercial</span>
+          </li>
+
+          <!-- Sales Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Sales Management">
+              <i class="bi bi-graph-up-arrow"></i>
+              <span class="nav-text">Sales Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Sales-order.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Sales Order</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Sales-order-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Sales Order Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Purchases Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Purchases Management">
+              <i class="bi bi-cart-check"></i>
+              <span class="nav-text">Purchases Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Purchase-order.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Purchase Order</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Purchase-order-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Purchase Order Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- --- OPERATIONS --- -->
+          <li class="nav-section-title">
+            <span>Operations</span>
+          </li>
+
+          <!-- Operations Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Operations Management">
+              <i class="bi bi-activity"></i>
+              <span class="nav-text">Operations Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Booking.html" class="submenu-link">
+                  <i class="bi bi-calendar-check"></i>
+                  <span>Booking</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Shipment.html" class="submenu-link">
+                  <i class="bi bi-box-seam"></i>
+                  <span>Shipment</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Shipment-documents.html" class="submenu-link">
+                  <i class="bi bi-paperclip"></i>
+                  <span>Shipment Documents</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Digital-pod-transaction.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-check"></i>
+                  <span>Shipment POD Analysis</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Document-handover.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-check"></i>
+                  <span>Document Handover</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Truck-movement-log.html" class="submenu-link">
+                  <i class="bi bi-truck"></i>
+                  <span>Truck Movement Log</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Operation-actions.html" class="submenu-link">
+                  <i class="bi bi-record-circle"></i>
+                  <span>Operation Actions</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Fleet Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Fleet Management">
+              <i class="bi bi-truck-front"></i>
+              <span class="nav-text">Fleet Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Truck-master.html" class="submenu-link">
+                  <i class="bi bi-truck"></i>
+                  <span>Truck Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Truck-type-master.html" class="submenu-link">
+                  <i class="bi bi-truck-flatbed"></i>
+                  <span>Truck Type Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Truck-attachments.html" class="submenu-link">
+                  <i class="bi bi-truck"></i>
+                  <span>Truck Attachments</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Truck-settings.html" class="submenu-link">
+                  <i class="bi bi-truck"></i>
+                  <span>Truck Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Drivers Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Drivers Management">
+              <i class="bi bi-person-vcard"></i>
+              <span class="nav-text">Drivers Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Driver-master.html" class="submenu-link">
+                  <i class="bi bi-person-badge"></i>
+                  <span>Driver Master</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Driver-settings.html" class="submenu-link">
+                  <i class="bi bi-person-badge"></i>
+                  <span>Driver Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- --- FINANCE --- -->
+          <li class="nav-section-title">
+            <span>Finance</span>
+          </li>
+
+          <!-- Finance Management (Lite) -->
+          <li class="nav-item has-submenu">
+            <a
+              href="#"
+              class="nav-link"
+              data-tooltip="Finance Management (Lite)"
+            >
+              <i class="bi bi-bank2"></i>
+              <span class="nav-text">Finance Management (Lite)</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Financial-account-master.html" class="submenu-link">
+                  <i class="bi bi-person-vcard"></i>
+                  <span>Financial Account Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a
+                  href="Financial-transaction-log-new.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-clock-history"></i>
+                  <span>Financial Transaction Log</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Sales Invoicing -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Sales Invoicing">
+              <i class="bi bi-receipt"></i>
+              <span class="nav-text">Sales Invoicing</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Job-order-report.html" class="submenu-link">
+                  <i class="bi bi-receipt"></i>
+                  <span>Job Order Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Sales-invoice-create.html" class="submenu-link">
+                  <i class="bi bi-receipt"></i>
+                  <span>Sales Invoice</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Sales-invoice-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Sales Invoice Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Purchase Invoicing -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Purchase Invoicing">
+              <i class="bi bi-receipt-cutoff"></i>
+              <span class="nav-text">Purchase Invoicing</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Purchase-report.html" class="submenu-link">
+                  <i class="bi bi-receipt"></i>
+                  <span>Purchase Order Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Purchase-invoice-list.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Purchase Invoice</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Purchase-invoice-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Purchase Invoice Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Invoice Acknowledgement -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Invoice Acknowledgement">
+              <i class="bi bi-patch-check"></i>
+              <span class="nav-text">Invoice Acknowledgement</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a
+                  href="Sales-invoice-acknowledgement.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-receipt"></i>
+                  <span>Sales Invoice Acknowledgement</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a
+                  href="Purchase-invoice-acknowledgement.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-receipt"></i>
+                  <span>Purchase Invoice Acknowledgement</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Acknowledgement Proofs -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Acknowledgement Proofs">
+              <i class="bi bi-file-earmark-check"></i>
+              <span class="nav-text">Acknowledgement Proofs</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Sales-ack-proof.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-check"></i>
+                  <span>Sales Ack Proof</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Purchase-ack-proof.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-check"></i>
+                  <span>Purchase Ack Proof</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Invoice Attachments -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Invoice Attachments">
+              <i class="bi bi-paperclip"></i>
+              <span class="nav-text">Invoice Attachments</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Sales-invoice.html" class="submenu-link">
+                  <i class="bi bi-paperclip"></i>
+                  <span>Sales Invoice</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a
+                  href="Purchase-invoice-attachments.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-paperclip"></i>
+                  <span>Purchase Invoice</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Adjustments Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Adjustments Management">
+              <i class="bi bi-sliders"></i>
+              <span class="nav-text">Adjustments Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Adjustment-types-master.html" class="submenu-link">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>Adjustment Types Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Sales-adjustment.html" class="submenu-link">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>Sales Adjustment</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Purchase-adjustment.html" class="submenu-link">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>Purchase Adjustment</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Vendor Bank Accounts -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Vendor Bank Accounts">
+              <i class="bi bi-building"></i>
+              <span class="nav-text">Vendor Bank Accounts</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Vendor-bank-accounts.html" class="submenu-link">
+                  <i class="bi bi-person-vcard"></i>
+                  <span>Vendor Bank Accounts</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Treasury Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Treasury Management">
+              <i class="bi bi-cash-coin"></i>
+              <span class="nav-text">Treasury Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Treasury-master.html" class="submenu-link">
+                  <i class="bi bi-card-heading"></i>
+                  <span>Treasury Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Treasury-transaction-log.html" class="submenu-link">
+                  <i class="bi bi-clock-history"></i>
+                  <span>Treasury Transaction Log</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Treasury-internal-transfer.html" class="submenu-link">
+                  <i class="bi bi-record-circle"></i>
+                  <span>Treasury Internal Transfer</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Client Payments -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Client Payments">
+              <i class="bi bi-person-badge"></i>
+              <span class="nav-text">Client Payments</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Client-payment.html" class="submenu-link">
+                  <i class="bi bi-cash-coin"></i>
+                  <span>Client Payment</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Client-payments-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Client Payments Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Vendor Payments -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Vendor Payments">
+              <i class="bi bi-wallet"></i>
+              <span class="nav-text">Vendor Payments</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Vendor-payment.html" class="submenu-link">
+                  <i class="bi bi-cash-coin"></i>
+                  <span>Vendor Payment</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Vendor-payments-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Vendor Payments Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- --- REPORTS --- -->
+          <li class="nav-section-title">
+            <span>Reports</span>
+          </li>
+
+          <!-- Reports Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Reports">
+              <i class="bi bi-file-earmark-bar-graph"></i>
+              <span class="nav-text">Reports</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a
+                  href="Report-shipment-documentation.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Shipment Documentation Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a
+                  href="Report-digital-pod-transaction.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Shipment POD Analysis Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-pod-management.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>POD Management Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-movements-management.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Movements Management Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-operation-actions.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Operation Actions Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-finance-management.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Finance Management Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-sales-invoicing.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Sales Invoicing Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-purchase-invoicing.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Purchase Invoicing Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a
+                  href="Report-invoice-acknowledgement.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Invoice Acknowledgement Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-vendor-bank-accounts.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Vendor Bank Accounts Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-client-payments.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Client Payments Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-vendor-payments.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Vendor Payments Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-support-management.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Support Management Report</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- --- SYSTEM --- -->
+          <li class="nav-section-title">
+            <span>System</span>
+          </li>
+
+          <!-- Configurations -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Configurations">
+              <i class="bi bi-gear-wide-connected"></i>
+              <span class="nav-text">Configurations</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Tax-codes-master.html" class="submenu-link">
+                  <i class="bi bi-percent"></i>
+                  <span>Tax Codes Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="General-tax-settings.html" class="submenu-link">
+                  <i class="bi bi-percent"></i>
+                  <span>General Tax Settings</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Auto-number-configuration.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Auto Number Configuration</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notificationPanel">
+      <!-- Panel Header -->
+      <div class="notification-header">
+        <h3 class="notification-title">Notifications</h3>
+        <button
+          class="notification-close"
+          id="notificationClose"
+          aria-label="Close"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Panel Content -->
+      <div class="notification-content">
+        <!-- Settings Button -->
+        <div class="notification-settings">
+          <button
+            class="settings-btn"
+            id="notificationSettingsBtn"
+            aria-label="Settings"
+          >
+            <i class="bi bi-gear"></i>
+          </button>
+        </div>
+
+        <!-- Preferences Popup -->
+        <div class="preferences-popup" id="preferencesPopup">
+          <h4 class="preferences-title">Preferences</h4>
+          <div class="ce-item">
+            <div class="preference-label">
+              <span>Allow Notifications</span>
+              <i
+                class="bi bi-info-circle"
+                title="Enable or disable all notifications"
+              ></i>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="allowNotifications" checked />
+              <span class="toggle-slider">
+                <span class="toggle-text-on">Enable</span>
+                <span class="toggle-text-off">Disable</span>
+              </span>
+            </label>
+          </div>
+          <div class="preference-item">
+            <label class="preference-checkbox">
+              <input type="checkbox" checked />
+              <span class="checkmark"></span>
+              <span>Record Comments</span>
+            </label>
+          </div>
+          <div class="preference-item">
+            <label class="preference-checkbox">
+              <input type="checkbox" checked />
+              <span class="checkmark"></span>
+              <span>Blueprint Transitions</span>
+            </label>
+          </div>
+          <button class="btn btn-primary preferences-done" id="preferencesDone">
+            Done
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div class="notification-empty">
+          <div class="empty-icon">
+            <i class="bi bi-bell"></i>
+            <span class="sparkle sparkle-1">&#10022;</span>
+            <span class="sparkle sparkle-2">&#10023;</span>
+            <span class="sparkle sparkle-3">&deg;</span>
+          </div>
+          <h4 class="empty-title">No notifications</h4>
+          <p class="empty-text">You are yet to receive notifications</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Panel Overlay -->
+    <div class="notification-overlay" id="notificationOverlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <button
+            class="header-toggle-btn"
+            id="sidebarCollapseBtn"
+            title="Toggle Sidebar"
+          >
+            <i class="bi bi-list"></i>
+          </button>
+          <div class="header-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search trucks, fleet..." />
+          </div>
+        </div>
+        <div class="header-datetime">
+          <span class="header-date" id="headerDate"
+            >Tuesday, 28 January 2026</span
+          >
+          <span class="header-time" id="headerTime">3:52 PM</span>
+        </div>
+        <div class="header-right">
+          <button class="header-icon-btn" title="Switch Language">
+            <i class="bi bi-translate"></i>
+          </button>
+          <button class="header-icon-btn" title="Notifications">
+            <i class="bi bi-bell"></i>
+            <span class="badge">3</span>
+          </button>
+          <div class="header-divider"></div>
+          <div class="header-user-wrapper">
+            <div class="header-user" id="headerUserToggle">
+              <div class="header-user-avatar">
+                <img
+                  src="https://ui-avatars.com/api/?name=Mark&background=5051f9&color=fff&size=40"
+                  alt="User"
+                />
+              </div>
+              <div class="header-user-info">
+                <span class="header-user-name">Mark</span>
+                <span class="header-user-role">Administrator</span>
+              </div>
+              <i class="bi bi-chevron-down header-user-chevron"></i>
+            </div>
+            <!-- Header User Dropdown -->
+            <div class="header-user-dropdown" id="headerUserDropdown">
+              <div class="header-dropdown-profile">
+                <div class="header-dropdown-avatar">
+                  <img
+                    src="https://ui-avatars.com/api/?name=Mark&background=e8e8e8&color=888&size=80"
+                    alt="User"
+                  />
+                </div>
+                <div class="header-dropdown-name">mark</div>
+                <div class="header-dropdown-email">mark@redsparkinfo.com</div>
+              </div>
+              <div class="header-dropdown-divider"></div>
+              <ul class="header-dropdown-menu">
+                <li>
+                  <a href="#" class="header-dropdown-item">
+                    <i class="bi bi-person"></i>
+                    <span>My Account</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="header-dropdown-item">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Sign out</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Fleet Management</li>
+            <li class="breadcrumb-item">
+              <a href="Truck-master-list.html">Truck Master List</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Truck Details
+            </li>
+          </ol>
+        </nav>
+
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Truck Details</h1>
+            <p class="page-subtitle">
+              View operational and financial details of the truck.
+            </p>
+          </div>
+          <div class="page-header-right">
+            <div class="eal-header-actions">
+              <a href="Truck-master-list.html" class="eal-btn eal-btn-outline">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back to list</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container-fluid pb-4">
+        <!-- Top Profile Card -->
+        <div class="ch-header-card">
+          <div class="ch-left">
+            <div class="ch-title-row">
+              <div class="ch-logo">
+                <i class="bi bi-truck"></i>
+              </div>
+              <h2 class="ch-title">TRK-1001 (1234 ABC)</h2>
+            </div>
+            <!-- Subtitle span kept hidden to avoid JS error but unused -->
+            <span id="vdSubtitle" class="d-none"></span>
+            <div class="ch-badges">
+              <div class="ch-badge">
+                <i class="bi bi-truck-flatbed"></i>
+                <span>Flatbed</span>
+              </div>
+              <div class="ch-badge">
+                <i class="bi bi-building"></i>
+                <span>Al Safa Transport Co.</span>
+              </div>
+              <div class="ch-badge">
+                <i class="bi bi-key"></i>
+                <span>Owned</span>
+              </div>
+              <div class="ch-badge">
+                <i class="bi bi-check2-circle"></i>
+                <span>Active</span>
+              </div>
+            </div>
+          </div>
+          <div class="ch-right">
+            <div class="ch-contact-item">
+              <div class="ch-contact-icon">
+                <i class="bi bi-person-badge"></i>
+              </div>
+              <div class="ch-contact-text">Driver: Ahmed Ali</div>
+            </div>
+            <div class="ch-contact-item">
+              <div class="ch-contact-icon">
+                <i class="bi bi-geo-alt"></i>
+              </div>
+              <div class="ch-contact-text">Location: Dubai Yard</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons Row -->
+        <div class="ch-actions">
+          <a href="#" class="ch-action-btn">
+            <i class="bi bi-pencil"></i> Edit
+          </a>
+          <button class="ch-action-btn">
+            <i class="bi bi-folder-symlink"></i> Update Documents
+          </button>
+          <button class="ch-action-btn">
+            <i class="bi bi-geo-alt"></i> Create Movement
+          </button>
+          <button class="ch-action-btn">
+            <i class="bi bi-pause-circle"></i> Suspend Truck
+          </button>
+          <button class="ch-action-btn">
+            <i class="bi bi-file-earmark-plus"></i> Add Document
+          </button>
+        </div>
+
+        <!-- Main Content Card with Tabs -->
+        <div class="cd-main-card">
+          <!-- Tabs Header -->
+          <div class="cd-tabs-container">
+            <ul class="nav cd-tabs-list" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  class="cd-tab active"
+                  data-bs-toggle="tab"
+                  data-bs-target="#pane-overview"
+                  type="button"
+                  role="tab"
+                >
+                  Overview
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="cd-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#pane-documents"
+                  type="button"
+                  role="tab"
+                >
+                  Documents &amp; Attachments
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="cd-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#pane-assigned-drivers"
+                  type="button"
+                  role="tab"
+                >
+                  Assigned Drivers
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="cd-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#pane-shipments"
+                  type="button"
+                  role="tab"
+                >
+                  Shipments
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="cd-tab"
+                  data-bs-toggle="tab"
+                  data-bs-target="#pane-movements"
+                  type="button"
+                  role="tab"
+                >
+                  Movements Log
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="tab-content">
+            <!-- ═══════════ 1. OVERVIEW PANE ═══════════ -->
+            <div
+              class="tab-pane fade show active"
+              id="pane-overview"
+              role="tabpanel"
+            >
+              <!-- Basic Info & Ownership -->
+              <div class="cd-details-section mb-4">
+                <div class="cd-details-header">Basic Info & Ownership</div>
+                <div class="cd-details-body">
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Truck Code</span>
+                      <span class="cd-field-value">TRK-1001</span>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Status</span>
+                      <span class="cd-field-value"
+                        ><span class="status-badge active">Active</span></span
+                      >
+                    </div>
+                  </div>
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Sourcing Mode</span>
+                      <span class="cd-field-value">Owned</span>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Registration Country</span>
+                      <span class="cd-field-value">Saudi Arabia</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Vendor Account</span>
+                      <span class="cd-field-value"
+                        >Al Safa Providers (VND-084)</span
+                      >
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Owner ID</span>
+                      <span class="cd-field-value">OWN-9921</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row border-0 mb-0 pb-0">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Owner Name</span>
+                      <span class="cd-field-value">Al Safa Transport Co.</span>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label"
+                        >Is Vendor Same as Owner</span
+                      >
+                      <span class="cd-field-value">No</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Plate & Registration -->
+              <div class="cd-details-section mb-4">
+                <div class="cd-details-header">Plate & Registration</div>
+                <div class="cd-details-body">
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Plate Number</span>
+                      <span
+                        class="cd-field-value"
+                        style="font-weight: 600; font-size: 1.1rem"
+                        >1234 ABC</span
+                      >
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Saudi Plate Number</span>
+                      <span class="cd-field-value">1234</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Saudi English Letters</span>
+                      <span class="cd-field-value">ABC</span>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Saudi Arabic Letters</span>
+                      <span class="cd-field-value">ا ب ج</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Non-Saudi Plate Number</span>
+                      <span class="cd-field-value text-muted">—</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row border-0 mb-0 pb-0">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Plate Image</span>
+                      <div class="cd-field-value mt-2">
+                        <div
+                          style="
+                            width: 120px;
+                            height: 80px;
+                            background: #f4f5fc;
+                            border: 1px dashed #c2c4fa;
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #5051f9;
+                          "
+                          title="PlateImage.jpg"
+                        >
+                          <i class="bi bi-image" style="font-size: 1.5rem"></i>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label"
+                        >Vehicle Registration Image</span
+                      >
+                      <div class="cd-field-value mt-2">
+                        <div
+                          style="
+                            width: 120px;
+                            height: 80px;
+                            background: #fef2f2;
+                            border: 1px dashed #fca5a5;
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #ef4444;
+                          "
+                          title="Registration.pdf"
+                        >
+                          <i
+                            class="bi bi-file-earmark-pdf"
+                            style="font-size: 1.5rem"
+                          ></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Truck Details & Images -->
+              <div class="cd-details-section mb-4">
+                <div class="cd-details-header">Truck Details & Images</div>
+                <div class="cd-details-body">
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Truck Type</span>
+                      <span class="cd-field-value">Flatbed</span>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Chassis Number (VIN)</span>
+                      <span class="cd-field-value">WAUZZZ1234567890</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Serial Number</span>
+                      <span class="cd-field-value">SN-99887766</span>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Color</span>
+                      <span class="cd-field-value">White</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row border-0 mb-0 pb-0">
+                    <div class="cd-field" style="grid-column: 1 / -1">
+                      <span class="cd-field-label">Truck Images</span>
+                      <div class="cd-field-value mt-2 d-flex gap-3">
+                        <div
+                          style="
+                            width: 140px;
+                            height: 100px;
+                            background: #f4f5fc;
+                            border: 1px dashed #c2c4fa;
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #5051f9;
+                          "
+                          title="Truck_Front.jpg"
+                        >
+                          <i class="bi bi-truck" style="font-size: 2rem"></i>
+                        </div>
+                        <div
+                          style="
+                            width: 140px;
+                            height: 100px;
+                            background: #f4f5fc;
+                            border: 1px dashed #c2c4fa;
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            color: #5051f9;
+                          "
+                          title="Truck_Side.jpg"
+                        >
+                          <i
+                            class="bi bi-truck-flatbed"
+                            style="font-size: 2rem"
+                          ></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Specifications & Capacities -->
+              <div class="cd-details-section">
+                <div class="cd-details-header">Specifications & Capacities</div>
+                <div class="cd-details-body">
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Axle Count</span>
+                      <span class="cd-field-value">3</span>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Tires Count</span>
+                      <span class="cd-field-value">10</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Tare Weight (Ton)</span>
+                      <span class="cd-field-value">8.5 Ton</span>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Gross Weight (Ton)</span>
+                      <span class="cd-field-value">40.0 Ton</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Payload Capacity (Ton)</span>
+                      <span class="cd-field-value">31.5 Ton</span>
+                    </div>
+                    <div class="cd-field">
+                      <span class="cd-field-label">Volume (m&sup3;)</span>
+                      <span class="cd-field-value">60 m&sup3;</span>
+                    </div>
+                  </div>
+                  <div class="cd-grid-row border-0 mb-0 pb-0">
+                    <div class="cd-field">
+                      <span class="cd-field-label">Default Driver</span>
+                      <span class="cd-field-value">Ahmed Ali</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══════════ 2. DOCUMENTS & ATTACHMENTS PANE ═══════════ -->
+            <div class="tab-pane fade" id="pane-documents" role="tabpanel">
+              <div class="cd-details-section mb-4">
+                <div
+                  class="cd-details-header d-flex justify-content-between align-items-center"
+                >
+                  <span>Truck Documents</span>
+                  <button
+                    class="btn btn-primary btn-sm"
+                    onclick="event.stopPropagation()"
+                  >
+                    <i class="bi bi-upload"></i> Upload Document
+                  </button>
+                </div>
+                <div class="cd-details-body p-0">
+                  <div
+                    class="eal-table-wrap"
+                    style="box-shadow: none; border-radius: 0"
+                  >
+                    <table class="eal-table mb-0">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Document Name</th>
+                          <th>Attached Date</th>
+                          <th>Expiry Applicable</th>
+                          <th>Expiry Date</th>
+                          <th>Status</th>
+                          <th class="text-end">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>1</td>
+                          <td>
+                            <i
+                              class="bi bi-file-earmark-pdf text-danger me-1"
+                            ></i>
+                            Registration_Card.pdf
+                          </td>
+                          <td>15 Jan 2024</td>
+                          <td>Yes</td>
+                          <td class="text-danger fw-bold">15 Jan 2025</td>
+                          <td>
+                            <span
+                              class="status-badge border border-danger border-opacity-25"
+                              style="background: #fef2f2; color: #ef4444"
+                              >Expired</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <button class="eal-row-btn" title="Download">
+                                <i class="bi bi-download"></i>
+                              </button>
+                              <button
+                                class="eal-row-btn"
+                                title="Delete"
+                                style="
+                                  color: #ef4444;
+                                  border-color: #fca5a5;
+                                  background: #fef2f2;
+                                "
+                              >
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>2</td>
+                          <td>
+                            <i
+                              class="bi bi-file-earmark-image text-primary me-1"
+                            ></i>
+                            Insurance_Policy_2026.png
+                          </td>
+                          <td>01 Feb 2026</td>
+                          <td>Yes</td>
+                          <td class="text-success fw-bold">31 Jan 2027</td>
+                          <td>
+                            <span
+                              class="status-badge border border-success border-opacity-25"
+                              style="background: #e6f8ef; color: #0d894f"
+                              >Active</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <button class="eal-row-btn" title="Download">
+                                <i class="bi bi-download"></i>
+                              </button>
+                              <button
+                                class="eal-row-btn"
+                                title="Delete"
+                                style="
+                                  color: #ef4444;
+                                  border-color: #fca5a5;
+                                  background: #fef2f2;
+                                "
+                              >
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>3</td>
+                          <td>
+                            <i
+                              class="bi bi-file-earmark-word text-info me-1"
+                            ></i>
+                            Customs_Clearance_Specs.docx
+                          </td>
+                          <td>10 Nov 2025</td>
+                          <td>No</td>
+                          <td class="text-muted">—</td>
+                          <td>
+                            <span
+                              class="status-badge border border-success border-opacity-25"
+                              style="background: #e6f8ef; color: #0d894f"
+                              >Active</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <button class="eal-row-btn" title="Download">
+                                <i class="bi bi-download"></i>
+                              </button>
+                              <button
+                                class="eal-row-btn"
+                                title="Delete"
+                                style="
+                                  color: #ef4444;
+                                  border-color: #fca5a5;
+                                  background: #fef2f2;
+                                "
+                              >
+                                <i class="bi bi-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══════════ 3. ASSIGNED DRIVERS PANE ═══════════ -->
+            <div
+              class="tab-pane fade"
+              id="pane-assigned-drivers"
+              role="tabpanel"
+            >
+              <div class="cd-details-section mb-4">
+                <div class="cd-details-header">Driver Assignment History</div>
+                <div class="cd-details-body p-0">
+                  <div
+                    class="eal-table-wrap"
+                    style="box-shadow: none; border-radius: 0"
+                  >
+                    <table class="eal-table mb-0">
+                      <thead>
+                        <tr>
+                          <th>Driver ID</th>
+                          <th>Driver Name</th>
+                          <th>Assigned From</th>
+                          <th>Assigned To</th>
+                          <th>Contact</th>
+                          <th>Status</th>
+                          <th class="text-end">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><span class="eal-entity-id">DRV-1001</span></td>
+                          <td>Ahmed Ali</td>
+                          <td>01 Feb 2024</td>
+                          <td>—</td>
+                          <td>+966 50 123 4567</td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="
+                                background: #e6f8ef;
+                                color: #0d894f;
+                                border: 1px solid #bbf7d0;
+                              "
+                              >Current</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <a
+                                href="Driver-details.html"
+                                class="eal-row-btn"
+                                title="View Driver"
+                                ><i class="bi bi-eye"></i
+                              ></a>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><span class="eal-entity-id">DRV-0892</span></td>
+                          <td>Hassan Syed</td>
+                          <td>15 Jun 2022</td>
+                          <td>31 Jan 2024</td>
+                          <td>+966 55 987 6543</td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="
+                                background: #f1f5f9;
+                                color: #64748b;
+                                border: 1px solid #e2e8f0;
+                              "
+                              >Ended</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <a
+                                href="Driver-details.html"
+                                class="eal-row-btn"
+                                title="View Driver"
+                                ><i class="bi bi-eye"></i
+                              ></a>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══════════ 4. SHIPMENTS PANE ═══════════ -->
+            <div class="tab-pane fade" id="pane-shipments" role="tabpanel">
+              <div class="cd-details-section mb-4">
+                <div class="cd-details-header">Truck Shipments History</div>
+                <div class="cd-details-body p-0">
+                  <div
+                    class="eal-table-wrap"
+                    style="box-shadow: none; border-radius: 0"
+                  >
+                    <table class="eal-table mb-0">
+                      <thead>
+                        <tr>
+                          <th>Shipment ID</th>
+                          <th>Date</th>
+                          <th>Route</th>
+                          <th>Client</th>
+                          <th>Driver</th>
+                          <th>Cargo Type</th>
+                          <th>Status</th>
+                          <th class="text-end">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><span class="eal-entity-id">SHP-8990</span></td>
+                          <td>01 Apr 2026</td>
+                          <td>Dubai &rarr; Riyadh</td>
+                          <td>Saudi Cement Co.</td>
+                          <td>Ahmed Ali</td>
+                          <td>Bulk Cement</td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="
+                                background: #eef2ff;
+                                color: #4f46e5;
+                                border: 1px solid #c7d2fe;
+                              "
+                              >In Transit</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <button class="eal-row-btn" title="View">
+                                <i class="bi bi-eye"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><span class="eal-entity-id">SHP-8950</span></td>
+                          <td>22 Mar 2026</td>
+                          <td>Jeddah &rarr; Dammam</td>
+                          <td>National Foods Ltd.</td>
+                          <td>Hassan Syed</td>
+                          <td>Perishable Goods</td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="
+                                background: #f0fdf4;
+                                color: #166534;
+                                border: 1px solid #bbf7d0;
+                              "
+                              >Delivered</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <button class="eal-row-btn" title="View">
+                                <i class="bi bi-eye"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══════════ 5. MOVEMENTS LOG PANE ═══════════ -->
+            <div class="tab-pane fade" id="pane-movements" role="tabpanel">
+              <div class="cd-details-section mb-4">
+                <div class="cd-details-header">Truck Movements Log</div>
+                <div class="cd-details-body p-0">
+                  <div
+                    class="eal-table-wrap"
+                    style="box-shadow: none; border-radius: 0"
+                  >
+                    <table class="eal-table mb-0">
+                      <thead>
+                        <tr>
+                          <th>Movement ID</th>
+                          <th>Date</th>
+                          <th>From Location</th>
+                          <th>To Location</th>
+                          <th>KM Covered</th>
+                          <th>Movement Type</th>
+                          <th>Status</th>
+                          <th class="text-end">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><span class="eal-entity-id">MOV-6501</span></td>
+                          <td>01 Apr 2026</td>
+                          <td>Dubai Warehouse</td>
+                          <td>Riyadh Central Hub</td>
+                          <td style="font-weight: 600">1,067 km</td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="background: #eef2ff; color: #4f46e5"
+                              >Loaded Trip</span
+                            >
+                          </td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="
+                                background: #fffbeb;
+                                color: #b45309;
+                                border: 1px solid #fde68a;
+                              "
+                              >In Progress</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <button class="eal-row-btn" title="View">
+                                <i class="bi bi-eye"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><span class="eal-entity-id">MOV-6490</span></td>
+                          <td>28 Mar 2026</td>
+                          <td>Abu Dhabi Port</td>
+                          <td>Dubai Warehouse</td>
+                          <td style="font-weight: 600">140 km</td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="background: #f1f5f9; color: #475569"
+                              >Empty Return</span
+                            >
+                          </td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="
+                                background: #f0fdf4;
+                                color: #166534;
+                                border: 1px solid #bbf7d0;
+                              "
+                              >Completed</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <button class="eal-row-btn" title="View">
+                                <i class="bi bi-eye"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><span class="eal-entity-id">MOV-6445</span></td>
+                          <td>22 Mar 2026</td>
+                          <td>Jeddah Depot</td>
+                          <td>Dammam Port</td>
+                          <td style="font-weight: 600">1,420 km</td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="background: #eef2ff; color: #4f46e5"
+                              >Loaded Trip</span
+                            >
+                          </td>
+                          <td>
+                            <span
+                              class="status-badge"
+                              style="
+                                background: #f0fdf4;
+                                color: #166534;
+                                border: 1px solid #bbf7d0;
+                              "
+                              >Completed</span
+                            >
+                          </td>
+                          <td class="text-end">
+                            <div
+                              class="eal-actions-cell justify-content-end pt-0 pb-0 w-100"
+                            >
+                              <button class="eal-row-btn" title="View">
+                                <i class="bi bi-eye"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="Javascript/main.js"></script>
+
+    <script>
+      // Copy to clipboard functionally for top card
+      document.querySelectorAll(".ch-contact-copy").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const textToCopy = this.previousElementSibling.innerText;
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            let originalHtml = this.innerHTML;
+            this.innerHTML = '<i class="bi bi-check2"></i>';
+            setTimeout(() => {
+              this.innerHTML = originalHtml;
+            }, 1500);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -76,6 +76,24 @@
   <div class="form-card-body">
     <div class="fields-grid cols-2">
       <div class="field">
+        <span class="field-hint d-block mb-1">Attachment No</span>
+        <span class="fw-semibold">{{ attachment.attachment_no|default:"—" }}</span>
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">Doc Ref Number</span>
+        <span>{{ attachment.doc_ref_number|default:"—" }}</span>
+      </div>
+
+      <div class="field">
+        <span class="field-hint d-block mb-1">Arabic Label</span>
+        <span>{{ attachment.arabic_label|default:"—" }}</span>
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">English Label</span>
+        <span>{{ attachment.english_label|default:"—" }}</span>
+      </div>
+
+      <div class="field">
         <span class="field-hint d-block mb-1">Attachment Date</span>
         <span class="fw-semibold">{{ attachment.attachment_date }}</span>
       </div>

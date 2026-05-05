@@ -926,11 +926,22 @@ class TruckAttachment(models.Model):
     ATTACHMENT_MAX_SIZE_BYTES = ATTACHMENT_MAX_SIZE_MB * 1024 * 1024
 
     attachment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    attachment_no = models.CharField(
+        max_length=64,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text=_('Auto-generated attachment number'),
+    )
+    attachment_sequence = models.PositiveIntegerField(default=0)
     truck = models.ForeignKey(
         TruckMaster,
         on_delete=models.CASCADE,
         related_name='attachments',
     )
+    arabic_label = models.CharField(max_length=200, blank=True, default='')
+    english_label = models.CharField(max_length=200, blank=True, default='')
+    doc_ref_number = models.CharField(max_length=120, blank=True, default='')
     attachment_date = models.DateField(default=date.today)
     is_expiry_applicable = models.BooleanField(default=False)
     expiry_date = models.DateField(blank=True, null=True)
@@ -948,7 +959,8 @@ class TruckAttachment(models.Model):
         verbose_name_plural = _('Truck Attachments')
 
     def __str__(self):
-        return f'Attachment for {self.truck.truck_code} — {self.attachment_date}'
+        ref = self.attachment_no or str(self.attachment_id)
+        return f'{ref} — {self.truck.truck_code}'
 
     @property
     def status(self) -> str:

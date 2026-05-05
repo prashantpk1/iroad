@@ -111,6 +111,9 @@ TRUCK_TYPE_REF_PREFIX = 'TRT'
 TRUCK_MASTER_AUTO_FORM_CODE = 'truck-master'
 TRUCK_MASTER_AUTO_FORM_LABEL = 'Truck Code'
 TRUCK_MASTER_REF_PREFIX = 'TR'
+TRUCK_ATTACHMENT_AUTO_FORM_CODE = 'truck-attachment'
+TRUCK_ATTACHMENT_AUTO_FORM_LABEL = 'Truck Attachment No'
+TRUCK_ATTACHMENT_REF_PREFIX = 'TA'
 
 CARGO_MASTER_AUTO_FORM_CODE = 'cargo-master'
 CARGO_MASTER_AUTO_FORM_LABEL = 'Cargo code'
@@ -7572,6 +7575,7 @@ class TruckAttachmentCreateView(View):
                     'form': form,
                     'truck': truck,
                     'page_title': 'Add Attachment',
+                    'attachment_no_preview': _preview_next_truck_attachment_no(),
                     'show_truck_selector': show_truck_selector,
                     'trucks_for_select': trucks_for_select,
                     'selected_truck_id': '',
@@ -7627,6 +7631,7 @@ class TruckAttachmentCreateView(View):
                         'form': form,
                         'truck': truck,
                         'page_title': 'Add Attachment',
+                        'attachment_no_preview': _preview_next_truck_attachment_no(),
                         'show_truck_selector': show_truck_selector,
                         'trucks_for_select': trucks_for_select,
                         'selected_truck_id': selected_truck_id,
@@ -7637,14 +7642,18 @@ class TruckAttachmentCreateView(View):
                 messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
                 return render(request, self.template_name, context)
 
+            attachment_no, attachment_seq = _next_auto_number_for_form(
+                TRUCK_ATTACHMENT_AUTO_FORM_CODE,
+                TRUCK_ATTACHMENT_AUTO_FORM_LABEL,
+                TRUCK_ATTACHMENT_REF_PREFIX,
+            )
             obj = form.save(commit=False)
             obj.truck = truck
+            obj.attachment_no = attachment_no
+            obj.attachment_sequence = attachment_seq
             obj.save()
             messages.success(request, 'Attachment saved.', extra_tags='tenant')
-            return redirect(
-                'iroad_tenants:truck_attachment_list',
-                truck_id=truck.truck_id,
-            )
+            return redirect('iroad_tenants:truck_attachment_all_list')
         finally:
             connection.set_schema_to_public()
 
@@ -8129,6 +8138,7 @@ class TenantAutoNumberConfigurationView(View):
         ADDRESS_MASTER_AUTO_FORM_CODE: ADDRESS_MASTER_AUTO_FORM_LABEL,
         TRUCK_TYPE_AUTO_FORM_CODE: TRUCK_TYPE_AUTO_FORM_LABEL,
         TRUCK_MASTER_AUTO_FORM_CODE: TRUCK_MASTER_AUTO_FORM_LABEL,
+        TRUCK_ATTACHMENT_AUTO_FORM_CODE: TRUCK_ATTACHMENT_AUTO_FORM_LABEL,
         CARGO_MASTER_AUTO_FORM_CODE: CARGO_MASTER_AUTO_FORM_LABEL,
         CARGO_CATEGORY_AUTO_FORM_CODE: CARGO_CATEGORY_AUTO_FORM_LABEL,
         LOCATION_MASTER_AUTO_FORM_CODE: LOCATION_MASTER_AUTO_FORM_LABEL,
@@ -10299,6 +10309,24 @@ def _preview_next_truck_master_code():
     ).first()
     next_seq = sequence.next_number if sequence else 1
     return _render_tenant_ref_no(next_seq, config, prefix=TRUCK_MASTER_REF_PREFIX)
+
+
+def _preview_next_truck_attachment_no():
+    """Next TA-xxxx preview in tenant schema without consuming the sequence."""
+    config, _ = AutoNumberConfiguration.objects.get_or_create(
+        form_code=TRUCK_ATTACHMENT_AUTO_FORM_CODE,
+        defaults={
+            'form_label': TRUCK_ATTACHMENT_AUTO_FORM_LABEL,
+            'number_of_digits': 4,
+            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
+            'is_unique': True,
+        },
+    )
+    sequence = AutoNumberSequence.objects.filter(
+        form_code=TRUCK_ATTACHMENT_AUTO_FORM_CODE,
+    ).first()
+    next_seq = sequence.next_number if sequence else 1
+    return _render_tenant_ref_no(next_seq, config, prefix=TRUCK_ATTACHMENT_REF_PREFIX)
 
 
 def _preview_next_cargo_master_code():
