@@ -6,6 +6,8 @@ listed in ``TENANT_APPS`` and is migrated per tenant via django-tenants.
 """
 import os
 import uuid
+import secrets
+import string
 from datetime import date
 
 from django.core.exceptions import ValidationError
@@ -925,6 +927,16 @@ class TruckAttachment(models.Model):
     ATTACHMENT_MAX_SIZE_MB = 10
     ATTACHMENT_MAX_SIZE_BYTES = ATTACHMENT_MAX_SIZE_MB * 1024 * 1024
 
+    @staticmethod
+    def _upload_to(instance, filename):
+        ext = os.path.splitext(filename or '')[1].lower() or '.bin'
+        base = (getattr(instance, 'attachment_no', '') or 'ATT').strip()
+        suffix = ''.join(
+            secrets.choice(string.ascii_lowercase + string.digits)
+            for _ in range(3)
+        )
+        return f'trucks/attachments/{base}{suffix}{ext}'
+
     attachment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     attachment_no = models.CharField(
         max_length=64,
@@ -945,7 +957,7 @@ class TruckAttachment(models.Model):
     attachment_date = models.DateField(default=date.today)
     is_expiry_applicable = models.BooleanField(default=False)
     expiry_date = models.DateField(blank=True, null=True)
-    attachment_file = models.FileField(upload_to='trucks/attachments/', max_length=500)
+    attachment_file = models.FileField(upload_to=_upload_to, max_length=500)
     file_notes = models.TextField(
         help_text=_('Notes about this attachment document'),
     )

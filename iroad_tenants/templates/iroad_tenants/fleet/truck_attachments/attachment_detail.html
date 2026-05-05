@@ -38,7 +38,7 @@
 
 <div class="form-card mb-3" data-section="truck-summary">
   <div class="form-card-body py-3">
-    <div class="fields-grid cols-4 mb-0">
+    <div class="fields-grid cols-2 mb-0">
       <div class="field mb-0">
         <span class="field-hint d-block mb-1">Truck Code</span>
         <span class="fw-semibold eal-entity-id">{{ truck.truck_code }}</span>
@@ -211,10 +211,76 @@
 </div>
 
 <style>
-  .status-badge.ta-truck-active { background: #198754; color: #fff; border: 0; }
-  .status-badge.ta-truck-inactive { background: #94a3b8; color: #fff; border: 0; }
-  .status-badge.ta-att-valid { background: #198754; color: #fff; border: 0; }
-  .status-badge.ta-att-expired { background: #dc3545; color: #fff; border: 0; }
-  .status-badge.ta-att-nexp { background: #0d6efd; color: #fff; border: 0; }
+  .form-card {
+    border: 1px solid #e9edf5;
+    border-radius: 10px;
+    box-shadow: none;
+  }
+  .form-card-header {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #eef2f8;
+  }
+  .form-card-body {
+    padding: 0.9rem 1rem;
+  }
+  .form-card-title {
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+  }
+  .form-card-desc {
+    font-size: 0.82rem;
+    color: #72809a;
+    margin-bottom: 0;
+  }
+  .field .field-hint {
+    font-size: 0.72rem;
+    color: #8a96ab;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .field span {
+    font-size: 0.92rem;
+    color: #263246;
+  }
+  .eal-entity-id {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: max-content;
+    min-width: 0 !important;
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+  }
+  .form-actions-bar {
+    border: 1px solid #e9edf5;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    background: #fff;
+  }
+  .status-badge {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.1;
+    white-space: nowrap;
+    width: auto !important;
+    max-width: max-content;
+    min-width: 0 !important;
+  }
+  .status-badge.ta-truck-active { background: #e9f8ef; color: #0f8a43; border: 1px solid #c7efd5; }
+  .status-badge.ta-truck-inactive { background: #f2f4f8; color: #6f7b90; border: 1px solid #e3e7ee; }
+  .status-badge.ta-att-valid { background: #e9f8ef; color: #0f8a43; border: 1px solid #c7efd5; }
+  .status-badge.ta-att-expired { background: #ffecec; color: #c73535; border: 1px solid #ffd2d2; }
+  .status-badge.ta-att-nexp { background: #edf4ff; color: #2f6fd8; border: 1px solid #d6e5ff; }
+  .btn {
+    font-size: 0.82rem;
+  }
+  .btn-sm {
+    font-size: 0.78rem;
+    padding: 0.28rem 0.55rem;
+  }
 </style>
 {% endblock %}

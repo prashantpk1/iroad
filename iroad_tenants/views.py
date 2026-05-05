@@ -15,6 +15,7 @@ from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.core.paginator import Paginator
+from django.core.files.storage import default_storage
 from django.db import IntegrityError, ProgrammingError, connection
 from django.db.models.deletion import ProtectedError
 from django.db import transaction as db_transaction
@@ -7734,6 +7735,12 @@ class TruckAttachmentEditView(View):
                     truck_id=truck_id,
                 )
 
+            old_file_name = (
+                attachment.attachment_file.name
+                if attachment and attachment.attachment_file
+                else ''
+            )
+
             form = TruckAttachmentForm(
                 request.POST,
                 request.FILES,
@@ -7760,6 +7767,15 @@ class TruckAttachmentEditView(View):
             obj = form.save(commit=False)
             obj.truck = truck
             obj.save()
+            new_file_uploaded = bool(request.FILES.get('attachment_file'))
+            new_file_name = obj.attachment_file.name if obj.attachment_file else ''
+            if (
+                new_file_uploaded
+                and old_file_name
+                and old_file_name != new_file_name
+                and default_storage.exists(old_file_name)
+            ):
+                default_storage.delete(old_file_name)
             messages.success(
                 request,
                 'Attachment updated successfully.',
