@@ -1,0 +1,1500 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Shipment List | iRoad Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Operations Management</li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Shipment List
+            </li>
+          </ol>
+        </nav>
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Shipment List</h1>
+            <p class="page-subtitle">View and manage all shipments.</p>
+          </div>
+          <div class="page-header-right">
+            <div class="eal-header-actions">
+              <button class="eal-btn eal-btn-outline">
+                <i class="bi bi-download"></i>
+                <span>Export</span>
+              </button>
+              <a href="Shipment.html" class="eal-btn eal-btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                <span>Add Shipment</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="eal-stats-row">
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon green">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">12</div>
+            <div class="eal-stat-label">Active</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon green">
+            <i class="bi bi-check2-circle"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">10</div>
+            <div class="eal-stat-label">Delivered</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon blue">
+            <i class="bi bi-credit-card"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">5</div>
+            <div class="eal-stat-label">Credit</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon purple">
+            <i class="bi bi-box-seam"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">8</div>
+            <div class="eal-stat-label">COD Shipment</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon amber">
+            <i class="bi bi-arrow-down-circle"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">6</div>
+            <div class="eal-stat-label">Inbound</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon amber">
+            <i class="bi bi-arrow-up-circle"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">9</div>
+            <div class="eal-stat-label">Outbound</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon green">
+            <i class="bi bi-file-check"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">7</div>
+            <div class="eal-stat-label">Complete POD</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon red">
+            <i class="bi bi-file-earmark"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">3</div>
+            <div class="eal-stat-label">Pending POD</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="page-content">
+        <!-- Table Card -->
+        <div class="eal-table-card">
+          <!-- Toolbar -->
+          <div class="eal-toolbar">
+            <div class="eal-toolbar-left">
+              <div class="eal-search">
+                <i class="bi bi-search"></i>
+                <input type="text" placeholder="search will be by, shipment, booking, truck
+&hellip;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="eal-table-wrap">
+            <table class="eal-table">
+              <thead>
+                <tr>
+                  <th class="eal-col-check">
+                    <input
+                      type="checkbox"
+                      class="eal-custom-check"
+                      id="ealSelectAll"
+                    />
+                  </th>
+                  <th>
+                    Shipment No
+                    <span class="sort-indicator">
+                      <i class="bi bi-caret-up-fill"></i>
+                      <i class="bi bi-caret-down-fill"></i>
+                    </span>
+                  </th>
+                  <th>
+                    Date
+                    <span class="sort-indicator">
+                      <i class="bi bi-caret-up-fill"></i>
+                      <i class="bi bi-caret-down-fill"></i>
+                    </span>
+                  </th>
+                  <th>
+                    Status
+                    <span class="sort-indicator">
+                      <i class="bi bi-caret-up-fill"></i>
+                      <i class="bi bi-caret-down-fill"></i>
+                    </span>
+                  </th>
+                  <th>
+                    Client
+                    <span class="sort-indicator">
+                      <i class="bi bi-caret-up-fill"></i>
+                      <i class="bi bi-caret-down-fill"></i>
+                    </span>
+                  </th>
+                  <th>
+                    Booking
+                    <span class="sort-indicator">
+                      <i class="bi bi-caret-up-fill"></i>
+                      <i class="bi bi-caret-down-fill"></i>
+                    </span>
+                  </th>
+                  <th>
+                    Type
+                    <span class="sort-indicator">
+                      <i class="bi bi-caret-up-fill"></i>
+                      <i class="bi bi-caret-down-fill"></i>
+                    </span>
+                  </th>
+                  <th>
+                    Route
+                    <span class="sort-indicator">
+                      <i class="bi bi-caret-up-fill"></i>
+                      <i class="bi bi-caret-down-fill"></i>
+                    </span>
+                  </th>
+                  <th>
+                    COD Status
+                    <span class="sort-indicator">
+                      <i class="bi bi-caret-up-fill"></i>
+                      <i class="bi bi-caret-down-fill"></i>
+                    </span>
+                  </th>
+                  <th>ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Sample rows (static demo data) -->
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000001</span>
+                  </td>
+                  <td>01 Feb 2026</td>
+                  <td>
+                    <span class="status-badge active">Delivered</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">Al Safa Logistics</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000001</span>
+                  </td>
+                  <td>Delivery</td>
+                  <td>Riyadh - Jeddah</td>
+                  <td>
+                    <span class="status-badge in-transit">Collected</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000002</span>
+                  </td>
+                  <td>02 Feb 2026</td>
+                  <td>
+                    <span class="status-badge in-transit">In Transit</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">Riyadh Trading Co.</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000002</span>
+                  </td>
+                  <td>Pickup</td>
+                  <td>Dammam - Riyadh</td>
+                  <td>
+                    <span class="status-badge pending">Pending</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000003</span>
+                  </td>
+                  <td>03 Feb 2026</td>
+                  <td>
+                    <span class="status-badge active">Delivered</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">Desert Star Transport</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000003</span>
+                  </td>
+                  <td>Return</td>
+                  <td>Jeddah - Riyadh</td>
+                  <td>
+                    <span class="status-badge in-transit">Collected</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000004</span>
+                  </td>
+                  <td>04 Feb 2026</td>
+                  <td>
+                    <span class="status-badge in-transit">In Transit</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">National Water Co.</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000004</span>
+                  </td>
+                  <td>Delivery</td>
+                  <td>Riyadh - Khobar</td>
+                  <td>
+                    <span class="status-badge pending">Pending</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000005</span>
+                  </td>
+                  <td>05 Feb 2026</td>
+                  <td>
+                    <span class="status-badge active">Delivered</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">Blue Ocean Imports</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000005</span>
+                  </td>
+                  <td>Delivery</td>
+                  <td>Jeddah - Medina</td>
+                  <td>
+                    <span class="status-badge in-transit">Collected</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000006</span>
+                  </td>
+                  <td>06 Feb 2026</td>
+                  <td>
+                    <span class="status-badge active">Delivered</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">Jeddah Fresh Foods</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000006</span>
+                  </td>
+                  <td>Pickup</td>
+                  <td>Makkah - Jeddah</td>
+                  <td>
+                    <span class="status-badge in-transit">Collected</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000007</span>
+                  </td>
+                  <td>07 Feb 2026</td>
+                  <td>
+                    <span class="status-badge in-transit">In Transit</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">Global Medical Supplies</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000007</span>
+                  </td>
+                  <td>Return</td>
+                  <td>Taif - Jeddah</td>
+                  <td>
+                    <span class="status-badge pending">Pending</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000008</span>
+                  </td>
+                  <td>08 Feb 2026</td>
+                  <td>
+                    <span class="status-badge active">Delivered</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">Ahmed Khan Transport</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000008</span>
+                  </td>
+                  <td>Delivery</td>
+                  <td>Abha - Khimis Mushait</td>
+                  <td>
+                    <span class="status-badge in-transit">Collected</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000009</span>
+                  </td>
+                  <td>09 Feb 2026</td>
+                  <td>
+                    <span class="status-badge in-transit">In Transit</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">Kuwait Steel Works</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000009</span>
+                  </td>
+                  <td>Pickup</td>
+                  <td>Kuwait - Shuwaikh</td>
+                  <td>
+                    <span class="status-badge pending">Pending</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="eal-col-check">
+                    <input type="checkbox" class="eal-custom-check" />
+                  </td>
+                  <td>
+                    <span class="eal-entity-id">SHP-000010</span>
+                  </td>
+                  <td>10 Feb 2026</td>
+                  <td>
+                    <span class="status-badge active">Delivered</span>
+                  </td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">Qatar Energy Group</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span>BK-000010</span>
+                  </td>
+                  <td>Delivery</td>
+                  <td>Doha - Al Wakrah</td>
+                  <td>
+                    <span class="status-badge in-transit">Collected</span>
+                  </td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-arrow-repeat text-secondary me-2"></i>
+                            Update</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pin-map text-success me-2"></i>
+                            Update Address</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-box text-warning me-2"></i>
+                            Update Cargo</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-info me-2"></i>
+                            Update Truck</a
+                          >
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <a class="dropdown-item text-danger" href="#"
+                            ><i class="bi bi-trash3 me-2"></i> Delete</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="eal-pagination">
+            <div class="eal-pagination-info">
+              Showing
+              <strong>1&ndash;10</strong>
+              of
+              <strong>15</strong>
+              shipments
+            </div>
+            <div class="eal-pagination-controls">
+              <button class="eal-page-btn" title="Previous">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button class="eal-page-btn active">1</button>
+              <button class="eal-page-btn" title="Next">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- ========== END TABLE UI DESIGN ========== -->
+      </div>
+
+<!-- ========== SHIPMENT DETAIL SLIDE PANEL ========== -->
+    <div class="detail-panel-overlay" id="detailPanelOverlay"></div>
+    <aside class="detail-panel" id="detailPanel">
+      <!-- Panel Header -->
+      <div class="detail-panel-header">
+        <div class="detail-panel-nav">
+          <button class="detail-nav-btn" id="detailPrevBtn" title="Previous">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="detail-nav-btn" id="detailNextBtn" title="Next">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <div class="detail-panel-actions">
+          <button class="detail-action-btn edit" title="Edit">
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit</span>
+          </button>
+          <button class="detail-action-btn duplicate" title="Duplicate">
+            <i class="bi bi-copy"></i>
+            <span>Duplicate</span>
+          </button>
+          <button class="detail-action-btn delete" title="Delete">
+            <i class="bi bi-trash3"></i>
+            <span>Delete</span>
+          </button>
+        </div>
+        <button class="detail-close-btn" id="detailCloseBtn" title="Close">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Panel Body -->
+      <div class="detail-panel-body">
+        <!-- Section: Shipment Overview -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Shipment Overview</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Shipment No.</span>
+            <span class="detail-field-value" id="dpShipmentNo">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Order Type</span>
+            <span class="detail-field-value" id="dpOrderType">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Shipment Date</span>
+            <span class="detail-field-value" id="dpShipmentDate">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Shipment Status</span>
+            <span class="detail-field-value" id="dpShipmentStatus"
+              >&mdash;</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Collection Status</span>
+            <span class="detail-field-value" id="dpCollectionStatus"
+              >&mdash;</span
+            >
+          </div>
+        </div>
+
+        <!-- Section: Shipment Details -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Shipment Details</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">COD Amount</span>
+            <span class="detail-field-value" id="dpCodAmount">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">POD Type</span>
+            <span class="detail-field-value" id="dpPodType">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">POD Status</span>
+            <span class="detail-field-value" id="dpPodStatus">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">POD Doc Count</span>
+            <span class="detail-field-value" id="dpPodDocCount">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Booking Reference -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Booking Reference</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Booking</span>
+            <span class="detail-field-value" id="dpBooking">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Booking Item</span>
+            <span class="detail-field-value" id="dpBookingItem">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Booking Item Type</span>
+            <span class="detail-field-value" id="dpBookingItemType"
+              >&mdash;</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Sourcing Mode</span>
+            <span class="detail-field-value" id="dpSourcingMode">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Trip Type</span>
+            <span class="detail-field-value" id="dpTripType">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Locations -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Locations</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">From Location</span>
+            <span class="detail-field-value" id="dpFromLocation">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">To Location</span>
+            <span class="detail-field-value" id="dpToLocation">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Sales Order Information -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Sales Order Information</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Client Account</span>
+            <span class="detail-field-value" id="dpClientAccount">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Sales Order</span>
+            <span class="detail-field-value" id="dpSalesOrder">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">SO Item</span>
+            <span class="detail-field-value" id="dpSoItem">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Purchase Order Information -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Purchase Order Information</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Vendor Account</span>
+            <span class="detail-field-value" id="dpVendorAccount">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Purchase Order</span>
+            <span class="detail-field-value" id="dpPurchaseOrder">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">PO Item</span>
+            <span class="detail-field-value" id="dpPoItem">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Truck & Driver -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Truck &amp; Driver</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Truck</span>
+            <span class="detail-field-value" id="dpTruck">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Driver</span>
+            <span class="detail-field-value" id="dpDriver">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Billing -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Billing Information</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Sales Invoice</span>
+            <span class="detail-field-value" id="dpSalesInvoice">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Sales Billing Status</span>
+            <span class="detail-field-value" id="dpSalesBillingStatus"
+              >&mdash;</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Purchase Invoice</span>
+            <span class="detail-field-value" id="dpPurchaseInvoice"
+              >&mdash;</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Purchase Billing Status</span>
+            <span class="detail-field-value" id="dpPurchaseBillingStatus"
+              >&mdash;</span
+            >
+          </div>
+        </div>
+
+        <!-- Section: Additional Information -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Additional Information</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Additional Charges</span>
+            <span class="detail-field-value" id="dpAdditionalCharges"
+              >&mdash;</span
+            >
+          </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="detail-section detail-comments-section">
+          <h3 class="detail-section-title">
+            <i class="bi bi-chat-dots"></i>
+            <span class="detail-comment-count">0</span>
+            Comments
+          </h3>
+          <p class="detail-no-comments">
+            <em>No comments yet.</em>
+          </p>
+          <div class="detail-comment-box">
+            <div class="detail-comment-avatar">A</div>
+            <div class="detail-comment-input-wrap">
+              <input
+                type="text"
+                class="detail-comment-input"
+                placeholder="Write a comment..."
+              />
+              <button class="detail-comment-btn">Comment</button>
+            </div>
+          </div>
+          <p class="detail-comment-hint">Press Enter to send</p>
+        </div>
+      </div>
+    </aside>
+    <!-- ========== END SHIPMENT DETAIL SLIDE PANEL ========== -->
+
+    <!-- Bootstrap 5 JS -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+      (function () {
+        const panel = document.getElementById("detailPanel");
+        const overlay = document.getElementById("detailPanelOverlay");
+        const closeBtn = document.getElementById("detailCloseBtn");
+        const prevBtn = document.getElementById("detailPrevBtn");
+        const nextBtn = document.getElementById("detailNextBtn");
+        const rows = document.querySelectorAll(".eal-table tbody tr");
+        let currentIndex = -1;
+
+        /* ---- helpers ---- */
+        function txt(el) {
+          return el ? el.textContent.trim() : "\u2014";
+        }
+
+        function openPanel() {
+          panel.classList.add("active");
+          overlay.classList.add("active");
+          document.body.style.overflow = "hidden";
+        }
+
+        function closePanel() {
+          panel.classList.remove("active");
+          overlay.classList.remove("active");
+          document.body.style.overflow = "";
+          rows.forEach(function (r) {
+            r.classList.remove("row-selected");
+          });
+          currentIndex = -1;
+        }
+
+        function populatePanel(row) {
+          const cells = row.querySelectorAll("td");
+          // cells index: 0=check, 1=shipmentNo, 2=orderType,
+          //              3=shipmentDate, 4=clientAccount, 5=booking,
+          //              6=shipmentStatus, 7=collectionStatus, 8=actions
+
+          document.getElementById("dpShipmentNo").textContent = txt(cells[1]);
+          document.getElementById("dpOrderType").textContent = txt(cells[2]);
+          document.getElementById("dpShipmentDate").textContent = txt(cells[3]);
+
+          // Client Account: combine name + sub account id if available
+          let clientAccountText = "\u2014";
+          const nameCell = cells[4]
+            ? cells[4].querySelector(".eal-name-cell")
+            : null;
+          if (nameCell) {
+            const main = nameCell.querySelector(".eal-name-text");
+            const sub = nameCell.querySelector(".eal-name-sub");
+            clientAccountText = [
+              main ? main.textContent.trim() : "",
+              sub ? sub.textContent.trim() : "",
+            ]
+              .filter(Boolean)
+              .join(" \u2022 ");
+          } else {
+            clientAccountText = txt(cells[4]);
+          }
+          document.getElementById("dpClientAccount").textContent =
+            clientAccountText || "\u2014";
+
+          document.getElementById("dpBooking").textContent = txt(cells[5]);
+
+          // Shipment Status badge
+          const shipmentStatusBadge = cells[6]
+            ? cells[6].querySelector(".status-badge")
+            : null;
+          const shipmentStatusEl = document.getElementById("dpShipmentStatus");
+          if (shipmentStatusBadge) {
+            shipmentStatusEl.innerHTML = "";
+            const clone = shipmentStatusBadge.cloneNode(true);
+            shipmentStatusEl.appendChild(clone);
+          } else {
+            shipmentStatusEl.textContent = txt(cells[6]);
+          }
+
+          // Collection Status badge
+          const collectionStatusBadge = cells[7]
+            ? cells[7].querySelector(".status-badge")
+            : null;
+          const collectionStatusEl =
+            document.getElementById("dpCollectionStatus");
+          if (collectionStatusBadge) {
+            collectionStatusEl.innerHTML = "";
+            const clone = collectionStatusBadge.cloneNode(true);
+            collectionStatusEl.appendChild(clone);
+          } else {
+            collectionStatusEl.textContent = txt(cells[7]);
+          }
+
+          // Set empty placeholders for fields not in table
+          document.getElementById("dpCodAmount").textContent = "\u2014";
+          document.getElementById("dpPodType").textContent = "\u2014";
+          document.getElementById("dpPodStatus").textContent = "\u2014";
+          document.getElementById("dpPodDocCount").textContent = "\u2014";
+          document.getElementById("dpBookingItem").textContent = "\u2014";
+          document.getElementById("dpBookingItemType").textContent = "\u2014";
+          document.getElementById("dpSourcingMode").textContent = "\u2014";
+          document.getElementById("dpTripType").textContent = "\u2014";
+          document.getElementById("dpFromLocation").textContent = "\u2014";
+          document.getElementById("dpToLocation").textContent = "\u2014";
+          document.getElementById("dpSalesOrder").textContent = "\u2014";
+          document.getElementById("dpSoItem").textContent = "\u2014";
+          document.getElementById("dpVendorAccount").textContent = "\u2014";
+          document.getElementById("dpPurchaseOrder").textContent = "\u2014";
+          document.getElementById("dpPoItem").textContent = "\u2014";
+          document.getElementById("dpTruck").textContent = "\u2014";
+          document.getElementById("dpDriver").textContent = "\u2014";
+          document.getElementById("dpSalesInvoice").textContent = "\u2014";
+          document.getElementById("dpSalesBillingStatus").textContent =
+            "\u2014";
+          document.getElementById("dpPurchaseInvoice").textContent = "\u2014";
+          document.getElementById("dpPurchaseBillingStatus").textContent =
+            "\u2014";
+          document.getElementById("dpAdditionalCharges").textContent = "\u2014";
+
+          // Highlight the selected row
+          rows.forEach(function (r) {
+            r.classList.remove("row-selected");
+          });
+          row.classList.add("row-selected");
+        }
+
+        function showRow(index) {
+          if (index < 0 || index >= rows.length) return;
+
+          currentIndex = index;
+          populatePanel(rows[currentIndex]);
+          prevBtn.disabled = currentIndex === 0;
+          nextBtn.disabled = currentIndex === rows.length - 1;
+        }
+
+        /* ---- event listeners ---- */
+        rows.forEach(function (row, idx) {
+          row.style.cursor = "pointer";
+          row.addEventListener("click", function (e) {
+            // Don't trigger on checkbox or action button clicks
+            if (
+              e.target.closest(".eal-col-check") ||
+              e.target.closest(".eal-actions-cell") ||
+              e.target.closest('input[type="checkbox"]')
+            ) {
+              return;
+            }
+            currentIndex = idx;
+            showRow(currentIndex);
+            openPanel();
+          });
+        });
+
+        closeBtn.addEventListener("click", closePanel);
+        overlay.addEventListener("click", closePanel);
+
+        prevBtn.addEventListener("click", function () {
+          if (currentIndex > 0) showRow(currentIndex - 1);
+        });
+
+        nextBtn.addEventListener("click", function () {
+          if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (!panel.classList.contains("active")) return;
+
+          if (e.key === "Escape") closePanel();
+
+          if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            if (currentIndex > 0) showRow(currentIndex - 1);
+          }
+          if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+            e.preventDefault();
+            if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
+          }
+        });
+
+        // View button also opens panel
+        document
+          .querySelectorAll('.eal-row-btn[title="View"]')
+          .forEach(function (btn, idx) {
+            btn.addEventListener("click", function (e) {
+              e.stopPropagation();
+              currentIndex = idx;
+              showRow(currentIndex);
+              openPanel();
+            });
+          });
+      })();
+    </script>
+{% endblock %}

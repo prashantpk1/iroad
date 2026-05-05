@@ -132,7 +132,7 @@
       <li class="form-list-item" data-form="document-handover">
         Document Handover
       </li>
-      <li class="form-list-item" data-form="booking">Booking</li>
+      <li class="form-list-item {% if auto_number_form_code == 'booking' %}active{% endif %}" data-form="booking">Booking</li>
       <li class="form-list-item" data-form="operation-actions">
         Operation Actions
       </li>
@@ -350,6 +350,7 @@
       "route-master",
       "service-item-master",
       "price-list-master",
+      "booking",
     ]);
 
     function toAlpha(num) {

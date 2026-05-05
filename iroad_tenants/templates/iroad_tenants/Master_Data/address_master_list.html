@@ -140,6 +140,7 @@
         <tr
           class="address-master-row"
           data-edit-url="{% url 'iroad_tenants:tenant_address_master_edit' row.address_id %}"
+          data-detail-url="{% url 'iroad_tenants:tenant_address_master_detail' row.address_id %}"
           data-address-code="{{ row.address_code|escape }}"
           data-client-account="{{ row.client_account.account_no|escape }}"
           data-display-name="{{ row.display_name|escape }}"
@@ -190,39 +191,50 @@
             <span class="eal-pi-number">{{ row.phone_display_cell }}</span>
           </td>
           <td>
-            <div class="eal-actions-cell" onclick="event.stopPropagation();">
-              <button type="button" class="eal-row-btn" title="{% translate 'View' %}" data-action="view-panel">
-                <i class="bi bi-eye"></i>
-              </button>
-              <a
-                href="{% url 'iroad_tenants:tenant_address_master_edit' row.address_id %}"
+            <div class="dropdown eal-actions-cell" data-bs-display="static" onclick="event.stopPropagation();">
+              <button
                 class="eal-row-btn"
-                title="{% translate 'Edit' %}"
-                onclick="event.stopPropagation();"
-              >
-                <i class="bi bi-pencil"></i>
-              </a>
-              {% if row.status == 'Active' %}
-              <button
                 type="button"
-                class="eal-row-btn danger addr-status-trigger"
-                title="{% translate 'Deactivate' %}"
-                data-address-id="{{ row.address_id }}"
-                data-new-status="Inactive"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                title="{% translate 'Actions' %}"
               >
-                <i class="bi bi-trash3"></i>
+                <i class="bi bi-three-dots-vertical"></i>
               </button>
-              {% else %}
-              <button
-                type="button"
-                class="eal-row-btn text-success border-0 bg-transparent addr-status-trigger"
-                title="{% translate 'Activate' %}"
-                data-address-id="{{ row.address_id }}"
-                data-new-status="Active"
-              >
-                <i class="bi bi-arrow-counterclockwise"></i>
-              </button>
-              {% endif %}
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0; min-width: 180px;">
+                <li>
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_address_master_detail' row.address_id %}">
+                    <i class="bi bi-eye text-info me-2"></i>{% translate "View" %}
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_address_master_edit' row.address_id %}">
+                    <i class="bi bi-pencil text-primary me-2"></i>{% translate "Edit" %}
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  {% if row.status == 'Active' %}
+                  <button
+                    type="button"
+                    class="dropdown-item text-danger addr-status-trigger"
+                    data-address-id="{{ row.address_id }}"
+                    data-new-status="Inactive"
+                  >
+                    <i class="bi bi-trash3 me-2"></i>{% translate "Deactivate" %}
+                  </button>
+                  {% else %}
+                  <button
+                    type="button"
+                    class="dropdown-item text-success addr-status-trigger"
+                    data-address-id="{{ row.address_id }}"
+                    data-new-status="Active"
+                  >
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>{% translate "Activate" %}
+                  </button>
+                  {% endif %}
+                </li>
+              </ul>
             </div>
           </td>
         </tr>
@@ -308,107 +320,12 @@
   </div>
 </div>
 
-<div class="detail-panel-overlay" id="detailPanelOverlay"></div>
-<aside class="detail-panel" id="detailPanel">
-  <div class="detail-panel-header">
-    <div class="detail-panel-nav">
-      <button type="button" class="detail-nav-btn" id="detailPrevBtn" title="{% translate 'Previous' %}">
-        <i class="bi bi-chevron-left"></i>
-      </button>
-      <button type="button" class="detail-nav-btn" id="detailNextBtn" title="{% translate 'Next' %}">
-        <i class="bi bi-chevron-right"></i>
-      </button>
-    </div>
-    <div class="detail-panel-actions">
-      <a href="#" class="detail-action-btn edit" id="detailEditLink" title="{% translate 'Edit' %}">
-        <i class="bi bi-pencil-square"></i>
-        <span>{% translate "Edit" %}</span>
-      </a>
-      <button type="button" class="detail-action-btn duplicate opacity-50" disabled title="{% translate 'Not available' %}">
-        <i class="bi bi-copy"></i>
-        <span>{% translate "Duplicate" %}</span>
-      </button>
-      <button type="button" class="detail-action-btn delete opacity-50" disabled title="{% translate 'Not available' %}">
-        <i class="bi bi-trash3"></i>
-        <span>{% translate "Delete" %}</span>
-      </button>
-    </div>
-    <button type="button" class="detail-close-btn" id="detailCloseBtn" title="{% translate 'Close' %}">
-      <i class="bi bi-x-lg"></i>
-    </button>
-  </div>
-  <div class="detail-panel-body">
-    <div class="detail-section">
-      <h3 class="detail-section-title">{% translate "Basic Information" %}</h3>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "Address Code" %}</span>
-        <span class="detail-field-value" id="dpAddressCode">—</span>
-      </div>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "Client Account" %}</span>
-        <span class="detail-field-value" id="dpClientAccount">—</span>
-      </div>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "Display Name" %}</span>
-        <span class="detail-field-value" id="dpDisplayName">—</span>
-      </div>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "Address Category" %}</span>
-        <span class="detail-field-value" id="dpAddressCategory">—</span>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h3 class="detail-section-title">{% translate "Localization Details" %}</h3>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "English Label" %}</span>
-        <span class="detail-field-value" id="dpEnglishLabel">—</span>
-      </div>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "Arabic Label" %}</span>
-        <span class="detail-field-value detail-arabic" id="dpArabicLabel" dir="auto">—</span>
-      </div>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "Default Loading" %}</span>
-        <span class="detail-field-value" id="dpDefLoading">—</span>
-      </div>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "Default Unloading" %}</span>
-        <span class="detail-field-value" id="dpDefUnloading">—</span>
-      </div>
-    </div>
-    <div class="detail-section">
-      <h3 class="detail-section-title">{% translate "Geographical Info" %}</h3>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "City / Country" %}</span>
-        <span class="detail-field-value" id="dpCountry">—</span>
-      </div>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "Contact Name" %}</span>
-        <span class="detail-field-value" id="dpContactName">—</span>
-      </div>
-      <div class="detail-field">
-        <span class="detail-field-label">{% translate "Phone No." %}</span>
-        <span class="detail-field-value" id="dpPhoneNo">—</span>
-      </div>
-    </div>
-  </div>
-</aside>
-
 {% endblock %}
 
 {% block extra_js %}
 {{ block.super }}
 <script>
 (function () {
-  const panel = document.getElementById("detailPanel");
-  const overlay = document.getElementById("detailPanelOverlay");
-  const closeBtn = document.getElementById("detailCloseBtn");
-  const prevBtn = document.getElementById("detailPrevBtn");
-  const nextBtn = document.getElementById("detailNextBtn");
-  const editLink = document.getElementById("detailEditLink");
-  const rows = Array.prototype.slice.call(document.querySelectorAll(".address-master-row"));
-  let currentIndex = -1;
-
   const statusModalEl = document.getElementById("addressStatusConfirmModal");
   const statusModal =
     statusModalEl && typeof bootstrap !== "undefined"
@@ -442,91 +359,6 @@
       btnAct: attrOr(root, "data-label-btn-activate", "Activate"),
     };
   }
-
-  function txt(v) {
-    return v != null && v !== "" ? String(v) : "—";
-  }
-
-  function openPanel() {
-    panel.classList.add("active");
-    overlay.classList.add("active");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closePanel() {
-    panel.classList.remove("active");
-    overlay.classList.remove("active");
-    document.body.style.overflow = "";
-    rows.forEach(function (r) {
-      r.classList.remove("row-selected");
-    });
-    currentIndex = -1;
-  }
-
-  function populateFromRow(row) {
-    var d = row.dataset;
-    document.getElementById("dpAddressCode").textContent = txt(d.addressCode);
-    document.getElementById("dpClientAccount").textContent = txt(d.clientAccount);
-    document.getElementById("dpDisplayName").textContent = txt(d.displayName);
-    document.getElementById("dpEnglishLabel").textContent = txt(d.englishLabel);
-    document.getElementById("dpArabicLabel").textContent = txt(d.arabicLabel);
-    document.getElementById("dpAddressCategory").textContent = txt(d.addressCategory);
-    document.getElementById("dpCountry").textContent = txt(d.cityCountry);
-    document.getElementById("dpContactName").textContent = txt(d.contactName);
-    document.getElementById("dpPhoneNo").textContent = txt(d.phone);
-    document.getElementById("dpDefLoading").textContent = txt(d.defLoading);
-    document.getElementById("dpDefUnloading").textContent = txt(d.defUnloading);
-    if (editLink) editLink.href = d.editUrl || "#";
-
-    rows.forEach(function (r) {
-      r.classList.remove("row-selected");
-    });
-    row.classList.add("row-selected");
-  }
-
-  function showRow(index) {
-    if (index < 0 || index >= rows.length) return;
-    currentIndex = index;
-    populateFromRow(rows[currentIndex]);
-    prevBtn.disabled = currentIndex === 0;
-    nextBtn.disabled = currentIndex === rows.length - 1;
-  }
-
-  rows.forEach(function (row, idx) {
-    row.style.cursor = "pointer";
-    row.addEventListener("click", function (e) {
-      if (e.target.closest(".eal-col-check") || e.target.closest(".eal-actions-cell")) return;
-      showRow(idx);
-      openPanel();
-    });
-    row.querySelectorAll('[data-action="view-panel"]').forEach(function (btn) {
-      btn.addEventListener("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        showRow(idx);
-        openPanel();
-      });
-    });
-  });
-
-  if (closeBtn) closeBtn.addEventListener("click", closePanel);
-  if (overlay) overlay.addEventListener("click", closePanel);
-
-  if (prevBtn) {
-    prevBtn.addEventListener("click", function () {
-      if (currentIndex > 0) showRow(currentIndex - 1);
-    });
-  }
-  if (nextBtn) {
-    nextBtn.addEventListener("click", function () {
-      if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
-    });
-  }
-
-  document.addEventListener("keydown", function (e) {
-    if (!panel || !panel.classList.contains("active")) return;
-    if (e.key === "Escape") closePanel();
-  });
 
   if (statusModal && addrConfirmSubmitBtn && addrConfirmTitle && addrMsgDeactivate && addrMsgActivate) {
     document.querySelectorAll(".addr-status-trigger").forEach(function (btn) {

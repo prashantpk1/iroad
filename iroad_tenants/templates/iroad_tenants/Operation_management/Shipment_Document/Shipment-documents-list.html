@@ -1,0 +1,1052 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Shipment Documents List | iRoad Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Operations Management</li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Shipment Documents List
+            </li>
+          </ol>
+        </nav>
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Shipment Documents List</h1>
+            <p class="page-subtitle">
+              Manage and view all shipment documents and attachments.
+            </p>
+          </div>
+          <div class="page-header-right">
+            <div class="eal-header-actions">
+              <button class="eal-btn eal-btn-outline">
+                <i class="bi bi-download"></i>
+                <span>Export</span>
+              </button>
+              <a href="Shipment-documents.html" class="eal-btn eal-btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                <span>Add Document</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="eal-stats-row">
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon purple">
+            <i class="bi bi-file-earmark-text"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">124</div>
+            <div class="eal-stat-label">Total Documents</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon blue">
+            <i class="bi bi-file-earmark"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">487</div>
+            <div class="eal-stat-label">Total Pages</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon green">
+            <i class="bi bi-receipt"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">38</div>
+            <div class="eal-stat-label">DN Documents</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon amber">
+            <i class="bi bi-building"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">45</div>
+            <div class="eal-stat-label">Office Collected</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon blue">
+            <i class="bi bi-car-front-fill"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">32</div>
+            <div class="eal-stat-label">Driver Collected</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon green">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">28</div>
+            <div class="eal-stat-label">Receiver Collected</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon amber">
+            <i class="bi bi-person-badge"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">15</div>
+            <div class="eal-stat-label">Client Collected</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon red">
+            <i class="bi bi-dash-circle"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">4</div>
+            <div class="eal-stat-label">Not Collected</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Card -->
+      <div class="eal-table-card">
+        <!-- Toolbar -->
+        <div class="eal-toolbar">
+          <div class="eal-toolbar-left">
+            <div class="eal-search">
+              <i class="bi bi-search"></i>
+              <input type="text" placeholder="Search record no, ref..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="eal-table-wrap">
+          <table class="eal-table">
+            <thead>
+              <tr>
+                <th class="eal-col-check">
+                  <input
+                    type="checkbox"
+                    class="eal-custom-check"
+                    id="ealSelectAll"
+                  />
+                </th>
+                <th>
+                  Doc No
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Doc Date
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Shipment No
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Booking No
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Doc Type
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Doc Ref
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Is DN?
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Page Count
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Status
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Physical Location
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000124</span>
+                </td>
+                <td>12 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-A1B2</span>
+                  </div>
+                </td>
+                <td>BK-001234</td>
+                <td>Bill of Lading</td>
+                <td>B/L-X93847</td>
+                <td>
+                  <span class="status-badge inactive">No</span>
+                </td>
+                <td>3</td>
+                <td>
+                  <span class="status-badge active">Verified</span>
+                </td>
+                <td>Warehouse A - Shelf 12</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 2 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000125</span>
+                </td>
+                <td>13 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-A1B3</span>
+                  </div>
+                </td>
+                <td>BK-001235</td>
+                <td>Commercial Invoice</td>
+                <td>INV-40293</td>
+                <td>
+                  <span class="status-badge active">Yes</span>
+                </td>
+                <td>2</td>
+                <td>
+                  <span class="status-badge active">Verified</span>
+                </td>
+                <td>Warehouse B - Shelf 8</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 3 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000126</span>
+                </td>
+                <td>14 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-A1B4</span>
+                  </div>
+                </td>
+                <td>BK-001236</td>
+                <td>Packing List</td>
+                <td>PK-49281</td>
+                <td>
+                  <span class="status-badge inactive">No</span>
+                </td>
+                <td>4</td>
+                <td>
+                  <span class="status-badge pending">Draft</span>
+                </td>
+                <td>Warehouse C - Shelf 15</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 4 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000127</span>
+                </td>
+                <td>15 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-A1B5</span>
+                  </div>
+                </td>
+                <td>BK-001237</td>
+                <td>Certificate of Origin</td>
+                <td>COO-10928</td>
+                <td>
+                  <span class="status-badge inactive">No</span>
+                </td>
+                <td>1</td>
+                <td>
+                  <span class="status-badge pending">Draft</span>
+                </td>
+                <td>Warehouse A - Shelf 3</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 5 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000128</span>
+                </td>
+                <td>16 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-B2C1</span>
+                  </div>
+                </td>
+                <td>BK-001238</td>
+                <td>Delivery Note</td>
+                <td>DN-99411</td>
+                <td>
+                  <span class="status-badge active">Yes</span>
+                </td>
+                <td>1</td>
+                <td>
+                  <span class="status-badge active">Verified</span>
+                </td>
+                <td>Warehouse D - Shelf 22</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 6 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000129</span>
+                </td>
+                <td>17 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-B2C2</span>
+                  </div>
+                </td>
+                <td>BK-001239</td>
+                <td>Customs Declaration</td>
+                <td>CUST-4011</td>
+                <td>
+                  <span class="status-badge inactive">No</span>
+                </td>
+                <td>2</td>
+                <td>
+                  <span class="status-badge inactive">Rejected</span>
+                </td>
+                <td>Warehouse B - Shelf 5</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 7 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000130</span>
+                </td>
+                <td>18 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-C3D3</span>
+                  </div>
+                </td>
+                <td>BK-001240</td>
+                <td>Bill of Lading</td>
+                <td>B/L-X88121</td>
+                <td>
+                  <span class="status-badge inactive">No</span>
+                </td>
+                <td>3</td>
+                <td>
+                  <span class="status-badge pending">Draft</span>
+                </td>
+                <td>Warehouse C - Shelf 7</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 8 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000131</span>
+                </td>
+                <td>19 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-C3D4</span>
+                  </div>
+                </td>
+                <td>BK-001241</td>
+                <td>Commercial Invoice</td>
+                <td>INV-10292</td>
+                <td>
+                  <span class="status-badge active">Yes</span>
+                </td>
+                <td>2</td>
+                <td>
+                  <span class="status-badge active">Verified</span>
+                </td>
+                <td>Warehouse D - Shelf 14</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 9 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000132</span>
+                </td>
+                <td>20 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-C3D5</span>
+                  </div>
+                </td>
+                <td>BK-001242</td>
+                <td>Packing List</td>
+                <td>PK-AA982</td>
+                <td>
+                  <span class="status-badge inactive">No</span>
+                </td>
+                <td>5</td>
+                <td>
+                  <span class="status-badge active">Verified</span>
+                </td>
+                <td>Warehouse A - Shelf 9</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              <!-- Row 10 -->
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td>
+                  <span class="eal-entity-id">DOC-000133</span>
+                </td>
+                <td>21 Oct 2026</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-D4E1</span>
+                  </div>
+                </td>
+                <td>BK-001243</td>
+                <td>Other</td>
+                <td>OTH-91823</td>
+                <td>
+                  <span class="status-badge inactive">No</span>
+                </td>
+                <td>1</td>
+                <td>
+                  <span class="status-badge inactive">Rejected</span>
+                </td>
+                <td>Warehouse B - Shelf 18</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button
+                      class="eal-row-btn"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      title="Actions"
+                    >
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul
+                      class="dropdown-menu dropdown-menu-end shadow-sm"
+                      style="border-radius: 8px; border-color: #e2e8f0"
+                    >
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-eye text-info me-2"></i> View</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-pencil text-primary me-2"></i>
+                          Edit</a
+                        >
+                      </li>
+                      <li>
+                        <a class="dropdown-item" href="#"
+                          ><i class="bi bi-download text-success me-2"></i>
+                          Download</a
+                        >
+                      </li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li>
+                        <a class="dropdown-item text-danger" href="#"
+                          ><i class="bi bi-trash3 me-2"></i> Delete</a
+                        >
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="eal-pagination">
+          <div class="eal-pagination-info">
+            Showing
+            <strong>1&ndash;10</strong>
+            of
+            <strong>124</strong>
+            documents
+          </div>
+          <div class="eal-pagination-controls">
+            <button class="eal-page-btn" title="Previous">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="eal-page-btn active">1</button>
+            <button class="eal-page-btn">2</button>
+            <button class="eal-page-btn">3</button>
+            <button class="eal-page-btn">...</button>
+            <button class="eal-page-btn">13</button>
+            <button class="eal-page-btn" title="Next">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ========== END TABLE UI DESIGN ========== -->
+
+<!-- ========== SLIDE PANEL ========== -->
+    <div class="detail-panel-overlay" id="detailPanelOverlay"></div>
+    <aside class="detail-panel" id="detailPanel">
+      <!-- Panel Header -->
+      <div class="detail-panel-header">
+        <div class="detail-panel-nav">
+          <button class="detail-nav-btn" id="detailPrevBtn" title="Previous">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="detail-nav-btn" id="detailNextBtn" title="Next">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <div class="detail-panel-actions">
+          <button class="detail-action-btn edit" title="Edit">
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit</span>
+          </button>
+          <button class="detail-action-btn duplicate" title="Duplicate">
+            <i class="bi bi-copy"></i>
+            <span>Duplicate</span>
+          </button>
+          <button class="detail-action-btn delete" title="Delete">
+            <i class="bi bi-trash3"></i>
+            <span>Delete</span>
+          </button>
+        </div>
+        <button class="detail-close-btn" id="detailCloseBtn" title="Close">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Panel Body -->
+      <div class="detail-panel-body">
+        <!-- Section: Document Overview -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Document Overview</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Record No.</span>
+            <span class="detail-field-value" id="dpRecordNo">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Shipment Ref</span>
+            <span class="detail-field-value" id="dpShipmentRef">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Document Type</span>
+            <span class="detail-field-value" id="dpDocumentType">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Status</span>
+            <span class="detail-field-value" id="dpStatus">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Meta Details -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Meta Details</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Is Delivery Note?</span>
+            <span class="detail-field-value" id="dpIsDeliveryNote"
+              >&mdash;</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Document Ref No</span>
+            <span class="detail-field-value" id="dpDocumentRefNo">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Document Date</span>
+            <span class="detail-field-value" id="dpDocumentDate">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Page Count</span>
+            <span class="detail-field-value" id="dpPageCount">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Line Details & Notes -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Line Details &amp; Notes</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Sequence #</span>
+            <span class="detail-field-value" id="dpSequence">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Line Doc Ref No</span>
+            <span class="detail-field-value" id="dpLineDocRefNo">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Extra Ref</span>
+            <span class="detail-field-value" id="dpExtraRef">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Page No</span>
+            <span class="detail-field-value" id="dpLinePageNo">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Signer Location</span>
+            <span class="detail-field-value" id="dpSignerLocation"
+              >&mdash;</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Attachment</span>
+            <span class="detail-field-value" id="dpAttachment">&mdash;</span>
+          </div>
+          <div class="detail-field" style="grid-column: 1 / -1">
+            <span class="detail-field-label">Notes</span>
+            <span class="detail-field-value" id="dpNotes">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Detailed Audit Info -->
+        <div class="detail-section">
+          <div class="detail-field">
+            <span class="detail-field-label">Created</span>
+            <span
+              class="detail-field-value text-muted"
+              style="font-size: 0.85rem"
+              >12 Oct 2026, 09:30 AM &middot; Jane Doe</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Last Modified</span>
+            <span
+              class="detail-field-value text-muted"
+              style="font-size: 0.85rem"
+              >12 Oct 2026, 02:45 PM &middot; John Smith</span
+            >
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Bootstrap 5 JS -->
+{% endblock %}

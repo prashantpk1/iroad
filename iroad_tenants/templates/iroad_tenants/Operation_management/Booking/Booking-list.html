@@ -1,0 +1,603 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Booking List | iRoad Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+      /* Booking list: force 8 cards as 2 rows (4 + 4) on desktop */
+      .eal-stats-row.booking-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        align-items: stretch;
+      }
+      @media (max-width: 991.98px) {
+        .eal-stats-row.booking-stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 575.98px) {
+        .eal-stats-row.booking-stats {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Route chip (match Price-list.html route column UI) */
+      .pl-route-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-light, #e5e7eb);
+        background: #fff;
+        font-weight: 600;
+        color: #111827;
+        white-space: nowrap;
+      }
+      .pl-route-chip .pl-route-arrow {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        background: #e8f0fe;
+        color: #2563eb;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+    </style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Operations Management</li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Booking List
+            </li>
+          </ol>
+        </nav>
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Booking List</h1>
+            <p class="page-subtitle">View and manage all bookings.</p>
+          </div>
+          <div class="page-header-right">
+            <div class="eal-header-actions">
+              <button class="eal-btn eal-btn-outline">
+                <i class="bi bi-download"></i>
+                <span>Export</span>
+              </button>
+              <a href="{% url 'iroad_tenants:tenant_operation_booking_create' %}" class="eal-btn eal-btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                <span>Add Booking</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="eal-stats-row booking-stats">
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon purple">
+            <i class="bi bi-calendar-check"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">{{ booking_stats.total|default:0 }}</div>
+            <div class="eal-stat-label">Total</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon green">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">{{ booking_stats.active|default:0 }}</div>
+            <div class="eal-stat-label">Active</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon blue">
+            <i class="bi bi-flag"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">{{ booking_stats.executed|default:0 }}</div>
+            <div class="eal-stat-label">Executed</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon red">
+            <i class="bi bi-x-octagon"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">{{ booking_stats.cancelled|default:0 }}</div>
+            <div class="eal-stat-label">Cancelled</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon purple">
+            <i class="bi bi-arrow-repeat"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">{{ booking_stats.round|default:0 }}</div>
+            <div class="eal-stat-label">Round</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon amber">
+            <i class="bi bi-arrow-down-left-circle"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">{{ booking_stats.inbound|default:0 }}</div>
+            <div class="eal-stat-label">Inbound</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon green">
+            <i class="bi bi-arrow-up-right-circle"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">{{ booking_stats.outbound|default:0 }}</div>
+            <div class="eal-stat-label">Outbound</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon red">
+            <i class="bi bi-truck"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">{{ booking_stats.unassigned_truck|default:0 }}</div>
+            <div class="eal-stat-label">Unassigned Truck</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="page-content">
+        <!-- Table Card -->
+        <div class="eal-table-card">
+          <!-- Toolbar -->
+          <div class="eal-toolbar">
+            <div class="eal-toolbar-left">
+              <div class="eal-search">
+                <i class="bi bi-search"></i>
+                <input type="text" name="search" value="{{ booking_search_query|default:'' }}" placeholder="Search bookings&hellip;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="eal-table-wrap">
+            <table class="eal-table">
+              <thead>
+                <tr>
+                  <th>SN</th>
+                  <th>Booking No</th>
+                  <th>Creation Date</th>
+                  <th>Date</th>
+                  <th>Execution date</th>
+                  <th>Client</th>
+                  <th>Route</th>
+                  <th>Type</th>
+                  <th>SO No</th>
+                  <th>PO No</th>
+                  <th>Truck No</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in booking_rows %}
+                <tr>
+                  <td>{{ row.sn }}</td>
+                  <td><span class="eal-entity-id">{{ row.booking_no }}</span></td>
+                  <td>{{ row.creation_date|date:"d M Y"|default:"-" }}</td>
+                  <td>{{ row.booking_date|date:"d M Y"|default:"-" }}</td>
+                  <td>{{ row.execution_date|date:"d M Y"|default:"-" }}</td>
+                  <td>
+                    <div class="eal-name-cell">
+                      <span class="eal-name-text">{{ row.client_name }}</span>
+                    </div>
+                  </td>
+                  <td>{{ row.route_text }}</td>
+                  <td>{{ row.trip_type }}</td>
+                  <td><span>{{ row.sales_order_no }}</span></td>
+                  <td><span>{{ row.purchase_order_no }}</span></td>
+                  <td><span>{{ row.truck_no }}</span></td>
+                  <td>
+                    <div class="dropdown eal-actions-cell">
+                      <button
+                        class="eal-row-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        title="Actions"
+                      >
+                        <i class="bi bi-three-dots-vertical"></i>
+                      </button>
+                      <ul
+                        class="dropdown-menu dropdown-menu-end shadow-sm"
+                        style="border-radius: 8px; border-color: #e2e8f0"
+                      >
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-pencil text-primary me-2"></i>
+                            Edit</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-eye text-info me-2"></i> View</a
+                          >
+                        </li>
+                        <li>
+                          <a class="dropdown-item" href="#"
+                            ><i class="bi bi-truck text-secondary me-2"></i>
+                            Assign Truck</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="12" class="text-center text-muted py-4">
+                    No bookings found.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="eal-pagination">
+            <div class="eal-pagination-info">
+              {% if booking_page_obj and booking_page_obj.paginator.count %}
+              Showing
+              <strong>{{ booking_page_obj.start_index }}&ndash;{{ booking_page_obj.end_index }}</strong>
+              of
+              <strong>{{ booking_page_obj.paginator.count }}</strong>
+              bookings
+              {% else %}
+              Showing <strong>0</strong> of <strong>0</strong> bookings
+              {% endif %}
+            </div>
+            <div class="eal-pagination-controls">
+              <button class="eal-page-btn" title="Previous" {% if not booking_page_obj.has_previous %}disabled{% endif %}>
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <button class="eal-page-btn active">{{ booking_page_obj.number|default:1 }}</button>
+              <button class="eal-page-btn" title="Next" {% if not booking_page_obj.has_next %}disabled{% endif %}>
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- ========== END TABLE UI DESIGN ========== -->
+      </div>
+
+<!-- ========== BOOKING DETAIL SLIDE PANEL ========== -->
+    <div class="detail-panel-overlay" id="detailPanelOverlay"></div>
+    <aside class="detail-panel" id="detailPanel">
+      <!-- Panel Header -->
+      <div class="detail-panel-header">
+        <div class="detail-panel-nav">
+          <button class="detail-nav-btn" id="detailPrevBtn" title="Previous">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="detail-nav-btn" id="detailNextBtn" title="Next">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <div class="detail-panel-actions">
+          <button class="detail-action-btn edit" title="Edit">
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit</span>
+          </button>
+          <button class="detail-action-btn duplicate" title="Duplicate">
+            <i class="bi bi-copy"></i>
+            <span>Duplicate</span>
+          </button>
+          <button class="detail-action-btn delete" title="Delete">
+            <i class="bi bi-trash3"></i>
+            <span>Delete</span>
+          </button>
+        </div>
+        <button class="detail-close-btn" id="detailCloseBtn" title="Close">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Panel Body -->
+      <div class="detail-panel-body">
+        <!-- Section: Booking Overview -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Booking Overview</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Booking No.</span>
+            <span class="detail-field-value" id="dpBookingNo">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Booking Date</span>
+            <span class="detail-field-value" id="dpBookingDate">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Execution Date</span>
+            <span class="detail-field-value" id="dpExecutionDate">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Booking Status</span>
+            <span class="detail-field-value" id="dpBookingStatus">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Sourcing Mode</span>
+            <span class="detail-field-value" id="dpSourcingMode">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Sales Order Information -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Sales Order Information</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Client Account</span>
+            <span class="detail-field-value" id="dpClientAccount">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Sales Order No.</span>
+            <span class="detail-field-value" id="dpSalesOrderNo">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Sales Order Line</span>
+            <span class="detail-field-value" id="dpSalesOrderLine"
+              >&mdash;</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Trip Type</span>
+            <span class="detail-field-value" id="dpTripType">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Sell Unit Price</span>
+            <span class="detail-field-value" id="dpSellUnitPrice">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Purchase Order Information -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Purchase Order Information</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Vendor Account</span>
+            <span class="detail-field-value" id="dpVendorAccount">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Purchase Order No.</span>
+            <span class="detail-field-value" id="dpPurchaseOrderNo"
+              >&mdash;</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Purchase Order Line</span>
+            <span class="detail-field-value" id="dpPurchaseOrderLine"
+              >&mdash;</span
+            >
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Buy Unit Price</span>
+            <span class="detail-field-value" id="dpBuyUnitPrice">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Truck & Driver Information -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Truck &amp; Driver Information</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Truck</span>
+            <span class="detail-field-value" id="dpTruck">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Driver</span>
+            <span class="detail-field-value" id="dpDriver">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="detail-section detail-comments-section">
+          <h3 class="detail-section-title">
+            <i class="bi bi-chat-dots"></i>
+            <span class="detail-comment-count">0</span>
+            Comments
+          </h3>
+          <p class="detail-no-comments">
+            <em>No comments yet.</em>
+          </p>
+          <div class="detail-comment-box">
+            <div class="detail-comment-avatar">A</div>
+            <div class="detail-comment-input-wrap">
+              <input
+                type="text"
+                class="detail-comment-input"
+                placeholder="Write a comment..."
+              />
+              <button class="detail-comment-btn">Comment</button>
+            </div>
+          </div>
+          <p class="detail-comment-hint">Press Enter to send</p>
+        </div>
+      </div>
+    </aside>
+    <!-- ========== END BOOKING DETAIL SLIDE PANEL ========== -->
+
+    <!-- Bootstrap 5 JS -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+      (function () {
+        const panel = document.getElementById("detailPanel");
+        const overlay = document.getElementById("detailPanelOverlay");
+        const closeBtn = document.getElementById("detailCloseBtn");
+        const prevBtn = document.getElementById("detailPrevBtn");
+        const nextBtn = document.getElementById("detailNextBtn");
+        const rows = document.querySelectorAll(".eal-table tbody tr");
+        let currentIndex = -1;
+
+        /* ---- helpers ---- */
+        function txt(el) {
+          return el ? el.textContent.trim() : "\u2014";
+        }
+
+        function openPanel() {
+          panel.classList.add("active");
+          overlay.classList.add("active");
+          document.body.style.overflow = "hidden";
+        }
+
+        function closePanel() {
+          panel.classList.remove("active");
+          overlay.classList.remove("active");
+          document.body.style.overflow = "";
+          rows.forEach(function (r) {
+            r.classList.remove("row-selected");
+          });
+          currentIndex = -1;
+        }
+
+        function populatePanel(row) {
+          const cells = row.querySelectorAll("td");
+          // Table columns:
+          // 0=sn, 1=bookingNo, 2=creationDate, 3=date, 4=executionDate,
+          // 5=client, 6=route, 7=type, 8=soNo, 9=poNo, 10=truckNo, 11=actions
+
+          document.getElementById("dpBookingNo").textContent = txt(cells[1]);
+          document.getElementById("dpBookingDate").textContent = txt(cells[3]);
+          document.getElementById("dpExecutionDate").textContent = txt(
+            cells[4],
+          );
+
+          // Client Account: combine name + sub account id if available
+          let clientAccountText = "\u2014";
+          const nameCell = cells[5]
+            ? cells[5].querySelector(".eal-name-cell")
+            : null;
+          if (nameCell) {
+            const main = nameCell.querySelector(".eal-name-text");
+            const sub = nameCell.querySelector(".eal-name-sub");
+            clientAccountText = [
+              main ? main.textContent.trim() : "",
+              sub ? sub.textContent.trim() : "",
+            ]
+              .filter(Boolean)
+              .join(" \u2022 ");
+          } else {
+            clientAccountText = txt(cells[5]);
+          }
+          document.getElementById("dpClientAccount").textContent =
+            clientAccountText || "\u2014";
+
+          document.getElementById("dpSalesOrderNo").textContent = txt(cells[8]);
+
+          // Fields no longer present in table columns
+          const sourcingEl = document.getElementById("dpSourcingMode");
+          if (sourcingEl) sourcingEl.textContent = "\u2014";
+          const statusEl = document.getElementById("dpBookingStatus");
+          if (statusEl) statusEl.textContent = "\u2014";
+
+          // Set empty placeholders for fields not in table
+          document.getElementById("dpSalesOrderLine").textContent = "\u2014";
+          document.getElementById("dpTripType").textContent = "\u2014";
+          document.getElementById("dpSellUnitPrice").textContent = "\u2014";
+          document.getElementById("dpVendorAccount").textContent = "\u2014";
+          document.getElementById("dpPurchaseOrderNo").textContent = "\u2014";
+          document.getElementById("dpPurchaseOrderLine").textContent = "\u2014";
+          document.getElementById("dpBuyUnitPrice").textContent = "\u2014";
+          document.getElementById("dpTruck").textContent = "\u2014";
+          document.getElementById("dpDriver").textContent = "\u2014";
+
+          // Highlight the selected row
+          rows.forEach(function (r) {
+            r.classList.remove("row-selected");
+          });
+          row.classList.add("row-selected");
+        }
+
+        function showRow(index) {
+          if (index < 0 || index >= rows.length) return;
+
+          currentIndex = index;
+          populatePanel(rows[currentIndex]);
+          prevBtn.disabled = currentIndex === 0;
+          nextBtn.disabled = currentIndex === rows.length - 1;
+        }
+
+        /* ---- event listeners ---- */
+        rows.forEach(function (row, idx) {
+          row.style.cursor = "pointer";
+          row.addEventListener("click", function (e) {
+            // Don't trigger on action clicks
+            if (
+              e.target.closest(".eal-actions-cell") ||
+              e.target.closest(".dropdown-menu")
+            ) {
+              return;
+            }
+            currentIndex = idx;
+            showRow(currentIndex);
+            openPanel();
+          });
+        });
+
+        closeBtn.addEventListener("click", closePanel);
+        overlay.addEventListener("click", closePanel);
+
+        prevBtn.addEventListener("click", function () {
+          if (currentIndex > 0) showRow(currentIndex - 1);
+        });
+
+        nextBtn.addEventListener("click", function () {
+          if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (!panel.classList.contains("active")) return;
+
+          if (e.key === "Escape") closePanel();
+
+          if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            if (currentIndex > 0) showRow(currentIndex - 1);
+          }
+          if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+            e.preventDefault();
+            if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
+          }
+        });
+
+        // View action in dropdown also opens panel
+        document.addEventListener("click", function (e) {
+          const item = e.target.closest(".eal-actions-cell .dropdown-item");
+          if (!item) return;
+          if (item.textContent.trim() !== "View") return;
+          e.preventDefault();
+          e.stopPropagation();
+
+          const row = item.closest("tr");
+          if (!row) return;
+          const idx = Array.prototype.indexOf.call(rows, row);
+          if (idx < 0) return;
+
+          currentIndex = idx;
+          showRow(currentIndex);
+          openPanel();
+        });
+      })();
+    </script>
+{% endblock %}

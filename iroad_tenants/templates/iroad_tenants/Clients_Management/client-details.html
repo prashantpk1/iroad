@@ -379,6 +379,7 @@
           <form method="post" action="{% url 'iroad_tenants:tenant_client_account_toggle_status' client_account.account_no %}" class="d-inline">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="details" />
+            <input type="hidden" name="client_ref" value="{{ client_ref }}" />
             
             <button type="submit" class="ch-action-btn text-danger" onclick="return confirm('Suspend this client account?');">
               <i class="bi bi-pause-circle"></i> Suspend Account
@@ -388,6 +389,7 @@
           <form method="post" action="{% url 'iroad_tenants:tenant_client_account_toggle_status' client_account.account_no %}" class="d-inline">
             {% csrf_token %}
             <input type="hidden" name="return_to" value="details" />
+            <input type="hidden" name="client_ref" value="{{ client_ref }}" />
             
             <button type="submit" class="ch-action-btn text-success" onclick="return confirm('Activate this client account?');">
               <i class="bi bi-play-circle"></i> Activate Account
@@ -995,7 +997,11 @@
             <div class="tab-pane fade" id="pane-price-lists" role="tabpanel">
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="m-0" style="font-size: 1.1rem; font-weight: 600; color: #1a1a1a">Price Lists</h4>
-                <a href="Price-list.html" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Price List</a>
+                {% if client_account %}
+                <a href="{% url 'iroad_tenants:tenant_price_list_master_create' %}?client={{ client_account.account_id }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Price List</a>
+                {% else %}
+                <a href="{% url 'iroad_tenants:tenant_price_list_master_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Price List</a>
+                {% endif %}
               </div>
               <div class="eal-table-card mt-0">
                 <div class="eal-table-wrap" style="border: none; box-shadow: none;">
@@ -1010,186 +1016,38 @@
                       </tr>
                     </thead>
                     <tbody>
+                      {% if client_account %}
+                      {% for pl in client_price_lists %}
                       <tr>
-                        <td><span class="eal-entity-id">PL-2026-ABT</span></td>
-                        <td>Annual Bulk Transport 2026</td>
-                        <td>SAR</td>
+                        <td><span class="eal-entity-id">{{ pl.price_list_code }}</span></td>
+                        <td>{{ pl.price_list_name }}</td>
+                        <td>{{ pl.base_currency|default:"SAR" }}</td>
                         <td>
-                          <span class="status-badge active" style="background: #e6f8ef; color: #0d894f;">Active</span>
+                          <span class="status-badge {% if pl.status == 'Active' %}active{% elif pl.status == 'Inactive' %}inactive{% else %}pending{% endif %}">
+                            {{ pl.status }}
+                          </span>
                         </td>
                         <td>
                           <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
+                            <a class="eal-row-btn" href="{{ pl.list_list_url }}?client={{ client_account.account_id }}" title="View" aria-label="View">
                               <i class="bi bi-eye"></i>
                             </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
+                            <a class="eal-row-btn" href="{{ pl.list_edit_url }}" title="Edit" aria-label="Edit">
                               <i class="bi bi-pencil"></i>
                             </a>
                           </div>
                         </td>
                       </tr>
+                      {% empty %}
                       <tr>
-                        <td><span class="eal-entity-id">PL-2026-EXP</span></td>
-                        <td>Express Delivery 2026</td>
-                        <td>USD</td>
-                        <td>
-                          <span class="status-badge inactive" style="background: #f1f5f9; color: #64748b;">Draft</span>
-                        </td>
-                        <td>
-                          <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
-                              <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                          </div>
-                        </td>
+                        <td colspan="5" class="text-muted">No price lists for this client yet. Use <strong>Add Price List</strong> to create one.</td>
                       </tr>
+                      {% endfor %}
+                      {% else %}
                       <tr>
-                        <td><span class="eal-entity-id">PL-2025-OLD</span></td>
-                        <td>Legacy Contract Rates</td>
-                        <td>SAR</td>
-                        <td>
-                          <span class="status-badge inactive" style="background: #fef1f2; color: #ef4444;">Inactive</span>
-                        </td>
-                        <td>
-                          <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
-                              <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                          </div>
-                        </td>
+                        <td colspan="5" class="text-muted">Open this page from the client list to view and add price lists for that client.</td>
                       </tr>
-                      <tr>
-                        <td><span class="eal-entity-id">PL-2026-REG</span></td>
-                        <td>Regional Distribution Rates</td>
-                        <td>SAR</td>
-                        <td>
-                          <span class="status-badge inactive" style="background: #f1f5f9; color: #64748b;">Draft</span>
-                        </td>
-                        <td>
-                          <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
-                              <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="eal-entity-id">PL-2026-INT</span></td>
-                        <td>International Freight Tariff</td>
-                        <td>USD</td>
-                        <td>
-                          <span class="status-badge active" style="background: #e6f8ef; color: #0d894f;">Active</span>
-                        </td>
-                        <td>
-                          <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
-                              <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="eal-entity-id">PL-2026-WHS</span></td>
-                        <td>Warehousing & Handling</td>
-                        <td>SAR</td>
-                        <td>
-                          <span class="status-badge active" style="background: #e6f8ef; color: #0d894f;">Active</span>
-                        </td>
-                        <td>
-                          <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
-                              <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="eal-entity-id">PL-2026-HAZ</span></td>
-                        <td>Hazmat Surcharges</td>
-                        <td>SAR</td>
-                        <td>
-                          <span class="status-badge inactive" style="background: #fef1f2; color: #ef4444;">Inactive</span>
-                        </td>
-                        <td>
-                          <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
-                              <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="eal-entity-id">PL-2026-CHL</span></td>
-                        <td>Chiller Transport Rates</td>
-                        <td>SAR</td>
-                        <td>
-                          <span class="status-badge active" style="background: #e6f8ef; color: #0d894f;">Active</span>
-                        </td>
-                        <td>
-                          <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
-                              <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="eal-entity-id">PL-2026-ULD</span></td>
-                        <td>ULD / Special Equipment</td>
-                        <td>EUR</td>
-                        <td>
-                          <span class="status-badge inactive" style="background: #f1f5f9; color: #64748b;">Draft</span>
-                        </td>
-                        <td>
-                          <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
-                              <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="eal-entity-id">PL-2026-PRM</span></td>
-                        <td>Premium SLA Rates</td>
-                        <td>USD</td>
-                        <td>
-                          <span class="status-badge inactive" style="background: #fef1f2; color: #ef4444;">Inactive</span>
-                        </td>
-                        <td>
-                          <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="All-price-lists.html" title="View" aria-label="View">
-                              <i class="bi bi-eye"></i>
-                            </a>
-                            <a class="eal-row-btn" href="Price-list.html" title="Edit" aria-label="Edit">
-                              <i class="bi bi-pencil"></i>
-                            </a>
-                          </div>
-                        </td>
-                      </tr>
+                      {% endif %}
                     </tbody>
                   </table>
                 </div>

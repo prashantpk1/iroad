@@ -1,0 +1,493 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Shipment | iRoad Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Operations Management</li>
+            <li class="breadcrumb-item active" aria-current="page">Shipment</li>
+          </ol>
+        </nav>
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Shipment</h1>
+            <p class="page-subtitle">
+              Create or edit a shipment. Manage shipment details, references,
+              and documentation.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipment Form -->
+      <form id="shipmentForm">
+        <!-- Section 1: Shipment Info -->
+        <div class="form-card" data-section="1">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Shipment Info</h2>
+              <p class="form-card-desc">
+                Primary shipment details and status information.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="fields-grid cols-3">
+              <div class="field">
+                <label for="shipmentNo" class="form-label">Shipment No.</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="shipmentNo"
+                  readonly
+                />
+              </div>
+              <div class="field">
+                <label for="orderType" class="form-label">Order Type</label>
+                <select class="form-select" id="orderType" name="order_type">
+                  <option value="" selected disabled>
+                    -Select order type-
+                  </option>
+                  <option value="Delivery">Delivery</option>
+                  <option value="Pickup">Pickup</option>
+                  <option value="Return">Return</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="shipmentDate" class="form-label"
+                  >Shipment Date</label
+                >
+                <input
+                  type="date"
+                  class="form-control"
+                  id="shipmentDate"
+                  name="shipment_date"
+                />
+              </div>
+            </div>
+            <div class="fields-grid cols-2 mt-3">
+              <div class="field">
+                <label for="salesReportLookup" class="form-label"
+                  >Sales Report (lookup)</label
+                >
+                <select class="form-select" id="salesReportLookup">
+                  <option value="" selected disabled>-Select sales report-</option>
+                  <option value="SR-1001">SR-1001</option>
+                  <option value="SR-1002">SR-1002</option>
+                  <option value="SR-1003">SR-1003</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="salesReportStatus" class="form-label"
+                  >Sales Report Status</label
+                >
+                <select class="form-select" id="salesReportStatus">
+                  <option value="" selected disabled>
+                    -Select sales report status-
+                  </option>
+                  <option value="issued">Issued</option>
+                  <option value="not_issued">Not Issued</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Booking Information -->
+        <div class="form-card" data-section="2">
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-calendar-check"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Booking info</h2>
+              <p class="form-card-desc">
+                Booking reference and auto-updated booking attributes.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="fields-grid cols-3">
+              <div class="field">
+                <label for="bookingNo" class="form-label">Booking No </label>
+                <select class="form-select" id="bookingNo" name="booking_no">
+                  <option value="" selected disabled>
+                    -Select booking no-
+                  </option>
+                  <option value="BK-2026-001">BK-2026-001</option>
+                  <option value="BK-2026-002">BK-2026-002</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="sourcingMode" class="form-label"
+                  >Sourcing Mode (list)</label
+                >
+                <select
+                  class="form-select"
+                  id="sourcingMode"
+                  name="sourcing_mode"
+                >
+                  <option value="" selected disabled>
+                    -Select sourcing mode-
+                  </option>
+                  <option value="Internal">Internal</option>
+                  <option value="External">External</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="bookingOrderType" class="form-label"
+                  >Order Type</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="bookingOrderType"
+                  readonly
+                />
+              </div>
+            </div>
+            <div class="fields-grid cols-3">
+              <div class="field">
+                <label for="bookingItem" class="form-label"
+                  >Booking Item (list)</label
+                >
+                <select
+                  class="form-select"
+                  id="bookingItem"
+                  name="booking_item"
+                >
+                  <option value="" selected disabled>
+                    -Select booking item-
+                  </option>
+                  <option value="BI-001">BI-001</option>
+                  <option value="BI-002">BI-002</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="bookingItemType" class="form-label"
+                  >Booking Item Type</label
+                >
+                <select
+                  class="form-select"
+                  id="bookingItemType"
+                  name="booking_item_type"
+                >
+                  <option value="Outbound" selected>Outbound</option>
+                  <option value="Inbound">Inbound</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="bookingItemRoute" class="form-label"
+                  >Booking Item Route (list)</label
+                >
+                <select
+                  class="form-select"
+                  id="bookingItemRoute"
+                  name="booking_item_route"
+                >
+                  <option value="" selected disabled>-Select route-</option>
+                  <option value="A-B">A-B</option>
+                  <option value="B-A">B-A</option>
+                </select>
+              </div>
+            </div>
+            <div class="fields-grid cols-3">
+              <div class="field">
+                <label for="podType" class="form-label">POD Type (list)</label>
+                <select class="form-select" id="podType" name="pod_type">
+                  <option value="" selected disabled>-Select POD type-</option>
+                  <option value="Signature">Signature</option>
+                  <option value="Photo">Photo</option>
+                  <option value="Digital">Digital</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="podDocCount" class="form-label"
+                  >POD Doc Count</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="podDocCount"
+                  min="0"
+                  readonly  
+                />
+              </div>
+              <div class="field">
+                <label for="podStatus" class="form-label">POD Status</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="podStatus"
+                  readonly
+                />
+              </div>
+            </div>
+            <div class="fields-grid cols-2">
+              <div class="field">
+                <label for="codAmount" class="form-label">COD Amount</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="codAmount"
+                  step="0.01"
+                />
+              </div>
+              <div class="field">
+                <label for="codPaymentStatus" class="form-label"
+                  >COD Payment Status</label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="codPaymentStatus"
+                  readonly
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+     
+
+        <!-- Section 5: Loading Address Lines -->
+        <div class="form-card" data-section="5">
+          <div class="form-card-header">
+            <div class="form-card-icon green">
+              <i class="bi bi-geo-alt"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Loading Address Lines</h2>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="eal-table-card">
+              <div class="eal-table-wrap">
+                <table class="eal-table">
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Loading Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+                      <td>
+                        <select class="form-select">
+                          <option value="" selected disabled>
+                            -Select loading address-
+                          </option>
+                          <option>Warehouse A - Jeddah</option>
+                          <option>Warehouse B - Riyadh</option>
+                        </select>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 6: Delivery Address Lines -->
+        <div class="form-card" data-section="6">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-signpost-2"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Delivery Address Lines</h2>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="eal-table-card">
+              <div class="eal-table-wrap">
+                <table class="eal-table">
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Delivery Address</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+                      <td>
+                        <select class="form-select">
+                          <option value="" selected disabled>
+                            -Select delivery address-
+                          </option>
+                          <option>Client Site - Dammam</option>
+                          <option>Retail Site - Yanbu</option>
+                        </select>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 7: Cargo Information -->
+        <div class="form-card" data-section="7">
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Cargo Information</h2>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="eal-table-card">
+              <div class="eal-table-wrap">
+                <table class="eal-table" id="cargoTable">
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Booking Item</th>
+                      <th>Cargo</th>
+                      <th>Weight (Ton)</th>
+                      <th>Unit</th>
+                      <th>QTY</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+                      <td>
+                        <input
+                          type="text"
+                          class="form-control"
+                          value="BI-001"
+                        />
+                      </td>
+                      <td>
+                        <select class="form-select">
+                          <option value="" selected disabled>
+                            -Select cargo-
+                          </option>
+                          <option>Steel Coil</option>
+                          <option>Cement Bag</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control shipment-cargo-weight"
+                          min="0"
+                          step="0.01"
+                          value="0"
+                        />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control" value="PCS" />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control shipment-cargo-qty"
+                          min="0"
+                          value="0"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="fields-grid cols-2 mt-3">
+              <div class="field">
+                <label for="totalCargoUnitQty" class="form-label"
+                  >Total Cargo Unit QTY</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="totalCargoUnitQty"
+                  value="0"
+                  readonly
+                />
+              </div>
+              <div class="field">
+                <label for="totalCargoWeight" class="form-label"
+                  >Total Cargo Weight</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="totalCargoWeight"
+                  value="0"
+                  readonly
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions-bar">
+          <div class="form-actions-left">
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              Reset Form
+            </button>
+          </div>
+          <div class="form-actions-right">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle"></i>
+              Save Shipment
+            </button>
+          </div>
+        </div>
+      </form>
+
+<!-- Bootstrap 5 JS -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+      (function () {
+        // Set default shipment date to today if empty
+        var shipmentDate = document.getElementById("shipmentDate");
+        if (shipmentDate && !shipmentDate.value) {
+          shipmentDate.value = new Date().toISOString().slice(0, 10);
+        }
+
+        var cargoBody = document.querySelector("#cargoTable tbody");
+        var totalCargoUnitQty = document.getElementById("totalCargoUnitQty");
+        var totalCargoWeight = document.getElementById("totalCargoWeight");
+
+        function updateShipmentCargoTotals() {
+          if (!cargoBody || !totalCargoUnitQty || !totalCargoWeight) return;
+          var qtyTotal = 0;
+          var weightTotal = 0;
+          cargoBody.querySelectorAll("tr").forEach(function (row) {
+            var qtyInput = row.querySelector(".shipment-cargo-qty");
+            var weightInput = row.querySelector(".shipment-cargo-weight");
+            qtyTotal += Number((qtyInput && qtyInput.value) || 0);
+            weightTotal += Number((weightInput && weightInput.value) || 0);
+          });
+          totalCargoUnitQty.value = qtyTotal;
+          totalCargoWeight.value = weightTotal.toFixed(2);
+        }
+
+        if (cargoBody) {
+          cargoBody.addEventListener("input", updateShipmentCargoTotals);
+          updateShipmentCargoTotals();
+        }
+      })();
+    </script>
+{% endblock %}

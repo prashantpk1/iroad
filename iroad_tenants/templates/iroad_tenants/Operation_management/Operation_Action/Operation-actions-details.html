@@ -1,0 +1,314 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Operation Action Details | iRoad Admin{% endblock %}
+
+{% block content %}
+<header class="top-header">
+        <div class="header-left">
+          <button
+            class="header-toggle-btn"
+            id="sidebarCollapseBtn"
+            title="Toggle Sidebar"
+          >
+            <i class="bi bi-list"></i>
+          </button>
+          <div class="header-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search operation actions..." />
+          </div>
+        </div>
+        <div class="header-datetime">
+          <span class="header-date" id="headerDate"
+            >Tuesday, 28 January 2026</span
+          >
+          <span class="header-time" id="headerTime">3:52 PM</span>
+        </div>
+        <div class="header-right">
+          <button class="header-icon-btn" title="Switch Language">
+            <i class="bi bi-translate"></i>
+          </button>
+          <button class="header-icon-btn" title="Notifications">
+            <i class="bi bi-bell"></i>
+            <span class="badge">3</span>
+          </button>
+        </div>
+      </header>
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Operations Management</li>
+            <li class="breadcrumb-item">
+              <a href="Operation-actions-list.html">Operation Actions List</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Details</li>
+          </ol>
+        </nav>
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">
+              Operation Action &mdash;
+              <span style="color: var(--primary-color)">ACT-001</span>
+            </h1>
+            <p class="page-subtitle">
+              Full details for this operation action configuration.
+            </p>
+          </div>
+          <div class="page-header-right">
+            <div class="eal-header-actions">
+              <a
+                href="Operation-actions-list.html"
+                class="eal-btn eal-btn-outline"
+              >
+                <i class="bi bi-arrow-left"></i>
+                <span>Back to List</span>
+              </a>
+              <a
+                href="Operation-action-log-details.html"
+                class="eal-btn eal-btn-outline"
+              >
+                <i class="bi bi-clock-history"></i>
+                <span>Go to Action Log</span>
+              </a>
+              <a href="../Operation_Action/Operation-actions-list.html" class="eal-btn eal-btn-primary">
+                <i class="bi bi-pencil-square"></i>
+                <span>Edit Record</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="form-card" data-section="1">
+            <div class="form-card-header">
+              <div class="form-card-icon blue">
+                <i class="bi bi-card-heading"></i>
+              </div>
+              <div class="form-card-header-text">
+                <h2 class="form-card-title">Header</h2>
+                <p class="form-card-desc">Action identity and status values.</p>
+              </div>
+            </div>
+            <div class="form-card-body">
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label class="form-label">Action Code</label>
+                  <p class="detail-view-value">ACT-001</p>
+                </div>
+                <div class="field">
+                  <label class="form-label">Status</label>
+                  <p class="detail-view-value">
+                    <span class="status-badge active">Active</span>
+                  </p>
+                </div>
+                <div class="field">
+                  <label class="form-label">Arabic Label</label>
+                  <p class="detail-view-value">تأكيد التسليم</p>
+                </div>
+                <div class="field">
+                  <label class="form-label">English Label</label>
+                  <p class="detail-view-value">Delivery Confirmation</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card" data-section="2">
+            <div class="form-card-header">
+              <div class="form-card-icon amber">
+                <i class="bi bi-list-ol"></i>
+              </div>
+              <div class="form-card-header-text">
+                <h2 class="form-card-title">Action Scope &amp; Sequence</h2>
+                <p class="form-card-desc">
+                  Scope, category and sequence setup values.
+                </p>
+              </div>
+            </div>
+            <div class="form-card-body">
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label class="form-label">Action Scope</label>
+                  <p class="detail-view-value">Job</p>
+                </div>
+                <div class="field">
+                  <label class="form-label">Sequence Category</label>
+                  <p class="detail-view-value">Job</p>
+                </div>
+                <div class="field">
+                  <label class="form-label">Sequence Number</label>
+                  <p class="detail-view-value">1</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card" data-section="3">
+            <div class="form-card-header">
+              <div class="form-card-icon green">
+                <i class="bi bi-diagram-3"></i>
+              </div>
+              <div class="form-card-header-text">
+                <h2 class="form-card-title">Operation Impact</h2>
+                <p class="form-card-desc">
+                  Auto posting, collection and status impact values.
+                </p>
+              </div>
+            </div>
+            <div class="form-card-body">
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label class="form-label">Auto Movement Post</label>
+                  <p class="detail-view-value">
+                    <span class="status-badge active">Enabled</span>
+                  </p>
+                </div>
+                <div class="field">
+                  <label class="form-label">Auto Shipment Post</label>
+                  <p class="detail-view-value">
+                    <span class="status-badge active">Enabled</span>
+                  </p>
+                </div>
+                <div class="field">
+                  <label class="form-label">Auto POD Post</label>
+                  <p class="detail-view-value">
+                    <span class="status-badge pending">Disabled</span>
+                  </p>
+                </div>
+                <div class="field">
+                  <label class="form-label">Hard Copy Collection</label>
+                  <p class="detail-view-value">
+                    <span class="status-badge pending">Disabled</span>
+                  </p>
+                </div>
+              </div>
+              <div class="fields-grid cols-3" style="margin-top: 20px">
+                <div class="field">
+                  <label class="form-label">Booking Status Impact</label>
+                  <p class="detail-view-value">Confirmed</p>
+                </div>
+                <div class="field">
+                  <label class="form-label">Shipment Status Impact</label>
+                  <p class="detail-view-value">Delivered</p>
+                </div>
+                <div class="field">
+                  <label class="form-label">Movement Status Impact</label>
+                  <p class="detail-view-value">Completed</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <div class="form-card">
+            <div class="form-card-header">
+              <div class="form-card-icon blue">
+                <i class="bi bi-info-circle"></i>
+              </div>
+              <div class="form-card-header-text">
+                <h2 class="form-card-title">Quick Summary</h2>
+              </div>
+            </div>
+            <div class="form-card-body">
+              <div
+                class="detail-field"
+                style="padding: 10px 0; border-bottom: 1px solid #eee"
+              >
+                <span class="detail-field-label">Action Code</span>
+                <span
+                  class="detail-field-value"
+                  style="font-weight: 600; color: var(--primary-color)"
+                  >ACT-001</span
+                >
+              </div>
+              <div
+                class="detail-field"
+                style="padding: 10px 0; border-bottom: 1px solid #eee"
+              >
+                <span class="detail-field-label">English Label</span>
+                <span class="detail-field-value">Delivery Confirmation</span>
+              </div>
+              <div
+                class="detail-field"
+                style="padding: 10px 0; border-bottom: 1px solid #eee"
+              >
+                <span class="detail-field-label">Scope</span>
+                <span class="detail-field-value">Job</span>
+              </div>
+              <div
+                class="detail-field"
+                style="padding: 10px 0; border-bottom: 1px solid #eee"
+              >
+                <span class="detail-field-label">Sequence</span>
+                <span class="detail-field-value">1</span>
+              </div>
+              <div class="detail-field" style="padding: 10px 0">
+                <span class="detail-field-label">Status</span>
+                <span class="detail-field-value"
+                  ><span class="status-badge active">Active</span></span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="form-card">
+            <div class="form-card-header">
+              <div class="form-card-icon amber">
+                <i class="bi bi-clock-history"></i>
+              </div>
+              <div class="form-card-header-text">
+                <h2 class="form-card-title">Activity Log</h2>
+              </div>
+            </div>
+            <div class="form-card-body">
+              <div style="display: flex; flex-direction: column; gap: 16px">
+                <div style="display: flex; gap: 12px; align-items: flex-start">
+                  <div
+                    style="
+                      width: 8px;
+                      height: 8px;
+                      border-radius: 50%;
+                      background: #28a745;
+                      margin-top: 6px;
+                      flex-shrink: 0;
+                    "
+                  ></div>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 600; color: #333">
+                      Last Updated
+                    </div>
+                    <div style="font-size: 12px; color: #888">
+                      01 Mar 2026, 4:30 PM - Mark
+                    </div>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: flex-start">
+                  <div
+                    style="
+                      width: 8px;
+                      height: 8px;
+                      border-radius: 50%;
+                      background: var(--primary-color);
+                      margin-top: 6px;
+                      flex-shrink: 0;
+                    "
+                  ></div>
+                  <div>
+                    <div style="font-size: 13px; font-weight: 600; color: #333">
+                      Created
+                    </div>
+                    <div style="font-size: 12px; color: #888">
+                      01 Mar 2026, 10:00 AM - System
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+{% endblock %}

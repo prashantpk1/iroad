@@ -320,7 +320,7 @@
                         </a>
                       </li>
                       <li>
-                        <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_client_details' %}?id={{ client.account_no|urlencode }}">
+                        <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_client_details' %}?ref={{ client.client_ref|urlencode }}">
                           <i class="bi bi-eye text-info me-2"></i>
                           View
                         </a>

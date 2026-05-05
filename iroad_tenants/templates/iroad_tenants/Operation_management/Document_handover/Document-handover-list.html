@@ -1,0 +1,581 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Document Handover List | iRoad Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Operations Management</li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Document Handover List
+            </li>
+          </ol>
+        </nav>
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Document Handover List</h1>
+            <p class="page-subtitle">
+              Manage and view all registered document handover transactions.
+            </p>
+          </div>
+          <div class="page-header-right">
+            <div class="eal-header-actions">
+              <button class="eal-btn eal-btn-outline">
+                <i class="bi bi-download"></i>
+                <span>Export</span>
+              </button>
+              <a href="Document-handover.html" class="eal-btn eal-btn-primary">
+                <i class="bi bi-plus-lg"></i>
+                <span>Add Handover</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="eal-stats-row">
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon purple">
+            <i class="bi bi-file-earmark-text"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">124</div>
+            <div class="eal-stat-label">Total</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon green">
+            <i class="bi bi-check-circle"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">86</div>
+            <div class="eal-stat-label">Collected</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon amber">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">25</div>
+            <div class="eal-stat-label">Pending</div>
+          </div>
+        </div>
+        <div class="eal-stat-card">
+          <div class="eal-stat-icon blue">
+            <i class="bi bi-person-check"></i>
+          </div>
+          <div>
+            <div class="eal-stat-value">13</div>
+            <div class="eal-stat-label">Client Received</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Card -->
+      <div class="eal-table-card">
+        <!-- Toolbar -->
+        <div class="eal-toolbar">
+          <div class="eal-toolbar-left">
+            <div class="eal-search">
+              <i class="bi bi-search"></i>
+              <input
+                type="text"
+                placeholder="Search document handovers&hellip;"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="eal-table-wrap">
+          <table class="eal-table">
+            <thead>
+              <tr>
+                <th>
+                  Handover No.
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Date
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Booking
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Shipment Ref
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  User
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+                <th>
+                  Status
+                  <span class="sort-indicator">
+                    <i class="bi bi-caret-up-fill"></i>
+                    <i class="bi bi-caret-down-fill"></i>
+                  </span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10020</span>
+                </td>
+                <td>25 Feb 2026</td>
+                <td>BK-2026-041</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10045</span>
+                  </div>
+                </td>
+                <td>Ahmed Ali</td>
+                <td>
+                  <span class="status-badge active">Posted</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10019</span>
+                </td>
+                <td>24 Feb 2026</td>
+                <td>BK-2026-040</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10044</span>
+                  </div>
+                </td>
+                <td>Mohammad Farooq</td>
+                <td>
+                  <span class="status-badge active">Posted</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10018</span>
+                </td>
+                <td>23 Feb 2026</td>
+                <td>BK-2026-039</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10042</span>
+                  </div>
+                </td>
+                <td>Hassan Syed</td>
+                <td>
+                  <span class="status-badge pending">Draft</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10017</span>
+                </td>
+                <td>23 Feb 2026</td>
+                <td>BK-2026-038</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10041</span>
+                  </div>
+                </td>
+                <td>Omar Khan</td>
+                <td>
+                  <span class="status-badge inactive">Rejected</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10016</span>
+                </td>
+                <td>22 Feb 2026</td>
+                <td>BK-2026-037</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10040</span>
+                  </div>
+                </td>
+                <td>Tariq Jameel</td>
+                <td>
+                  <span class="status-badge active">Posted</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10015</span>
+                </td>
+                <td>22 Feb 2026</td>
+                <td>BK-2026-036</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10038</span>
+                  </div>
+                </td>
+                <td>Khalid Waleed</td>
+                <td>
+                  <span class="status-badge pending">Draft</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10014</span>
+                </td>
+                <td>21 Feb 2026</td>
+                <td>BK-2026-035</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10037</span>
+                  </div>
+                </td>
+                <td>Zaid Bin Harith</td>
+                <td>
+                  <span class="status-badge inactive">Rejected</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10013</span>
+                </td>
+                <td>20 Feb 2026</td>
+                <td>BK-2026-034</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10036</span>
+                  </div>
+                </td>
+                <td>Bilal Ahmed</td>
+                <td>
+                  <span class="status-badge active">Posted</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10012</span>
+                </td>
+                <td>19 Feb 2026</td>
+                <td>BK-2026-033</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10035</span>
+                  </div>
+                </td>
+                <td>Usman Ghani</td>
+                <td>
+                  <span class="status-badge in-transit">Missing</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="eal-entity-id">HO-10011</span>
+                </td>
+                <td>19 Feb 2026</td>
+                <td>BK-2026-032</td>
+                <td>
+                  <div class="eal-name-cell">
+                    <span class="eal-name-text">SHP-10034</span>
+                  </div>
+                </td>
+                <td>Ali Mardan</td>
+                <td>
+                  <span class="status-badge active">Posted</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="eal-pagination">
+          <div class="eal-pagination-info">
+            Showing
+            <strong>1&ndash;10</strong>
+            of
+            <strong>124</strong>
+            document handovers
+          </div>
+          <div class="eal-pagination-controls">
+            <button class="eal-page-btn" title="Previous">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="eal-page-btn active">1</button>
+            <button class="eal-page-btn">2</button>
+            <button class="eal-page-btn">3</button>
+            <button class="eal-page-btn" title="Next">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- ========== END TABLE UI DESIGN ========== -->
+
+<!-- ========== HANDOVER DETAIL SLIDE PANEL ========== -->
+    <div class="detail-panel-overlay" id="detailPanelOverlay"></div>
+    <aside class="detail-panel" id="detailPanel">
+      <!-- Panel Header -->
+      <div class="detail-panel-header">
+        <div class="detail-panel-nav">
+          <button class="detail-nav-btn" id="detailPrevBtn" title="Previous">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="detail-nav-btn" id="detailNextBtn" title="Next">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+        <div class="detail-panel-actions">
+          <button class="detail-action-btn edit" title="Edit">
+            <i class="bi bi-pencil-square"></i>
+            <span>Edit</span>
+          </button>
+          <button class="detail-action-btn duplicate" title="Duplicate">
+            <i class="bi bi-copy"></i>
+            <span>Duplicate</span>
+          </button>
+          <button class="detail-action-btn delete" title="Delete">
+            <i class="bi bi-trash3"></i>
+            <span>Delete</span>
+          </button>
+        </div>
+        <button class="detail-close-btn" id="detailCloseBtn" title="Close">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Panel Body -->
+      <div class="detail-panel-body">
+        <!-- Section: Handover Info -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Handover Info</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Handover No.</span>
+            <span class="detail-field-value" id="dpHandoverNo">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Date</span>
+            <span class="detail-field-value" id="dpDate">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Booking</span>
+            <span class="detail-field-value" id="dpBooking">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Shipment</span>
+            <span class="detail-field-value" id="dpShipmentRef">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Participants -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">User Info</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">User</span>
+            <span class="detail-field-value" id="dpDriver">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Section: Status & Notes -->
+        <div class="detail-section">
+          <h3 class="detail-section-title">Status &amp; Notes</h3>
+          <div class="detail-field">
+            <span class="detail-field-label">Status</span>
+            <span class="detail-field-value" id="dpStatus">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Notes</span>
+            <span class="detail-field-value" id="dpNotes">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="detail-section detail-comments-section">
+          <h3 class="detail-section-title">
+            <i class="bi bi-chat-dots"></i>
+            <span class="detail-comment-count">0</span>
+            Comments
+          </h3>
+          <p class="detail-no-comments">
+            <em>No comments yet.</em>
+          </p>
+          <div class="detail-comment-box">
+            <div class="detail-comment-avatar">A</div>
+            <div class="detail-comment-input-wrap">
+              <input
+                type="text"
+                class="detail-comment-input"
+                placeholder="Write a comment..."
+              />
+              <button class="detail-comment-btn">Comment</button>
+            </div>
+          </div>
+          <p class="detail-comment-hint">Press Enter to send</p>
+        </div>
+      </div>
+    </aside>
+    <!-- ========== END HANDOVER DETAIL SLIDE PANEL ========== -->
+
+    <!-- Bootstrap 5 JS -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+      (function () {
+        const panel = document.getElementById("detailPanel");
+        const overlay = document.getElementById("detailPanelOverlay");
+        const closeBtn = document.getElementById("detailCloseBtn");
+        const prevBtn = document.getElementById("detailPrevBtn");
+        const nextBtn = document.getElementById("detailNextBtn");
+        const rows = document.querySelectorAll(".eal-table tbody tr");
+        let currentIndex = -1;
+
+        /* ---- helpers ---- */
+        function txt(el) {
+          return el ? el.textContent.trim() : "\u2014";
+        }
+
+        function openPanel() {
+          panel.classList.add("active");
+          overlay.classList.add("active");
+          document.body.style.overflow = "hidden";
+        }
+
+        function closePanel() {
+          panel.classList.remove("active");
+          overlay.classList.remove("active");
+          document.body.style.overflow = "";
+          rows.forEach(function (r) {
+            r.classList.remove("row-selected");
+          });
+          currentIndex = -1;
+        }
+
+        function populatePanel(row) {
+          var cells = row.querySelectorAll("td");
+          // cells index: 0=handoverNo, 1=date, 2=booking,
+          //              3=shipmentRef, 4=user, 5=status
+
+          document.getElementById("dpHandoverNo").textContent = txt(cells[0]);
+          document.getElementById("dpDate").textContent = txt(cells[1]);
+          document.getElementById("dpBooking").textContent = txt(cells[2]);
+
+          // Shipment Ref
+          var shipRefCell = cells[3]
+            ? cells[3].querySelector(".eal-name-cell")
+            : null;
+          document.getElementById("dpShipmentRef").textContent = shipRefCell
+            ? txt(shipRefCell.querySelector(".eal-name-text"))
+            : txt(cells[3]);
+
+          document.getElementById("dpDriver").textContent = txt(cells[4]);
+
+          // Status badge
+          var statusBadge = cells[5]
+            ? cells[5].querySelector(".status-badge")
+            : null;
+          var statusEl = document.getElementById("dpStatus");
+          if (statusBadge) {
+            statusEl.innerHTML = "";
+            statusEl.appendChild(statusBadge.cloneNode(true));
+          } else {
+            statusEl.textContent = txt(cells[5]);
+          }
+
+          // Notes placeholder
+          document.getElementById("dpNotes").textContent =
+            "No notes available.";
+
+          // Highlight the selected row
+          rows.forEach(function (r) {
+            r.classList.remove("row-selected");
+          });
+          row.classList.add("row-selected");
+        }
+
+        function showRow(index) {
+          if (index < 0 || index >= rows.length) return;
+
+          currentIndex = index;
+          populatePanel(rows[currentIndex]);
+          prevBtn.disabled = currentIndex === 0;
+          nextBtn.disabled = currentIndex === rows.length - 1;
+        }
+
+        /* ---- event listeners ---- */
+        rows.forEach(function (row, idx) {
+          row.style.cursor = "pointer";
+          row.addEventListener("click", function (e) {
+            if (
+              e.target.closest(".eal-col-check") ||
+              e.target.closest(".eal-actions-cell") ||
+              e.target.closest('input[type="checkbox"]')
+            ) {
+              return;
+            }
+            currentIndex = idx;
+            showRow(currentIndex);
+            openPanel();
+          });
+        });
+
+        closeBtn.addEventListener("click", closePanel);
+        overlay.addEventListener("click", closePanel);
+
+        prevBtn.addEventListener("click", function () {
+          if (currentIndex > 0) showRow(currentIndex - 1);
+        });
+
+        nextBtn.addEventListener("click", function () {
+          if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (!panel.classList.contains("active")) return;
+
+          if (e.key === "Escape") closePanel();
+
+          if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+            e.preventDefault();
+            if (currentIndex > 0) showRow(currentIndex - 1);
+          }
+          if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+            e.preventDefault();
+            if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
+          }
+        });
+
+        // View button also opens panel
+        document
+          .querySelectorAll('.eal-row-btn[title="View"]')
+          .forEach(function (btn, idx) {
+            btn.addEventListener("click", function (e) {
+              e.stopPropagation();
+              currentIndex = idx;
+              showRow(currentIndex);
+              openPanel();
+            });
+          });
+      })();
+    </script>
+{% endblock %}

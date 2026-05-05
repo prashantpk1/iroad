@@ -353,8 +353,8 @@
 
           <!-- Operations Management -->
           {% if is_tenant_admin or can_view_booking or can_view_shipment %}
-          <li class="nav-item has-submenu">
-            <a href="#" class="nav-link" data-tooltip="Operations Management">
+          <li class="nav-item has-submenu{% if request.resolver_match and 'tenant_operation_' in request.resolver_match.url_name %} open{% endif %}">
+            <a href="#" class="nav-link{% if request.resolver_match and 'tenant_operation_' in request.resolver_match.url_name %} active{% endif %}" data-tooltip="Operations Management">
               <i class="bi bi-activity"></i>
               <span class="nav-text">Operations Management</span>
               <i class="bi bi-chevron-right arrow"></i>
@@ -362,7 +362,7 @@
             <ul class="submenu">
               {% if is_tenant_admin or can_view_booking %}
               <li class="submenu-item">
-                <a href="Booking.html" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_operation_booking_list' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_operation_booking_list' %} active{% endif %}">
                   <i class="bi bi-calendar-check"></i>
                   <span>Booking</span>
                 </a>
@@ -370,7 +370,7 @@
               {% endif %}
               {% if is_tenant_admin or can_view_shipment %}
               <li class="submenu-item">
-                <a href="Shipment.html" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_operation_shipment_list' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_operation_shipment_list' %} active{% endif %}">
                   <i class="bi bi-box-seam"></i>
                   <span>Shipment</span>
                 </a>
@@ -378,13 +378,13 @@
               {% endif %}
               {% if is_tenant_admin %}
               <li class="submenu-item">
-                <a href="Shipment-documents.html" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_operation_shipment_documents_list' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_operation_shipment_documents_list' %} active{% endif %}">
                   <i class="bi bi-paperclip"></i>
                   <span>Shipment Documents</span>
                 </a>
               </li>
               <li class="submenu-item">
-                <a href="Surcharge-sales-transaction.html" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_operation_surcharge_sales_list' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_operation_surcharge_sales_list' %} active{% endif %}">
                   <i class="bi bi-receipt"></i>
 
                   <span>Surcharge Sales Transaction</span>
@@ -392,25 +392,25 @@
               </li>
 
               <li class="submenu-item">
-                <a href="Digital-pod-transaction.html" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_operation_shipment_pod_list' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_operation_shipment_pod_list' %} active{% endif %}">
                   <i class="bi bi-file-earmark-check"></i>
                   <span>Shipment POD Analysis</span>
                 </a>
               </li>
               <li class="submenu-item">
-                <a href="Document-handover.html" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_operation_document_handover_list' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_operation_document_handover_list' %} active{% endif %}">
                   <i class="bi bi-file-earmark-check"></i>
                   <span>Document Handover</span>
                 </a>
               </li>
               <li class="submenu-item">
-                <a href="Truck-movement-log.html" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_operation_truck_movement_log_list' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_operation_truck_movement_log_list' %} active{% endif %}">
                   <i class="bi bi-truck"></i>
                   <span>Truck Movement Log</span>
                 </a>
               </li>
               <li class="submenu-item">
-                <a href="Operation-actions.html" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_operation_actions_list' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_operation_actions_list' %} active{% endif %}">
                   <i class="bi bi-record-circle"></i>
                   <span>Operation Actions</span>
                 </a>
@@ -419,6 +419,7 @@
             </ul>
           </li>
           {% endif %}
+
 
           {# Fleet links live under Master Data (canonical). Duplicate static designer links removed. #}
 

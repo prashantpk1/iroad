@@ -1,0 +1,784 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Shipment POD Analysis | iRoad Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Operations Management</li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Shipment POD Analysis
+            </li>
+          </ol>
+        </nav>
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Shipment POD Analysis</h1>
+            <p class="page-subtitle">
+              Manage proof of delivery records — track document lifecycle, GPS
+              proof, and audit-ready attachments.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Digital POD Form -->
+      <form id="digitalPodForm">
+        <!-- Section 1: POD Header Fields -->
+        <div class="form-card" data-section="1">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-file-earmark-check"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">POD Header</h2>
+              <p class="form-card-desc">
+                Primary record identification, document details, and delivery
+                proof status.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-hash"></i> Header Info
+              </h3>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="recordNo" class="form-label">Record No</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="recordNo"
+                    placeholder="Auto-generated"
+                    readonly
+                  />
+                </div>
+                <div class="field">
+                  <label for="recordDate" class="form-label">Record Date</label>
+                  <input type="date" class="form-control" id="recordDate" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-file-earmark-text"></i> Document Info
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="docNo" class="form-label">Doc No (list)</label>
+                  <select class="form-select" id="docNo">
+                    <option value="" selected disabled>
+                      - Select Doc No -
+                    </option>
+                    <option value="DOC-001">DOC-001</option>
+                    <option value="DOC-002">DOC-002</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="documentDate" class="form-label"
+                    >Doc Date (fetch)</label
+                  >
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="documentDate"
+                    readonly
+                  />
+                </div>
+                <div class="field">
+                  <label for="documentType" class="form-label"
+                    >Doc Type (list)</label
+                  >
+                  <select class="form-select" id="documentType">
+                    <option value="" selected disabled>
+                      - Select Doc Type -
+                    </option>
+                    <option value="delivery_note">Delivery Note</option>
+                    <option value="invoice">Invoice</option>
+                    <option value="pod">POD</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fields-grid cols-2" style="margin-top: 20px">
+                <div class="field">
+                  <label for="documentRefNo" class="form-label"
+                    >Doc Ref (list)</label
+                  >
+                  <select class="form-select" id="documentRefNo">
+                    <option value="" selected disabled>
+                      - Select Doc Ref -
+                    </option>
+                    <option value="DREF-001">DREF-001</option>
+                    <option value="DREF-002">DREF-002</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="pageCount" class="form-label"
+                    >Page Count (fetch)</label
+                  >
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="pageCount"
+                    min="1"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-truck"></i> Booking and Shipment Info
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="bookingNo" class="form-label"
+                    >Booking No (list)</label
+                  >
+                  <select class="form-select" id="bookingNo">
+                    <option value="" selected disabled>
+                      - Select Booking No -
+                    </option>
+                    <option value="BK-2026-001">BK-2026-001</option>
+                    <option value="BK-2026-002">BK-2026-002</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="bookingItem" class="form-label"
+                    >Booking Item (list)</label
+                  >
+                  <select class="form-select" id="bookingItem">
+                    <option value="" selected disabled>
+                      - Select Booking Item -
+                    </option>
+                    <option value="BI-001">BI-001</option>
+                    <option value="BI-002">BI-002</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="shipmentRef" class="form-label"
+                    >Shipment (list)</label
+                  >
+                  <select class="form-select" id="shipmentRef">
+                    <option value="" selected disabled>
+                      - Select Shipment -
+                    </option>
+                    <option value="SHP-2026-00142">SHP-2026-00142</option>
+                    <option value="SHP-2026-00143">SHP-2026-00143</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group" id="locationHandoverGroup">
+              <h3 class="field-group-title">
+                <i class="bi bi-shield-check"></i> POD Status Info
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="podType" class="form-label"
+                    >POD Type (list)</label
+                  >
+                  <select class="form-select" id="podType">
+                    <option value="" selected disabled>
+                      - Select POD Type -
+                    </option>
+                    <option value="soft">Soft Copy</option>
+                    <option value="hard">Hard Copy</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="podStatus" class="form-label"
+                    >POD Status (auto update)</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="podStatus"
+                    value="pending"
+                    readonly
+                  />
+                </div>
+                <div class="field">
+                  <label for="documentLocation" class="form-label"
+                    >Physical Location (list)</label
+                  >
+                  <select class="form-select" id="documentLocation">
+                    <option value="" selected disabled>
+                      - Select Location -
+                    </option>
+                    <option value="with_driver">With Driver</option>
+                    <option value="with_admin">With Admin</option>
+                    <option value="out_of_company">Out of Company</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fields-grid cols-2" style="margin-top: 20px">
+                <div class="field">
+                  <label for="userHolder" class="form-label">User (list)</label>
+                  <select class="form-select" id="userHolder">
+                    <option value="" selected>- Select User -</option>
+                    <option value="user1">Ahmed Al-Rashid</option>
+                    <option value="user2">Sara Mohammed</option>
+                    <option value="user3">Khalid Ibrahim</option>
+                  </select>
+                  <span class="field-hint"
+                    >Empty when location is out of company.</span
+                  >
+                </div>
+                <div class="field">
+                  <label class="form-label">Location Status</label>
+                  <div
+                    class="pod-location-badge"
+                    id="locationStatusBadge"
+                    data-status="none"
+                  >
+                    <i class="bi bi-dash-circle"></i>
+                    <span>Select a location</span>
+                  </div>
+                </div>
+              </div>
+              <div class="fields-grid cols-3" style="margin-top: 20px">
+                <div class="field">
+                  <label for="podHardCopyStatus" class="form-label"
+                    >POD Hard Copy Status (list)</label
+                  >
+                  <select class="form-select" id="podHardCopyStatus">
+                    <option value="Not Collected" selected>
+                      Not Collected
+                    </option>
+                    <option value="Collected">Collected</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="podSoftCopyStatus" class="form-label"
+                    >POD Soft Copy Status (list)</label
+                  >
+                  <select class="form-select" id="podSoftCopyStatus">
+                    <option value="Not Collected" selected>
+                      Not Collected
+                    </option>
+                    <option value="Collected">Collected</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="podDigitalEvidenceStatus" class="form-label"
+                    >POD Digital Evidence Status (list)</label
+                  >
+                  <select class="form-select" id="podDigitalEvidenceStatus">
+                    <option value="Not Collected" selected>
+                      Not Collected
+                    </option>
+                    <option value="Collected">Collected</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Hard Copy — Document Location & User (Dynamic Visibility) -->
+        <div
+          class="form-card pod-section-hard"
+          data-section="3"
+          id="hardCopySection"
+          style="display: none"
+        >
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-file-earmark-ruled"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Hard Copy Tracking</h2>
+              <p class="form-card-desc">
+                Physical document location, current holder, and handover
+                tracking.
+              </p>
+            </div>
+            <span class="pod-section-badge hard"
+              ><i class="bi bi-file-earmark"></i> Hard Copy</span
+            >
+          </div>
+          <div class="form-card-body">
+            <div class="pod-info-callout warning">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <div>
+                <strong>Hard POD Logic</strong> — Status becomes
+                <em>Complete</em> only when Document Location =
+                <strong>With Admin</strong>. Tracks document movement via
+                Document Location and Current User.
+              </div>
+            </div>
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-person-check"></i>
+                Document Custody
+              </h3>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label class="form-label">Current Document Location</label>
+                  <div class="pod-location-visual" id="hardCopyLocationVisual">
+                    <div class="pod-loc-option" data-value="not_collected">
+                      <div class="pod-loc-icon error">
+                        <i class="bi bi-x-circle"></i>
+                      </div>
+                      <span>Not Collected</span>
+                    </div>
+                    <div class="pod-loc-option" data-value="with_driver">
+                      <div class="pod-loc-icon warning">
+                        <i class="bi bi-truck"></i>
+                      </div>
+                      <span>With Driver</span>
+                    </div>
+                    <div class="pod-loc-option" data-value="with_admin">
+                      <div class="pod-loc-icon success">
+                        <i class="bi bi-building-check"></i>
+                      </div>
+                      <span>With Admin</span>
+                    </div>
+                    <div class="pod-loc-option" data-value="with_client">
+                      <div class="pod-loc-icon info">
+                        <i class="bi bi-person"></i>
+                      </div>
+                      <span>With Client</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="hardCurrentUser" class="form-label"
+                    >Current User (Holder)</label
+                  >
+                  <select class="form-select" id="hardCurrentUser">
+                    <option value="" selected disabled>- Select User -</option>
+                    <option value="user1">Ahmed Al-Rashid</option>
+                    <option value="user2">Sara Mohammed</option>
+                    <option value="user3">Khalid Ibrahim</option>
+                  </select>
+                  <span class="field-hint"
+                    >When handed to client → User = NULL</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: POD Pages -->
+        <div class="form-card" data-section="4">
+          <div class="form-card-header">
+            <div class="form-card-icon red">
+              <i class="bi bi-table"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">POD Pages</h2>
+              <p class="form-card-desc">
+                Page-level POD tracking with source, status, map, and
+                attachments.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="btn btn-primary btn-sm pod-add-line-btn"
+              id="addPodLineBtn"
+            >
+              <i class="bi bi-plus-circle"></i>
+              Add Line
+            </button>
+          </div>
+          <div class="form-card-body" style="padding: 0">
+            <div class="pod-subform-table-wrap">
+              <table class="pod-subform-table" id="podLinesTable">
+                <thead>
+                  <tr>
+                    <th class="pod-th-sn">SN</th>
+                    <th>DOC Page (list)</th>
+                    <th>Source (list)</th>
+                    <th>Action Log (list)</th>
+                    <th>Physical Location</th>
+                    <th>Soft Copy Status</th>
+                    <th>Digital Evidence Status</th>
+                    <th>Map URL</th>
+                    <th>Attachment</th>
+                    <th class="pod-th-actions">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="podLinesBody">
+                  <!-- Row 1 -->
+                  <tr>
+                    <td class="pod-td-sn">1</td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="" selected disabled>DOC Page</option>
+                        <option value="Page-1">Page-1</option>
+                        <option value="Page-2">Page-2</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="Action Log" selected>Action Log</option>
+                        <option value="Manual">Manual</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="" selected disabled>Action Log</option>
+                        <option value="ALOG-001">ALOG-001</option>
+                        <option value="ALOG-002">ALOG-002</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="" selected disabled>Location</option>
+                        <option value="with_driver">With Driver</option>
+                        <option value="with_admin">With Admin</option>
+                        <option value="out_of_company">Out of Company</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="Not Collected" selected>
+                          Not Collected
+                        </option>
+                        <option value="Collected">Collected</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="Not Collected" selected>
+                          Not Collected
+                        </option>
+                        <option value="Collected">Collected</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        type="url"
+                        class="form-control form-control-sm"
+                        placeholder="Map URL"
+                      />
+                    </td>
+                    <td>
+                      <input type="file" class="form-control form-control-sm" />
+                    </td>
+                    <td class="pod-td-actions">
+                      <button
+                        type="button"
+                        class="pod-action-btn delete"
+                        title="Remove line"
+                      >
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <!-- Row 2 -->
+                  <tr>
+                    <td class="pod-td-sn">2</td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="" selected disabled>DOC Page</option>
+                        <option value="Page-1">Page-1</option>
+                        <option value="Page-2">Page-2</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="Action Log" selected>Action Log</option>
+                        <option value="Manual">Manual</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="" selected disabled>Action Log</option>
+                        <option value="ALOG-001">ALOG-001</option>
+                        <option value="ALOG-002">ALOG-002</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="" selected disabled>Location</option>
+                        <option value="with_driver">With Driver</option>
+                        <option value="with_admin">With Admin</option>
+                        <option value="out_of_company">Out of Company</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="Not Collected" selected>
+                          Not Collected
+                        </option>
+                        <option value="Collected">Collected</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm">
+                        <option value="Not Collected" selected>
+                          Not Collected
+                        </option>
+                        <option value="Collected">Collected</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        type="url"
+                        class="form-control form-control-sm"
+                        placeholder="Map URL"
+                      />
+                    </td>
+                    <td>
+                      <input type="file" class="form-control form-control-sm" />
+                    </td>
+                    <td class="pod-td-actions">
+                      <button
+                        type="button"
+                        class="pod-action-btn delete"
+                        title="Remove line"
+                      >
+                        <i class="bi bi-trash3"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <!-- Empty State -->
+            <div
+              class="pod-subform-empty"
+              id="podSubformEmpty"
+              style="display: none"
+            >
+              <i class="bi bi-file-earmark-x"></i>
+              <p>
+                No POD lines added yet. Click <strong>"Add Line"</strong> to
+                begin tracking document pages.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions-bar">
+          <div class="form-actions-left">
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              Reset Form
+            </button>
+          </div>
+          <div class="form-actions-right">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle"></i>
+              Save & Submit
+            </button>
+          </div>
+        </div>
+      </form>
+
+<!-- Bootstrap 5 JS -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // ── POD Type Toggle (Soft / Hard) ──────────────
+        const podTypeSelect = document.getElementById("podType");
+        const softSection = document.getElementById("softCopySection");
+        const hardSection = document.getElementById("hardCopySection");
+        const modeIndicator = document.getElementById("podModeIndicator");
+        const podForm = document.getElementById("digitalPodForm");
+
+        if (podTypeSelect) {
+          podTypeSelect.addEventListener("change", function () {
+            const value = this.value;
+            if (value === "soft") {
+              softSection.style.display = "";
+              hardSection.style.display = "none";
+              modeIndicator.className = "pod-mode-indicator";
+            } else if (value === "hard") {
+              softSection.style.display = "none";
+              hardSection.style.display = "";
+              modeIndicator.className = "pod-mode-indicator hard-mode";
+              modeIndicator.innerHTML =
+                '<i class="bi bi-file-earmark-ruled"></i><span>Hard Copy Mode</span>';
+              podForm.classList.add("pod-mode-hard");
+            }
+          });
+        }
+
+        // ── POD Status → Lifecycle Tracker ─────────────
+        const podStatusSelect = document.getElementById("podStatus");
+        const lifecycleSteps = document.querySelectorAll(".pod-lifecycle-step");
+        const lifecycleConnectors = document.querySelectorAll(
+          ".pod-lifecycle-connector",
+        );
+        const statusOrder = ["pending", "collected", "verified", "finalized"];
+
+        function updateLifecycle(status) {
+          const activeIdx = statusOrder.indexOf(status);
+          lifecycleSteps.forEach((step, i) => {
+            step.classList.remove("active", "completed");
+            if (i < activeIdx) step.classList.add("completed");
+            else if (i === activeIdx) step.classList.add("active");
+          });
+          lifecycleConnectors.forEach((conn, i) => {
+            if (i < activeIdx) {
+              conn.style.background =
+                "linear-gradient(90deg, #22c55e 0%, #3B82F6 100%)";
+            } else {
+              conn.style.background = "";
+            }
+          });
+        }
+
+        if (podStatusSelect) {
+          podStatusSelect.addEventListener("change", function () {
+            updateLifecycle(this.value);
+          });
+          // Init
+          updateLifecycle(podStatusSelect.value);
+        }
+
+        // ── Document Location → Badge ──────────────────
+        const docLocationSelect = document.getElementById("documentLocation");
+        const locationBadge = document.getElementById("locationStatusBadge");
+
+        const locationConfig = {
+          not_collected: {
+            icon: "bi-x-octagon-fill",
+            text: "Not Collected — Alert",
+          },
+          with_driver: {
+            icon: "bi-truck",
+            text: "With Driver — Warning",
+          },
+          with_admin: {
+            icon: "bi-building-check",
+            text: "With Admin — Ready for Billing",
+          },
+          out_of_company: {
+            icon: "bi-box-arrow-up-right",
+            text: "Out of Company",
+          },
+        };
+
+        if (docLocationSelect && locationBadge) {
+          docLocationSelect.addEventListener("change", function () {
+            const val = this.value;
+            const config = locationConfig[val];
+            if (config) {
+              locationBadge.setAttribute("data-status", val);
+              locationBadge.innerHTML =
+                '<i class="bi ' +
+                config.icon +
+                '"></i><span>' +
+                config.text +
+                "</span>";
+            }
+
+            // If Hard copy mode — sync hard copy visual
+            const hardVisual = document.getElementById(
+              "hardCopyLocationVisual",
+            );
+            if (hardVisual) {
+              hardVisual
+                .querySelectorAll(".pod-loc-option")
+                .forEach(function (opt) {
+                  opt.classList.toggle(
+                    "selected",
+                    opt.getAttribute("data-value") === val,
+                  );
+                });
+            }
+
+            // If location is out of company → clear holder
+            const userHolder = document.getElementById("userHolder");
+            if (val === "out_of_company" && userHolder) {
+              userHolder.value = "";
+            }
+          });
+        }
+
+        // ── Hard Copy Visual Location Selector ─────────
+        const hardVisual = document.getElementById("hardCopyLocationVisual");
+        if (hardVisual) {
+          hardVisual
+            .querySelectorAll(".pod-loc-option")
+            .forEach(function (opt) {
+              opt.addEventListener("click", function () {
+                const val = this.getAttribute("data-value");
+                // Update the main dropdown
+                if (docLocationSelect) {
+                  docLocationSelect.value = val;
+                  docLocationSelect.dispatchEvent(new Event("change"));
+                }
+              });
+            });
+        }
+
+        // ── Add / Remove POD Lines ─────────────────────
+        const addLineBtn = document.getElementById("addPodLineBtn");
+        const podLinesBody = document.getElementById("podLinesBody");
+        let lineCounter = 2;
+
+        if (addLineBtn && podLinesBody) {
+          addLineBtn.addEventListener("click", function () {
+            lineCounter++;
+            const newRow = document.createElement("tr");
+            newRow.innerHTML =
+              '<td class="pod-td-sn">' +
+              lineCounter +
+              "</td>" +
+              "<td>" +
+              '<select class="form-select form-select-sm">' +
+              '<option value="" selected disabled>DOC Page</option>' +
+              '<option value="Page-1">Page-1</option>' +
+              '<option value="Page-2">Page-2</option>' +
+              "</select></td>" +
+              '<td><select class="form-select form-select-sm"><option value="Action Log" selected>Action Log</option><option value="Manual">Manual</option></select></td>' +
+              '<td><select class="form-select form-select-sm"><option value="" selected disabled>Action Log</option><option value="ALOG-001">ALOG-001</option><option value="ALOG-002">ALOG-002</option></select></td>' +
+              '<td><select class="form-select form-select-sm"><option value="" selected disabled>Location</option><option value="with_driver">With Driver</option><option value="with_admin">With Admin</option><option value="out_of_company">Out of Company</option></select></td>' +
+              '<td><select class="form-select form-select-sm"><option value="Not Collected" selected>Not Collected</option><option value="Collected">Collected</option></select></td>' +
+              '<td><select class="form-select form-select-sm"><option value="Not Collected" selected>Not Collected</option><option value="Collected">Collected</option></select></td>' +
+              '<td><input type="url" class="form-control form-control-sm" placeholder="Map URL" /></td>' +
+              '<td><input type="file" class="form-control form-control-sm" /></td>' +
+              '<td class="pod-td-actions"><button type="button" class="pod-action-btn delete" title="Remove line"><i class="bi bi-trash3"></i></button></td>';
+
+            podLinesBody.appendChild(newRow);
+
+            // Attach delete
+            newRow
+              .querySelector(".pod-action-btn.delete")
+              .addEventListener("click", function () {
+                newRow.remove();
+                renumberLines();
+              });
+          });
+
+          // Delete handlers for existing rows
+          podLinesBody
+            .querySelectorAll(".pod-action-btn.delete")
+            .forEach(function (btn) {
+              btn.addEventListener("click", function () {
+                this.closest("tr").remove();
+                renumberLines();
+              });
+            });
+
+          function renumberLines() {
+            const rows = podLinesBody.querySelectorAll("tr");
+            rows.forEach(function (row, idx) {
+              row.querySelector(".pod-td-sn").textContent = idx + 1;
+            });
+            lineCounter = rows.length;
+          }
+        }
+      });
+    </script>
+{% endblock %}

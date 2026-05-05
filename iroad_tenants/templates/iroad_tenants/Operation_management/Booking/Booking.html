@@ -1,0 +1,1187 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Booking | iRoad Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Operations Management</li>
+            <li class="breadcrumb-item active" aria-current="page">Booking</li>
+          </ol>
+        </nav>
+
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Booking</h1>
+            <p class="page-subtitle">
+              Create or edit a booking. Link to Sales Order and optionally
+              Purchase Order (External sourcing).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Form -->
+      <form id="bookingForm">
+        <!-- Section 1: Booking Information (Header) -->
+        <div class="form-card" data-section="1">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-info-circle"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Booking Information</h2>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="bookingNo" class="form-label"
+                    >Booking No.
+                    <span class="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="bookingNo"
+                    name="booking_no"
+                    value="{{ preview_booking_no|default:'Auto' }}"
+                    placeholder="Auto"
+                    readonly
+                  />
+                  <span class="field-hint">Auto-generated, unique</span>
+                </div>
+                <div class="field">
+                  <label for="creationDate" class="form-label"
+                    >Creation Date</label
+                  >
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="creationDate"
+                    name="creation_date"
+                    value="{{ booking_creation_date|date:'Y-m-d' }}"
+                    readonly
+                  />
+                  <span class="field-hint">System date (read-only)</span>
+                </div>
+                <div class="field">
+                  <label for="bookingDate" class="form-label"
+                    >Booking Date
+                    <span class="required">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="bookingDate"
+                    name="booking_date"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label class="form-label d-block">Is it a scheduled?</label>
+                  <label class="setting-toggle">
+                    <input type="checkbox" id="isScheduled" checked />
+                    <span class="toggle-track"></span>
+                    <span class="toggle-label">Scheduled</span>
+                  </label>
+                </div>
+                <div class="field">
+                  <label for="executionDate" class="form-label"
+                    >Execution Date
+                    <span class="required">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="executionDate"
+                    name="execution_date"
+                    required
+                  />
+                  <span class="field-hint"
+                    >Planned execution date; required before Confirm</span
+                  >
+                </div>
+                <div class="field">
+                  <label for="bookingStatus" class="form-label"
+                    >Booking Status
+                    <span class="required">*</span>
+                  </label>
+                  <select
+                    class="form-select"
+                    id="bookingStatus"
+                    name="booking_status"
+                    required
+                  >
+                    <option value="Draft" selected>Draft</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="salesReportLookup" class="form-label"
+                    >Sales Report
+                    <span class="required">*</span>
+                  </label>
+                  <select
+                    class="form-select"
+                    id="salesReportLookup"
+                    name="sales_report_lookup"
+                  >
+                    <option value="" selected disabled>
+                      -Select sales report-
+                    </option>
+                    {% for price_list in booking_price_lists %}
+                    <option value="{{ price_list.price_list_id }}">
+                      {{ price_list.price_list_code }} - {{ price_list.price_list_name }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="salesReportStatus" class="form-label"
+                    >Sales Report Status
+                    <span class="required">*</span>
+                  </label>
+                  <select
+                    class="form-select"
+                    id="salesReportStatus"
+                    name="sales_report_status"
+                  >
+                    <option value="" selected disabled>
+                      -Select sales report status-
+                    </option>
+                    {% for status in booking_sales_report_status_options %}
+                    <option value="{{ status|lower }}">{{ status }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="podType" class="form-label">POD Type</label>
+                  <select class="form-select" id="podType" name="pod_type">
+                    <option value="" selected disabled>
+                      -Select POD type-
+                    </option>
+                    {% for pod_type in booking_pod_type_options %}
+                    <option value="{{ pod_type|lower }}">{{ pod_type }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="podStatus" class="form-label">POD Status</label>
+                  <select class="form-select" id="podStatus" name="pod_status">
+                    <option value="" selected disabled>
+                      -Select POD status-
+                    </option>
+                    {% for pod_status in booking_pod_status_options %}
+                    <option value="{{ pod_status|lower }}">{{ pod_status }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div style="display: none">
+                <label for="sourcingMode" class="form-label"
+                  >Sourcing Mode</label
+                >
+                <select
+                  class="form-select"
+                  id="sourcingMode"
+                  name="sourcing_mode"
+                  required
+                >
+                  <option value="Internal" selected>Internal</option>
+                  <option value="External">External</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Sales Order Information -->
+        <div class="form-card" data-section="2">
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-cart-check"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Service Details</h2>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="clientAccount" class="form-label"
+                    >Client Account
+                    <span class="required">*</span>
+                  </label>
+                  <select
+                    class="form-select"
+                    id="clientAccount"
+                    name="client_account"
+                    required
+                  >
+                    <option value="" selected disabled>
+                      -Select client account-
+                    </option>
+                    {% for account in booking_client_accounts %}
+                    <option value="{{ account.account_id }}">
+                      {{ account.account_no }} - {{ account.display_name }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <span class="field-hint"
+                    >Used for filtering Sales Orders</span
+                  >
+                </div>
+                <div class="field">
+                  <label for="salesOrderNo" class="form-label"
+                    >Price List
+                    <span class="required">*</span>
+                  </label>
+                  <select
+                    class="form-select"
+                    id="salesOrderNo"
+                    name="sales_order_no"
+                    required
+                  >
+                    <option value="" selected disabled>
+                      -Select price list-
+                    </option>
+                    {% for price_list in booking_price_lists %}
+                    <option
+                      value="{{ price_list.price_list_id }}"
+                      data-client-account-id="{{ price_list.client_account_id }}"
+                    >
+                      {{ price_list.price_list_code }} - {{ price_list.price_list_name }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <span class="field-hint">Lookup by client account</span>
+                </div>
+                <div class="field">
+                  <label for="salesOrderLine" class="form-label"
+                    >Service
+                    <span class="required">*</span>
+                  </label>
+                  <select
+                    class="form-select"
+                    id="salesOrderLine"
+                    name="service_lookup"
+                    required
+                  >
+                    <option value="" selected disabled>-Select service-</option>
+                    {% for service_item in booking_service_options %}
+                    <option
+                      value="{{ service_item.service_item_id }}"
+                      data-price-list-ids="{{ service_item.price_list_ids_csv }}"
+                      data-route-id="{{ service_item.route_id }}"
+                      data-service-type="{{ service_item.service_type }}"
+                      data-base-sell-price="{{ service_item.base_sell_price }}"
+                    >
+                      {{ service_item.service_code }} - {{ service_item.english_name }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <span class="field-hint"
+                    >Lookup from selected price list</span
+                  >
+                </div>
+              </div>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="routeDisplay" class="form-label"
+                    >Route
+                    <span class="required">*</span>
+                  </label>
+                  <select
+                    class="form-select"
+                    id="routeDisplay"
+                    name="route_lookup"
+                    required
+                  >
+                    <option value="" selected disabled>-Select route-</option>
+                    {% for route in booking_routes %}
+                    <option
+                      value="{{ route.route_id }}|forward"
+                      data-route-id="{{ route.route_id }}"
+                      data-direction="forward"
+                      data-forward-label="{{ route.origin_point.location_name_english|default:route.origin_point.display_label }} To {{ route.destination_point.location_name_english|default:route.destination_point.display_label }}"
+                      data-reverse-label="{{ route.destination_point.location_name_english|default:route.destination_point.display_label }} To {{ route.origin_point.location_name_english|default:route.origin_point.display_label }}"
+                    >
+                      {{ route.origin_point.location_name_english|default:route.origin_point.display_label }} To {{ route.destination_point.location_name_english|default:route.destination_point.display_label }}
+                    </option>
+                    <option
+                      value="{{ route.route_id }}|reverse"
+                      data-route-id="{{ route.route_id }}"
+                      data-direction="reverse"
+                      data-forward-label="{{ route.origin_point.location_name_english|default:route.origin_point.display_label }} To {{ route.destination_point.location_name_english|default:route.destination_point.display_label }}"
+                      data-reverse-label="{{ route.destination_point.location_name_english|default:route.destination_point.display_label }} To {{ route.origin_point.location_name_english|default:route.origin_point.display_label }}"
+                    >
+                      {{ route.destination_point.location_name_english|default:route.destination_point.display_label }} To {{ route.origin_point.location_name_english|default:route.origin_point.display_label }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="orderType" class="form-label"
+                    >Order Type
+                    <span class="required">*</span>
+                  </label>
+                  <select
+                    class="form-select"
+                    id="orderType"
+                    name="order_type"
+                    required
+                  >
+                    <option value="" selected disabled>
+                      -Select order type-
+                    </option>
+                    {% for order_type in booking_order_type_options %}
+                    <option value="{{ order_type }}">{{ order_type }}</option>
+                    {% endfor %}
+                  </select>
+                  <span class="field-hint">List values: COD, Credit</span>
+                </div>
+                <div class="field">
+                  <label for="tripTypeDisplay" class="form-label"
+                    >Trip Type <span class="required">*</span></label
+                  >
+                  <select
+                    class="form-select"
+                    id="tripTypeDisplay"
+                    name="trip_type"
+                    required
+                  >
+                    <option value="" selected disabled>
+                      -Select trip type-
+                    </option>
+                    {% for trip_type in booking_trip_type_options %}
+                    <option value="{{ trip_type }}">{{ trip_type }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="sellUnitPrice" class="form-label"
+                    >Sell Price
+                    <span class="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="sellUnitPrice"
+                    name="sell_price"
+                    readonly
+                    placeholder="Enter or derive sell price"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 5: Address -->
+        <div class="form-card" data-section="5">
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-geo-alt"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Address</h2>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-box-arrow-in-down"></i>
+                Loading Address
+              </h3>
+              <div class="eal-table-card">
+                <div class="eal-table-wrap">
+                  <table class="eal-table" id="loadingAddressTable">
+                    <thead>
+                      <tr>
+                        <th>SN</th>
+                        <th>Booking Item</th>
+                        <th>Loading Address</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>1</td>
+                        <td>
+                          <select
+                            class="form-select"
+                            name="loading_booking_item_1"
+                          >
+                            <option value="" selected disabled>
+                              -Select booking line-
+                            </option>
+                            {% for line_type in booking_line_type_options %}
+                            <option value="{{ line_type }}">{{ line_type }}</option>
+                            {% endfor %}
+                          </select>
+                        </td>
+                        <td>
+                          <select class="form-select" name="loading_address_1">
+                            <option value="" selected disabled>
+                              -Select loading address-
+                            </option>
+                            {% for address in booking_loading_addresses %}
+                            <option
+                              value="{{ address.address_id }}"
+                              data-client-account-id="{{ address.client_account_id }}"
+                            >
+                              {{ address.address_code }} - {{ address.display_name }}
+                            </option>
+                            {% endfor %}
+                          </select>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-box-arrow-up-right"></i>
+                Delivery Address
+              </h3>
+              <div class="eal-table-card">
+                <div class="eal-table-wrap">
+                  <table class="eal-table" id="deliveryAddressTable">
+                    <thead>
+                      <tr>
+                        <th>SN</th>
+                        <th>Booking Item</th>
+                        <th>Delivery Address</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>1</td>
+                        <td>
+                          <select
+                            class="form-select"
+                            name="delivery_booking_item_1"
+                          >
+                            <option value="" selected disabled>
+                              -Select booking line-
+                            </option>
+                            {% for line_type in booking_line_type_options %}
+                            <option value="{{ line_type }}">{{ line_type }}</option>
+                            {% endfor %}
+                          </select>
+                        </td>
+                        <td>
+                          <select class="form-select" name="delivery_address_1">
+                            <option value="" selected disabled>
+                              -Select delivery address-
+                            </option>
+                            {% for address in booking_delivery_addresses %}
+                            <option
+                              value="{{ address.address_id }}"
+                              data-client-account-id="{{ address.client_account_id }}"
+                            >
+                              {{ address.address_code }} - {{ address.display_name }}
+                            </option>
+                            {% endfor %}
+                          </select>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 6: Booking Lines -->
+        <div class="form-card" data-section="6">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-list-ul"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Booking Lines</h2>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="eal-table-card">
+              <div class="eal-table-wrap">
+                <table
+                  class="eal-table"
+                  id="bookingLinesTable"
+                  data-static-view="true"
+                >
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Code</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Route</th>
+                      <th>Truck</th>
+                      <th>Driver</th>
+                      <th class="cod-col">COD Amount</th>
+                      <th>POD Doc Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colspan="9" class="text-center text-muted py-3">
+                        Select service and trip type to auto-generate booking lines.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div
+              id="codValidationMsg"
+              class="alert alert-warning mt-3 py-2 px-3 d-none"
+              role="alert"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Section 9: Cargo -->
+        <div class="form-card" data-section="9">
+          <div class="form-card-header">
+            <div class="form-card-icon red">
+              <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Cargo</h2>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="eal-table-card">
+              <div class="eal-table-wrap">
+                <table class="eal-table" id="cargoTable">
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Booking Item</th>
+                      <th>Cargo</th>
+                      <th>Weight (Ton)</th>
+                      <th>Unit</th>
+                      <th>QTY</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>1</td>
+                      <td>
+                        <select class="form-select">
+                          <option value="" selected disabled>
+                            -Select booking line-
+                          </option>
+                          {% for line_type in booking_line_type_options %}
+                          <option value="{{ line_type }}">{{ line_type }}</option>
+                          {% endfor %}
+                        </select>
+                      </td>
+                      <td>
+                        <select class="form-select">
+                          <option value="" selected disabled>
+                            -Select cargo-
+                          </option>
+                          {% for cargo in booking_cargo_items %}
+                          <option
+                            value="{{ cargo.cargo_id }}"
+                            data-client-account-id="{{ cargo.client_account_id }}"
+                          >
+                            {{ cargo.cargo_code }} - {{ cargo.display_name }}
+                          </option>
+                          {% endfor %}
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control cargo-weight-input"
+                          min="0"
+                          step="0.01"
+                          value=""
+                        />
+                      </td>
+                      <td>
+                        <input type="text" class="form-control" value="" />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control cargo-qty-input"
+                          min="0"
+                          value=""
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="fields-grid cols-2 mt-3">
+              <div class="field">
+                <label for="totalCargoQty" class="form-label"
+                  >Total Cargo Unit QTY</label
+                >
+                <input
+                  type="number"
+                  id="totalCargoQty"
+                  class="form-control"
+                  value="0"
+                  readonly
+                />
+              </div>
+              <div class="field">
+                <label for="totalCargoWeight" class="form-label"
+                  >Total Cargo Weight</label
+                >
+                <input
+                  type="number"
+                  id="totalCargoWeight"
+                  class="form-control"
+                  value="0"
+                  readonly
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 10: Additional Information -->
+        <div class="form-card" data-section="10">
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-journal-text"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Additional Information</h2>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="containerNo" class="form-label"
+                    >Container No</label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="containerNo"
+                    name="container_no"
+                    placeholder="Enter container number"
+                  />
+                </div>
+                <div class="field">
+                  <label for="bookingAttachment" class="form-label"
+                    >Attachment</label
+                  >
+                  <input
+                    type="file"
+                    class="form-control"
+                    id="bookingAttachment"
+                    name="booking_attachment"
+                  />
+                </div>
+              </div>
+              <div class="fields-grid cols-1">
+                <div class="field">
+                  <label for="bookingInstructions" class="form-label"
+                    >Booking Instructions</label
+                  >
+                  <textarea
+                    id="bookingInstructions"
+                    class="form-control"
+                    name="booking_instructions"
+                    rows="4"
+                    placeholder="Add special instructions for operations team..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions-bar">
+          <div class="form-actions-left">
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              Reset Form
+            </button>
+          </div>
+          <div class="form-actions-right">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle"></i>
+              Save Booking
+            </button>
+          </div>
+        </div>
+      </form>
+
+<!-- Bootstrap 5 JS -->
+{% endblock %}
+
+{% block extra_js %}
+{{ booking_service_sell_overrides|json_script:"booking-service-sell-overrides" }}
+{{ booking_trip_sell_overrides|json_script:"booking-trip-sell-overrides" }}
+<script>
+      (function () {
+        var section = document.getElementById("purchaseOrderSection");
+        var sourcing = document.getElementById("sourcingMode");
+        var vendorAccount = document.getElementById("vendorAccount");
+        var purchaseOrderNo = document.getElementById("purchaseOrderNo");
+        var purchaseOrderLine = document.getElementById("purchaseOrderLine");
+        var requiredExternalFields = [
+          vendorAccount,
+          purchaseOrderNo,
+          purchaseOrderLine,
+        ];
+        if (section) {
+          section.setAttribute("aria-hidden", "false");
+        }
+        requiredExternalFields.forEach(function (field) {
+          if (!field) return;
+          field.setAttribute("required", "required");
+        });
+
+        var bookingDate = document.getElementById("bookingDate");
+        if (bookingDate && !bookingDate.value) {
+          bookingDate.value = new Date().toISOString().slice(0, 10);
+        }
+        var codValidationMsg = document.getElementById("codValidationMsg");
+        if (codValidationMsg) {
+          codValidationMsg.classList.add("d-none");
+          codValidationMsg.textContent = "";
+        }
+
+        function setupStopTable(modeId, tableId, addButtonId) {
+          var modeField = document.getElementById(modeId);
+          var tableBody = document.querySelector("#" + tableId + " tbody");
+          var addButton = document.getElementById(addButtonId);
+          if (!tableBody || !addButton) return;
+
+          function getNextSequence() {
+            var lastSequenceInput = tableBody.querySelector(
+              "tr:last-child input[type='number']",
+            );
+            var current = lastSequenceInput
+              ? Number(lastSequenceInput.value)
+              : 0;
+            return current + 1;
+          }
+
+          addButton.addEventListener("click", function () {
+            var row = document.createElement("tr");
+            row.innerHTML =
+              "<td>1</td>" +
+              "<td><input type='number' class='form-control' min='1' value='" +
+              getNextSequence() +
+              "' /></td>" +
+              "<td><input type='text' class='form-control' placeholder='Enter address' /></td>" +
+              "<td><button type='button' class='btn btn-outline-danger btn-sm'><i class='bi bi-trash'></i></button></td>";
+            tableBody.appendChild(row);
+          });
+
+          tableBody.addEventListener("click", function (event) {
+            var removeBtn = event.target.closest("button");
+            if (!removeBtn) return;
+            if (tableBody.querySelectorAll("tr").length === 1) return;
+            removeBtn.closest("tr").remove();
+          });
+        }
+
+        setupStopTable("pickupMode", "pickupTable", "addPickupRow");
+        setupStopTable("deliveryMode", "deliveryTable", "addDeliveryRow");
+
+        var cargoTableBody = document.querySelector("#cargoTable tbody");
+        var totalCargoQty = document.getElementById("totalCargoQty");
+        var totalCargoWeight = document.getElementById("totalCargoWeight");
+
+        function updateCargoTotals() {
+          if (!cargoTableBody || !totalCargoQty || !totalCargoWeight) return;
+          var rows = cargoTableBody.querySelectorAll("tr");
+          var grandQty = 0;
+          var grandWeight = 0;
+
+          rows.forEach(function (row) {
+            var qtyInput = row.querySelector(".cargo-qty-input");
+            var wtInput = row.querySelector(".cargo-weight-input");
+            var qty = qtyInput ? Number(qtyInput.value || "0") : 0;
+            var wt = wtInput ? Number(wtInput.value || "0") : 0;
+            grandQty += qty;
+            grandWeight += wt;
+          });
+
+          totalCargoQty.value = grandQty;
+          totalCargoWeight.value = grandWeight.toFixed(2);
+        }
+
+        if (cargoTableBody) {
+          cargoTableBody.addEventListener("input", updateCargoTotals);
+          updateCargoTotals();
+        }
+
+        var clientAccountSelect = document.getElementById("clientAccount");
+        var priceListSelect = document.getElementById("salesOrderNo");
+        var serviceSelect = document.getElementById("salesOrderLine");
+        var routeSelect = document.getElementById("routeDisplay");
+        var tripTypeSelect = document.getElementById("tripTypeDisplay");
+        var sellPriceInput = document.getElementById("sellUnitPrice");
+        var loadingTable = document.getElementById("loadingAddressTable");
+        var deliveryTable = document.getElementById("deliveryAddressTable");
+        var bookingLinesTable = document.getElementById("bookingLinesTable");
+        var truckOptions = [
+          {% for truck in booking_trucks %}
+          { value: "{{ truck.truck_id }}", label: "{{ truck.truck_code|escapejs }}" },
+          {% endfor %}
+        ];
+        var driverOptions = [
+          {% for d in booking_driver_ids %}
+          { value: "{{ d|escapejs }}", label: "{{ d|escapejs }}" },
+          {% endfor %}
+        ];
+        var serviceSellOverrides = {};
+        var tripSellOverrides = {};
+        try {
+          serviceSellOverrides = JSON.parse(
+            document.getElementById("booking-service-sell-overrides").textContent || "{}",
+          );
+          tripSellOverrides = JSON.parse(
+            document.getElementById("booking-trip-sell-overrides").textContent || "{}",
+          );
+        } catch (e) {}
+        var currentBookingLineTypes = [];
+        var fallbackBookingLineTypes = [
+          {% for line_type in booking_line_type_options %}
+          "{{ line_type|escapejs }}",
+          {% endfor %}
+        ];
+
+        function resetSelectToPlaceholder(selectEl) {
+          if (!selectEl) return;
+          selectEl.value = "";
+          Array.prototype.forEach.call(selectEl.options, function (opt, idx) {
+            if (idx === 0) {
+              opt.selected = true;
+            } else {
+              opt.selected = false;
+            }
+          });
+        }
+
+        function getVisibleOptions(selectEl) {
+          if (!selectEl) return [];
+          return Array.prototype.filter.call(selectEl.options, function (opt, idx) {
+            return idx > 0 && !opt.hidden;
+          });
+        }
+
+        function autoSelectSingleVisibleOption(selectEl) {
+          var visible = getVisibleOptions(selectEl);
+          if (visible.length === 1) {
+            visible[0].selected = true;
+            selectEl.value = visible[0].value;
+            return true;
+          }
+          return false;
+        }
+
+        function applyPriceListFilter() {
+          if (!clientAccountSelect || !priceListSelect) return;
+          var selectedClientId = clientAccountSelect.value || "";
+          var visibleCount = 0;
+          Array.prototype.forEach.call(priceListSelect.options, function (opt, idx) {
+            if (idx === 0) {
+              opt.hidden = false;
+              return;
+            }
+            var clientId = opt.getAttribute("data-client-account-id") || "";
+            var isVisible = selectedClientId && clientId === selectedClientId;
+            opt.hidden = !isVisible;
+            if (isVisible) visibleCount += 1;
+          });
+          resetSelectToPlaceholder(priceListSelect);
+          if (serviceSelect) {
+            resetSelectToPlaceholder(serviceSelect);
+          }
+          priceListSelect.disabled = !selectedClientId || visibleCount === 0;
+          if (serviceSelect) {
+            serviceSelect.disabled = true;
+          }
+          applyAddressAndCargoFilter();
+          rebuildBookingLines();
+          if (!priceListSelect.disabled && autoSelectSingleVisibleOption(priceListSelect)) {
+            applyServiceFilter();
+            deriveSellPrice();
+          } else if (sellPriceInput) {
+            sellPriceInput.value = "";
+          }
+        }
+
+        function applyServiceFilter() {
+          if (!priceListSelect || !serviceSelect) return;
+          var selectedPriceListId = priceListSelect.value || "";
+          var visibleCount = 0;
+          Array.prototype.forEach.call(serviceSelect.options, function (opt, idx) {
+            if (idx === 0) {
+              opt.hidden = false;
+              return;
+            }
+            var linked = (opt.getAttribute("data-price-list-ids") || "")
+              .split(",")
+              .map(function (x) { return x.trim(); })
+              .filter(Boolean);
+            var isVisible = selectedPriceListId && linked.indexOf(selectedPriceListId) !== -1;
+            opt.hidden = !isVisible;
+            if (isVisible) visibleCount += 1;
+          });
+          resetSelectToPlaceholder(serviceSelect);
+          serviceSelect.disabled = !selectedPriceListId || visibleCount === 0;
+          rebuildBookingLines();
+          if (!serviceSelect.disabled && autoSelectSingleVisibleOption(serviceSelect)) {
+            syncRouteFromService();
+            deriveSellPrice();
+          } else if (sellPriceInput) {
+            sellPriceInput.value = "";
+          }
+        }
+
+        function applyAddressAndCargoFilter() {
+          var selectedClientId = clientAccountSelect ? (clientAccountSelect.value || "") : "";
+          [
+            "select[name='loading_address_1']",
+            "select[name='delivery_address_1']"
+          ].forEach(function (selector) {
+            var selectEl = document.querySelector(selector);
+            if (!selectEl) return;
+            var visibleCount = 0;
+            Array.prototype.forEach.call(selectEl.options, function (opt, idx) {
+              if (idx === 0) {
+                opt.hidden = false;
+                return;
+              }
+              var clientId = opt.getAttribute("data-client-account-id") || "";
+              var isVisible = selectedClientId && clientId === selectedClientId;
+              opt.hidden = !isVisible;
+              if (isVisible) visibleCount += 1;
+            });
+            resetSelectToPlaceholder(selectEl);
+            selectEl.disabled = !selectedClientId || visibleCount === 0;
+            if (!selectEl.disabled) {
+              autoSelectSingleVisibleOption(selectEl);
+            }
+          });
+
+          var cargoSelect = document.querySelector("#cargoTable tbody tr select:nth-of-type(2)");
+          if (cargoSelect) {
+            var cargoVisibleCount = 0;
+            Array.prototype.forEach.call(cargoSelect.options, function (opt, idx) {
+              if (idx === 0) {
+                opt.hidden = false;
+                return;
+              }
+              var clientId = opt.getAttribute("data-client-account-id") || "";
+              var isVisible = selectedClientId && clientId === selectedClientId;
+              opt.hidden = !isVisible;
+              if (isVisible) cargoVisibleCount += 1;
+            });
+            resetSelectToPlaceholder(cargoSelect);
+            cargoSelect.disabled = !selectedClientId || cargoVisibleCount === 0;
+            if (!cargoSelect.disabled) {
+              autoSelectSingleVisibleOption(cargoSelect);
+            }
+          }
+        }
+
+        function updateBookingLineSelectors() {
+          var bookingLineOptions = fallbackBookingLineTypes;
+          var selectors = [
+            "select[name='loading_booking_item_1']",
+            "select[name='delivery_booking_item_1']",
+            "#cargoTable tbody tr select:first-of-type"
+          ];
+          selectors.forEach(function (selector) {
+            var selectEl = document.querySelector(selector);
+            if (!selectEl) return;
+            var previousValue = selectEl.value || "";
+            while (selectEl.options.length > 1) {
+              selectEl.remove(1);
+            }
+            bookingLineOptions.forEach(function (lineType) {
+              var opt = document.createElement("option");
+              opt.value = lineType;
+              opt.textContent = lineType;
+              selectEl.appendChild(opt);
+            });
+            selectEl.disabled = bookingLineOptions.length === 0;
+            if (!selectEl.disabled && previousValue) {
+              selectEl.value = previousValue;
+            }
+            if (selectEl.value && selectEl.selectedIndex > 0) {
+              return;
+            }
+            if (bookingLineOptions.length === 1) {
+              selectEl.value = bookingLineOptions[0];
+            } else {
+              resetSelectToPlaceholder(selectEl);
+            }
+          });
+        }
+
+        function buildOptionsHtml(options, placeholder) {
+          var html = "<option value='' selected disabled>" + placeholder + "</option>";
+          options.forEach(function (opt) {
+            html += "<option value='" + opt.value + "'>" + opt.label + "</option>";
+          });
+          return html;
+        }
+
+        function rebuildBookingLines() {
+          if (!bookingLinesTable) return;
+          var tbody = bookingLinesTable.querySelector("tbody");
+          if (!tbody) return;
+          var tripType = tripTypeSelect ? (tripTypeSelect.value || "") : "";
+          var selectedRouteText = "";
+          var reverseRouteText = "";
+          if (routeSelect && routeSelect.selectedIndex > 0) {
+            var selectedRouteOpt = routeSelect.options[routeSelect.selectedIndex];
+            var forwardLabel = (selectedRouteOpt.getAttribute("data-forward-label") || "").trim();
+            var reverseLabel = (selectedRouteOpt.getAttribute("data-reverse-label") || "").trim();
+            var direction = (selectedRouteOpt.getAttribute("data-direction") || "forward").trim();
+            if (direction === "reverse") {
+              selectedRouteText = reverseLabel || selectedRouteOpt.textContent.trim();
+              reverseRouteText = forwardLabel || selectedRouteText;
+            } else {
+              selectedRouteText = forwardLabel || selectedRouteOpt.textContent.trim();
+              reverseRouteText = reverseLabel || selectedRouteText;
+            }
+          }
+          currentBookingLineTypes = tripType === "Round" ? ["Outbound", "Backload"] : (tripType ? ["Outbound"] : []);
+          updateBookingLineSelectors();
+          if (!currentBookingLineTypes.length) {
+            tbody.innerHTML = "<tr><td colspan='9' class='text-center text-muted py-3'>Select service and trip type to auto-generate booking lines.</td></tr>";
+            return;
+          }
+          var rowsHtml = "";
+          currentBookingLineTypes.forEach(function (lineType, idx) {
+            var routeLabelForLine = selectedRouteText || "-";
+            if (tripType === "Round" && lineType === "Backload") {
+              routeLabelForLine = reverseRouteText || selectedRouteText || "-";
+            }
+            rowsHtml += "<tr>"
+              + "<td>" + (idx + 1) + "</td>"
+              + "<td>" + lineType.substring(0, 2).toUpperCase() + "-" + String(idx + 1).padStart(3, "0") + "</td>"
+              + "<td>" + lineType + "</td>"
+              + "<td><span class='status-badge status-active'>Draft</span></td>"
+              + "<td>" + routeLabelForLine + "</td>"
+              + "<td><select class='form-select form-select-sm'>" + buildOptionsHtml(truckOptions, "-Select truck-") + "</select></td>"
+              + "<td><select class='form-select form-select-sm'>" + buildOptionsHtml(driverOptions, "-Select driver-") + "</select></td>"
+              + "<td class='cod-col'><input type='number' min='0' step='0.01' class='form-control form-control-sm booking-line-cod-input' value='' /></td>"
+              + "<td><input type='number' min='0' class='form-control form-control-sm' value='' /></td>"
+              + "</tr>";
+          });
+          tbody.innerHTML = rowsHtml;
+        }
+
+        function deriveSellPrice() {
+          if (!sellPriceInput || !priceListSelect || !serviceSelect) return;
+          var selectedPriceList = priceListSelect.value || "";
+          var selectedService = serviceSelect.value || "";
+          var tripType = tripTypeSelect ? (tripTypeSelect.value || "") : "";
+          if (!selectedService && !serviceSelect.disabled) {
+            autoSelectSingleVisibleOption(serviceSelect);
+            selectedService = serviceSelect.value || "";
+          }
+          if (!selectedPriceList || !selectedService) {
+            sellPriceInput.value = "";
+            return;
+          }
+          var selectedServiceOption = serviceSelect.options[serviceSelect.selectedIndex];
+          var serviceType = selectedServiceOption ? (selectedServiceOption.getAttribute("data-service-type") || "") : "";
+          var baseSell = selectedServiceOption ? (selectedServiceOption.getAttribute("data-base-sell-price") || "") : "";
+          var resolved = "";
+          if (serviceType === "Trip") {
+            var tripSvcMap = (tripSellOverrides[selectedPriceList] || {})[selectedService] || {};
+            resolved = tripSvcMap[tripType] || tripSvcMap["One-Way"] || tripSvcMap["Round"] || "";
+          } else {
+            resolved = ((serviceSellOverrides[selectedPriceList] || {})[selectedService]) || "";
+          }
+          var finalValue = resolved || baseSell || "";
+          sellPriceInput.value = finalValue;
+        }
+
+        function syncRouteFromService() {
+          if (!routeSelect || !serviceSelect) return;
+          var selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+          var routeId = selectedOption ? (selectedOption.getAttribute("data-route-id") || "") : "";
+          if (routeId) {
+            var forwardValue = routeId + "|forward";
+            var reverseValue = routeId + "|reverse";
+            if (routeSelect.querySelector("option[value='" + forwardValue + "']")) {
+              routeSelect.value = forwardValue;
+            } else if (routeSelect.querySelector("option[value='" + reverseValue + "']")) {
+              routeSelect.value = reverseValue;
+            }
+          }
+          rebuildBookingLines();
+        }
+
+        if (clientAccountSelect && priceListSelect && serviceSelect) {
+          priceListSelect.disabled = true;
+          serviceSelect.disabled = true;
+          clientAccountSelect.addEventListener("change", applyPriceListFilter);
+          priceListSelect.addEventListener("change", function () {
+            applyServiceFilter();
+            deriveSellPrice();
+          });
+          serviceSelect.addEventListener("change", function () {
+            syncRouteFromService();
+            deriveSellPrice();
+          });
+          if (tripTypeSelect) {
+            tripTypeSelect.addEventListener("change", function () {
+              rebuildBookingLines();
+              deriveSellPrice();
+            });
+          }
+          if (routeSelect) {
+            routeSelect.addEventListener("change", rebuildBookingLines);
+          }
+          applyAddressAndCargoFilter();
+          if (clientAccountSelect.value) {
+            applyPriceListFilter();
+            if (priceListSelect.value) {
+              applyServiceFilter();
+            }
+            if (serviceSelect.value) {
+              syncRouteFromService();
+            }
+            deriveSellPrice();
+          }
+        }
+      })();
+    </script>
+{% endblock %}

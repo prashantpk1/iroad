@@ -1,0 +1,334 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Operation Action Log Details | iRoad Admin{% endblock %}
+
+{% block content %}
+<header class="top-header">
+        <div class="header-left">
+          <button
+            class="header-toggle-btn"
+            id="sidebarCollapseBtn"
+            title="Toggle Sidebar"
+          >
+            <i class="bi bi-list"></i>
+          </button>
+          <div class="header-search">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search action logs..." />
+          </div>
+        </div>
+        <div class="header-datetime">
+          <span class="header-date" id="headerDate"
+            >Tuesday, 28 January 2026</span
+          >
+          <span class="header-time" id="headerTime">3:52 PM</span>
+        </div>
+      </header>
+
+      <div class="page-header">
+       
+        <div class="page-header-row">
+          
+          <div class="page-header-left">
+            <nav aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+                <li class="breadcrumb-item">Operations</li>
+                <li class="breadcrumb-item">Operations Management</li>
+                <li class="breadcrumb-item">
+                  <a href="Operation-action-log.html">Action Log</a>
+                </li> 
+                <li class="breadcrumb-item active" aria-current="page">
+                  Action Log Details
+                </li>
+              </ol>
+            </nav>
+            <h1 class="page-title">Operation Action Log Details</h1>
+            <!-- <p class="page-subtitle">Detailed list view based on Operation Action Log form fields.</p> -->
+          </div>
+          <div class="page-header-right">
+            <div class="eal-header-actions">
+              <a
+                href="Operation-action-log.html"
+                class="eal-btn eal-btn-outline"
+              >
+                <i class="bi bi-arrow-left"></i>
+                <span>Back to Action Log</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="eal-table-card">
+        <div class="eal-toolbar">
+          <div class="eal-toolbar-left">
+            <div class="eal-search">
+              <i class="bi bi-search"></i>
+              <input
+                type="text"
+                placeholder="Search action log records&hellip;"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="eal-table-wrap">
+          <table class="eal-table">
+            <thead>
+              <tr>
+                <th class="eal-col-check">
+                  <input
+                    type="checkbox"
+                    class="eal-custom-check"
+                    id="ealSelectAll"
+                  />
+                </th>
+                <th>Log No</th>
+                <th>Log Date</th>
+                <th>Action</th>
+                <th>Booking No</th>
+                <th>Booking Item</th>
+                <th>Movement</th>
+                <th>Shipment</th>
+                <th>Truck</th>
+                <th>Driver</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0001</span></td>
+                <td>15 Apr 2026, 10:30</td>
+                <td>Pickup Confirmed</td>
+                <td>BKG-2001</td>
+                <td>ITEM-01</td>
+                <td>MOV-1301</td>
+                <td>SHP-10045</td>
+                <td>TRK-901</td>
+                <td>DRV-001</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0001"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0002</span></td>
+                <td>15 Apr 2026, 11:20</td>
+                <td>Transit Started</td>
+                <td>BKG-2002</td>
+                <td>ITEM-03</td>
+                <td>MOV-1302</td>
+                <td>SHP-10044</td>
+                <td>TRK-902</td>
+                <td>DRV-002</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0002"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0003</span></td>
+                <td>15 Apr 2026, 12:05</td>
+                <td>Checkpoint Scan</td>
+                <td>BKG-2003</td>
+                <td>ITEM-02</td>
+                <td>MOV-1303</td>
+                <td>SHP-10046</td>
+                <td>TRK-903</td>
+                <td>DRV-003</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0003"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0004</span></td>
+                <td>15 Apr 2026, 01:10</td>
+                <td>Loaded at Hub</td>
+                <td>BKG-2004</td>
+                <td>ITEM-01</td>
+                <td>MOV-1304</td>
+                <td>SHP-10047</td>
+                <td>TRK-904</td>
+                <td>DRV-004</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0004"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0005</span></td>
+                <td>15 Apr 2026, 02:00</td>
+                <td>Route Updated</td>
+                <td>BKG-2005</td>
+                <td>ITEM-05</td>
+                <td>MOV-1305</td>
+                <td>SHP-10048</td>
+                <td>TRK-905</td>
+                <td>DRV-005</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0005"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0006</span></td>
+                <td>15 Apr 2026, 03:25</td>
+                <td>Arrival Noted</td>
+                <td>BKG-2006</td>
+                <td>ITEM-04</td>
+                <td>MOV-1306</td>
+                <td>SHP-10049</td>
+                <td>TRK-906</td>
+                <td>DRV-006</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0006"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0007</span></td>
+                <td>15 Apr 2026, 04:40</td>
+                <td>Out for Delivery</td>
+                <td>BKG-2007</td>
+                <td>ITEM-03</td>
+                <td>MOV-1307</td>
+                <td>SHP-10050</td>
+                <td>TRK-907</td>
+                <td>DRV-007</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0007"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0008</span></td>
+                <td>15 Apr 2026, 05:15</td>
+                <td>Delivered</td>
+                <td>BKG-2008</td>
+                <td>ITEM-01</td>
+                <td>MOV-1308</td>
+                <td>SHP-10051</td>
+                <td>TRK-908</td>
+                <td>DRV-008</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0008"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0009</span></td>
+                <td>15 Apr 2026, 06:30</td>
+                <td>POD Uploaded</td>
+                <td>BKG-2009</td>
+                <td>ITEM-06</td>
+                <td>MOV-1309</td>
+                <td>SHP-10052</td>
+                <td>TRK-909</td>
+                <td>DRV-009</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0009"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="eal-col-check">
+                  <input type="checkbox" class="eal-custom-check" />
+                </td>
+                <td><span class="eal-entity-id">LOG-0010</span></td>
+                <td>15 Apr 2026, 07:10</td>
+                <td>Closed</td>
+                <td>BKG-2010</td>
+                <td>ITEM-02</td>
+                <td>MOV-1310</td>
+                <td>SHP-10053</td>
+                <td>TRK-910</td>
+                <td>DRV-010</td>
+                <td>
+                  <a
+                    href="action-log-details.html?log=LOG-0010"
+                    class="eal-row-btn"
+                    title="View"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+{% endblock %}

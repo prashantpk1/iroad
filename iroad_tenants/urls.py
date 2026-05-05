@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import TemplateView
 
 from .views import (
     TruckAttachmentAllListView,
@@ -16,6 +17,7 @@ from .views import (
     TruckTypeMasterEditView,
     TruckTypeMasterListView,
     TenantAddressMasterCreateView,
+    TenantAddressMasterDetailView,
     TenantAddressMasterEditView,
     TenantAddressLocationOptionsView,
     TenantAddressMasterListView,
@@ -96,6 +98,15 @@ from .views import (
     TenantServiceItemSettingsView,
     TenantUsersAdministrationToggleStatusView,
     TenantUsersAdministrationView,
+    TenantPriceListMasterCreateView,
+    TenantPriceListMasterDeleteView,
+    TenantPriceListMasterDetailView,
+    TenantPriceListMasterEditView,
+    TenantOperationBookingCreateView,
+    TenantOperationBookingListView, 
+    TenantPriceListMasterDeleteView,
+    TenantPriceListMasterEditView,
+
 )
 
 app_name = 'iroad_tenants'
@@ -364,6 +375,11 @@ urlpatterns = [
         name='tenant_address_master_edit',
     ),
     path(
+        'master-data/addresses/<uuid:address_id>/detail/',
+        TenantAddressMasterDetailView.as_view(),
+        name='tenant_address_master_detail',
+    ),
+    path(
         'master-data/addresses/location-options/',
         TenantAddressLocationOptionsView.as_view(),
         name='tenant_address_location_options',
@@ -582,6 +598,81 @@ urlpatterns = [
         'master-data/services/price-lists/create/',
         TenantPriceListMasterCreateView.as_view(),
         name='tenant_price_list_master_create',
+    ),
+    
+ path(
+        'master-data/services/price-lists/<uuid:price_list_id>/',
+        TenantPriceListMasterDetailView.as_view(),
+        name='tenant_price_list_master_detail',
+    ),
+    path(
+        'master-data/services/price-lists/<uuid:price_list_id>/edit/',
+        TenantPriceListMasterEditView.as_view(),
+        name='tenant_price_list_master_edit',
+    ),
+    path(
+        'master-data/services/price-lists/<uuid:price_list_id>/delete/',
+        TenantPriceListMasterDeleteView.as_view(),
+        name='tenant_price_list_master_delete',
+    ),
+    path(
+        'operations/booking/create/',
+        TenantOperationBookingCreateView.as_view(),
+        name='tenant_operation_booking_create',
+    ),
+    path(
+        'operations/booking/list/',
+        TenantOperationBookingListView.as_view(),
+        name='tenant_operation_booking_list',
+    ),
+    path(
+        'operations/shipment/list/',
+        TemplateView.as_view(
+            template_name='iroad_tenants/Operation_management/Shipment/Shipment-list.html'
+        ),
+        name='tenant_operation_shipment_list',
+    ),
+    path(
+        'operations/shipment-documents/list/',
+        TemplateView.as_view(
+            template_name='iroad_tenants/Operation_management/Shipment_Document/Shipment-documents-list.html'
+        ),
+        name='tenant_operation_shipment_documents_list',
+    ),
+    path(
+        'operations/surcharge-sales/list/',
+        TemplateView.as_view(
+            template_name='iroad_tenants/Operation_management/Surcharge/Surcharge-sales-transaction.html'
+        ),
+        name='tenant_operation_surcharge_sales_list',
+    ),
+    path(
+        'operations/shipment-pod/list/',
+        TemplateView.as_view(
+            template_name='iroad_tenants/Operation_management/Shipment_POD/Shipment-POD-analysis-list.html'
+        ),
+        name='tenant_operation_shipment_pod_list',
+    ),
+    path(
+        'operations/document-handover/list/',
+        TemplateView.as_view(
+            template_name='iroad_tenants/Operation_management/Document_handover/Document-handover-list.html'
+        ),
+        name='tenant_operation_document_handover_list',
+    ),
+    path(
+        'operations/truck-movement-log/list/',
+        TemplateView.as_view(
+            template_name='iroad_tenants/Operation_management/Truck_movement_log/Truck-movement-log-list.html'
+        ),
+        name='tenant_operation_truck_movement_log_list',
+    ),
+    path(
+        'operations/operation-actions/list/',
+        TemplateView.as_view(
+            template_name='iroad_tenants/Operation_management/Operation_Action/Operation-actions-list.html'
+        ),
+        name='tenant_operation_actions_list',
     ),
     path('my-account/', TenantMyAccountView.as_view(), name='tenant_my_account'),
     path('logout/', TenantLogoutView.as_view(), name='tenant_logout'),

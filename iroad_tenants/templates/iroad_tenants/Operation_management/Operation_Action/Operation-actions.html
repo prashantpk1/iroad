@@ -1,0 +1,323 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Action Master | iRoad Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>
+            <li class="breadcrumb-item">Operations Management</li>
+            <li class="breadcrumb-item active" aria-current="page">
+              Operation Actions
+            </li>
+          </ol>
+        </nav>
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Action Master</h1>
+            <p class="page-subtitle">
+              Configure operation action types (OperationActionConfig).
+            </p>
+          </div>
+          <div class="page-header-right">
+            <div class="eal-header-actions">
+              <a href="Operation-action-log.html" class="eal-btn eal-btn-outline">
+                <i class="bi bi-clock-history"></i>
+                <span>Go to Action Log</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Operation Actions Form -->
+      <form id="operationActionsForm">
+        <!-- Section 1: Header -->
+        <div class="form-card" data-section="1">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-card-heading"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Header</h2>
+              <p class="form-card-desc">Define action identity and status.</p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-fingerprint"></i>
+                Header Fields
+              </h3>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="actionCode" class="form-label"
+                    >Action Code <span class="required">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="actionCode"
+                    placeholder="e.g. ACT-001"
+                  />
+                </div>
+                <div class="field">
+                  <label for="arabicLabel" class="form-label">Arabic Label</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="arabicLabel"
+                    placeholder="Arabic label"
+                    dir="rtl"
+                  />
+                </div>
+                <div class="field">
+                  <label for="englishLabel" class="form-label"
+                    >English Label <span class="required">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="englishLabel"
+                    placeholder="English label"
+                  />
+                </div>
+                <div class="field">
+                  <label for="status" class="form-label"
+                    >Status <span class="required">*</span></label
+                  >
+                  <select class="form-select" id="status">
+                    <option value="" selected disabled>-Select status-</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Action Scope & Sequence -->
+        <div class="form-card" data-section="2">
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-list-ol"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Action Scope &amp; Sequence</h2>
+              <p class="form-card-desc">Configure scope and execution sequence.</p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-gear"></i>
+                Scope and Sequence Setup
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="actionScope" class="form-label"
+                    >Action Scope <span class="required">*</span></label
+                  >
+                  <select class="form-select" id="actionScope">
+                    <option value="" selected disabled>-Select scope-</option>
+                    <option value="job">Job</option>
+                    <option value="on_call">On Call</option>
+                    <option value="without">Without</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="sequenceCategory" class="form-label"
+                    >Sequence Category <span class="required">*</span></label
+                  >
+                  <select class="form-select" id="sequenceCategory">
+                    <option value="" selected disabled>-Select category-</option>
+                    <option value="job">Job</option>
+                    <option value="empty_move">Empty Move</option>
+                    <option value="without">Without</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="sequenceNumber" class="form-label"
+                    >Sequence Number <span class="required">*</span></label
+                  >
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="sequenceNumber"
+                    placeholder="e.g. 1"
+                    min="1"
+                    step="1"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Operation Impact -->
+        <div class="form-card" data-section="3">
+          <div class="form-card-header">
+            <div class="form-card-icon green">
+              <i class="bi bi-diagram-3"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Operation Impact</h2>
+              <p class="form-card-desc">
+                Define posting behavior and status impacts.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-toggles2"></i>
+                Auto Posting &amp; Collection
+              </h3>
+              <div class="setting-row">
+                <div class="setting-row-info">
+                  <label class="form-label" for="autoMovementPost"
+                    >Auto Movement Post</label
+                  >
+                  <span class="field-hint"
+                    >Automatically create movement posting when this action is
+                    applied.</span
+                  >
+                </div>
+                <label class="setting-toggle">
+                  <input
+                    type="checkbox"
+                    id="autoMovementPost"
+                    name="autoMovementPost"
+                    checked
+                  />
+                  <span class="toggle-track"></span>
+                  <span class="toggle-label">Enabled</span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-row-info">
+                  <label class="form-label" for="autoShipmentPost"
+                    >Auto Shipment Post</label
+                  >
+                  <span class="field-hint"
+                    >Automatically create shipment posting from this action.</span
+                  >
+                </div>
+                <label class="setting-toggle">
+                  <input
+                    type="checkbox"
+                    id="autoShipmentPost"
+                    name="autoShipmentPost"
+                    checked
+                  />
+                  <span class="toggle-track"></span>
+                  <span class="toggle-label">Enabled</span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-row-info">
+                  <label class="form-label" for="autoPodPost"
+                    >Auto POD Post</label
+                  >
+                  <span class="field-hint"
+                    >Automatically create POD posting on action completion.</span
+                  >
+                </div>
+                <label class="setting-toggle">
+                  <input type="checkbox" id="autoPodPost" name="autoPodPost" />
+                  <span class="toggle-track"></span>
+                  <span class="toggle-label">Enabled</span>
+                </label>
+              </div>
+              <div class="setting-row">
+                <div class="setting-row-info">
+                  <label class="form-label" for="hardCopyCollection"
+                    >Hard Copy Collection</label
+                  >
+                  <span class="field-hint"
+                    >Enable when physical hard copy collection is required.</span
+                  >
+                </div>
+                <label class="setting-toggle">
+                  <input
+                    type="checkbox"
+                    id="hardCopyCollection"
+                    name="hardCopyCollection"
+                  />
+                  <span class="toggle-track"></span>
+                  <span class="toggle-label">Enabled</span>
+                </label>
+              </div>
+            </div>
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-arrow-repeat"></i>
+                Status Impact
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="bookingStatusImpact" class="form-label"
+                    >Booking Status Impact</label
+                  >
+                  <select class="form-select" id="bookingStatusImpact">
+                    <option value="" selected disabled>-Select status-</option>
+                    <option value="draft">Draft</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="shipmentStatusImpact" class="form-label"
+                    >Shipment Status Impact</label
+                  >
+                  <select class="form-select" id="shipmentStatusImpact">
+                    <option value="" selected disabled>-Select status-</option>
+                    <option value="draft">Draft</option>
+                    <option value="in_transit">In Transit</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="returned">Returned</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="movementStatusImpact" class="form-label"
+                    >Movement Status Impact</label
+                  >
+                  <select class="form-select" id="movementStatusImpact">
+                    <option value="" selected disabled>-Select status-</option>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions-bar">
+          <div class="form-actions-left">
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              Reset Form
+            </button>
+          </div>
+          <div class="form-actions-right">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle"></i>
+              Save Action Master
+            </button>
+          </div>
+        </div>
+      </form>
+
+<!-- Bootstrap 5 JS -->
+{% endblock %}

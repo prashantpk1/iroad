@@ -1,0 +1,404 @@
+{% extends 'iroad_tenants/base.html' %}
+
+{% block title %}Create Surcharge Sales Transaction | iRoad Admin{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+      <div class="page-header">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="index.html">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">Operations</li>           <li class="breadcrumb-item">Operations Management</li>            <li class="breadcrumb-item active" aria-current="page">              Create Surcharge Sales Transaction            </li>
+          </ol>
+        </nav>
+        <div class="page-header-row">
+          <div class="page-header-left">
+            <h1 class="page-title">Create Surcharge Sales Transaction</h1>
+            <p class="page-subtitle">
+              Fill in the details below to create a surcharge sales transaction.
+            </p>
+          </div>
+          <div class="page-header-right">
+            <div class="eal-header-actions">
+              <a
+                href="../Surcharge/Surcharge-sales-transaction.html"
+                class="eal-btn eal-btn-outline"
+              >
+                <i class="bi bi-arrow-left"></i>
+                <span>Back</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+            <!-- Surcharge Sales Transaction Form -->
+      <form id="surchargeSalesTransactionForm">
+        <div class="form-card" data-section="1">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-receipt"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Transaction Header</h2>
+              <p class="form-card-desc">
+                Core transaction identity, date, and processing status.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-fingerprint"></i>
+                Header Information
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="trxNo" class="form-label"
+                    >Transaction No <span class="required">*</span></label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-hash"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="trxNo"
+                      value="SST-000001"
+                      readonly
+                    />
+                  </div>
+                  <span class="field-hint">Auto-numbered and unique</span>
+                </div>
+                <div class="field">
+                  <label for="trxDate" class="form-label"
+                    >Date <span class="required">*</span></label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-calendar-date"></i>
+                    <input
+                      type="date"
+                      class="form-control has-icon"
+                      id="trxDate"
+                      required
+                    />
+                  </div>
+                  <span class="field-hint">Default is today's date</span>
+                </div>
+                <div class="field">
+                  <label for="status" class="form-label"
+                    >Status <span class="required">*</span></label
+                  >
+                  <select class="form-select" id="status" required>
+                    <option value="draft" selected>Draft</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="invoiced">Invoiced</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card" data-section="2">
+          <div class="form-card-header">
+            <div class="form-card-icon green">
+              <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Shipment Details</h2>
+              <p class="form-card-desc">
+                Shipment is the source of truth for booking, client, and currency.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-truck"></i>
+                Reference Information
+              </h3>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="shipmentId" class="form-label"
+                    >Shipment Ref <span class="required">*</span></label
+                  >
+                  <select class="form-select" id="shipmentId" required>
+                    <option value="" selected disabled>-Select shipment-</option>
+                    <option value="SH-1001" data-booking="BK-5001" data-client="Al Safa Logistics" data-currency="SAR">SH-1001</option>
+                    <option value="SH-1002" data-booking="BK-5002" data-client="Blue Ocean Imports" data-currency="USD">SH-1002</option>
+                    <option value="SH-1003" data-booking="BK-5003" data-client="Riyadh Trading Co." data-currency="SAR">SH-1003</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="bookingId" class="form-label">Booking Ref</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="bookingId"
+                    placeholder="Auto-fetched from shipment"
+                    readonly
+                  />
+                </div>
+              </div>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="clientId" class="form-label">Client</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="clientId"
+                    placeholder="Auto-fetched from shipment"
+                    readonly
+                  />
+                </div>
+                <div class="field">
+                  <label for="currencyCode" class="form-label">Currency</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="currencyCode"
+                    placeholder="Auto-fetched and locked"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card" data-section="3">
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-list-check"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Charge Details</h2>
+              <p class="form-card-desc">
+                Configure surcharge service, pricing, and calculated amount.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-cash-stack"></i>
+                Service Pricing
+              </h3>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="serviceItemId" class="form-label"
+                    >Service <span class="required">*</span></label
+                  >
+                  <select class="form-select" id="serviceItemId" required>
+                    <option value="" selected disabled>-Select service item-</option>
+                    <option value="svc1" data-unit-price="125.00">Detention Charge</option>
+                    <option value="svc2" data-unit-price="75.00">Urgent Unloading</option>
+                    <option value="svc3" data-unit-price="55.50">Extra Route Toll</option>
+                  </select>
+                  <span class="field-hint">Only service-type items are allowed</span>
+                </div>
+                <div class="field">
+                  <label for="description" class="form-label">Description</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="description"
+                    placeholder="Additional charge details"
+                  />
+                </div>
+              </div>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="quantity" class="form-label"
+                    >Quantity <span class="required">*</span></label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-123"></i>
+                    <input
+                      type="number"
+                      class="form-control has-icon"
+                      id="quantity"
+                      min="0.01"
+                      step="0.01"
+                      value="1"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="unitPrice" class="form-label"
+                    >Unit Price <span class="required">*</span></label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-currency-dollar"></i>
+                    <input
+                      type="number"
+                      class="form-control has-icon"
+                      id="unitPrice"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="totalAmount" class="form-label"
+                    >Total Amount <span class="required">*</span></label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-calculator"></i>
+                    <input
+                      type="number"
+                      class="form-control has-icon"
+                      id="totalAmount"
+                      min="0"
+                      step="0.01"
+                      readonly
+                    />
+                  </div>
+                  <span class="field-hint">Auto-calculated: Quantity x Unit Price</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card" data-section="4">
+          <div class="form-card-header">
+            <div class="form-card-icon red">
+              <i class="bi bi-chat-left-text"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Justification</h2>
+              <p class="form-card-desc">
+                Add mandatory reason and supporting document before confirmation.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-exclamation-circle"></i>
+                Validation Inputs
+              </h3>
+              <div class="fields-grid cols-1">
+                <div class="field">
+                  <label for="notes" class="form-label"
+                    >Reason <span class="required">*</span></label
+                  >
+                  <textarea
+                    class="form-control"
+                    id="notes"
+                    rows="3"
+                    placeholder="Explain why this surcharge was added"
+                    required
+                  ></textarea>
+                  <span class="field-hint"
+                    >Examples: Waiting at site 2 hours, urgent unloading request, extra toll</span
+                  >
+                </div>
+              </div>
+              <div class="fields-grid cols-1">
+                <div class="field">
+                  <label for="attachmentFile" class="form-label"
+                    >Attachment <span class="required">*</span></label
+                  >
+                  <input
+                    type="file"
+                    class="form-control"
+                    id="attachmentFile"
+                    required
+                  />
+                  <span class="field-hint">Upload receipt, invoice copy, toll slip, or evidence photo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions-bar">
+          <div class="form-actions-left">
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              Reset Form
+            </button>
+          </div>
+          <div class="form-actions-right">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle"></i>
+              Save Surcharge Transaction
+            </button>
+          </div>
+        </div>
+      </form>
+
+<!-- Bootstrap 5 JS -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+      (function () {
+        var shipmentSelect = document.getElementById("shipmentId");
+        var bookingInput = document.getElementById("bookingId");
+        var clientInput = document.getElementById("clientId");
+        var currencyInput = document.getElementById("currencyCode");
+        var serviceSelect = document.getElementById("serviceItemId");
+        var quantityInput = document.getElementById("quantity");
+        var unitPriceInput = document.getElementById("unitPrice");
+        var totalAmountInput = document.getElementById("totalAmount");
+        var trxDateInput = document.getElementById("trxDate");
+        var form = document.getElementById("surchargeSalesTransactionForm");
+
+        var today = new Date().toISOString().split("T")[0];
+        trxDateInput.value = today;
+
+        function updateTotal() {
+          var qty = parseFloat(quantityInput.value) || 0;
+          var price = parseFloat(unitPriceInput.value) || 0;
+          totalAmountInput.value = (qty * price).toFixed(2);
+        }
+
+        shipmentSelect.addEventListener("change", function () {
+          var option = shipmentSelect.options[shipmentSelect.selectedIndex];
+          bookingInput.value = option.getAttribute("data-booking") || "";
+          clientInput.value = option.getAttribute("data-client") || "";
+          currencyInput.value = option.getAttribute("data-currency") || "";
+        });
+
+        serviceSelect.addEventListener("change", function () {
+          var option = serviceSelect.options[serviceSelect.selectedIndex];
+          var defaultPrice = option.getAttribute("data-unit-price");
+          if (defaultPrice) {
+            unitPriceInput.value = parseFloat(defaultPrice).toFixed(2);
+            updateTotal();
+          }
+        });
+
+        quantityInput.addEventListener("input", updateTotal);
+        unitPriceInput.addEventListener("input", updateTotal);
+
+        form.addEventListener("submit", function (event) {
+          var status = document.getElementById("status").value;
+          if (status === "confirmed") {
+            if (!shipmentSelect.value || !serviceSelect.value || !document.getElementById("notes").value.trim() || !document.getElementById("attachmentFile").value) {
+              event.preventDefault();
+              alert("Before confirming, complete Shipment, Service, Reason, and Attachment.");
+            }
+          }
+          if (status === "invoiced") {
+            Array.prototype.forEach.call(form.elements, function (el) {
+              if (el.id !== "status" && el.type !== "submit" && el.type !== "reset") {
+                el.disabled = true;
+              }
+            });
+          }
+        });
+
+        updateTotal();
+      })();
+    </script>
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'iroad_tenants/base.html' %}
 {% load static %}
 
-{% block title %}Price List Master | iRoad Admin{% endblock %}
+{% block title %}{% if is_view %}View{% elif is_edit %}Edit{% else %}Create{% endif %} Price List | iRoad Admin{% endblock %}
 {% block breadcrumb %}{% endblock %}
 
 {% block extra_css %}
@@ -15,6 +15,7 @@
   .pl-total-label { color:var(--text-muted,#6b7280); font-weight:600; font-size:.85rem; }
   .pl-total-value { font-size:1.1rem; font-weight:700; color:var(--text-dark,#111827); }
   @media (max-width:992px){ .pl-totals { grid-template-columns:1fr; } }
+  #plLinesFormError { border-radius:10px; border:1px solid rgba(220,53,69,.35); }
 </style>
 {% endblock %}
 
@@ -30,15 +31,15 @@
         </nav>
         <div class="page-header-row">
           <div class="page-header-left">
-            <h1 class="page-title">Create Price List</h1>
-            <p class="page-subtitle">Fill in the details below to register a new price list in the system.</p>
+            <h1 class="page-title">{% if is_view %}Price List Details{% elif is_edit %}Edit Price List{% else %}Create Price List{% endif %}</h1>
+            <p class="page-subtitle">{% if is_view %}View complete price list header and item lines.{% elif is_edit %}Update the price list header and item lines, then save.{% else %}Fill in the details below to register a new price list in the system.{% endif %}</p>
           </div>
         </div>
       </div>
 
-      <form id="priceListForm" method="post" action="{% url 'iroad_tenants:tenant_price_list_master_create' %}">
+      <form id="priceListForm" method="post" action="{% if is_view %}#{% elif is_edit %}{% url 'iroad_tenants:tenant_price_list_master_edit' edit_price_list_id %}{% else %}{% url 'iroad_tenants:tenant_price_list_master_create' %}{% endif %}">
         {% csrf_token %}
-        <input type="hidden" id="linePayload" name="line_payload" value="{{ form_data.line_payload|default:'' }}" />
+        <input type="hidden" id="linePayload" name="line_payload" value="{{ form_data.line_payload|default:''|escape }}" />
         <div class="form-card" data-section="1">
           <div class="form-card-header">
             <div class="form-card-icon blue"><i class="bi bi-info-circle"></i></div>
@@ -61,13 +62,13 @@
                 </div>
                 <div class="field">
                   <label for="priceListNameEn" class="form-label">Price List Name (English) <span class="required">*</span></label>
-                  <input type="text" class="form-control" id="priceListNameEn" name="price_list_name" value="{{ form_data.price_list_name|default:'' }}" placeholder="Enter English name" />
+                  <input type="text" class="form-control" id="priceListNameEn" name="price_list_name" value="{{ form_data.price_list_name|default:'' }}" placeholder="Enter English name" {% if is_view %}readonly{% endif %} />
                   {% if field_errors.price_list_name %}<span class="text-danger small">{{ field_errors.price_list_name }}</span>{% endif %}
                   <span class="field-hint">Shown in lists and reports</span>
                 </div>
                 <div class="field">
                   <label for="priceListNameAr" class="form-label">Price List Name (Arabic)</label>
-                  <input type="text" class="form-control" id="priceListNameAr" placeholder="الاسم العربي" dir="rtl" />
+                  <input type="text" class="form-control" id="priceListNameAr" placeholder="الاسم العربي" dir="rtl" {% if is_view %}readonly{% endif %} />
                 </div>
               </div>
             </div>
@@ -77,7 +78,7 @@
               <div class="fields-grid cols-3">
                 <div class="field">
                   <label for="targetClient" class="form-label">Client <span class="required">*</span></label>
-                  <select class="form-select" id="targetClient" name="client_account_id">
+                  <select class="form-select" id="targetClient" name="client_account_id" {% if is_view %}disabled{% endif %}>
                     <option value="" selected disabled>-Select client-</option>
                     {% for client in active_clients %}
                     <option value="{{ client.account_id }}" {% if form_data.client_account_id == client.account_id|stringformat:'s' %}selected{% endif %}>
@@ -100,7 +101,7 @@
               <div class="fields-grid cols-3">
                 <div class="field">
                   <label for="status" class="form-label">Status <span class="required">*</span></label>
-                  <select class="form-select" id="status" name="status">
+                  <select class="form-select" id="status" name="status" {% if is_view %}disabled{% endif %}>
                     <option value="Draft" {% if form_data.status|default:'Draft' == 'Draft' %}selected{% endif %}>Draft</option>
                     <option value="Active" {% if form_data.status == 'Active' %}selected{% endif %}>Active</option>
                     <option value="Inactive" {% if form_data.status == 'Inactive' %}selected{% endif %}>Inactive</option>
@@ -112,7 +113,7 @@
                   <label for="effectiveFrom" class="form-label">Effective From</label>
                   <div class="input-icon-wrapper">
                     <i class="bi bi-calendar"></i>
-                    <input type="date" class="form-control has-icon" id="effectiveFrom" name="effective_from" value="{{ form_data.effective_from|default:'' }}" />
+                    <input type="date" class="form-control has-icon" id="effectiveFrom" name="effective_from" value="{{ form_data.effective_from|default:'' }}" {% if is_view %}readonly{% endif %} />
                   </div>
                   {% if field_errors.effective_from %}<span class="text-danger small">{{ field_errors.effective_from }}</span>{% endif %}
                   <span class="field-hint">Start date for this price list.</span>
@@ -121,7 +122,7 @@
                   <label for="effectiveTo" class="form-label">Effective To</label>
                   <div class="input-icon-wrapper">
                     <i class="bi bi-calendar"></i>
-                    <input type="date" class="form-control has-icon" id="effectiveTo" name="effective_to" value="{{ form_data.effective_to|default:'' }}" />
+                    <input type="date" class="form-control has-icon" id="effectiveTo" name="effective_to" value="{{ form_data.effective_to|default:'' }}" {% if is_view %}readonly{% endif %} />
                   </div>
                   {% if field_errors.effective_to %}<span class="text-danger small">{{ field_errors.effective_to }}</span>{% endif %}
                   <span class="field-hint">End date (leave empty for no end).</span>
@@ -132,7 +133,7 @@
               <h3 class="field-group-title"><i class="bi bi-card-text"></i>Notes</h3>
               <div class="fields-grid cols-1">
                 <div class="field">
-                  <textarea class="form-control" name="notes" rows="3" placeholder="Add notes...">{{ form_data.notes|default:'' }}</textarea>
+                  <textarea class="form-control" name="notes" rows="3" placeholder="Add notes..." {% if is_view %}readonly{% endif %}>{{ form_data.notes|default:'' }}</textarea>
                 </div>
               </div>
             </div>
@@ -150,7 +151,7 @@
           <div class="form-card-body">
             <div class="pl-lines-toolbar">
               <h3 class="pl-lines-title">Lines</h3>
-              <button type="button" class="eal-btn eal-btn-outline" id="addLineBtn">
+              <button type="button" class="eal-btn eal-btn-outline" id="addLineBtn" {% if is_view %}style="display:none"{% endif %}>
                 <i class="bi bi-plus-lg"></i><span>Add Line</span>
               </button>
             </div>
@@ -164,23 +165,37 @@
                 </thead>
                 <tbody id="plLinesTbody">
                   <tr class="pl-line" data-line>
-                    <td class="text-muted">1</td>
-                    <td><select class="form-select form-select-sm pl-service-type" aria-label="Service Type"><option value="Service" selected>Service</option><option value="Trip">Trip</option></select></td>
-                    <td>
+                    <td class="text-muted align-top">1</td>
+                    <td class="align-top"><select class="form-select form-select-sm pl-service-type" aria-label="Service Type"><option value="Service" selected>Service</option><option value="Trip">Trip</option></select></td>
+                    <td class="align-top">
                       <select class="form-select form-select-sm" aria-label="Service Item">
                         <option value="" selected disabled>-Select-</option>
                       </select>
+                      <div class="pl-line-field-error text-danger small mt-1 d-none" data-for="service-item" aria-live="polite"></div>
                     </td>
-                    <td><div class="pl-route-wrap" data-route-wrap style="display: none"><div class="pl-route-chip" title=""><span data-route-origin>&mdash;</span><span class="pl-route-arrow" aria-hidden="true"><i class="bi bi-arrow-left-right"></i></span><span data-route-destination>&mdash;</span></div></div><span class="text-muted" data-route-na>&mdash;</span></td>
-                    <td><select class="form-select form-select-sm" aria-label="Unit"><option value="Service" selected>Service</option><option value="Trip">Trip</option><option value="Kg">Kg</option></select></td>
-                    <td><input type="number" class="form-control form-control-sm pl-sell" placeholder="0.00" min="0" step="0.01" /></td>
-                    <td><input type="number" class="form-control form-control-sm pl-out-sell" placeholder="0.00" min="0" step="0.01" disabled /></td>
-                    <td><input type="number" class="form-control form-control-sm pl-in-sell" placeholder="0.00" min="0" step="0.01" disabled /></td>
-                    <td><div class="eal-actions-cell"><button type="button" class="eal-row-btn danger pl-del" title="Delete row"><i class="bi bi-trash3"></i></button><button type="button" class="eal-row-btn pl-dup" title="Duplicate line"><i class="bi bi-files"></i></button></div></td>
+                    <td class="align-top"><div class="pl-route-wrap" data-route-wrap style="display: none"><div class="pl-route-chip" title=""><span data-route-origin>&mdash;</span><span class="pl-route-arrow" aria-hidden="true"><i class="bi bi-arrow-left-right"></i></span><span data-route-destination>&mdash;</span></div></div><span class="text-muted" data-route-na>&mdash;</span></td>
+                    <td class="align-top"><select class="form-select form-select-sm" aria-label="Unit"><option value="Service" selected>Service</option><option value="Trip">Trip</option><option value="Kg">Kg</option></select></td>
+                    <td class="align-top">
+                      <input type="number" class="form-control form-control-sm pl-sell" placeholder="0.00" min="0" step="0.01" />
+                      <div class="pl-line-field-error text-danger small mt-1 d-none" data-for="sell" aria-live="polite"></div>
+                    </td>
+                    <td class="align-top">
+                      <input type="number" class="form-control form-control-sm pl-out-sell" placeholder="0.00" min="0" step="0.01" disabled />
+                      <div class="pl-line-field-error text-danger small mt-1 d-none" data-for="outbound" aria-live="polite"></div>
+                    </td>
+                    <td class="align-top">
+                      <input type="number" class="form-control form-control-sm pl-in-sell" placeholder="0.00" min="0" step="0.01" disabled />
+                      <div class="pl-line-field-error text-danger small mt-1 d-none" data-for="inbound" aria-live="polite"></div>
+                    </td>
+                    <td class="align-top"><div class="eal-actions-cell"><button type="button" class="eal-row-btn danger pl-del" title="Delete row" {% if is_view %}disabled style="display:none"{% endif %}><i class="bi bi-trash3"></i></button><button type="button" class="eal-row-btn pl-dup" title="Duplicate line" {% if is_view %}disabled style="display:none"{% endif %}><i class="bi bi-files"></i></button></div></td>
                   </tr>
                 </tbody>
               </table>
             </div>
+
+            {% if field_errors.line_payload %}<span id="plLinePayloadErrorRaw" class="d-none">{{ field_errors.line_payload }}</span>{% endif %}
+            {% if field_errors.non_field_errors %}<span id="plNonFieldErrorRaw" class="d-none">{{ field_errors.non_field_errors }}</span>{% endif %}
+            <div id="plLinesFormError" class="alert alert-danger py-2 px-3 small mt-3 mb-0 d-none" role="alert"></div>
 
             <div class="pl-totals">
               <div class="pl-total-card"><div class="pl-total-label">Total Items</div><div class="pl-total-value" id="totalItems">1</div></div>
@@ -192,24 +207,35 @@
 
         <div class="form-actions-bar">
           <div class="form-actions-left">
+            {% if is_view %}
+            <a href="{% url 'iroad_tenants:tenant_price_list_master_list' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            {% else %}
             <button type="reset" class="btn btn-outline-secondary">
               <i class="bi bi-arrow-counterclockwise"></i> Reset Form
             </button>
+            {% endif %}
           </div>
           <div class="form-actions-right">
+            {% if is_view %}
+            <a href="{% url 'iroad_tenants:tenant_price_list_master_edit' detail_price_list_id %}" class="btn btn-primary">
+              <i class="bi bi-pencil"></i> Edit Price List
+            </a>
+            {% else %}
             <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check-circle"></i> Save Price List
+              <i class="bi bi-check-circle"></i> {% if is_edit %}Update Price List{% else %}Save Price List{% endif %}
             </button>
+            {% endif %}
           </div>
         </div>
       </form>
-      {% if field_errors.line_payload %}<div class="text-danger small mt-2">{{ field_errors.line_payload }}</div>{% endif %}
-      {% if field_errors.non_field_errors %}<div class="text-danger small mt-2">{{ field_errors.non_field_errors }}</div>{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
   (function () {
+    const isViewMode = {% if is_view %}true{% else %}false{% endif %};
     const serviceItems = [
       {% for si in active_service_items %}
       { id: "{{ si.service_item_id }}", label: "{{ si.service_code|escapejs }} - {{ si.english_name|escapejs }}" },
@@ -344,11 +370,137 @@
       updateTripRouteFromService(row);
     }
 
-    Array.from(tbody.querySelectorAll("tr[data-line]")).forEach(wireRow);
+    function applyLinePayloadToRow(row, line) {
+      const typeSel = row.querySelector(".pl-service-type");
+      const svcSel = row.querySelector('select[aria-label="Service Item"]');
+      const sell = row.querySelector(".pl-sell");
+      const outSell = row.querySelector(".pl-out-sell");
+      const inSell = row.querySelector(".pl-in-sell");
+      const lt = (line && line.line_type) === "Trip" ? "Trip" : "Service";
+      if (typeSel) typeSel.value = lt;
+      populateServiceItems(row, false);
+      const sid = line && line.service_item_id != null ? String(line.service_item_id).trim() : "";
+      if (svcSel && sid) svcSel.value = sid;
+      if (sell) sell.value = line && line.sell_price != null && String(line.sell_price) !== "" ? String(line.sell_price) : "";
+      if (outSell) outSell.value = line && line.outbound_sell_price != null && String(line.outbound_sell_price) !== "" ? String(line.outbound_sell_price) : "";
+      if (inSell) inSell.value = line && line.inbound_sell_price != null && String(line.inbound_sell_price) !== "" ? String(line.inbound_sell_price) : "";
+    }
+
+    function parseInitialLinePayload() {
+      const raw = (linePayloadEl && linePayloadEl.value && linePayloadEl.value.trim()) || "";
+      if (!raw) return null;
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      } catch (e) {}
+      return null;
+    }
+
+    const initialLines = parseInitialLinePayload();
+    const templateRow = tbody.querySelector("tr[data-line]");
+    if (initialLines && templateRow) {
+      const proto = templateRow.cloneNode(true);
+      tbody.innerHTML = "";
+      initialLines.forEach(function (line) {
+        const row = proto.cloneNode(true);
+        tbody.appendChild(row);
+        applyLinePayloadToRow(row, line);
+        wireRow(row);
+      });
+    } else {
+      Array.from(tbody.querySelectorAll("tr[data-line]")).forEach(wireRow);
+    }
     renumber();
     updateTotals();
 
-    if (addBtn) {
+    function clearRowFieldErrors(row) {
+      if (!row) return;
+      row.querySelectorAll(".pl-line-field-error").forEach(function (el) {
+        el.textContent = "";
+        el.classList.add("d-none");
+      });
+    }
+
+    function placeServerLineErrors() {
+      var rawLine = document.getElementById("plLinePayloadErrorRaw");
+      var rawOther = document.getElementById("plNonFieldErrorRaw");
+      var block = document.getElementById("plLinesFormError");
+      tbody.querySelectorAll(".pl-line-field-error").forEach(function (el) {
+        el.textContent = "";
+        el.classList.add("d-none");
+      });
+      if (block) {
+        block.textContent = "";
+        block.classList.add("d-none");
+      }
+      var lineMsg = rawLine && rawLine.textContent.trim() ? rawLine.textContent.trim() : "";
+      var otherMsg = rawOther && rawOther.textContent.trim() ? rawOther.textContent.trim() : "";
+      if (!lineMsg && !otherMsg) return;
+
+      var rows = Array.from(tbody.querySelectorAll("tr[data-line]"));
+      var blockParts = [];
+
+      function showFieldErr(row, sel, text) {
+        var el = row.querySelector(sel);
+        if (!el) return false;
+        el.textContent = text;
+        el.classList.remove("d-none");
+        return true;
+      }
+
+      if (lineMsg) {
+        var mTyped = lineMsg.match(/^(Service|Trip) line (\d+):\s*(.+)$/i);
+        var placed = false;
+        if (mTyped) {
+          var lineNum = parseInt(mTyped[2], 10);
+          var detail = mTyped[3];
+          var kind = mTyped[1].toLowerCase();
+          var row = rows[lineNum - 1];
+          if (row) {
+            if (kind === "service") {
+              if (/sell price|valid sell price/i.test(detail)) {
+                placed = showFieldErr(row, '.pl-line-field-error[data-for="sell"]', lineMsg);
+              } else if (/service item/i.test(detail)) {
+                placed = showFieldErr(row, '.pl-line-field-error[data-for="service-item"]', lineMsg);
+              }
+            } else if (kind === "trip") {
+              if (/outbound and inbound/i.test(detail)) {
+                placed =
+                  showFieldErr(row, '.pl-line-field-error[data-for="outbound"]', lineMsg) ||
+                  showFieldErr(row, '.pl-line-field-error[data-for="inbound"]', lineMsg);
+              } else if (/outbound/i.test(detail)) {
+                placed = showFieldErr(row, '.pl-line-field-error[data-for="outbound"]', lineMsg);
+              } else if (/inbound/i.test(detail)) {
+                placed = showFieldErr(row, '.pl-line-field-error[data-for="inbound"]', lineMsg);
+              } else if (/trip service|active trip/i.test(detail)) {
+                placed = showFieldErr(row, '.pl-line-field-error[data-for="service-item"]', lineMsg);
+              } else if (/numeric prices|prices must be/i.test(detail)) {
+                placed =
+                  showFieldErr(row, '.pl-line-field-error[data-for="outbound"]', lineMsg) ||
+                  showFieldErr(row, '.pl-line-field-error[data-for="inbound"]', lineMsg);
+              }
+            }
+          }
+        }
+        if (!placed) blockParts.push(lineMsg);
+      }
+      if (otherMsg) blockParts.push(otherMsg);
+      if (blockParts.length && block) {
+        block.textContent = blockParts.join(" ");
+        block.classList.remove("d-none");
+      }
+    }
+
+    placeServerLineErrors();
+
+    tbody.addEventListener("input", function (e) {
+      clearRowFieldErrors(e.target.closest("tr[data-line]"));
+    });
+    tbody.addEventListener("change", function (e) {
+      clearRowFieldErrors(e.target.closest("tr[data-line]"));
+    });
+
+    if (addBtn && !isViewMode) {
       addBtn.addEventListener("click", function () {
         const first = tbody.querySelector("tr[data-line]");
         if (!first) return;
@@ -365,7 +517,7 @@
       });
     }
 
-    if (formEl && linePayloadEl) {
+    if (formEl && linePayloadEl && !isViewMode) {
       formEl.addEventListener("submit", function () {
         const rows = Array.from(tbody.querySelectorAll("tr[data-line]"));
         const payload = [];
@@ -389,6 +541,16 @@
           });
         });
         linePayloadEl.value = JSON.stringify(payload);
+      });
+    }
+
+    if (isViewMode && formEl) {
+      formEl.addEventListener("submit", function (e) { e.preventDefault(); });
+      formEl.querySelectorAll("input, select, textarea, button").forEach(function (el) {
+        if (el.id === "linePayload") return;
+        if (el.classList.contains("btn-primary") || el.classList.contains("pl-del") || el.classList.contains("pl-dup")) return;
+        if (el.tagName === "INPUT" || el.tagName === "TEXTAREA") el.setAttribute("readonly", "readonly");
+        if (el.tagName === "SELECT" || el.tagName === "BUTTON") el.setAttribute("disabled", "disabled");
       });
     }
   })();
