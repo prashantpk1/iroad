@@ -178,34 +178,52 @@
             {% endif %}
           </td>
           <td>
-            <div class="eal-actions-cell" onclick="event.stopPropagation();">
-              <a href="{% url 'iroad_tenants:truck_master_detail' row.truck_id %}" class="eal-row-btn" title="View">
-                <i class="bi bi-eye"></i>
-              </a>
-              <a href="{% url 'iroad_tenants:truck_master_edit' row.truck_id %}" class="eal-row-btn" title="Edit">
-                <i class="bi bi-pencil"></i>
-              </a>
-              {% if row.status == 'Active' %}
+            <div class="dropdown eal-actions-cell" onclick="event.stopPropagation();">
               <button
+                class="eal-row-btn"
                 type="button"
-                class="eal-row-btn danger tm-status-trigger"
-                title="Deactivate"
-                data-truck-id="{{ row.truck_id }}"
-                data-new-status="Inactive"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                title="Actions"
               >
-                <i class="bi bi-trash3"></i>
+                <i class="bi bi-three-dots-vertical"></i>
               </button>
-              {% else %}
-              <button
-                type="button"
-                class="eal-row-btn text-success border-0 bg-transparent tm-status-trigger"
-                title="Activate"
-                data-truck-id="{{ row.truck_id }}"
-                data-new-status="Active"
-              >
-                <i class="bi bi-arrow-counterclockwise"></i>
-              </button>
-              {% endif %}
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
+                <li>
+                  <a href="{% url 'iroad_tenants:truck_master_detail' row.truck_id %}" class="dropdown-item">
+                    <i class="bi bi-eye me-2 text-info"></i>View
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url 'iroad_tenants:truck_master_edit' row.truck_id %}" class="dropdown-item">
+                    <i class="bi bi-pencil me-2 text-primary"></i>Edit
+                  </a>
+                </li>
+                {% if row.status == 'Active' %}
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item text-danger tm-status-trigger"
+                    data-truck-id="{{ row.truck_id }}"
+                    data-new-status="Inactive"
+                  >
+                    <i class="bi bi-trash3 me-2"></i>Deactivate
+                  </button>
+                </li>
+                {% else %}
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item text-success tm-status-trigger"
+                    data-truck-id="{{ row.truck_id }}"
+                    data-new-status="Active"
+                  >
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Activate
+                  </button>
+                </li>
+                {% endif %}
+              </ul>
             </div>
           </td>
         </tr>

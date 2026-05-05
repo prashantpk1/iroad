@@ -142,39 +142,55 @@
             {% endif %}
           </td>
           <td>
-            <div class="d-flex gap-1 flex-nowrap" onclick="event.stopPropagation();">
-              <a
-                href="{% url 'iroad_tenants:truck_attachment_detail' truck_id=row.truck.truck_id attachment_id=row.attachment_id %}"
-                class="btn btn-sm btn-outline-secondary"
-                title="View Attachment"
-              >
-                <i class="bi bi-eye"></i>
-              </a>
-              <a
-                href="{% url 'iroad_tenants:truck_attachment_edit' truck_id=row.truck.truck_id attachment_id=row.attachment_id %}"
-                class="btn btn-sm btn-outline-secondary"
-                title="Edit Attachment"
-              >
-                <i class="bi bi-pencil"></i>
-              </a>
-              {% if row.attachment_file %}
-              <a
-                href="{{ row.attachment_file.url }}"
-                download
-                class="btn btn-sm btn-outline-secondary"
-                title="Download"
-              >
-                <i class="bi bi-download"></i>
-              </a>
-              {% endif %}
+            <div class="dropdown eal-actions-cell" onclick="event.stopPropagation();">
               <button
+                class="eal-row-btn"
                 type="button"
-                class="btn btn-sm btn-outline-secondary ta-delete-trigger"
-                title="Delete"
-                data-delete-url="{% url 'iroad_tenants:truck_attachment_delete' row.truck.truck_id row.attachment_id %}"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                title="Actions"
               >
-                <i class="bi bi-trash3"></i>
+                <i class="bi bi-three-dots-vertical"></i>
               </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
+                <li>
+                  <a
+                    href="{% url 'iroad_tenants:truck_attachment_detail' truck_id=row.truck.truck_id attachment_id=row.attachment_id %}"
+                    class="dropdown-item"
+                  >
+                    <i class="bi bi-eye me-2 text-info"></i>View
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="{% url 'iroad_tenants:truck_attachment_edit' truck_id=row.truck.truck_id attachment_id=row.attachment_id %}"
+                    class="dropdown-item"
+                  >
+                    <i class="bi bi-pencil me-2 text-primary"></i>Edit
+                  </a>
+                </li>
+                {% if row.attachment_file %}
+                <li>
+                  <a
+                    href="{{ row.attachment_file.url }}"
+                    download
+                    class="dropdown-item"
+                  >
+                    <i class="bi bi-download me-2 text-success"></i>Download
+                  </a>
+                </li>
+                {% endif %}
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item text-danger ta-delete-trigger"
+                    data-delete-url="{% url 'iroad_tenants:truck_attachment_delete' row.truck.truck_id row.attachment_id %}"
+                  >
+                    <i class="bi bi-trash3 me-2"></i>Delete
+                  </button>
+                </li>
+              </ul>
             </div>
           </td>
         </tr>
