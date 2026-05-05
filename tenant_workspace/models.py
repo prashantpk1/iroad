@@ -6,6 +6,7 @@ listed in ``TENANT_APPS`` and is migrated per tenant via django-tenants.
 """
 import os
 import uuid
+from datetime import date
 
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
@@ -618,6 +619,396 @@ class TenantAddressMaster(models.Model):
         self._normalize_category_from_defaults()
         super().save(*args, **kwargs)
         self._enforce_default_uniqueness()
+
+
+class TruckTypeMaster(models.Model):
+    """TRT-001 Truck Type Master (tenant schema).
+
+    ``truck_type_code`` is allocated by AutoNumber (prefix TRT) at creation — never user-editable.
+    Use ``TruckTypeMaster.active_objects`` in Truck Master dropdowns so only **Active**
+    rows are selectable. Rows are deactivated via ``status``, not deleted.
+    """
+
+    class Status(models.TextChoices):
+        ACTIVE = 'Active', 'Active'
+        INACTIVE = 'Inactive', 'Inactive'
+
+    objects = models.Manager()
+
+    class ActiveTruckTypeManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(
+                status=TruckTypeMaster.Status.ACTIVE,
+            )
+
+    active_objects = ActiveTruckTypeManager()
+
+    truck_type_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    truck_type_code = models.CharField(max_length=64, unique=True)
+    truck_type_sequence = models.PositiveIntegerField(default=0)
+    english_label = models.CharField(max_length=200)
+    arabic_label = models.CharField(max_length=200)
+    status = models.CharField(
+        max_length=12,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_truck_type_master'
+        ordering = ['english_label']
+        verbose_name = _('Truck Type')
+        verbose_name_plural = _('Truck Types')
+
+    def __str__(self):
+        return f'{self.truck_type_code} — {self.english_label}'
+
+    def clean(self):
+        """TRT-001 validations for programmatic saves (ModelForm invokes this via ``full_clean``)."""
+        errors = {}
+
+        def add(field: str, message):
+            errors.setdefault(field, []).append(message)
+
+        if not (self.english_label or '').strip():
+            add('english_label', _('English label is required.'))
+
+        if not (self.arabic_label or '').strip():
+            add('arabic_label', _('Arabic label is required.'))
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class TruckMaster(models.Model):
+    """TR-001 Truck Master (tenant schema).
+
+    ``truck_code`` is allocated by AutoNumber (prefix TR) at creation.
+    Cross-schema ``Country`` uses ``db_constraint=False`` (same pattern as ``TenantAddressMaster``).
+    """
+
+    class Status(models.TextChoices):
+        ACTIVE = 'Active', 'Active'
+        INACTIVE = 'Inactive', 'Inactive'
+
+    class SourcingMode(models.TextChoices):
+        IN_SOURCE = 'In-Source', 'In-Source'
+        OUT_SOURCE = 'Out-Source', 'Out-Source'
+
+    objects = models.Manager()
+
+    class ActiveTruckManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(
+                status=TruckMaster.Status.ACTIVE,
+            )
+
+    active_objects = ActiveTruckManager()
+
+    truck_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    truck_code = models.CharField(max_length=64, unique=True)
+    truck_sequence = models.PositiveIntegerField(default=0)
+    status = models.CharField(
+        max_length=12,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+    )
+    sourcing_mode = models.CharField(
+        max_length=20,
+        choices=SourcingMode.choices,
+    )
+    registration_country = models.ForeignKey(
+        'superadmin.Country',
+        on_delete=models.PROTECT,
+        related_name='+',
+        to_field='country_code',
+        db_column='registration_country_id',
+        db_constraint=False,
+    )
+    # TODO: Replace with FK to VendorAccount when that module is built
+    vendor_account_id = models.CharField(max_length=64, blank=True, default='')
+    is_vendor_same_as_owner = models.BooleanField(default=False)
+    owner_id = models.CharField(max_length=100, blank=True, default='')
+    owner_name = models.CharField(max_length=200, blank=True, default='')
+
+    plate_number = models.CharField(max_length=100)
+    saudi_plate_number = models.CharField(max_length=50, blank=True, default='')
+    saudi_english_letters = models.CharField(max_length=10, blank=True, default='')
+    saudi_arabic_letters = models.CharField(max_length=10, blank=True, default='')
+    non_saudi_plate_number = models.CharField(max_length=100, blank=True, default='')
+    plate_image = models.ImageField(upload_to='trucks/plates/', blank=True, null=True)
+
+    truck_type = models.ForeignKey(
+        TruckTypeMaster,
+        on_delete=models.PROTECT,
+        related_name='trucks',
+    )
+    chassis_number_vin = models.CharField(max_length=100, blank=True, default='')
+    serial_number = models.CharField(max_length=100, blank=True, default='')
+    color = models.CharField(max_length=50, blank=True, default='')
+    vehicle_registration_image = models.ImageField(
+        upload_to='trucks/registration/',
+        blank=True,
+        null=True,
+    )
+
+    axle_count = models.PositiveIntegerField(blank=True, null=True)
+    tires_count = models.PositiveIntegerField(blank=True, null=True)
+    tare_weight_ton = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    payload_capacity_ton = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    gross_weight_ton = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    volume_m3 = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+
+    # TODO: Replace with FK to DriverMaster when built
+    default_driver_id = models.CharField(max_length=64, blank=True, default='')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_truck_master'
+        ordering = ['-created_at']
+        verbose_name = _('Truck')
+        verbose_name_plural = _('Trucks')
+        indexes = [
+            models.Index(fields=['truck_code', 'status'], name='tenant_truck_code_status_idx'),
+            models.Index(
+                fields=['registration_country', 'plate_number'],
+                name='tenant_truck_reg_plate_idx',
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['registration_country', 'plate_number'],
+                name='tenant_truck_regcountry_plate_uniq',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.truck_code} — {self.plate_number}'
+
+    def clean(self):
+        """TR-001 validations."""
+        errors = {}
+
+        def add(field: str, message):
+            errors.setdefault(field, []).append(message)
+
+        if self.registration_country_id is None:
+            add('registration_country', _('Registration country is required.'))
+
+        if self.sourcing_mode == self.SourcingMode.OUT_SOURCE:
+            if not (self.vendor_account_id or '').strip():
+                add(
+                    'vendor_account_id',
+                    _('Vendor is required for Out-Source trucks'),
+                )
+
+        country_code = (self.registration_country_id or '').strip().upper()
+        plate = (self.plate_number or '').strip()
+        saudi_plate = (self.saudi_plate_number or '').strip()
+        non_saudi_plate = (self.non_saudi_plate_number or '').strip()
+
+        if country_code == 'SA':
+            if not plate:
+                add('plate_number', _('Plate number is required for Saudi-registered trucks.'))
+            if not saudi_plate:
+                add('saudi_plate_number', _('Saudi plate number is required for Saudi Arabia.'))
+            english_letters = (self.saudi_english_letters or '').strip()
+            if not english_letters:
+                add(
+                    'saudi_english_letters',
+                    _('Saudi English letters are required for Saudi-registered trucks.'),
+                )
+            arabic_letters = (self.saudi_arabic_letters or '').strip()
+            if not arabic_letters:
+                add(
+                    'saudi_arabic_letters',
+                    _('Saudi Arabic letters are required for Saudi-registered trucks.'),
+                )
+        elif country_code:
+            if not non_saudi_plate:
+                add(
+                    'non_saudi_plate_number',
+                    _('Non-Saudi plate number is required when registration country is not Saudi Arabia.'),
+                )
+
+        chassis = (self.chassis_number_vin or '').strip()
+        if chassis:
+            qs = TruckMaster.objects.filter(chassis_number_vin__iexact=chassis)
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                add('chassis_number_vin', _('This chassis / VIN is already assigned to another truck.'))
+
+        if self.registration_country_id and plate:
+            qs = TruckMaster.objects.filter(
+                registration_country_id=self.registration_country_id,
+                plate_number=plate,
+            )
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                add(
+                    'plate_number',
+                    _('A truck with this plate number already exists for the selected registration country.'),
+                )
+
+        payload = self.payload_capacity_ton
+        gross = self.gross_weight_ton
+        if payload is not None and gross is not None and payload > gross:
+            add(
+                'payload_capacity_ton',
+                _('Payload capacity cannot exceed gross weight'),
+            )
+
+        def check_non_negative_decimal(name, value):
+            if value is not None and value < 0:
+                add(name, _('Must be zero or greater.'))
+
+        check_non_negative_decimal('tare_weight_ton', self.tare_weight_ton)
+        check_non_negative_decimal('payload_capacity_ton', self.payload_capacity_ton)
+        check_non_negative_decimal('gross_weight_ton', self.gross_weight_ton)
+        check_non_negative_decimal('volume_m3', self.volume_m3)
+
+        if self.axle_count is not None and self.axle_count < 0:
+            add('axle_count', _('Must be zero or greater.'))
+        if self.tires_count is not None and self.tires_count < 0:
+            add('tires_count', _('Must be zero or greater.'))
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class TruckImage(models.Model):
+    """
+    TR-001 truck_images — Multiple image uploads per truck (stored as related rows).
+
+    Spec field ``truck_images`` is modeled as FK rows with ``related_name='truck_images'``.
+    """
+
+    image_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    truck = models.ForeignKey(
+        TruckMaster,
+        on_delete=models.CASCADE,
+        related_name='truck_images',
+    )
+    image = models.ImageField(upload_to='trucks/images/', max_length=500)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'tenant_truck_images'
+        ordering = ['uploaded_at']
+        verbose_name = _('Truck Image')
+        verbose_name_plural = _('Truck Images')
+
+    def __str__(self):
+        return f'Image for {self.truck.truck_code}'
+
+
+class TruckAttachment(models.Model):
+    """TR-ATT-001 Truck attachment (tenant schema).
+
+    ``status`` is derived from ``is_expiry_applicable`` and ``expiry_date`` only — not stored in DB.
+    """
+
+    class Status(models.TextChoices):
+        VALID = 'Valid', 'Valid'
+        EXPIRED = 'Expired', 'Expired'
+        DOES_NOT_EXPIRE = 'Does Not Expire', 'Does Not Expire'
+
+    _ALLOWED_ATTACHMENT_EXTENSIONS = frozenset(
+        {'.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'},
+    )
+    ATTACHMENT_MAX_SIZE_MB = 10
+    ATTACHMENT_MAX_SIZE_BYTES = ATTACHMENT_MAX_SIZE_MB * 1024 * 1024
+
+    attachment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    truck = models.ForeignKey(
+        TruckMaster,
+        on_delete=models.CASCADE,
+        related_name='attachments',
+    )
+    attachment_date = models.DateField(default=date.today)
+    is_expiry_applicable = models.BooleanField(default=False)
+    expiry_date = models.DateField(blank=True, null=True)
+    attachment_file = models.FileField(upload_to='trucks/attachments/', max_length=500)
+    file_notes = models.TextField(
+        help_text=_('Notes about this attachment document'),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_truck_attachments'
+        ordering = ['-attachment_date', '-created_at']
+        verbose_name = _('Truck Attachment')
+        verbose_name_plural = _('Truck Attachments')
+
+    def __str__(self):
+        return f'Attachment for {self.truck.truck_code} — {self.attachment_date}'
+
+    @property
+    def status(self) -> str:
+        if not self.is_expiry_applicable:
+            return self.Status.DOES_NOT_EXPIRE
+        today = timezone.localdate()
+        if self.expiry_date is not None and self.expiry_date < today:
+            return self.Status.EXPIRED
+        return self.Status.VALID
+
+    def clean(self):
+        errors = {}
+
+        def add(field: str, message):
+            errors.setdefault(field, []).append(message)
+
+        if self.is_expiry_applicable:
+            if self.expiry_date is None:
+                add(
+                    'expiry_date',
+                    _('Expiry date is required when expiry is applicable'),
+                )
+        else:
+            if self.expiry_date is not None:
+                add(
+                    'expiry_date',
+                    _('Expiry date must be empty when expiry is not applicable'),
+                )
+
+        file_name = getattr(self.attachment_file, 'name', None) or ''
+        if not file_name.strip():
+            add('attachment_file', _('Attachment file is required.'))
+        else:
+            ext = os.path.splitext(file_name)[1].lower()
+            if ext not in self._ALLOWED_ATTACHMENT_EXTENSIONS:
+                add(
+                    'attachment_file',
+                    _(
+                        'Allowed file types are PDF, JPG, JPEG, PNG, DOC, DOCX.'
+                    ),
+                )
+            if self.attachment_file:
+                try:
+                    if self.attachment_file.size > self.ATTACHMENT_MAX_SIZE_BYTES:
+                        size_mb = round(self.attachment_file.size / 1024 / 1024, 1)
+                        add(
+                            'attachment_file',
+                            _(
+                                f'File size cannot exceed {self.ATTACHMENT_MAX_SIZE_MB}MB. '
+                                f'Your file is {size_mb}MB.'
+                            ),
+                        )
+                except AttributeError:
+                    pass
+
+        if not (self.file_notes or '').strip():
+            add('file_notes', _('File notes are required.'))
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class TenantCargoCategory(models.Model):

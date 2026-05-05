@@ -1001,6 +1001,16 @@ function initHeaderDateTime() {
    Sidebar Active State Management
    ============================================ */
 function initSidebarActiveState() {
+  // Tenant portal: active/open classes come from Django (resolver_match).
+  // Do not strip them — pathname "last segment" matching breaks UUID routes.
+  const tenantSidebar = document.querySelector("#appSidebar[data-server-nav-state]");
+  if (
+    tenantSidebar &&
+    tenantSidebar.getAttribute("data-server-nav-state") === "1"
+  ) {
+    return;
+  }
+
   const currentPage = window.location.pathname.split("/").pop() || "index.html";
 
   // Remove all active classes first

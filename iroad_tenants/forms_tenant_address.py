@@ -21,8 +21,9 @@ class PublicCountryChoiceField(forms.ChoiceField):
     ``Country`` instance from ``clean()``.
     """
 
-    def __init__(self, *, address_instance, **kwargs):
+    def __init__(self, *, address_instance, country_fk_attr='country_id', **kwargs):
         self._address_instance = address_instance
+        self._country_fk_attr = country_fk_attr
         kwargs.setdefault('label', _('Country'))
         super().__init__(**kwargs)
 
@@ -35,7 +36,7 @@ class PublicCountryChoiceField(forms.ChoiceField):
         if row is None:
             raise ValidationError(_('Select a country from the master list.'))
         if not row.is_active:
-            prior = getattr(self._address_instance, 'country_id', None)
+            prior = getattr(self._address_instance, self._country_fk_attr, None)
             if (
                 self._address_instance
                 and self._address_instance.pk

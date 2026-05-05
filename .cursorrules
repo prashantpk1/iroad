@@ -1010,3 +1010,22 @@
 
 - All tasks log result to Django logger
 
+## Fleet Management — Known Deferred Gaps (Phase 2+)
+# GAP-001: vendor_account_id in TruckMaster
+#   Currently: CharField placeholder
+#   Target: ForeignKey to VendorAccount model
+#   Trigger: When Vendor Account module is built
+#   File: tenant_workspace/models.py ~730
+
+# GAP-002: default_driver_id in TruckMaster
+#   Currently: CharField placeholder
+#   Target: ForeignKey to DriverMaster with search/autocomplete
+#   Trigger: When Driver Master module is built
+#   File: tenant_workspace/models.py ~764
+
+# GAP-007: Booking vs truck status validation
+#   Currently: TODO comment in TruckMasterListView.post
+#   Target: Block new booking if truck is Inactive
+#   Trigger: When Booking module is built
+#   File: iroad_tenants/views.py ~7069
+

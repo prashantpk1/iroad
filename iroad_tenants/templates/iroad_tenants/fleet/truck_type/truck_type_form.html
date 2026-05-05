@@ -1,0 +1,136 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+  {% if is_edit %}{% translate "Edit Truck Type" %}{% else %}{% translate "Add Truck Type" %}{% endif %} | iRoad
+{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:tenant_dashboard' %}">{% translate "Dashboard" %}</a>
+      </li>
+      <li class="breadcrumb-item">{% translate "Operations" %}</li>
+      <li class="breadcrumb-item">{% translate "Fleet Management" %}</li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:truck_type_master' %}">{% translate "Truck Type Master" %}</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        {% if is_edit %}{% translate "Edit Truck Type" %}{% else %}{% translate "Add Truck Type" %}{% endif %}
+      </li>
+    </ol>
+  </nav>
+  <div class="page-header-row align-items-start">
+    <div class="page-header-left">
+      <h1 class="page-title">
+        {% if is_edit %}{% translate "Edit Truck Type" %}{% else %}{% translate "Add Truck Type" %}{% endif %}
+      </h1>
+      <p class="page-subtitle">
+        {% translate "Define truck types with code, labels, and status." %}
+      </p>
+    </div>
+  </div>
+</div>
+
+{# Structure from designer Truck-type-master.html — form-card, form-card-header, field-group, fields-grid #}
+<form id="truckTypeMasterForm" method="post" class="needs-validation" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-card" data-section="1">
+    <div class="form-card-header">
+      <div class="form-card-icon blue">
+        <i class="bi bi-truck-flatbed"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">{% translate "Truck Type Details" %}</h2>
+        <p class="form-card-desc">
+          {% translate "Code, labels (Arabic & English), and status for this truck type." %}
+        </p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="field-group">
+        <h3 class="field-group-title">
+          <i class="bi bi-fingerprint"></i>
+          {% translate "Identity" %}
+        </h3>
+        <div class="fields-grid cols-2">
+          <div class="field">
+            <label for="{% if is_edit %}{{ form.truck_type_code_preview.id_for_label }}{% else %}truckTypeCode{% endif %}" class="form-label">
+              {% translate "Truck Type Code" %} <span class="required">*</span>
+            </label>
+            {% if is_edit %}
+              {{ form.truck_type_code_preview }}
+            {% else %}
+              <input
+                type="text"
+                class="form-control"
+                id="truckTypeCode"
+                readonly
+                value="{{ preview_truck_type_code|default:'' }}"
+                placeholder="{% translate 'Auto generated' %}"
+                aria-readonly="true"
+              />
+            {% endif %}
+            {% if is_edit and form.truck_type_code_preview.errors %}<div class="text-danger small">{{ form.truck_type_code_preview.errors }}</div>{% endif %}
+            <span class="field-hint">{% translate "Unique truck type identifier (auto-generated)." %}</span>
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.status.id_for_label }}">
+              {{ form.status.label }} <span class="required">*</span>
+            </label>
+            {{ form.status }}
+            {% if form.status.errors %}<div class="text-danger small">{{ form.status.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <h3 class="field-group-title">
+          <i class="bi bi-type"></i>
+          {% translate "Labels" %}
+        </h3>
+        <div class="fields-grid cols-2">
+          <div class="field">
+            <label class="form-label" for="{{ form.arabic_label.id_for_label }}">
+              {{ form.arabic_label.label }} <span class="required">*</span>
+            </label>
+            {{ form.arabic_label }}
+            {% if form.arabic_label.errors %}<div class="text-danger small">{{ form.arabic_label.errors }}</div>{% endif %}
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.english_label.id_for_label }}">
+              {{ form.english_label.label }} <span class="required">*</span>
+            </label>
+            {{ form.english_label }}
+            {% if form.english_label.errors %}<div class="text-danger small">{{ form.english_label.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions-bar">
+    <div class="form-actions-left">
+      <a href="{% url 'iroad_tenants:truck_type_master' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg"></i>
+        {% translate "Cancel" %}
+      </a>
+    </div>
+    <div class="form-actions-right">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle"></i>
+        {% translate "Save Truck Type" %}
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}

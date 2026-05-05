@@ -1,0 +1,129 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}Select Truck to Add Attachment | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Fleet Management</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:truck_attachment_all_list' %}">Truck Attachments</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Select Truck</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">Select Truck to Add Attachment</h1>
+      <p class="page-subtitle">Choose an active truck before creating a new attachment.</p>
+    </div>
+    <div class="page-header-right">
+      <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-info" role="alert">
+  Please select a truck below to add an attachment to it.
+</div>
+
+<div class="eal-table-card">
+  <form method="get" class="eal-toolbar eal-toolbar--inline-filters">
+    <div class="eal-toolbar-left w-100">
+      <div class="eal-toolbar-filters-row flex-wrap gap-2">
+        <div class="eal-search eal-search--toolbar-grow">
+          <i class="bi bi-search"></i>
+          <input type="text" name="q" value="{{ search_q }}" placeholder="Search by truck code or plate number..." />
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary eal-toolbar-apply">Search</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="eal-table-wrap">
+    <table class="eal-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Truck Code</th>
+          <th>Plate Number</th>
+          <th>Truck Type</th>
+          <th>Owner Name</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for truck in trucks_page %}
+        <tr>
+          <td class="text-muted small">{{ trucks_page.start_index|add:forloop.counter0 }}</td>
+          <td><span class="eal-entity-id">{{ truck.truck_code }}</span></td>
+          <td>{{ truck.plate_number|default:"—" }}</td>
+          <td>{% if truck.truck_type %}{{ truck.truck_type.english_label }}{% else %}—{% endif %}</td>
+          <td>{{ truck.owner_name|default:"—" }}</td>
+          <td>
+            {% if truck.status == 'Active' %}
+            <span class="status-badge tas-status-active"><i class="bi bi-check2-circle"></i> Active</span>
+            {% else %}
+            <span class="status-badge tas-status-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'iroad_tenants:truck_attachment_create' truck_id=truck.truck_id %}" class="btn btn-primary btn-sm">
+              Select This Truck
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-5">No active trucks found matching your search.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if trucks_page.paginator.count > 0 %}
+  <div class="eal-pagination">
+    <div class="eal-pagination-info">
+      Showing <strong>{{ trucks_page.start_index }}-{{ trucks_page.end_index }}</strong>
+      of <strong>{{ trucks_page.paginator.count }}</strong>
+    </div>
+    <div class="eal-pagination-controls">
+      {% if trucks_page.has_previous %}
+      <a class="eal-page-btn" href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}page={{ trucks_page.previous_page_number }}" title="Previous">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+      {% else %}
+      <span class="eal-page-btn disabled opacity-50"><i class="bi bi-chevron-left"></i></span>
+      {% endif %}
+
+      {% for num in trucks_page.paginator.page_range %}
+      {% if num >= trucks_page.number|add:-2 and num <= trucks_page.number|add:2 %}
+      <a class="eal-page-btn{% if num == trucks_page.number %} active{% endif %}" href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+      {% endif %}
+      {% endfor %}
+
+      {% if trucks_page.has_next %}
+      <a class="eal-page-btn" href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}page={{ trucks_page.next_page_number }}" title="Next">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+      {% else %}
+      <span class="eal-page-btn disabled opacity-50"><i class="bi bi-chevron-right"></i></span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .status-badge.tas-status-active { background: #198754; color: #fff; border: 0; }
+  .status-badge.tas-status-inactive { background: #94a3b8; color: #fff; border: 0; }
+</style>
+{% endblock %}

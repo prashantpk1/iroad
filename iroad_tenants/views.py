@@ -81,6 +81,10 @@ from tenant_workspace.models import (
     TenantClientContact,
     TenantClientContract,
     TenantClientContractSetting,
+    TruckAttachment,
+    TruckImage,
+    TruckMaster,
+    TruckTypeMaster,
     TenantRole,
     TenantRolePermission,
     TenantUser,
@@ -90,12 +94,23 @@ from iroad_tenants.forms_tenant_address import TenantAddressMasterForm
 from iroad_tenants.forms_tenant_cargo import TenantCargoCategoryForm, TenantCargoMasterForm
 from iroad_tenants.forms_tenant_location import TenantLocationMasterForm
 from iroad_tenants.forms_tenant_route import TenantRouteMasterForm
+from iroad_tenants.forms_truck_type import TruckTypeMasterForm
+from iroad_tenants.forms_truck_master import TruckMasterForm
+from iroad_tenants.forms_truck_attachment import TruckAttachmentForm
 
 logger = logging.getLogger(__name__)
 
 ADDRESS_MASTER_AUTO_FORM_CODE = 'address-master'
 ADDRESS_MASTER_AUTO_FORM_LABEL = 'Address Code'
 ADDRESS_MASTER_REF_PREFIX = 'AD'
+
+TRUCK_TYPE_AUTO_FORM_CODE = 'truck-type-master'
+TRUCK_TYPE_AUTO_FORM_LABEL = 'Truck Type Code'
+TRUCK_TYPE_REF_PREFIX = 'TRT'
+
+TRUCK_MASTER_AUTO_FORM_CODE = 'truck-master'
+TRUCK_MASTER_AUTO_FORM_LABEL = 'Truck Code'
+TRUCK_MASTER_REF_PREFIX = 'TR'
 
 CARGO_MASTER_AUTO_FORM_CODE = 'cargo-master'
 CARGO_MASTER_AUTO_FORM_LABEL = 'Cargo code'
@@ -5829,6 +5844,59 @@ def _tenant_address_master_access(request, context):
     return None
 
 
+def _tenant_truck_type_master_access(request, context):
+    if context is None:
+        response = redirect('login')
+        clear_tenant_portal_cookie(response, request=request)
+        return response
+    if not context.get('is_tenant_admin'):
+        messages.error(
+            request,
+            'You do not have access to Truck Type Master.',
+            extra_tags='tenant',
+        )
+        return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+    return None
+
+
+def _tenant_truck_master_access(request, context):
+    """Same gate as Address Master — tenant admins only."""
+    if context is None:
+        response = redirect('login')
+        clear_tenant_portal_cookie(response, request=request)
+        return response
+    if not context.get('is_tenant_admin'):
+        messages.error(
+            request,
+            'You do not have access to Truck Master.',
+            extra_tags='tenant',
+        )
+        return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+    return None
+
+
+def _active_truck_master_count_for_type(truck_type_pk):
+    """Active ``TruckMaster`` rows using this truck type (0 if model/FK not present yet)."""
+    from django.apps import apps
+    from django.core.exceptions import FieldDoesNotExist
+
+    try:
+        TM = apps.get_model('tenant_workspace', 'TruckMaster')
+    except LookupError:
+        return 0
+    try:
+        TM._meta.get_field('truck_type')
+    except FieldDoesNotExist:
+        return 0
+    qs = TM.objects.filter(truck_type_id=truck_type_pk)
+    status_cls = getattr(TM, 'Status', None)
+    if status_cls is not None:
+        qs = qs.filter(status=status_cls.ACTIVE)
+    else:
+        qs = qs.filter(status='Active')
+    return qs.count()
+
+
 def _format_digits_display(value: str) -> str:
     """Group digits for list display (+966 50 123 4567 style, simplified)."""
     d = ''.join(ch for ch in (value or '') if ch.isdigit())
@@ -5872,6 +5940,25 @@ def _hydrate_address_master_list_rows(addresses_page):
             setattr(row, 'country_code_short', '—')
             setattr(row, 'city_country_cell', '—')
         setattr(row, 'phone_display_cell', _format_digits_display(row.mobile_no_1))
+
+
+def _hydrate_truck_master_list_rows(trucks_page):
+    """Registration country display for Truck Master list (FK stores ``country_code``)."""
+    rows = list(trucks_page.object_list)
+    codes = set()
+    for r in rows:
+        cc = getattr(r, 'registration_country_id', None)
+        if cc:
+            codes.add(str(cc).strip().upper())
+    labels = {}
+    if codes:
+        with schema_context('public'):
+            for c in Country.objects.filter(country_code__in=list(codes)):
+                labels[c.country_code.upper()] = f'{c.country_code} — {c.name_en}'
+    for row in rows:
+        cc = getattr(row, 'registration_country_id', None)
+        ccu = str(cc).strip().upper() if cc else ''
+        setattr(row, 'registration_country_cell', labels.get(ccu, ccu if ccu else '—'))
 
 
 def _address_master_list_stats(filtered_qs):
@@ -6379,6 +6466,1551 @@ class TenantAddressMasterEditView(View):
         return redirect_resp
 
 
+class TruckTypeMasterListView(View):
+    """TRT-001 list with search, status filter, pagination, and status toggle via POST."""
+
+    template_name = 'iroad_tenants/fleet/truck_type/truck_type_list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_type_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        tt = TruckTypeMaster
+        qs = tt.objects.all()
+        sq = request.GET.get('q', '').strip()
+
+        status_raw = (request.GET.get('status') or '').strip().lower()
+        if 'status' not in request.GET:
+            qs = qs.filter(status=tt.Status.ACTIVE)
+            filter_status = ''
+        elif not status_raw:
+            qs = qs.filter(status=tt.Status.ACTIVE)
+            filter_status = 'active'
+        elif status_raw == 'all':
+            filter_status = 'all'
+        elif status_raw == 'inactive':
+            qs = qs.filter(status=tt.Status.INACTIVE)
+            filter_status = 'inactive'
+        elif status_raw == 'active':
+            qs = qs.filter(status=tt.Status.ACTIVE)
+            filter_status = 'active'
+        else:
+            qs = qs.filter(status=tt.Status.ACTIVE)
+            filter_status = 'active'
+
+        if sq:
+            qs = qs.filter(
+                Q(english_label__icontains=sq) | Q(arabic_label__icontains=sq)
+            )
+
+        qs_ordered = qs.order_by('english_label')
+        stats = {
+            'total_count': tt.objects.count(),
+            'active_count': tt.objects.filter(status=tt.Status.ACTIVE).count(),
+            'inactive_count': tt.objects.filter(status=tt.Status.INACTIVE).count(),
+        }
+        paginator = Paginator(qs_ordered, 10)
+        try:
+            page_no = max(1, int(request.GET.get('page') or 1))
+        except ValueError:
+            page_no = 1
+        page = paginator.get_page(page_no)
+
+        total_count = paginator.count
+        if total_count == 0:
+            ps, pe = 0, 0
+        else:
+            ps = (page.number - 1) * paginator.per_page + 1
+            pe = ps + len(page.object_list) - 1
+
+        def _page_url(page_num):
+            q = request.GET.copy()
+            q.pop('stype', None)
+            try:
+                pn = int(page_num)
+            except (TypeError, ValueError):
+                pn = 1
+            if pn > 1:
+                q['page'] = str(pn)
+            else:
+                q.pop('page', None)
+            return '?' + q.urlencode()
+
+        pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
+        prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
+        next_url = _page_url(page.next_page_number()) if page.has_next() else None
+
+        context.update(
+            {
+                'truck_types_page': page,
+                'search_q': sq,
+                'filter_status': filter_status,
+                'stats': stats,
+                'pagination_page_links': pagination_page_links,
+                'pagination_prev_url': prev_url,
+                'pagination_next_url': next_url,
+                'pagination_start': ps,
+                'pagination_end': pe,
+                'pagination_total': total_count,
+                'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+            }
+        )
+        try:
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_type_master_access(request, context)
+        if denied:
+            return denied
+
+        if request.POST.get('action') != 'set_status':
+            return self.get(request)
+
+        truck_type_id = (request.POST.get('truck_type_id') or '').strip()
+        new_status = (request.POST.get('new_status') or '').strip()
+        if new_status not in (TruckTypeMaster.Status.ACTIVE, TruckTypeMaster.Status.INACTIVE):
+            messages.error(request, 'Invalid status.', extra_tags='tenant')
+            rq = (request.POST.get('redirect_query') or '').strip()
+            base = reverse('iroad_tenants:truck_type_master')
+            if rq:
+                return redirect(f'{base}?{rq}')
+            return _tenant_redirect(request, 'iroad_tenants:truck_type_master')
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            row = TruckTypeMaster.objects.filter(pk=truck_type_id).first()
+            if not row:
+                messages.error(request, 'Truck type not found.', extra_tags='tenant')
+            elif new_status == TruckTypeMaster.Status.INACTIVE:
+                in_use = _active_truck_master_count_for_type(row.truck_type_id)
+                if in_use:
+                    messages.error(
+                        request,
+                        f'Cannot deactivate — {in_use} trucks are using this type',
+                        extra_tags='tenant',
+                    )
+                else:
+                    row.status = new_status
+                    row.save(update_fields=['status', 'updated_at'])
+                    messages.success(
+                        request,
+                        f'Truck type set to {new_status.lower()}.',
+                        extra_tags='tenant',
+                    )
+            else:
+                row.status = new_status
+                row.save(update_fields=['status', 'updated_at'])
+                messages.success(
+                    request,
+                    f'Truck type set to {new_status.lower()}.',
+                    extra_tags='tenant',
+                )
+        finally:
+            connection.set_schema_to_public()
+
+        rq = (request.POST.get('redirect_query') or '').strip()
+        base = reverse('iroad_tenants:truck_type_master')
+        if rq:
+            return redirect(f'{base}?{rq}')
+        return _tenant_redirect(request, 'iroad_tenants:truck_type_master')
+
+
+class TruckTypeMasterCreateView(View):
+    template_name = 'iroad_tenants/fleet/truck_type/truck_type_form.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_type_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            preview = _preview_next_truck_type_code()
+            form = TruckTypeMasterForm()
+            context.update(
+                {
+                    'form': form,
+                    'preview_truck_type_code': preview,
+                    'is_edit': False,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_type_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        redirect_resp = None
+        try:
+            form = TruckTypeMasterForm(request.POST)
+            if not form.is_valid():
+                preview = _preview_next_truck_type_code()
+                context.update(
+                    {
+                        'form': form,
+                        'preview_truck_type_code': preview,
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            try:
+                with db_transaction.atomic():
+                    code, seq = _next_auto_number_for_form(
+                        TRUCK_TYPE_AUTO_FORM_CODE,
+                        TRUCK_TYPE_AUTO_FORM_LABEL,
+                        TRUCK_TYPE_REF_PREFIX,
+                    )
+                    obj = form.save(commit=False)
+                    obj.truck_type_code = code
+                    obj.truck_type_sequence = seq
+                    obj.full_clean()
+                    obj.save()
+            except IntegrityError:
+                preview = _preview_next_truck_type_code()
+                form.add_error(
+                    None,
+                    ValidationError(
+                        'Unable to allocate a unique truck type code. Please retry.',
+                        code='truck_type_integrity',
+                    ),
+                )
+                context.update(
+                    {
+                        'form': form,
+                        'preview_truck_type_code': preview,
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save the truck type.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+            except ValidationError as ve:
+                preview = _preview_next_truck_type_code()
+                if getattr(ve, 'error_dict', None):
+                    for field_name, errs in ve.error_dict.items():
+                        for err in errs:
+                            form.add_error(field_name, err)
+                else:
+                    for msg in getattr(ve, 'messages', []) or [str(ve)]:
+                        form.add_error(None, msg)
+                context.update(
+                    {
+                        'form': form,
+                        'preview_truck_type_code': preview,
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save the truck type.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            messages.success(
+                request,
+                f'Truck type {obj.truck_type_code} created successfully.',
+                extra_tags='tenant',
+            )
+            redirect_resp = _tenant_redirect(request, 'iroad_tenants:truck_type_master')
+        finally:
+            connection.set_schema_to_public()
+
+        return redirect_resp
+
+
+class TruckTypeMasterEditView(View):
+    template_name = 'iroad_tenants/fleet/truck_type/truck_type_form.html'
+
+    def _load(self, truck_type_id):
+        return TruckTypeMaster.objects.filter(pk=truck_type_id).first()
+
+    def get(self, request, truck_type_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_type_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            instance = self._load(truck_type_id)
+            if not instance:
+                messages.error(request, 'Truck type not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_type_master')
+
+            form = TruckTypeMasterForm(instance=instance)
+            context.update(
+                {
+                    'form': form,
+                    'is_edit': True,
+                    'truck_type_record': instance,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, truck_type_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_type_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        redirect_resp = None
+        try:
+            instance = self._load(truck_type_id)
+            if not instance:
+                messages.error(request, 'Truck type not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_type_master')
+
+            immutable_code = instance.truck_type_code
+            form = TruckTypeMasterForm(request.POST, instance=instance)
+            if not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'is_edit': True,
+                        'truck_type_record': instance,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            if form.cleaned_data.get('status') == TruckTypeMaster.Status.INACTIVE:
+                in_use = _active_truck_master_count_for_type(instance.truck_type_id)
+                if in_use:
+                    form.add_error(
+                        'status',
+                        ValidationError(
+                            f'Cannot deactivate — {in_use} trucks are using this type'
+                        ),
+                    )
+                    context.update(
+                        {
+                            'form': form,
+                            'is_edit': True,
+                            'truck_type_record': instance,
+                            'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                        }
+                    )
+                    messages.error(
+                        request,
+                        f'Cannot deactivate — {in_use} trucks are using this type',
+                        extra_tags='tenant',
+                    )
+                    return render(request, self.template_name, context)
+
+            try:
+                with db_transaction.atomic():
+                    obj = form.save(commit=False)
+                    obj.truck_type_code = immutable_code
+                    obj.full_clean()
+                    obj.save()
+            except IntegrityError:
+                form.add_error(
+                    None,
+                    ValidationError(
+                        'Conflict while saving this truck type.',
+                        code='truck_type_integrity',
+                    ),
+                )
+                context.update(
+                    {
+                        'form': form,
+                        'is_edit': True,
+                        'truck_type_record': instance,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save changes.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+            except ValidationError as ve:
+                if getattr(ve, 'error_dict', None):
+                    for field_name, errs in ve.error_dict.items():
+                        for err in errs:
+                            form.add_error(field_name, err)
+                else:
+                    for msg in getattr(ve, 'messages', []) or [str(ve)]:
+                        form.add_error(None, msg)
+                context.update(
+                    {
+                        'form': form,
+                        'is_edit': True,
+                        'truck_type_record': instance,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save changes.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            messages.success(request, 'Truck type updated successfully.', extra_tags='tenant')
+            redirect_resp = _tenant_redirect(request, 'iroad_tenants:truck_type_master')
+        finally:
+            connection.set_schema_to_public()
+
+        return redirect_resp
+
+
+class TruckMasterListView(View):
+    """TR-001 list: search, status / sourcing / type filters, stats, deactivate via POST."""
+
+    template_name = 'iroad_tenants/fleet/truck_master/truck_master_list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        tm = TruckMaster
+        qs = tm.objects.select_related('truck_type')
+
+        sq = (request.GET.get('q') or '').strip()
+
+        status_raw = (request.GET.get('status') or '').strip().lower()
+        if 'status' not in request.GET:
+            qs = qs.filter(status=tm.Status.ACTIVE)
+            filter_status = ''
+        elif not status_raw:
+            qs = qs.filter(status=tm.Status.ACTIVE)
+            filter_status = 'active'
+        elif status_raw == 'all':
+            filter_status = 'all'
+        elif status_raw == 'inactive':
+            qs = qs.filter(status=tm.Status.INACTIVE)
+            filter_status = 'inactive'
+        elif status_raw == 'active':
+            qs = qs.filter(status=tm.Status.ACTIVE)
+            filter_status = 'active'
+        else:
+            qs = qs.filter(status=tm.Status.ACTIVE)
+            filter_status = 'active'
+
+        sourcing_raw = (request.GET.get('sourcing_mode') or 'all').strip().lower()
+        if sourcing_raw == 'in_source':
+            qs = qs.filter(sourcing_mode=tm.SourcingMode.IN_SOURCE)
+            filter_sourcing_mode = 'in_source'
+        elif sourcing_raw == 'out_source':
+            qs = qs.filter(sourcing_mode=tm.SourcingMode.OUT_SOURCE)
+            filter_sourcing_mode = 'out_source'
+        else:
+            filter_sourcing_mode = 'all'
+
+        filter_truck_type_id = ''
+        tt_param = (request.GET.get('truck_type') or '').strip()
+        if tt_param:
+            try:
+                tt_uuid = uuid.UUID(tt_param)
+                qs = qs.filter(truck_type_id=tt_uuid)
+                filter_truck_type_id = str(tt_uuid)
+            except ValueError:
+                filter_truck_type_id = ''
+
+        if sq:
+            qs = qs.filter(
+                Q(truck_code__icontains=sq)
+                | Q(plate_number__icontains=sq)
+                | Q(owner_name__icontains=sq)
+            )
+
+        qs_ordered = qs.order_by('-created_at')
+        stats = {
+            'total_count': tm.objects.count(),
+            'active_count': tm.objects.filter(status=tm.Status.ACTIVE).count(),
+            'inactive_count': tm.objects.filter(status=tm.Status.INACTIVE).count(),
+            'in_source_count': tm.objects.filter(
+                sourcing_mode=tm.SourcingMode.IN_SOURCE
+            ).count(),
+            'out_source_count': tm.objects.filter(
+                sourcing_mode=tm.SourcingMode.OUT_SOURCE
+            ).count(),
+        }
+
+        paginator = Paginator(qs_ordered, 10)
+        try:
+            page_no = max(1, int(request.GET.get('page') or 1))
+        except ValueError:
+            page_no = 1
+        page = paginator.get_page(page_no)
+        _hydrate_truck_master_list_rows(page)
+
+        total_count = paginator.count
+        if total_count == 0:
+            ps, pe = 0, 0
+        else:
+            ps = (page.number - 1) * paginator.per_page + 1
+            pe = ps + len(page.object_list) - 1
+
+        def _page_url(page_num):
+            q = request.GET.copy()
+            q.pop('stype', None)
+            try:
+                pn = int(page_num)
+            except (TypeError, ValueError):
+                pn = 1
+            if pn > 1:
+                q['page'] = str(pn)
+            else:
+                q.pop('page', None)
+            return '?' + q.urlencode()
+
+        pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
+        prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
+        next_url = _page_url(page.next_page_number()) if page.has_next() else None
+
+        truck_type_choices = list(
+            TruckTypeMaster.objects.order_by('english_label')[:500]
+        )
+
+        context.update(
+            {
+                'trucks_page': page,
+                'search_q': sq,
+                'filter_status': filter_status,
+                'filter_sourcing_mode': filter_sourcing_mode,
+                'filter_truck_type_id': filter_truck_type_id,
+                'truck_type_filter_choices': truck_type_choices,
+                'stats': stats,
+                'pagination_page_links': pagination_page_links,
+                'pagination_prev_url': prev_url,
+                'pagination_next_url': next_url,
+                'pagination_start': ps,
+                'pagination_end': pe,
+                'pagination_total': total_count,
+                'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+            }
+        )
+        try:
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        if request.POST.get('action') != 'set_status':
+            return self.get(request)
+
+        truck_pk = (request.POST.get('truck_id') or '').strip()
+        new_status = (request.POST.get('new_status') or '').strip()
+        if new_status not in (TruckMaster.Status.ACTIVE, TruckMaster.Status.INACTIVE):
+            messages.error(request, 'Invalid status.', extra_tags='tenant')
+            rq = (request.POST.get('redirect_query') or '').strip()
+            base = reverse('iroad_tenants:truck_master')
+            if rq:
+                return redirect(f'{base}?{rq}')
+            return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            row = TruckMaster.objects.filter(pk=truck_pk).first()
+            if not row:
+                messages.error(request, 'Truck not found.', extra_tags='tenant')
+            else:
+                # TODO: Check active bookings when Booking module is built
+                # For now: allow deactivate freely
+                row.status = new_status
+                row.save(update_fields=['status', 'updated_at'])
+                messages.success(
+                    request,
+                    f'Truck set to {new_status.lower()}.',
+                    extra_tags='tenant',
+                )
+        finally:
+            connection.set_schema_to_public()
+
+        rq = (request.POST.get('redirect_query') or '').strip()
+        base = reverse('iroad_tenants:truck_master')
+        if rq:
+            return redirect(f'{base}?{rq}')
+        return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+
+class TruckMasterCreateView(View):
+    template_name = 'iroad_tenants/fleet/truck_master/truck_master_form.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            code_preview = _preview_next_truck_master_code()
+            form = TruckMasterForm()
+            context.update(
+                {
+                    'form': form,
+                    'code_preview': code_preview,
+                    'page_title': 'Add Truck',
+                    'is_edit': False,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        redirect_resp = None
+        try:
+            form = TruckMasterForm(request.POST, request.FILES)
+            if not form.is_valid():
+                code_preview = _preview_next_truck_master_code()
+                context.update(
+                    {
+                        'form': form,
+                        'code_preview': code_preview,
+                        'page_title': 'Add Truck',
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            try:
+                with db_transaction.atomic():
+                    code, seq = _next_auto_number_for_form(
+                        TRUCK_MASTER_AUTO_FORM_CODE,
+                        TRUCK_MASTER_AUTO_FORM_LABEL,
+                        TRUCK_MASTER_REF_PREFIX,
+                    )
+                    obj = form.save(commit=False)
+                    obj.truck_code = code
+                    obj.truck_sequence = seq
+                    obj.full_clean()
+                    obj.save()
+                    truck_image_files = request.FILES.getlist('truck_images')
+                    for img_file in truck_image_files:
+                        if getattr(img_file, 'name', '').strip():
+                            TruckImage.objects.create(truck=obj, image=img_file)
+            except IntegrityError:
+                logger.exception('Truck Master create integrity violation')
+                code_preview = _preview_next_truck_master_code()
+                form.add_error(
+                    None,
+                    ValidationError(
+                        'Unable to allocate a unique truck code or save this truck. Please retry.',
+                        code='truck_master_integrity',
+                    ),
+                )
+                context.update(
+                    {
+                        'form': form,
+                        'code_preview': code_preview,
+                        'page_title': 'Add Truck',
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save the truck.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+            except ValidationError as ve:
+                code_preview = _preview_next_truck_master_code()
+                if getattr(ve, 'error_dict', None):
+                    for field_name, errs in ve.error_dict.items():
+                        for err in errs:
+                            form.add_error(field_name, err)
+                else:
+                    for msg in getattr(ve, 'messages', []) or [str(ve)]:
+                        form.add_error(None, msg)
+                context.update(
+                    {
+                        'form': form,
+                        'code_preview': code_preview,
+                        'page_title': 'Add Truck',
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save the truck.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            messages.success(
+                request,
+                f'Truck {obj.truck_code} created successfully.',
+                extra_tags='tenant',
+            )
+            redirect_resp = _tenant_redirect(request, 'iroad_tenants:truck_master')
+        finally:
+            connection.set_schema_to_public()
+
+        return redirect_resp
+
+
+class TruckMasterEditView(View):
+    template_name = 'iroad_tenants/fleet/truck_master/truck_master_form.html'
+
+    def _load(self, truck_id):
+        return (
+            TruckMaster.objects.select_related('truck_type')
+            .prefetch_related('truck_images')
+            .filter(pk=truck_id)
+            .first()
+        )
+
+    def get(self, request, truck_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            truck = self._load(truck_id)
+            if not truck:
+                messages.error(request, 'Truck not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+            form = TruckMasterForm(instance=truck)
+            context.update(
+                {
+                    'form': form,
+                    'truck': truck,
+                    'page_title': 'Edit Truck',
+                    'is_edit': True,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, truck_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        redirect_resp = None
+        try:
+            truck = self._load(truck_id)
+            if not truck:
+                messages.error(request, 'Truck not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+            immutable_code = truck.truck_code
+            form = TruckMasterForm(request.POST, request.FILES, instance=truck)
+            if not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'truck': truck,
+                        'page_title': 'Edit Truck',
+                        'is_edit': True,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            try:
+                with db_transaction.atomic():
+                    obj = form.save(commit=False)
+                    obj.truck_code = immutable_code
+                    obj.full_clean()
+                    obj.save()
+
+                    delete_uuids = []
+                    for raw in request.POST.getlist('delete_image_ids'):
+                        raw = (raw or '').strip()
+                        if not raw:
+                            continue
+                        try:
+                            delete_uuids.append(uuid.UUID(raw))
+                        except ValueError:
+                            continue
+                    if delete_uuids:
+                        images_to_delete = TruckImage.objects.filter(
+                            image_id__in=delete_uuids,
+                            truck=obj,
+                        )
+                        for img in images_to_delete:
+                            if img.image:
+                                try:
+                                    fp = img.image.path
+                                    if os.path.isfile(fp):
+                                        os.remove(fp)
+                                except (NotImplementedError, OSError, ValueError):
+                                    pass
+                                img.image.delete(save=False)
+                            img.delete()
+
+                    truck_image_files = request.FILES.getlist('truck_images')
+                    for img_file in truck_image_files:
+                        if getattr(img_file, 'name', '').strip():
+                            TruckImage.objects.create(truck=obj, image=img_file)
+            except IntegrityError:
+                form.add_error(
+                    None,
+                    ValidationError(
+                        'Conflict while saving this truck.',
+                        code='truck_master_integrity',
+                    ),
+                )
+                context.update(
+                    {
+                        'form': form,
+                        'truck': truck,
+                        'page_title': 'Edit Truck',
+                        'is_edit': True,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save changes.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+            except ValidationError as ve:
+                if getattr(ve, 'error_dict', None):
+                    for field_name, errs in ve.error_dict.items():
+                        for err in errs:
+                            form.add_error(field_name, err)
+                else:
+                    for msg in getattr(ve, 'messages', []) or [str(ve)]:
+                        form.add_error(None, msg)
+                context.update(
+                    {
+                        'form': form,
+                        'truck': truck,
+                        'page_title': 'Edit Truck',
+                        'is_edit': True,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save changes.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            messages.success(request, 'Truck updated successfully.', extra_tags='tenant')
+            redirect_resp = _tenant_redirect(request, 'iroad_tenants:truck_master')
+        finally:
+            connection.set_schema_to_public()
+
+        return redirect_resp
+
+
+class TruckMasterDetailView(View):
+    template_name = 'iroad_tenants/fleet/truck_master/truck_master_detail.html'
+
+    def get(self, request, truck_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            truck = (
+                TruckMaster.objects.select_related('truck_type')
+                .prefetch_related('truck_images')
+                .filter(pk=truck_id)
+                .first()
+            )
+            if not truck:
+                messages.error(request, 'Truck not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+            doc_att_qs = truck.attachments.order_by('-attachment_date', '-created_at')
+            document_attachment_count = doc_att_qs.count()
+            document_attachments_preview = list(doc_att_qs[:3])
+            reg_country_display = '—'
+            rc = getattr(truck, 'registration_country_id', None)
+            if rc:
+                with schema_context('public'):
+                    cobj = Country.objects.filter(country_code=rc).first()
+                    if cobj:
+                        reg_country_display = f'{cobj.country_code} — {cobj.name_en}'
+
+            context.update(
+                {
+                    'truck': truck,
+                    'truck_images': list(truck.truck_images.all()),
+                    'document_attachment_count': document_attachment_count,
+                    'document_attachments_preview': document_attachments_preview,
+                    'reg_country_display': reg_country_display,
+                    'page_title': truck.truck_code,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TruckAttachmentListView(View):
+    """TR-ATT-001 list for one truck; status filter uses derived ``TruckAttachment.status``."""
+
+    template_name = 'iroad_tenants/fleet/truck_attachments/attachment_list.html'
+
+    def get(self, request, truck_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        ta = TruckAttachment
+        status_param = (request.GET.get('status') or '').strip()
+        allowed = {
+            '',
+            ta.Status.VALID,
+            ta.Status.EXPIRED,
+            ta.Status.DOES_NOT_EXPIRE,
+        }
+        filter_status = status_param if status_param in allowed else ''
+
+        try:
+            truck = TruckMaster.objects.filter(pk=truck_id).first()
+            if not truck:
+                messages.error(request, 'Truck not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+            all_attachments = list(truck.attachments.all())
+            for row in all_attachments:
+                _ = row.status
+
+            stats = {
+                'total': len(all_attachments),
+                'valid_count': sum(1 for a in all_attachments if a.status == ta.Status.VALID),
+                'expired_count': sum(1 for a in all_attachments if a.status == ta.Status.EXPIRED),
+                'does_not_expire_count': sum(
+                    1 for a in all_attachments if a.status == ta.Status.DOES_NOT_EXPIRE
+                ),
+            }
+
+            filtered = all_attachments
+            if filter_status:
+                filtered = [a for a in all_attachments if a.status == filter_status]
+
+            paginator = Paginator(filtered, 10)
+            try:
+                page_no = max(1, int(request.GET.get('page') or 1))
+            except ValueError:
+                page_no = 1
+            page = paginator.get_page(page_no)
+
+            total_count = paginator.count
+            if total_count == 0:
+                ps, pe = 0, 0
+            else:
+                ps = (page.number - 1) * paginator.per_page + 1
+                pe = ps + len(page.object_list) - 1
+
+            def _page_url(page_num):
+                q = request.GET.copy()
+                q.pop('stype', None)
+                try:
+                    pn = int(page_num)
+                except (TypeError, ValueError):
+                    pn = 1
+                if pn > 1:
+                    q['page'] = str(pn)
+                else:
+                    q.pop('page', None)
+                return '?' + q.urlencode()
+
+            pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
+            prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
+            next_url = _page_url(page.next_page_number()) if page.has_next() else None
+
+            context.update(
+                {
+                    'truck': truck,
+                    'attachments_page': page,
+                    'stats': stats,
+                    'filter_status': filter_status,
+                    'pagination_page_links': pagination_page_links,
+                    'pagination_prev_url': prev_url,
+                    'pagination_next_url': next_url,
+                    'pagination_start': ps,
+                    'pagination_end': pe,
+                    'pagination_total': total_count,
+                    'status_choices': [
+                        ta.Status.VALID,
+                        ta.Status.EXPIRED,
+                        ta.Status.DOES_NOT_EXPIRE,
+                    ],
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TruckAttachmentCreateView(View):
+    template_name = 'iroad_tenants/fleet/truck_attachments/attachment_form.html'
+
+    def get(self, request, truck_id=None):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            truck = None
+            show_truck_selector = not bool(truck_id)
+            trucks_for_select = []
+            if truck_id:
+                truck = TruckMaster.objects.filter(pk=truck_id).first()
+                if not truck:
+                    messages.error(request, 'Truck not found.', extra_tags='tenant')
+                    return _tenant_redirect(request, 'iroad_tenants:truck_master')
+            else:
+                trucks_for_select = list(
+                    TruckMaster.objects.filter(
+                        status=TruckMaster.Status.ACTIVE
+                    ).order_by('truck_code')
+                )
+
+            form = TruckAttachmentForm()
+            context.update(
+                {
+                    'form': form,
+                    'truck': truck,
+                    'page_title': 'Add Attachment',
+                    'show_truck_selector': show_truck_selector,
+                    'trucks_for_select': trucks_for_select,
+                    'selected_truck_id': '',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, truck_id=None):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            truck = None
+            show_truck_selector = not bool(truck_id)
+            trucks_for_select = []
+            selected_truck_id = ''
+            truck_error = ''
+            if truck_id:
+                truck = TruckMaster.objects.filter(pk=truck_id).first()
+                if not truck:
+                    messages.error(request, 'Truck not found.', extra_tags='tenant')
+                    return _tenant_redirect(request, 'iroad_tenants:truck_master')
+            else:
+                selected_truck_id = (request.POST.get('truck_id') or '').strip()
+                trucks_for_select = list(
+                    TruckMaster.objects.filter(
+                        status=TruckMaster.Status.ACTIVE
+                    ).order_by('truck_code')
+                )
+                if selected_truck_id:
+                    truck = TruckMaster.objects.filter(
+                        pk=selected_truck_id,
+                        status=TruckMaster.Status.ACTIVE,
+                    ).first()
+                if truck is None:
+                    truck_error = 'Please select an active truck.'
+
+            form = TruckAttachmentForm(request.POST, request.FILES)
+            if truck_error or not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'truck': truck,
+                        'page_title': 'Add Attachment',
+                        'show_truck_selector': show_truck_selector,
+                        'trucks_for_select': trucks_for_select,
+                        'selected_truck_id': selected_truck_id,
+                        'truck_error': truck_error,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            obj = form.save(commit=False)
+            obj.truck = truck
+            obj.save()
+            messages.success(request, 'Attachment saved.', extra_tags='tenant')
+            return redirect(
+                'iroad_tenants:truck_attachment_list',
+                truck_id=truck.truck_id,
+            )
+        finally:
+            connection.set_schema_to_public()
+
+
+class TruckAttachmentEditView(View):
+    template_name = 'iroad_tenants/fleet/truck_attachments/attachment_form.html'
+
+    def get(self, request, truck_id, attachment_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            truck = TruckMaster.objects.filter(pk=truck_id).first()
+            if not truck:
+                messages.error(request, 'Truck not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+            attachment = TruckAttachment.objects.filter(
+                pk=attachment_id,
+                truck=truck,
+            ).first()
+            if not attachment:
+                messages.error(request, 'Attachment not found.', extra_tags='tenant')
+                return redirect(
+                    'iroad_tenants:truck_attachment_list',
+                    truck_id=truck_id,
+                )
+
+            form = TruckAttachmentForm(instance=attachment)
+            context.update(
+                {
+                    'form': form,
+                    'truck': truck,
+                    'attachment': attachment,
+                    'page_title': 'Edit Attachment',
+                    'is_edit': True,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, truck_id, attachment_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            truck = TruckMaster.objects.filter(pk=truck_id).first()
+            if not truck:
+                messages.error(request, 'Truck not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+            attachment = TruckAttachment.objects.filter(
+                pk=attachment_id,
+                truck=truck,
+            ).first()
+            if not attachment:
+                messages.error(request, 'Attachment not found.', extra_tags='tenant')
+                return redirect(
+                    'iroad_tenants:truck_attachment_list',
+                    truck_id=truck_id,
+                )
+
+            form = TruckAttachmentForm(
+                request.POST,
+                request.FILES,
+                instance=attachment,
+            )
+            if not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'truck': truck,
+                        'attachment': attachment,
+                        'page_title': 'Edit Attachment',
+                        'is_edit': True,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(
+                    request,
+                    'Please fix the highlighted errors.',
+                    extra_tags='tenant',
+                )
+                return render(request, self.template_name, context)
+
+            obj = form.save(commit=False)
+            obj.truck = truck
+            obj.save()
+            messages.success(
+                request,
+                'Attachment updated successfully.',
+                extra_tags='tenant',
+            )
+            return redirect('iroad_tenants:truck_attachment_all_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class TruckAttachmentDetailView(View):
+    template_name = 'iroad_tenants/fleet/truck_attachments/attachment_detail.html'
+
+    def get(self, request, truck_id, attachment_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            truck = TruckMaster.objects.filter(pk=truck_id).first()
+            if not truck:
+                messages.error(request, 'Truck not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+            attachment = TruckAttachment.objects.filter(
+                pk=attachment_id,
+                truck=truck,
+            ).first()
+            if not attachment:
+                messages.error(request, 'Attachment not found.', extra_tags='tenant')
+                return redirect(
+                    'iroad_tenants:truck_attachment_list',
+                    truck_id=truck_id,
+                )
+
+            context.update(
+                {
+                    'truck': truck,
+                    'attachment': attachment,
+                    'page_title': 'Attachment Detail',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TruckAttachmentTruckSelectView(View):
+    """
+    Intermediate page shown when user clicks Add Attachment from all-attachments list.
+    User selects a truck and then goes to truck_attachment_create for that truck.
+    """
+
+    template_name = 'iroad_tenants/fleet/truck_attachments/attachment_truck_select.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            sq = (request.GET.get('q') or '').strip()
+            trucks = TruckMaster.objects.filter(
+                status=TruckMaster.Status.ACTIVE
+            ).order_by('truck_code')
+
+            if sq:
+                trucks = trucks.filter(
+                    Q(truck_code__icontains=sq)
+                    | Q(plate_number__icontains=sq)
+                    | Q(owner_name__icontains=sq)
+                )
+
+            paginator = Paginator(trucks, 10)
+            try:
+                page_no = max(1, int(request.GET.get('page') or 1))
+            except ValueError:
+                page_no = 1
+            page = paginator.get_page(page_no)
+
+            context.update(
+                {
+                    'trucks_page': page,
+                    'search_q': sq,
+                    'page_title': 'Select Truck — Add Attachment',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TruckAttachmentDeleteView(View):
+    def post(self, request, truck_id, attachment_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            truck = TruckMaster.objects.filter(pk=truck_id).first()
+            if not truck:
+                messages.error(request, 'Truck not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:truck_master')
+
+            att = TruckAttachment.objects.filter(pk=attachment_id, truck_id=truck.truck_id).first()
+            if att is None:
+                messages.error(request, 'Attachment not found.', extra_tags='tenant')
+            else:
+                if att.attachment_file:
+                    att.attachment_file.delete(save=False)
+                att.delete()
+                messages.success(request, 'Attachment deleted.', extra_tags='tenant')
+
+            return redirect(
+                'iroad_tenants:truck_attachment_list',
+                truck_id=truck.truck_id,
+            )
+        finally:
+            connection.set_schema_to_public()
+
+
+class TruckAttachmentAllListView(View):
+    """Standalone list of ALL truck attachments across trucks (sidebar)."""
+
+    template_name = 'iroad_tenants/fleet/truck_attachments/attachment_all_list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        ta = TruckAttachment
+        status_param = (request.GET.get('status') or '').strip()
+        allowed = {
+            '',
+            ta.Status.VALID,
+            ta.Status.EXPIRED,
+            ta.Status.DOES_NOT_EXPIRE,
+        }
+        filter_status = status_param if status_param in allowed else ''
+        sq = (request.GET.get('q') or '').strip()
+
+        try:
+            qs = ta.objects.select_related('truck').order_by(
+                '-attachment_date',
+                '-created_at',
+            )
+            if sq:
+                qs = qs.filter(
+                    Q(truck__truck_code__icontains=sq)
+                    | Q(truck__plate_number__icontains=sq),
+                )
+
+            all_attachments = list(qs)
+            stats = {
+                'total': len(all_attachments),
+                'valid_count': sum(
+                    1 for a in all_attachments if a.status == ta.Status.VALID
+                ),
+                'expired_count': sum(
+                    1 for a in all_attachments if a.status == ta.Status.EXPIRED
+                ),
+                'does_not_expire_count': sum(
+                    1
+                    for a in all_attachments
+                    if a.status == ta.Status.DOES_NOT_EXPIRE
+                ),
+            }
+
+            filtered = all_attachments
+            if filter_status:
+                filtered = [a for a in all_attachments if a.status == filter_status]
+
+            paginator = Paginator(filtered, 10)
+            try:
+                page_no = max(1, int(request.GET.get('page') or 1))
+            except ValueError:
+                page_no = 1
+            page = paginator.get_page(page_no)
+
+            total_count = paginator.count
+            if total_count == 0:
+                ps, pe = 0, 0
+            else:
+                ps = (page.number - 1) * paginator.per_page + 1
+                pe = ps + len(page.object_list) - 1
+
+            def _page_url(page_num):
+                q = request.GET.copy()
+                q.pop('stype', None)
+                try:
+                    pn = int(page_num)
+                except (TypeError, ValueError):
+                    pn = 1
+                if pn > 1:
+                    q['page'] = str(pn)
+                else:
+                    q.pop('page', None)
+                return '?' + q.urlencode()
+
+            pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
+            prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
+            next_url = _page_url(page.next_page_number()) if page.has_next() else None
+
+            context.update(
+                {
+                    'attachments_page': page,
+                    'stats': stats,
+                    'filter_status': filter_status,
+                    'search_q': sq,
+                    'pagination_page_links': pagination_page_links,
+                    'pagination_prev_url': prev_url,
+                    'pagination_next_url': next_url,
+                    'pagination_start': ps,
+                    'pagination_end': pe,
+                    'pagination_total': total_count,
+                    'status_choices': [
+                        ta.Status.VALID,
+                        ta.Status.EXPIRED,
+                        ta.Status.DOES_NOT_EXPIRE,
+                    ],
+                    'page_title': 'Truck Attachments',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
 class TenantAddressLocationOptionsView(View):
     """AJAX options for Address Master location dropdowns."""
 
@@ -6495,6 +8127,8 @@ class TenantAutoNumberConfigurationView(View):
         CLIENT_ACCOUNT_FORM_CODE: CLIENT_ACCOUNT_FORM_LABEL,
         CLIENT_CONTRACT_FORM_CODE: CLIENT_CONTRACT_FORM_LABEL,
         ADDRESS_MASTER_AUTO_FORM_CODE: ADDRESS_MASTER_AUTO_FORM_LABEL,
+        TRUCK_TYPE_AUTO_FORM_CODE: TRUCK_TYPE_AUTO_FORM_LABEL,
+        TRUCK_MASTER_AUTO_FORM_CODE: TRUCK_MASTER_AUTO_FORM_LABEL,
         CARGO_MASTER_AUTO_FORM_CODE: CARGO_MASTER_AUTO_FORM_LABEL,
         CARGO_CATEGORY_AUTO_FORM_CODE: CARGO_CATEGORY_AUTO_FORM_LABEL,
         LOCATION_MASTER_AUTO_FORM_CODE: LOCATION_MASTER_AUTO_FORM_LABEL,
@@ -8629,6 +10263,42 @@ def _preview_next_address_master_code():
     ).first()
     next_seq = sequence.next_number if sequence else 1
     return _render_tenant_ref_no(next_seq, config, prefix=ADDRESS_MASTER_REF_PREFIX)
+
+
+def _preview_next_truck_type_code():
+    """Next TRT-xxxx preview in tenant schema without consuming the sequence."""
+    config, _ = AutoNumberConfiguration.objects.get_or_create(
+        form_code=TRUCK_TYPE_AUTO_FORM_CODE,
+        defaults={
+            'form_label': TRUCK_TYPE_AUTO_FORM_LABEL,
+            'number_of_digits': 4,
+            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
+            'is_unique': True,
+        },
+    )
+    sequence = AutoNumberSequence.objects.filter(
+        form_code=TRUCK_TYPE_AUTO_FORM_CODE,
+    ).first()
+    next_seq = sequence.next_number if sequence else 1
+    return _render_tenant_ref_no(next_seq, config, prefix=TRUCK_TYPE_REF_PREFIX)
+
+
+def _preview_next_truck_master_code():
+    """Next TR-xxxx preview in tenant schema without consuming the sequence."""
+    config, _ = AutoNumberConfiguration.objects.get_or_create(
+        form_code=TRUCK_MASTER_AUTO_FORM_CODE,
+        defaults={
+            'form_label': TRUCK_MASTER_AUTO_FORM_LABEL,
+            'number_of_digits': 4,
+            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
+            'is_unique': True,
+        },
+    )
+    sequence = AutoNumberSequence.objects.filter(
+        form_code=TRUCK_MASTER_AUTO_FORM_CODE,
+    ).first()
+    next_seq = sequence.next_number if sequence else 1
+    return _render_tenant_ref_no(next_seq, config, prefix=TRUCK_MASTER_REF_PREFIX)
 
 
 def _preview_next_cargo_master_code():

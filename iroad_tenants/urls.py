@@ -1,6 +1,20 @@
 from django.urls import path
 
 from .views import (
+    TruckAttachmentAllListView,
+    TruckAttachmentCreateView,
+    TruckAttachmentDetailView,
+    TruckAttachmentDeleteView,
+    TruckAttachmentEditView,
+    TruckAttachmentListView,
+    TruckAttachmentTruckSelectView,
+    TruckMasterCreateView,
+    TruckMasterDetailView,
+    TruckMasterEditView,
+    TruckMasterListView,
+    TruckTypeMasterCreateView,
+    TruckTypeMasterEditView,
+    TruckTypeMasterListView,
     TenantAddressMasterCreateView,
     TenantAddressMasterEditView,
     TenantAddressLocationOptionsView,
@@ -353,6 +367,81 @@ urlpatterns = [
         'master-data/addresses/location-options/',
         TenantAddressLocationOptionsView.as_view(),
         name='tenant_address_location_options',
+    ),
+    path(
+        'fleet/truck-types/',
+        TruckTypeMasterListView.as_view(),
+        name='truck_type_master',
+    ),
+    path(
+        'fleet/truck-types/create/',
+        TruckTypeMasterCreateView.as_view(),
+        name='truck_type_master_create',
+    ),
+    path(
+        'fleet/truck-types/<uuid:truck_type_id>/edit/',
+        TruckTypeMasterEditView.as_view(),
+        name='truck_type_master_edit',
+    ),
+    path(
+        'fleet/attachments/',
+        TruckAttachmentAllListView.as_view(),
+        name='truck_attachment_all_list',
+    ),
+    path(
+        'fleet/attachments/select-truck/',
+        TruckAttachmentCreateView.as_view(),
+        name='truck_attachment_select_truck',
+    ),
+    path(
+        'fleet/attachments/add/',
+        TruckAttachmentCreateView.as_view(),
+        name='truck_attachment_create_all',
+    ),
+    path(
+        'fleet/trucks/',
+        TruckMasterListView.as_view(),
+        name='truck_master',
+    ),
+    path(
+        'fleet/trucks/create/',
+        TruckMasterCreateView.as_view(),
+        name='truck_master_create',
+    ),
+    path(
+        'fleet/trucks/<uuid:truck_id>/edit/',
+        TruckMasterEditView.as_view(),
+        name='truck_master_edit',
+    ),
+    path(
+        'fleet/trucks/<uuid:truck_id>/attachments/add/',
+        TruckAttachmentCreateView.as_view(),
+        name='truck_attachment_create',
+    ),
+    path(
+        'fleet/trucks/<uuid:truck_id>/attachments/<uuid:attachment_id>/view/',
+        TruckAttachmentDetailView.as_view(),
+        name='truck_attachment_detail',
+    ),
+    path(
+        'fleet/trucks/<uuid:truck_id>/attachments/<uuid:attachment_id>/edit/',
+        TruckAttachmentEditView.as_view(),
+        name='truck_attachment_edit',
+    ),
+    path(
+        'fleet/trucks/<uuid:truck_id>/attachments/<uuid:attachment_id>/delete/',
+        TruckAttachmentDeleteView.as_view(),
+        name='truck_attachment_delete',
+    ),
+    path(
+        'fleet/trucks/<uuid:truck_id>/attachments/',
+        TruckAttachmentListView.as_view(),
+        name='truck_attachment_list',
+    ),
+    path(
+        'fleet/trucks/<uuid:truck_id>/',
+        TruckMasterDetailView.as_view(),
+        name='truck_master_detail',
     ),
     path(
         'master-data/cargo/',

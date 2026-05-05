@@ -7,7 +7,7 @@
     <div class="sidebar-overlay"></div>
 
     <!-- Sidebar -->
-    <aside class="sidebar" id="appSidebar">
+    <aside class="sidebar" id="appSidebar" data-server-nav-state="1">
       <!-- Sidebar Header -->
       <div class="sidebar-header">
         <a href="{% url 'iroad_tenants:tenant_dashboard' %}" class="sidebar-logo">
@@ -21,7 +21,7 @@
         <ul class="nav-menu">
           <!-- Dashboard -->
           <li class="nav-item">
-            <a href="{% url 'iroad_tenants:tenant_dashboard' %}" class="nav-link" data-tooltip="Dashboard">
+            <a href="{% url 'iroad_tenants:tenant_dashboard' %}" class="nav-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_dashboard' %} active{% endif %}" data-tooltip="Dashboard">
               <i class="bi bi-speedometer2"></i>
               <span class="nav-text">Dashboard</span>
             </a>
@@ -34,7 +34,7 @@
 
           <!-- Account Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu {% if 'tenant_client_' in request.resolver_match.url_name %}open{% endif %}">
+          <li class="nav-item has-submenu{% if request.resolver_match and 'tenant_organization_profile' in request.resolver_match.url_name %} open{% endif %}">
             <a href="#" class="nav-link" data-tooltip="Account Management">
               <i class="bi bi-building"></i>
               <span class="nav-text">Account Management</span>
@@ -42,7 +42,7 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_organization_profile' %}" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_organization_profile' %}" class="submenu-link{% if request.resolver_match and 'tenant_organization_profile' in request.resolver_match.url_name %} active{% endif %}">
                   <i class="bi bi-card-heading"></i>
                   <span>Organization Profile</span>
                 </a>
@@ -53,7 +53,7 @@
 
           <!-- User Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu {% if 'tenant_users_administration' in request.resolver_match.url_name or 'tenant_roles_permissions' in request.resolver_match.url_name %}open{% endif %}">
+          <li class="nav-item has-submenu{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_users_administration' or 'tenant_roles_permissions' in request.resolver_match.url_name %} open{% endif %}{% endif %}">
             <a href="#" class="nav-link" data-tooltip="User Management">
               <i class="bi bi-people"></i>
               <span class="nav-text">User Management</span>
@@ -61,14 +61,14 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_users_administration' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_users_administration' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_users_administration' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_users_administration' %} active{% endif %}">
                   <i class="bi bi-person-gear"></i>
                   <span>Users Administration</span>
                 </a>
               </li>
              
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_roles_permissions' %}" class="submenu-link {% if 'tenant_roles_permissions' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_roles_permissions' %}" class="submenu-link{% if request.resolver_match and 'tenant_roles_permissions' in request.resolver_match.url_name %} active{% endif %}">
                   <i class="bi bi-person-lock"></i>
                   <span>Roles & Permissions</span>
                 </a>
@@ -79,7 +79,7 @@
 
           <!-- Subscriptions Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu {% if request.resolver_match.url_name == 'tenant_subscription_plan' or request.resolver_match.url_name == 'tenant_subscription_billing' %}open{% endif %}">
+          <li class="nav-item has-submenu{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_subscription_plan' or request.resolver_match.url_name == 'tenant_subscription_billing' %} open{% endif %}{% endif %}">
             <a
               href="#"
               class="nav-link"
@@ -91,13 +91,13 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_subscription_plan' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_subscription_plan' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_subscription_plan' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_subscription_plan' %} active{% endif %}">
                   <i class="bi bi-card-checklist"></i>
                   <span>Subscription Plan</span>
                 </a>
               </li>
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_subscription_billing' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_subscription_billing' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_subscription_billing' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_subscription_billing' %} active{% endif %}">
                   <i class="bi bi-receipt"></i>
                   <span>Subscription Billing</span>
                 </a>
@@ -108,7 +108,7 @@
 
           <!-- Audit & Security Logs -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_login_session_events' or request.resolver_match.url_name == 'tenant_role_permission_changes' or request.resolver_match.url_name == 'tenant_critical_account_changes' %} open{% endif %}{% endif %}">
             <a href="#" class="nav-link" data-tooltip="Audit & Security Logs">
               <i class="bi bi-shield-lock"></i>
               <span class="nav-text">Audit & Security Logs</span>
@@ -116,19 +116,19 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_login_session_events' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_login_session_events' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_login_session_events' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_login_session_events' %} active{% endif %}">
                   <i class="bi bi-shield-lock"></i>
                   <span>Login / Session Events</span>
                 </a>
               </li>
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_role_permission_changes' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_role_permission_changes' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_role_permission_changes' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_role_permission_changes' %} active{% endif %}">
                   <i class="bi bi-person-lock"></i>
                   <span>Role / Permission Changes</span>
                 </a>
               </li>
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_critical_account_changes' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_critical_account_changes' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_critical_account_changes' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_critical_account_changes' %} active{% endif %}">
                   <i class="bi bi-person-vcard"></i>
                   <span>Critical Account Changes</span>
                 </a>
@@ -139,7 +139,7 @@
 
           <!-- Support Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Support Management">
               <i class="bi bi-headset"></i>
               <span class="nav-text">Support Management</span>
@@ -163,7 +163,7 @@
 
           <!-- Clients Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu{% if request.resolver_match and 'tenant_client' in request.resolver_match.url_name %} open{% endif %}">
             <a href="#" class="nav-link" data-tooltip="Clients Management">
               <i class="bi bi-person-badge"></i>
               <span class="nav-text">Clients Management</span>
@@ -171,40 +171,40 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_client_account' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_client_account' or request.resolver_match.url_name == 'tenant_client_account_create' or request.resolver_match.url_name == 'tenant_client_details' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_client_account' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_client_account' or request.resolver_match.url_name == 'tenant_client_account_create' or request.resolver_match.url_name == 'tenant_client_details' %} active{% endif %}{% endif %}">
                   <i class="bi bi-person-vcard"></i>
                   <span>Client Account</span>
                 </a>
               </li>
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_client_account_settings' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_client_account_settings' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_client_account_settings' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_client_account_settings' %} active{% endif %}">
                   <i class="bi bi-gear"></i>
                   <span>Client Account Settings</span>
                 </a>
               </li>
 
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_client_attachments_list' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_client_attachments' or request.resolver_match.url_name == 'tenant_client_attachments_list' or request.resolver_match.url_name == 'tenant_client_attachments_create' or request.resolver_match.url_name == 'tenant_client_attachment_edit' or request.resolver_match.url_name == 'tenant_client_attachment_detail' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_client_attachments_list' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_client_attachments' or request.resolver_match.url_name == 'tenant_client_attachments_list' or request.resolver_match.url_name == 'tenant_client_attachments_create' or request.resolver_match.url_name == 'tenant_client_attachment_edit' or request.resolver_match.url_name == 'tenant_client_attachment_detail' %} active{% endif %}{% endif %}">
                   <i class="bi bi-paperclip"></i>
                   <span>Client Attachments</span>
                 </a>
               </li>
 
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_client_contacts_list' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_client_contacts' or request.resolver_match.url_name == 'tenant_client_contacts_list' or request.resolver_match.url_name == 'tenant_client_contacts_create' or request.resolver_match.url_name == 'tenant_client_contact_edit' or request.resolver_match.url_name == 'tenant_client_contact_detail' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_client_contacts_list' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_client_contacts' or request.resolver_match.url_name == 'tenant_client_contacts_list' or request.resolver_match.url_name == 'tenant_client_contacts_create' or request.resolver_match.url_name == 'tenant_client_contact_edit' or request.resolver_match.url_name == 'tenant_client_contact_detail' %} active{% endif %}{% endif %}">
                   <i class="bi bi-person-rolodex"></i>
                   <span>Client Contacts</span>
                 </a>
               </li>
 
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_client_contract_list' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_client_contract' or request.resolver_match.url_name == 'tenant_client_contract_list' or request.resolver_match.url_name == 'tenant_client_contract_create' or request.resolver_match.url_name == 'tenant_client_contract_detail' or request.resolver_match.url_name == 'tenant_client_contract_edit' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_client_contract_list' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_client_contract' or request.resolver_match.url_name == 'tenant_client_contract_list' or request.resolver_match.url_name == 'tenant_client_contract_create' or request.resolver_match.url_name == 'tenant_client_contract_detail' or request.resolver_match.url_name == 'tenant_client_contract_edit' %} active{% endif %}{% endif %}">
                   <i class="bi bi-file-earmark-text"></i>
                   <span>Client Contracts</span>
                 </a>
               </li>
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_client_contract_settings' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_client_contract_settings' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_client_contract_settings' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_client_contract_settings' %} active{% endif %}">
                   <i class="bi bi-gear"></i>
                   <span>Client Contract Settings</span>
                 </a>
@@ -220,7 +220,7 @@
 
           <!-- Address Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu{% if request.resolver_match and 'tenant_address' in request.resolver_match.url_name %} open{% endif %}">
             <a href="#" class="nav-link" data-tooltip="Address Management">
               <i class="bi bi-map"></i>
               <span class="nav-text">Address Management</span>
@@ -228,7 +228,7 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_address_master' %}" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_address_master' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_address_master' or request.resolver_match.url_name == 'tenant_address_master_create' or request.resolver_match.url_name == 'tenant_address_master_edit' or request.resolver_match.url_name == 'tenant_address_location_options' %} active{% endif %}{% endif %}">
                   <i class="bi bi-card-heading"></i>
                   <span>Address Master</span>
                 </a>
@@ -237,9 +237,40 @@
           </li>
           {% endif %}
 
+          <!-- Fleet Management -->
+          {% if is_tenant_admin %}
+          <li class="nav-item has-submenu{% if request.resolver_match and 'truck_' in request.resolver_match.url_name %} open{% endif %}">
+            <a href="#" class="nav-link" data-tooltip="Fleet Management">
+              <i class="bi bi-truck"></i>
+              <span class="nav-text">Fleet Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:truck_type_master' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'truck_type_master' or request.resolver_match.url_name == 'truck_type_master_create' or request.resolver_match.url_name == 'truck_type_master_edit' %} active{% endif %}{% endif %}">
+                  <i class="bi bi-tags"></i>
+                  <span>Truck Type Master</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:truck_master' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'truck_master' or request.resolver_match.url_name == 'truck_master_create' or request.resolver_match.url_name == 'truck_master_edit' or request.resolver_match.url_name == 'truck_master_detail' %} active{% endif %}{% endif %}">
+                  <i class="bi bi-truck-front"></i>
+                  <span>Truck Master</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'truck_attachment_all_list' or request.resolver_match.url_name == 'truck_attachment_list' or request.resolver_match.url_name == 'truck_attachment_create' or request.resolver_match.url_name == 'truck_attachment_delete' %} active{% endif %}{% endif %}">
+                  <i class="bi bi-paperclip"></i>
+                  <span>Truck Attachments</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          {% endif %}
+
           <!-- Cargo Management -->
           {% if is_tenant_admin or can_view_cargo_master %}
-          <li class="nav-item has-submenu {% if 'tenant_cargo_' in request.resolver_match.url_name %}open{% endif %}">
+          <li class="nav-item has-submenu{% if request.resolver_match and 'tenant_cargo_' in request.resolver_match.url_name %} open{% endif %}">
             <a href="#" class="nav-link" data-tooltip="Cargo Management">
               <i class="bi bi-box-seam"></i>
               <span class="nav-text">Cargo Management</span>
@@ -247,14 +278,14 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_cargo_master_list' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_cargo_master_list' or request.resolver_match.url_name == 'tenant_cargo_master_create' or request.resolver_match.url_name == 'tenant_cargo_master_edit' or request.resolver_match.url_name == 'tenant_cargo_master_detail' or request.resolver_match.url_name == 'tenant_cargo_master_delete' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_cargo_master_list' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_cargo_master_list' or request.resolver_match.url_name == 'tenant_cargo_master_create' or request.resolver_match.url_name == 'tenant_cargo_master_edit' or request.resolver_match.url_name == 'tenant_cargo_master_detail' or request.resolver_match.url_name == 'tenant_cargo_master_delete' %} active{% endif %}{% endif %}">
                   <i class="bi bi-boxes"></i>
                   <span>Cargo Master</span>
                 </a>
               </li>
 
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_cargo_category_list' %}" class="submenu-link {% if request.resolver_match.url_name == 'tenant_cargo_category_list' or request.resolver_match.url_name == 'tenant_cargo_category_create' or request.resolver_match.url_name == 'tenant_cargo_category_edit' or request.resolver_match.url_name == 'tenant_cargo_category_detail' %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_cargo_category_list' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'tenant_cargo_category_list' or request.resolver_match.url_name == 'tenant_cargo_category_create' or request.resolver_match.url_name == 'tenant_cargo_category_edit' or request.resolver_match.url_name == 'tenant_cargo_category_detail' %} active{% endif %}{% endif %}">
                   <i class="bi bi-tags"></i>
                   <span>Cargo Category Config</span>
                 </a>
@@ -265,7 +296,7 @@
 
           <!-- Route Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu {% if 'tenant_location_master_' in request.resolver_match.url_name or 'tenant_route_master_' in request.resolver_match.url_name %}open{% endif %}">
+          <li class="nav-item has-submenu{% if request.resolver_match and 'tenant_location_master_' in request.resolver_match.url_name or request.resolver_match and 'tenant_route_master_' in request.resolver_match.url_name %} open{% endif %}">
             <a href="#" class="nav-link" data-tooltip="Route Management">
               <i class="bi bi-signpost-split"></i>
               <span class="nav-text">Route Management</span>
@@ -273,14 +304,14 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_location_master_list' %}" class="submenu-link {% if 'tenant_location_master_' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_location_master_list' %}" class="submenu-link{% if request.resolver_match and 'tenant_location_master_' in request.resolver_match.url_name %} active{% endif %}">
                   <i class="bi bi-pin-map"></i>
                   <span>Location Master</span>
                 </a>
               </li>
 
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_route_master_list' %}" class="submenu-link {% if 'tenant_route_master_' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_route_master_list' %}" class="submenu-link{% if request.resolver_match and 'tenant_route_master_' in request.resolver_match.url_name %} active{% endif %}">
                   <i class="bi bi-signpost"></i>
                   <span>Route Master</span>
                 </a>
@@ -291,7 +322,7 @@
 
           <!-- Services Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu {% if 'tenant_service_item_' in request.resolver_match.url_name or 'tenant_price_list_' in request.resolver_match.url_name %}open{% endif %}">
+          <li class="nav-item has-submenu{% if request.resolver_match and 'tenant_service_item_' in request.resolver_match.url_name or request.resolver_match and 'tenant_price_list_' in request.resolver_match.url_name %} open{% endif %}">
             <a href="#" class="nav-link" data-tooltip="Services Management">
               <i class="bi bi-gear"></i>
               <span class="nav-text">Services Management</span>
@@ -299,14 +330,14 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_service_item_master_list' %}" class="submenu-link {% if 'tenant_service_item_' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_service_item_master_list' %}" class="submenu-link{% if request.resolver_match and 'tenant_service_item_' in request.resolver_match.url_name %} active{% endif %}">
                   <i class="bi bi-tools"></i>
                   <span>Service Item Master</span>
                 </a>
               </li>
 
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_price_list_master_list' %}" class="submenu-link {% if 'tenant_price_list_' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_price_list_master_list' %}" class="submenu-link{% if request.resolver_match and 'tenant_price_list_' in request.resolver_match.url_name %} active{% endif %}">
                   <i class="bi bi-tags"></i>
                   <span>Price List Master</span>
                 </a>
@@ -322,7 +353,7 @@
 
           <!-- Operations Management -->
           {% if is_tenant_admin or can_view_booking or can_view_shipment %}
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Operations Management">
               <i class="bi bi-activity"></i>
               <span class="nav-text">Operations Management</span>
@@ -389,48 +420,11 @@
           </li>
           {% endif %}
 
-          <!-- Fleet Management -->
-          {% if is_tenant_admin %}
-          <li class="nav-item has-submenu open">
-            <a href="#" class="nav-link" data-tooltip="Fleet Management">
-              <i class="bi bi-truck-front"></i>
-              <span class="nav-text">Fleet Management</span>
-              <i class="bi bi-chevron-right arrow"></i>
-            </a>
-            <ul class="submenu">
-              <li class="submenu-item">
-                <a href="Truck-master.html" class="submenu-link">
-                  <i class="bi bi-truck"></i>
-                  <span>Truck Master</span>
-                </a>
-              </li>
-
-              <li class="submenu-item">
-                <a href="Truck-type-master.html" class="submenu-link">
-                  <i class="bi bi-truck-flatbed"></i>
-                  <span>Truck Type Master</span>
-                </a>
-              </li>
-
-              <li class="submenu-item">
-                <a href="Truck-attachments.html" class="submenu-link">
-                  <i class="bi bi-truck"></i>
-                  <span>Truck Attachments</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a href="Truck-settings.html" class="submenu-link">
-                  <i class="bi bi-truck"></i>
-                  <span>Truck Settings</span>
-                </a>
-              </li>
-            </ul>
-          </li>
-          {% endif %}
+          {# Fleet links live under Master Data (canonical). Duplicate static designer links removed. #}
 
           <!-- Drivers Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Drivers Management">
               <i class="bi bi-person-vcard"></i>
               <span class="nav-text">Drivers Management</span>
@@ -466,7 +460,7 @@
 
           <!-- Sales Invoicing -->
           {% if is_tenant_admin or can_view_sales_invoicing %}
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Sales Invoicing">
               <i class="bi bi-receipt"></i>
               <span class="nav-text">Sales Invoicing</span>
@@ -485,7 +479,7 @@
 
           <!-- Treasury Management -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Treasury Management">
               <i class="bi bi-cash-coin"></i>
               <span class="nav-text">Treasury Management</span>
@@ -516,7 +510,7 @@
 
           <!-- Configurations -->
           {% if is_tenant_admin %}
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu{% if request.resolver_match and request.resolver_match.url_name == 'tenant_auto_number_configuration' %} open{% endif %}">
             <a href="#" class="nav-link" data-tooltip="Configurations">
               <i class="bi bi-gear-wide-connected"></i>
               <span class="nav-text">Configurations</span>
@@ -524,7 +518,7 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_auto_number_configuration' %}" class="submenu-link">
+                <a href="{% url 'iroad_tenants:tenant_auto_number_configuration' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_auto_number_configuration' %} active{% endif %}">
                   <i class="bi bi-gear"></i>
                   <span>Auto Number Configuration</span>
                 </a>

@@ -1,0 +1,287 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% translate "Truck Type Master" %} | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+{# Page header aligned with designer Truck-type-master breadcrumb trail + address-master action row pattern #}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:tenant_dashboard' %}">{% translate "Dashboard" %}</a>
+      </li>
+      <li class="breadcrumb-item">{% translate "Operations" %}</li>
+      <li class="breadcrumb-item">{% translate "Fleet Management" %}</li>
+      <li class="breadcrumb-item active" aria-current="page">{% translate "Truck Type Master" %}</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{% translate "Truck Type Master" %}</h1>
+      <p class="page-subtitle">
+        {% translate "Define truck types with code, labels, and status." %}
+      </p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions">
+        <a
+          href="{% url 'iroad_tenants:truck_type_master_create' %}"
+          class="eal-btn eal-btn-primary"
+        >
+          <i class="bi bi-plus-lg"></i>
+          <span>{% translate "Add New Type" %}</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="eal-stats-row">
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon purple">
+      <i class="bi bi-truck-flatbed"></i>
+    </div>
+    <div>
+      <div class="eal-stat-value">{{ stats.total_count }}</div>
+      <div class="eal-stat-label">{% translate "Total" %}</div>
+    </div>
+  </div>
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon green">
+      <i class="bi bi-check-circle"></i>
+    </div>
+    <div>
+      <div class="eal-stat-value">{{ stats.active_count }}</div>
+      <div class="eal-stat-label">{% translate "Active" %}</div>
+    </div>
+  </div>
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon amber">
+      <i class="bi bi-dash-circle"></i>
+    </div>
+    <div>
+      <div class="eal-stat-value">{{ stats.inactive_count }}</div>
+      <div class="eal-stat-label">{% translate "Inactive" %}</div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="eal-table-card"
+  data-eal-filterable-table
+  data-eal-empty-colspan="6"
+  data-eal-empty-filter-message="{% translate 'No truck types match the selected search/filter criteria.' %}"
+>
+  <form method="get" class="eal-toolbar eal-toolbar--inline-filters">
+    <div class="eal-toolbar-left w-100">
+      <div class="eal-toolbar-filters-row">
+        <div class="eal-search eal-search--toolbar-grow">
+          <i class="bi bi-search"></i>
+          <input type="text" name="q" value="{{ search_q }}" placeholder="{% translate 'Search English or Arabic label...' %}" />
+        </div>
+        <div class="eal-toolbar-filter-pair">
+          <label class="form-label mb-0 small text-nowrap text-muted" for="ttListStatus">{% translate "Status" %}</label>
+          <select name="status" id="ttListStatus" class="form-select form-select-sm">
+            <option value="active" {% if filter_status == '' or filter_status == 'active' %}selected{% endif %}>{% translate "Active" %}</option>
+            <option value="all" {% if filter_status == 'all' %}selected{% endif %}>{% translate "All" %}</option>
+            <option value="inactive" {% if filter_status == 'inactive' %}selected{% endif %}>{% translate "Inactive" %}</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary eal-toolbar-apply">{% translate "Apply" %}</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="eal-table-wrap">
+    <table class="eal-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>{% translate "Code" %}</th>
+          <th>{% translate "English Label" %}</th>
+          <th>{% translate "Arabic Label" %}</th>
+          <th>{% translate "Status" %}</th>
+          <th>{% translate "Actions" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in truck_types_page %}
+        <tr>
+          <td class="text-muted small">{{ truck_types_page.start_index|add:forloop.counter0 }}</td>
+          <td>
+            <span class="eal-entity-id">{{ row.truck_type_code }}</span>
+          </td>
+          <td>
+            <div class="eal-name-cell">
+              <span class="eal-name-text">{{ row.english_label }}</span>
+            </div>
+          </td>
+          <td class="eal-arabic" lang="ar" dir="rtl">{{ row.arabic_label }}</td>
+          <td>
+            {% if row.status == 'Active' %}
+            <span class="status-badge active"><i class="bi bi-check2-circle"></i> {% translate "Active" %}</span>
+            {% else %}
+            <span class="status-badge inactive"><i class="bi bi-dash-circle"></i> {% translate "Inactive" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="eal-actions-cell" onclick="event.stopPropagation();">
+              <a
+                href="{% url 'iroad_tenants:truck_type_master_edit' row.truck_type_id %}"
+                class="eal-row-btn"
+                title="{% translate 'Edit' %}"
+              >
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% if row.status == 'Active' %}
+              <button
+                type="button"
+                class="eal-row-btn danger tt-status-trigger"
+                title="{% translate 'Deactivate' %}"
+                data-truck-type-id="{{ row.truck_type_id }}"
+                data-new-status="Inactive"
+              >
+                <i class="bi bi-trash3"></i>
+              </button>
+              {% else %}
+              <button
+                type="button"
+                class="eal-row-btn text-success border-0 bg-transparent tt-status-trigger"
+                title="{% translate 'Activate' %}"
+                data-truck-type-id="{{ row.truck_type_id }}"
+                data-new-status="Active"
+              >
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-5">{% translate "No truck types found." %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination_total > 0 %}
+  <div class="eal-pagination">
+    <div class="eal-pagination-info">
+      {% blocktranslate with s=pagination_start e=pagination_end t=pagination_total %}Showing <strong>{{ s }}-{{ e }}</strong> of <strong>{{ t }}</strong> truck types{% endblocktranslate %}
+    </div>
+    <div class="eal-pagination-controls">
+      {% if pagination_prev_url %}
+      <a class="eal-page-btn" href="{{ pagination_prev_url }}" title="{% translate 'Previous' %}">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+      {% else %}
+      <span class="eal-page-btn disabled opacity-50"><i class="bi bi-chevron-left"></i></span>
+      {% endif %}
+      {% for num, page_href in pagination_page_links %}
+      <a class="eal-page-btn{% if num == truck_types_page.number %} active{% endif %}" href="{{ page_href }}">{{ num }}</a>
+      {% endfor %}
+      {% if pagination_next_url %}
+      <a class="eal-page-btn" href="{{ pagination_next_url }}" title="{% translate 'Next' %}">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+      {% else %}
+      <span class="eal-page-btn disabled opacity-50"><i class="bi bi-chevron-right"></i></span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% translate "Deactivate truck type" as tt_title_deact %}
+{% translate "Activate truck type" as tt_title_act %}
+{% translate "Deactivate" as tt_btn_deact %}
+{% translate "Activate" as tt_btn_act %}
+<div
+  class="modal fade"
+  id="truckTypeStatusModal"
+  tabindex="-1"
+  aria-labelledby="truckTypeStatusTitle"
+  aria-hidden="true"
+  data-label-title-deact="{{ tt_title_deact }}"
+  data-label-title-act="{{ tt_title_act }}"
+  data-label-btn-deact="{{ tt_btn_deact }}"
+  data-label-btn-act="{{ tt_btn_act }}"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'iroad_tenants:truck_type_master' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="set_status" />
+        <input type="hidden" name="truck_type_id" id="ttConfirmId" value="" />
+        <input type="hidden" name="new_status" id="ttConfirmStatus" value="" />
+        <input type="hidden" name="redirect_query" value="{{ request.GET.urlencode }}" />
+        <div class="modal-header">
+          <h5 class="modal-title" id="truckTypeStatusTitle">{% translate "Confirm" %}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% translate 'Close' %}"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0 d-none" id="ttMsgDeact">{% translate "Deactivate this truck type?" %}</p>
+          <p class="mb-0 d-none" id="ttMsgAct">{% translate "Activate this truck type?" %}</p>
+        </div>
+        <div class="modal-footer gap-2">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% translate "Cancel" %}</button>
+          <button type="submit" class="btn btn-danger px-4" id="ttConfirmSubmit">{% translate "Deactivate" %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var modalEl = document.getElementById("truckTypeStatusModal");
+  var modal =
+    modalEl && typeof bootstrap !== "undefined"
+      ? bootstrap.Modal.getOrCreateInstance(modalEl)
+      : null;
+  if (!modal) return;
+
+  function attr(el, key, fallback) {
+    var v = el && el.getAttribute(key);
+    return v != null && v !== "" ? v : fallback;
+  }
+
+  function labels() {
+    return {
+      titleDeact: attr(modalEl, "data-label-title-deact", "Deactivate truck type"),
+      titleAct: attr(modalEl, "data-label-title-act", "Activate truck type"),
+      btnDeact: attr(modalEl, "data-label-btn-deact", "Deactivate"),
+      btnAct: attr(modalEl, "data-label-btn-act", "Activate"),
+    };
+  }
+
+  document.querySelectorAll(".tt-status-trigger").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var newStatus = btn.getAttribute("data-new-status") || "";
+      var id = btn.getAttribute("data-truck-type-id") || "";
+      document.getElementById("ttConfirmId").value = id;
+      document.getElementById("ttConfirmStatus").value = newStatus;
+      var deact = newStatus === "Inactive";
+      document.getElementById("ttMsgDeact").classList.toggle("d-none", !deact);
+      document.getElementById("ttMsgAct").classList.toggle("d-none", deact);
+      var L = labels();
+      document.getElementById("truckTypeStatusTitle").textContent = deact ? L.titleDeact : L.titleAct;
+      var sub = document.getElementById("ttConfirmSubmit");
+      sub.textContent = deact ? L.btnDeact : L.btnAct;
+      sub.className = "btn px-4 " + (deact ? "btn-danger" : "btn-success");
+      sub.setAttribute("aria-label", deact ? L.btnDeact : L.btnAct);
+      modal.show();
+    });
+  });
+})();
+</script>
+{% endblock %}

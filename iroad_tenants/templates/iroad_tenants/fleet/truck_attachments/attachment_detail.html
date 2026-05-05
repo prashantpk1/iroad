@@ -1,0 +1,202 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}Attachment Detail | {{ truck.truck_code }} | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Fleet Management</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:truck_master' %}">Truck Master</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:truck_attachment_all_list' %}">Truck Attachments</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Attachment Detail</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">Attachment Detail</h1>
+      <p class="page-subtitle">Review attachment information and file details.</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions gap-2">
+        <a href="{% url 'iroad_tenants:truck_attachment_edit' truck_id=truck.truck_id attachment_id=attachment.attachment_id %}" class="eal-btn eal-btn-primary">
+          <i class="bi bi-pencil"></i>
+          <span>Edit</span>
+        </a>
+        <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i>
+          <span>Back to list</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-card mb-3" data-section="truck-summary">
+  <div class="form-card-body py-3">
+    <div class="fields-grid cols-4 mb-0">
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Truck Code</span>
+        <span class="fw-semibold eal-entity-id">{{ truck.truck_code }}</span>
+      </div>
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Plate Number</span>
+        <span class="fw-semibold">{{ truck.plate_number }}</span>
+      </div>
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Truck Type</span>
+        <span class="fw-semibold">{% if truck.truck_type %}{{ truck.truck_type.english_label }}{% else %}—{% endif %}</span>
+      </div>
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Status</span>
+        {% if truck.status == 'Active' %}
+        <span class="status-badge ta-truck-active"><i class="bi bi-check2-circle"></i> Active</span>
+        {% else %}
+        <span class="status-badge ta-truck-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-card mb-3" data-section="attachment-detail">
+  <div class="form-card-header">
+    <div class="form-card-icon blue">
+      <i class="bi bi-paperclip"></i>
+    </div>
+    <div class="form-card-header-text">
+      <h2 class="form-card-title">Attachment Details</h2>
+      <p class="form-card-desc">Read-only attachment metadata and document status.</p>
+    </div>
+  </div>
+  <div class="form-card-body">
+    <div class="fields-grid cols-2">
+      <div class="field">
+        <span class="field-hint d-block mb-1">Attachment Date</span>
+        <span class="fw-semibold">{{ attachment.attachment_date }}</span>
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">File Notes</span>
+        <span>{{ attachment.file_notes|default:"—" }}</span>
+      </div>
+
+      <div class="field">
+        <span class="field-hint d-block mb-1">Expiry Applicable</span>
+        {% if attachment.is_expiry_applicable %}
+        <span class="status-badge ta-att-valid">Yes</span>
+        {% else %}
+        <span class="status-badge ta-att-nexp">No</span>
+        {% endif %}
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">Uploaded</span>
+        <span>{{ attachment.created_at|date:"Y-m-d H:i" }}</span>
+      </div>
+
+      <div class="field">
+        <span class="field-hint d-block mb-1">Expiry Date</span>
+        <span class="fw-semibold">{{ attachment.expiry_date|default:"N/A" }}</span>
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">Last Updated</span>
+        <span>{{ attachment.updated_at|date:"Y-m-d H:i" }}</span>
+      </div>
+
+      <div class="field">
+        <span class="field-hint d-block mb-1">Status</span>
+        {% if attachment.status == 'Valid' %}
+        <span class="status-badge ta-att-valid"><i class="bi bi-check2-circle"></i> Valid</span>
+        {% elif attachment.status == 'Expired' %}
+        <span class="status-badge ta-att-expired"><i class="bi bi-x-circle"></i> Expired</span>
+        {% else %}
+        <span class="status-badge ta-att-nexp"><i class="bi bi-infinity"></i> Does Not Expire</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-card mb-3" data-section="attachment-file">
+  <div class="form-card-header">
+    <div class="form-card-icon green">
+      <i class="bi bi-file-earmark-arrow-down"></i>
+    </div>
+    <div class="form-card-header-text">
+      <h2 class="form-card-title">Attachment File</h2>
+      <p class="form-card-desc">Open or download the uploaded file.</p>
+    </div>
+  </div>
+  <div class="form-card-body">
+    {% if attachment.attachment_file %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <i class="bi bi-paperclip"></i>
+      <span class="fw-semibold">{{ attachment.attachment_file.name|slice:"20:" }}</span>
+      <a href="{{ attachment.attachment_file.url }}" download class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-download"></i> Download
+      </a>
+    </div>
+    {% with file_name=attachment.attachment_file.name|lower %}
+      {% if '.jpg' in file_name or '.jpeg' in file_name or '.png' in file_name %}
+      <a href="{{ attachment.attachment_file.url }}" target="_blank" rel="noopener">
+        <img src="{{ attachment.attachment_file.url }}" alt="Attachment preview" style="max-width: 240px; max-height: 180px; object-fit: cover;" class="rounded border">
+      </a>
+      {% endif %}
+    {% endwith %}
+    {% else %}
+    <p class="text-muted mb-0">No file attached.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="form-actions-bar">
+  <div class="form-actions-left">
+    <a href="{% url 'iroad_tenants:truck_attachment_edit' truck_id=truck.truck_id attachment_id=attachment.attachment_id %}" class="btn btn-primary">
+      <i class="bi bi-pencil"></i>
+      Edit Attachment
+    </a>
+  </div>
+  <div class="form-actions-right d-flex gap-2">
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#attachmentDeleteModal">
+      <i class="bi bi-trash3"></i>
+      Delete
+    </button>
+    <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+      Back to List
+    </a>
+  </div>
+</div>
+
+<div class="modal fade" id="attachmentDeleteModal" tabindex="-1" aria-labelledby="attachmentDeleteTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'iroad_tenants:truck_attachment_delete' truck_id=truck.truck_id attachment_id=attachment.attachment_id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="attachmentDeleteTitle">Delete attachment</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">Delete this attachment permanently? This cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .status-badge.ta-truck-active { background: #198754; color: #fff; border: 0; }
+  .status-badge.ta-truck-inactive { background: #94a3b8; color: #fff; border: 0; }
+  .status-badge.ta-att-valid { background: #198754; color: #fff; border: 0; }
+  .status-badge.ta-att-expired { background: #dc3545; color: #fff; border: 0; }
+  .status-badge.ta-att-nexp { background: #0d6efd; color: #fff; border: 0; }
+</style>
+{% endblock %}
