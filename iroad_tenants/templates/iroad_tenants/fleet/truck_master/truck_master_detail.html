@@ -1,392 +1,254 @@
 {% extends 'iroad_tenants/base.html' %}
 {% load static %}
 
-{% block title %}{{ truck.truck_code }} | Truck Master | iRoad{% endblock %}
+{% block title %}{{ truck.truck_code }} | Truck Details | iRoad{% endblock %}
 {% block breadcrumb %}{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item">
-        <a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a>
-      </li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
       <li class="breadcrumb-item">Operations</li>
       <li class="breadcrumb-item">Fleet Management</li>
-      <li class="breadcrumb-item">
-        <a href="{% url 'iroad_tenants:truck_master' %}">Truck Master</a>
-      </li>
-      <li class="breadcrumb-item active" aria-current="page">{{ truck.truck_code }}</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:truck_master' %}">Truck Master List</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Truck Details</li>
     </ol>
   </nav>
   <div class="page-header-row">
     <div class="page-header-left">
-      <h1 class="page-title d-flex flex-wrap align-items-center gap-2">
-        {{ truck.truck_code }}
-        <span class="badge rounded-pill bg-secondary tm-attachments-badge" title="Document attachments (TR-ATT-001)">
-          {{ document_attachment_count }} attachment{{ document_attachment_count|pluralize }}
-        </span>
-      </h1>
-      <p class="page-subtitle mb-0">{{ truck.plate_number }}</p>
+      <h1 class="page-title">Truck Details</h1>
+      <p class="page-subtitle">View operational and profile details of this truck.</p>
     </div>
     <div class="page-header-right">
-      <div class="eal-header-actions gap-2">
-        <a href="{% url 'iroad_tenants:truck_master_edit' truck.truck_id %}" class="eal-btn eal-btn-primary">
-          <i class="bi bi-pencil"></i>
-          <span>Edit</span>
-        </a>
-        <a href="{% url 'iroad_tenants:truck_master' %}" class="btn btn-outline-secondary">
-          <i class="bi bi-arrow-left"></i> Back
+      <div class="eal-header-actions">
+        <a href="{% url 'iroad_tenants:truck_master' %}" class="eal-btn eal-btn-outline">
+          <i class="bi bi-arrow-left"></i><span>Back to list</span>
         </a>
       </div>
     </div>
   </div>
 </div>
 
-<!-- SECTION A -->
-<div class="form-card mb-4" data-section="a-detail">
-  <div class="form-card-header">
-    <div class="form-card-icon blue">
-      <i class="bi bi-truck"></i>
+<div class="ch-header-card">
+  <div class="ch-left">
+    <div class="ch-title-row">
+      <div class="ch-logo"><i class="bi bi-truck"></i></div>
+      <h2 class="ch-title">{{ truck.truck_code }} ({{ truck.plate_number|default:"—" }})</h2>
     </div>
-    <div class="form-card-header-text">
-      <h2 class="form-card-title">Profile &amp; Source</h2>
-      <p class="form-card-desc">Sourcing mode, registration country, vendor and owner.</p>
+    <div class="ch-badges">
+      <div class="ch-badge"><i class="bi bi-truck-flatbed"></i><span>{% if truck.truck_type %}{{ truck.truck_type.english_label }}{% else %}—{% endif %}</span></div>
+      <div class="ch-badge"><i class="bi bi-building"></i><span>{{ truck.owner_name|default:"—" }}</span></div>
+      <div class="ch-badge"><i class="bi bi-key"></i><span>{{ truck.sourcing_mode|default:"—" }}</span></div>
+      <div class="ch-badge"><i class="bi bi-check2-circle"></i><span>{{ truck.status|default:"—" }}</span></div>
     </div>
   </div>
-  <div class="form-card-body">
-    <div class="field-group">
-      <h3 class="field-group-title">
-        <i class="bi bi-fingerprint"></i>
-        Identity
-      </h3>
-      <div class="fields-grid cols-3">
-        <div class="field">
-          <label class="form-label text-muted small">Truck Code</label>
-          <div class="form-control-plaintext fw-semibold">{{ truck.truck_code }}</div>
-        </div>
-        <div class="field">
-          <label class="form-label text-muted small">Status</label>
-          <div>
-            {% if truck.status == 'Active' %}
-            <span class="status-badge truck-status-active"><i class="bi bi-check2-circle"></i> Active</span>
-            {% else %}
-            <span class="status-badge truck-status-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
-            {% endif %}
+  <div class="ch-right">
+    <div class="ch-contact-item">
+      <div class="ch-contact-icon"><i class="bi bi-person-badge"></i></div>
+      <div class="ch-contact-text">Driver: {{ truck.default_driver_id|default:"—" }}</div>
+    </div>
+    <div class="ch-contact-item">
+      <div class="ch-contact-icon"><i class="bi bi-geo-alt"></i></div>
+      <div class="ch-contact-text">Registration Country: {{ reg_country_display|default:"—" }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="ch-actions">
+  <a href="{% url 'iroad_tenants:truck_master_edit' truck.truck_id %}" class="ch-action-btn"><i class="bi bi-pencil"></i> Edit</a>
+  <a href="{% url 'iroad_tenants:truck_attachment_create' truck.truck_id %}" class="ch-action-btn"><i class="bi bi-file-earmark-plus"></i> Add Document</a>
+  <button type="button" class="ch-action-btn"><i class="bi bi-folder-symlink"></i> Update Documents</button>
+  <button type="button" class="ch-action-btn"><i class="bi bi-geo-alt"></i> Create Movement</button>
+</div>
+
+<div class="cd-main-card">
+  <div class="cd-tabs-container">
+    <ul class="nav cd-tabs-list" role="tablist">
+      <li class="nav-item"><button class="cd-tab active" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button">Overview</button></li>
+      <li class="nav-item"><button class="cd-tab" data-bs-toggle="tab" data-bs-target="#pane-documents" type="button">Documents &amp; Attachments</button></li>
+      <li class="nav-item"><button class="cd-tab" data-bs-toggle="tab" data-bs-target="#pane-assigned-drivers" type="button">Assigned Drivers</button></li>
+      <li class="nav-item"><button class="cd-tab" data-bs-toggle="tab" data-bs-target="#pane-shipments" type="button">Shipments</button></li>
+      <li class="nav-item"><button class="cd-tab" data-bs-toggle="tab" data-bs-target="#pane-movements" type="button">Movements Log</button></li>
+    </ul>
+  </div>
+
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="pane-overview" role="tabpanel">
+      <div class="cd-details-section mb-4">
+        <div class="cd-details-header">Basic Info &amp; Ownership</div>
+        <div class="cd-details-body">
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Truck Code</span><span class="cd-field-value">{{ truck.truck_code }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Status</span><span class="cd-field-value">{{ truck.status|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Sourcing Mode</span><span class="cd-field-value">{{ truck.sourcing_mode|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Registration Country</span><span class="cd-field-value">{{ reg_country_display|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Vendor Account</span><span class="cd-field-value">{% if truck.vendor_account_id %}{{ truck.vendor_account_id }}{% else %}<span class="cd-pending">Under development</span>{% endif %}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Owner ID</span><span class="cd-field-value">{{ truck.owner_id|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Owner Name</span><span class="cd-field-value">{{ truck.owner_name|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Is Vendor Same as Owner</span><span class="cd-field-value">{% if truck.is_vendor_same_as_owner %}Yes{% else %}No{% endif %}</span></div>
           </div>
         </div>
-        <div class="field">
-          <label class="form-label text-muted small">Sourcing mode</label>
-          <div>
-            {% if truck.sourcing_mode == 'In-Source' %}
-            <span class="status-badge sourcing-in-source"><i class="bi bi-box-arrow-in-right"></i> In-Source</span>
-            {% else %}
-            <span class="status-badge sourcing-out-source"><i class="bi bi-box-arrow-up-right"></i> Out-Source</span>
-            {% endif %}
+      </div>
+
+      <div class="cd-details-section mb-4">
+        <div class="cd-details-header">Plate &amp; Registration</div>
+        <div class="cd-details-body">
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Plate Number</span><span class="cd-field-value">{{ truck.plate_number|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Saudi Plate Number</span><span class="cd-field-value">{{ truck.saudi_plate_number|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Saudi English Letters</span><span class="cd-field-value">{{ truck.saudi_english_letters|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Saudi Arabic Letters</span><span class="cd-field-value" dir="rtl" lang="ar">{{ truck.saudi_arabic_letters|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Non-Saudi Plate Number</span><span class="cd-field-value">{{ truck.non_saudi_plate_number|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Plate Image</span><span class="cd-field-value">{% if truck.plate_image %}<a href="{{ truck.plate_image.url }}" target="_blank" rel="noopener">View</a>{% else %}—{% endif %}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Vehicle Registration Image</span><span class="cd-field-value">{% if truck.vehicle_registration_image %}<a href="{{ truck.vehicle_registration_image.url }}" target="_blank" rel="noopener">View</a>{% else %}—{% endif %}</span></div>
           </div>
         </div>
       </div>
-      <div class="fields-grid cols-2">
-        <div class="field">
-          <label class="form-label text-muted small">Registration country</label>
-          <div class="form-control-plaintext">{{ reg_country_display }}</div>
-        </div>
-        {% if truck.sourcing_mode == 'Out-Source' %}
-        <div class="field">
-          <label class="form-label text-muted small">Vendor account ID</label>
-          <div class="form-control-plaintext">{{ truck.vendor_account_id|default:"—" }}</div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-    <div class="field-group">
-      <h3 class="field-group-title">
-        <i class="bi bi-person-badge"></i>
-        Owner
-      </h3>
-      <div class="fields-grid cols-2">
-        <div class="field">
-          <label class="form-label text-muted small">Owner ID</label>
-          <div class="form-control-plaintext">{{ truck.owner_id|default:"—" }}</div>
-        </div>
-        <div class="field">
-          <label class="form-label text-muted small">Owner name</label>
-          <div class="form-control-plaintext">{{ truck.owner_name|default:"—" }}</div>
-        </div>
-        <div class="field">
-          <label class="form-label text-muted small">Vendor same as owner</label>
-          <div class="form-control-plaintext">{% if truck.is_vendor_same_as_owner %}Yes{% else %}No{% endif %}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- SECTION B -->
-<div class="form-card mb-4" data-section="b-detail">
-  <div class="form-card-header">
-    <div class="form-card-icon amber">
-      <i class="bi bi-upc-scan"></i>
-    </div>
-    <div class="form-card-header-text">
-      <h2 class="form-card-title">Plate information</h2>
-      <p class="form-card-desc">Plate number and Saudi / non-Saudi breakdown.</p>
-    </div>
-  </div>
-  <div class="form-card-body">
-    <div class="fields-grid cols-2">
-      <div class="field">
-        <label class="form-label text-muted small">Plate number</label>
-        <div class="form-control-plaintext">{{ truck.plate_number }}</div>
-      </div>
-      {% if truck.registration_country_id == 'SA' %}
-      <div class="field">
-        <label class="form-label text-muted small">Saudi plate number</label>
-        <div class="form-control-plaintext">{{ truck.saudi_plate_number|default:"—" }}</div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Saudi English letters</label>
-        <div class="form-control-plaintext">{{ truck.saudi_english_letters|default:"—" }}</div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Saudi Arabic letters</label>
-        <div class="form-control-plaintext" dir="rtl" lang="ar">{{ truck.saudi_arabic_letters|default:"—" }}</div>
-      </div>
-      {% else %}
-      <div class="field">
-        <label class="form-label text-muted small">Non-Saudi plate number</label>
-        <div class="form-control-plaintext">{{ truck.non_saudi_plate_number|default:"—" }}</div>
-      </div>
-      {% endif %}
-    </div>
-    <div class="field-group">
-      <h3 class="field-group-title"><i class="bi bi-image"></i> Plate image</h3>
-      <div class="field">
-        {% if truck.plate_image %}
-        <a href="{{ truck.plate_image.url }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
-          <i class="bi bi-box-arrow-up-right"></i> View plate image
-        </a>
-        {% else %}
-        <span class="text-muted">No file uploaded.</span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SECTION C -->
-<div class="form-card mb-4" data-section="c-detail">
-  <div class="form-card-header">
-    <div class="form-card-icon green">
-      <i class="bi bi-truck-front"></i>
-    </div>
-    <div class="form-card-header-text">
-      <h2 class="form-card-title">Truck information</h2>
-      <p class="form-card-desc">Type and identification.</p>
-    </div>
-  </div>
-  <div class="form-card-body">
-    <div class="fields-grid cols-3">
-      <div class="field">
-        <label class="form-label text-muted small">Truck type</label>
-        <div class="form-control-plaintext">
-          {% if truck.truck_type %}{{ truck.truck_type.truck_type_code }} — {{ truck.truck_type.english_label }}{% else %}—{% endif %}
-        </div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Chassis number (VIN)</label>
-        <div class="form-control-plaintext">{{ truck.chassis_number_vin|default:"—" }}</div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Serial number</label>
-        <div class="form-control-plaintext">{{ truck.serial_number|default:"—" }}</div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Color</label>
-        <div class="form-control-plaintext">{{ truck.color|default:"—" }}</div>
-      </div>
-    </div>
-    <div class="field-group">
-      <h3 class="field-group-title"><i class="bi bi-file-earmark-image"></i> Vehicle registration</h3>
-      <div class="field">
-        {% if truck.vehicle_registration_image %}
-        <a href="{{ truck.vehicle_registration_image.url }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
-          <i class="bi bi-box-arrow-up-right"></i> View registration file
-        </a>
-        {% else %}
-        <span class="text-muted">No file uploaded.</span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-</div>
-
-{% if truck_images %}
-<div class="card mb-4">
-  <div class="card-header">Truck Images</div>
-  <div class="card-body">
-    <div class="d-flex flex-wrap gap-2">
-      {% for img in truck_images %}
-      <a href="{{ img.image.url }}" target="_blank" rel="noopener">
-        <img
-          src="{{ img.image.url }}"
-          alt=""
-          style="width:100px;height:100px;object-fit:cover;"
-          class="rounded border"
-        />
-      </a>
-      {% endfor %}
-    </div>
-  </div>
-</div>
-{% else %}
-<p class="text-muted small mb-4">No truck images uploaded.</p>
-{% endif %}
-
-<!-- Attachments (TR-ATT-001) -->
-<div class="form-card mb-4" data-section="attachments-detail">
-  <div class="form-card-header d-flex flex-wrap align-items-start gap-2">
-    <div class="form-card-icon blue">
-      <i class="bi bi-paperclip"></i>
-    </div>
-    <div class="form-card-header-text flex-grow-1">
-      <h2 class="form-card-title">Attachments</h2>
-      <p class="form-card-desc">
-        {{ document_attachment_count }} document attachment{{ document_attachment_count|pluralize }} on file for this truck.
-      </p>
-    </div>
-    <div class="ms-auto">
-      <a href="{% url 'iroad_tenants:truck_attachment_list' truck.truck_id %}" class="btn btn-primary btn-sm">
-        <i class="bi bi-list-ul"></i> View All Attachments
-      </a>
-    </div>
-  </div>
-  <div class="form-card-body">
-    {% if document_attachments_preview %}
-    <div class="eal-table-wrap">
-      <table class="eal-table eal-table--compact">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>File</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for a in document_attachments_preview %}
-          <tr>
-            <td>{{ a.attachment_date }}</td>
-            <td>
-              {% if a.attachment_file %}
-              <a href="{{ a.attachment_file.url }}" target="_blank" rel="noopener" class="text-decoration-none">{{ a.attachment_file.name }}</a>
-              {% else %}—{% endif %}
-            </td>
-            <td>
-              {% if a.status == 'Valid' %}
-              <span class="status-badge ta-att-valid"><i class="bi bi-check2-circle"></i> Valid</span>
-              {% elif a.status == 'Expired' %}
-              <span class="status-badge ta-att-expired"><i class="bi bi-x-circle"></i> Expired</span>
+      <div class="cd-details-section mb-4">
+        <div class="cd-details-header">Truck Details &amp; Images</div>
+        <div class="cd-details-body">
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Truck Type</span><span class="cd-field-value">{% if truck.truck_type %}{{ truck.truck_type.english_label }}{% else %}—{% endif %}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Chassis Number (VIN)</span><span class="cd-field-value">{{ truck.chassis_number_vin|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Serial Number</span><span class="cd-field-value">{{ truck.serial_number|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Color</span><span class="cd-field-value">{{ truck.color|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field" style="grid-column: 1/-1;">
+              <span class="cd-field-label">Truck Images</span>
+              {% if truck_images %}
+              <div class="d-flex flex-wrap gap-2 mt-2">
+                {% for img in truck_images %}
+                <a href="{{ img.image.url }}" target="_blank" rel="noopener"><img src="{{ img.image.url }}" alt="" class="cd-thumb" /></a>
+                {% endfor %}
+              </div>
               {% else %}
-              <span class="status-badge ta-att-nexp"><i class="bi bi-infinity"></i> Does Not Expire</span>
+              <span class="cd-field-value">—</span>
               {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <p class="text-muted mb-0">No document attachments yet. Use View All Attachments to add files.</p>
-    {% endif %}
-  </div>
-</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-<!-- SECTION D -->
-<div class="form-card mb-4" data-section="d-detail">
-  <div class="form-card-header">
-    <div class="form-card-icon red">
-      <i class="bi bi-speedometer2"></i>
-    </div>
-    <div class="form-card-header-text">
-      <h2 class="form-card-title">Weights &amp; Capacity</h2>
-      <p class="form-card-desc">Operational capacity fields.</p>
-    </div>
-  </div>
-  <div class="form-card-body">
-    <div class="fields-grid cols-3">
-      <div class="field">
-        <label class="form-label text-muted small">Axle count</label>
-        <div class="form-control-plaintext">{{ truck.axle_count|default:"—" }}</div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Tires count</label>
-        <div class="form-control-plaintext">{{ truck.tires_count|default:"—" }}</div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Tare weight (ton)</label>
-        <div class="form-control-plaintext">{{ truck.tare_weight_ton|default:"—" }}</div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Payload capacity (ton)</label>
-        <div class="form-control-plaintext">{{ truck.payload_capacity_ton|default:"—" }}</div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Gross weight (ton)</label>
-        <div class="form-control-plaintext">{{ truck.gross_weight_ton|default:"—" }}</div>
-      </div>
-      <div class="field">
-        <label class="form-label text-muted small">Volume (m³)</label>
-        <div class="form-control-plaintext">{{ truck.volume_m3|default:"—" }}</div>
+      <div class="cd-details-section mb-4">
+        <div class="cd-details-header">Specifications &amp; Capacities</div>
+        <div class="cd-details-body">
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Axle Count</span><span class="cd-field-value">{{ truck.axle_count|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Tires Count</span><span class="cd-field-value">{{ truck.tires_count|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Tare Weight (Ton)</span><span class="cd-field-value">{{ truck.tare_weight_ton|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Gross Weight (Ton)</span><span class="cd-field-value">{{ truck.gross_weight_ton|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Payload Capacity (Ton)</span><span class="cd-field-value">{{ truck.payload_capacity_ton|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Volume (m³)</span><span class="cd-field-value">{{ truck.volume_m3|default:"—" }}</span></div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field"><span class="cd-field-label">Default Driver</span><span class="cd-field-value">{% if truck.default_driver_id %}{{ truck.default_driver_id }}{% else %}<span class="cd-pending">Under development</span>{% endif %}</span></div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- SECTION E -->
-<div class="form-card mb-4" data-section="e-detail">
-  <div class="form-card-header">
-    <div class="form-card-icon amber">
-      <i class="bi bi-person-badge"></i>
+    <div class="tab-pane fade" id="pane-documents" role="tabpanel">
+      <div class="cd-details-section">
+        <div class="cd-details-header d-flex justify-content-between align-items-center">
+          <span>Truck Documents</span>
+          <a href="{% url 'iroad_tenants:truck_attachment_create' truck.truck_id %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-paperclip"></i> Add Attachment
+          </a>
+        </div>
+        <div class="cd-details-body p-0">
+          {% if document_attachments_preview %}
+          <div class="eal-table-wrap" style="box-shadow:none;border-radius:0;">
+            <table class="eal-table mb-0">
+              <thead><tr><th>Date</th><th>File</th><th>Status</th></tr></thead>
+              <tbody>
+                {% for a in document_attachments_preview %}
+                <tr>
+                  <td>{{ a.attachment_date }}</td>
+                  <td>{% if a.attachment_file %}<a href="{{ a.attachment_file.url }}" target="_blank" rel="noopener">{{ a.attachment_file.name }}</a>{% else %}—{% endif %}</td>
+                  <td>{{ a.status }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="p-4 text-muted">No document attachments yet.</div>
+          {% endif %}
+        </div>
+      </div>
     </div>
-    <div class="form-card-header-text">
-      <h2 class="form-card-title">Driver link</h2>
-      <p class="form-card-desc">Driver linking — Phase 2</p>
+
+    <div class="tab-pane fade" id="pane-assigned-drivers" role="tabpanel">
+      <div class="cd-empty">
+        <strong>Under development:</strong> Driver master integration and assignment history are pending backend connection.
+      </div>
     </div>
-  </div>
-  <div class="form-card-body">
-    <div class="fields-grid cols-2">
-      <div class="field">
-        <label class="form-label text-muted small">Default driver ID</label>
-        <div class="form-control-plaintext">{{ truck.default_driver_id|default:"—" }}</div>
+
+    <div class="tab-pane fade" id="pane-shipments" role="tabpanel">
+      <div class="cd-empty">
+        <strong>Under development:</strong> Shipment linkage for truck history is pending backend connection.
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="pane-movements" role="tabpanel">
+      <div class="cd-empty">
+        <strong>Under development:</strong> Movement log module linkage is pending backend connection.
       </div>
     </div>
   </div>
 </div>
 
 <style>
-  .status-badge.sourcing-in-source {
-    background: #0d6efd;
-    color: #fff;
-    border: 0;
-  }
-  .status-badge.sourcing-out-source {
-    background: #fd7e14;
-    color: #fff;
-    border: 0;
-  }
-  .status-badge.truck-status-active {
-    background: #198754;
-    color: #fff;
-    border: 0;
-  }
-  .status-badge.truck-status-inactive {
-    background: #94a3b8;
-    color: #fff;
-    border: 0;
-  }
-  .tm-attachments-badge { font-size: 0.75rem; }
-  .status-badge.ta-att-valid { background: #198754; color: #fff; border: 0; }
-  .status-badge.ta-att-expired { background: #dc3545; color: #fff; border: 0; }
-  .status-badge.ta-att-nexp { background: #0d6efd; color: #fff; border: 0; }
+  .ch-header-card { background:#fff; border-radius:12px; padding:20px; display:flex; justify-content:space-between; align-items:flex-start; border:1px solid rgba(0,0,0,.08); gap:20px; flex-wrap:wrap; margin-bottom:18px; }
+  .ch-left { display:flex; flex-direction:column; gap:14px; }
+  .ch-title-row { display:flex; align-items:center; gap:14px; }
+  .ch-logo { width:44px; height:44px; background:#ebecfa; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#5051f9; font-size:1.15rem; }
+  .ch-title { font-size:1.25rem; font-weight:700; margin:0; color:#1a1a1a; }
+  .ch-badges { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .ch-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:18px; border:1px solid rgba(0,0,0,.08); font-size:.82rem; font-weight:500; color:#4a4a4a; background:#fff; }
+  .ch-right { display:flex; flex-direction:column; gap:10px; min-width:260px; }
+  .ch-contact-item { display:flex; align-items:stretch; background:#f4f5f9; border-radius:6px; overflow:hidden; font-size:.85rem; border:1px solid rgba(0,0,0,.04); }
+  .ch-contact-icon { padding:8px 12px; background:#e4e6fb; color:#5051f9; display:flex; align-items:center; justify-content:center; }
+  .ch-contact-text { padding:8px 14px; flex:1; display:flex; align-items:center; color:#1a1a1a; font-weight:500; }
+  .ch-actions { display:flex; align-items:center; gap:10px; margin:16px 0 18px; flex-wrap:wrap; }
+  .ch-action-btn { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border:1px solid #c2c4fa; border-radius:8px; background:#fff; color:#5051f9; font-size:.9rem; font-weight:500; text-decoration:none; }
+  .cd-main-card { background:#fff; border-radius:12px; border:1px solid rgba(0,0,0,.08); padding:18px; }
+  .cd-tabs-container { background:#f4f5fc; border-radius:8px; padding:6px; margin-bottom:20px; }
+  .cd-tabs-list { display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; margin:0; padding:0; list-style:none; }
+  .cd-tab { border:none; background:transparent; padding:8px 16px; font-size:.85rem; color:#6b6b6b; border-radius:6px; font-weight:500; white-space:nowrap; }
+  .cd-tab.active { background:#5051f9; color:#fff; }
+  .cd-details-section { border:1px solid rgba(0,0,0,.08); border-radius:8px; overflow:hidden; }
+  .cd-details-header { background:#f4f5fc; padding:14px 18px; font-weight:600; font-size:.9rem; color:#1a1a1a; border-bottom:1px solid rgba(0,0,0,.05); }
+  .cd-details-body { background:#fff; padding:18px; }
+  .cd-grid-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; padding-bottom:16px; margin-bottom:16px; border-bottom:1px dashed rgba(0,0,0,.1); }
+  .cd-grid-row:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .cd-field { display:flex; flex-direction:column; gap:6px; }
+  .cd-field-label { font-size:.8rem; color:#6b6b6b; }
+  .cd-field-value { font-size:1rem; font-weight:700; color:#1a1a1a; }
+  .cd-thumb { width:110px; height:84px; object-fit:cover; border:1px solid #d7dcef; border-radius:8px; }
+  .cd-empty { border:1px dashed rgba(0,0,0,.2); border-radius:14px; padding:18px; background:rgba(0,0,0,.02); }
+  .cd-pending { color:#b45309; font-weight:600; }
+  @media (max-width: 768px) { .cd-grid-row { grid-template-columns:1fr; } .ch-header-card { flex-direction:column; } }
 </style>
 {% endblock %}

@@ -7580,104 +7580,7 @@ class TruckAttachmentListView(View):
     template_name = 'iroad_tenants/fleet/truck_attachments/attachment_list.html'
 
     def get(self, request, truck_id):
-        context = _tenant_context_from_session(request)
-        denied = _tenant_truck_master_access(request, context)
-        if denied:
-            return denied
-
-        tenant_registry = _activate_tenant_workspace_schema(request)
-        if tenant_registry is None:
-            response = redirect('login')
-            clear_tenant_portal_cookie(response, request=request)
-            return response
-
-        ta = TruckAttachment
-        status_param = (request.GET.get('status') or '').strip()
-        allowed = {
-            '',
-            ta.Status.VALID,
-            ta.Status.EXPIRED,
-            ta.Status.DOES_NOT_EXPIRE,
-        }
-        filter_status = status_param if status_param in allowed else ''
-
-        try:
-            truck = TruckMaster.objects.filter(pk=truck_id).first()
-            if not truck:
-                messages.error(request, 'Truck not found.', extra_tags='tenant')
-                return _tenant_redirect(request, 'iroad_tenants:truck_master')
-
-            all_attachments = list(truck.attachments.filter(is_deleted=False))
-            for row in all_attachments:
-                _ = row.status
-
-            stats = {
-                'total': len(all_attachments),
-                'valid_count': sum(1 for a in all_attachments if a.status == ta.Status.VALID),
-                'expired_count': sum(1 for a in all_attachments if a.status == ta.Status.EXPIRED),
-                'does_not_expire_count': sum(
-                    1 for a in all_attachments if a.status == ta.Status.DOES_NOT_EXPIRE
-                ),
-            }
-
-            filtered = all_attachments
-            if filter_status:
-                filtered = [a for a in all_attachments if a.status == filter_status]
-
-            paginator = Paginator(filtered, 10)
-            try:
-                page_no = max(1, int(request.GET.get('page') or 1))
-            except ValueError:
-                page_no = 1
-            page = paginator.get_page(page_no)
-
-            total_count = paginator.count
-            if total_count == 0:
-                ps, pe = 0, 0
-            else:
-                ps = (page.number - 1) * paginator.per_page + 1
-                pe = ps + len(page.object_list) - 1
-
-            def _page_url(page_num):
-                q = request.GET.copy()
-                q.pop('stype', None)
-                try:
-                    pn = int(page_num)
-                except (TypeError, ValueError):
-                    pn = 1
-                if pn > 1:
-                    q['page'] = str(pn)
-                else:
-                    q.pop('page', None)
-                return '?' + q.urlencode()
-
-            pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
-            prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
-            next_url = _page_url(page.next_page_number()) if page.has_next() else None
-
-            context.update(
-                {
-                    'truck': truck,
-                    'attachments_page': page,
-                    'stats': stats,
-                    'filter_status': filter_status,
-                    'pagination_page_links': pagination_page_links,
-                    'pagination_prev_url': prev_url,
-                    'pagination_next_url': next_url,
-                    'pagination_start': ps,
-                    'pagination_end': pe,
-                    'pagination_total': total_count,
-                    'status_choices': [
-                        ta.Status.VALID,
-                        ta.Status.EXPIRED,
-                        ta.Status.DOES_NOT_EXPIRE,
-                    ],
-                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
-                }
-            )
-            return render(request, self.template_name, context)
-        finally:
-            connection.set_schema_to_public()
+        return redirect('iroad_tenants:truck_attachment_all_list')
 
 
 class TruckAttachmentCreateView(View):
@@ -7828,10 +7731,7 @@ class TruckAttachmentEditView(View):
             ).first()
             if not attachment:
                 messages.error(request, 'Attachment not found.', extra_tags='tenant')
-                return redirect(
-                    'iroad_tenants:truck_attachment_list',
-                    truck_id=truck_id,
-                )
+                return redirect('iroad_tenants:truck_attachment_all_list')
 
             form = TruckAttachmentForm(instance=attachment)
             context.update(
@@ -7873,10 +7773,7 @@ class TruckAttachmentEditView(View):
             ).first()
             if not attachment:
                 messages.error(request, 'Attachment not found.', extra_tags='tenant')
-                return redirect(
-                    'iroad_tenants:truck_attachment_list',
-                    truck_id=truck_id,
-                )
+                return redirect('iroad_tenants:truck_attachment_all_list')
 
             old_file_name = (
                 attachment.attachment_file.name
@@ -7957,10 +7854,7 @@ class TruckAttachmentDetailView(View):
             ).first()
             if not attachment:
                 messages.error(request, 'Attachment not found.', extra_tags='tenant')
-                return redirect(
-                    'iroad_tenants:truck_attachment_list',
-                    truck_id=truck_id,
-                )
+                return redirect('iroad_tenants:truck_attachment_all_list')
 
             context.update(
                 {

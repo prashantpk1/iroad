@@ -16,7 +16,7 @@
         {% if is_edit %}
         <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}">Truck Attachments</a>
         {% elif truck %}
-        <a href="{% url 'iroad_tenants:truck_attachment_list' truck.truck_id %}">Truck Attachments — {{ truck.truck_code }}</a>
+        <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}">Truck Attachments</a>
         {% else %}
         <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}">Truck Attachments</a>
         {% endif %}
@@ -35,7 +35,7 @@
       {% endif %}
     </div>
     <div class="page-header-right ms-auto">
-      <a href="{% if is_edit %}{% url 'iroad_tenants:truck_attachment_all_list' %}{% elif truck %}{% url 'iroad_tenants:truck_attachment_list' truck.truck_id %}{% else %}{% url 'iroad_tenants:truck_attachment_all_list' %}{% endif %}" class="btn btn-outline-secondary">
+      <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left me-1"></i> Back to attachments
       </a>
     </div>
@@ -253,7 +253,7 @@
 
   <div class="form-actions-bar">
     <div class="form-actions-left">
-      <a href="{% if is_edit %}{% url 'iroad_tenants:truck_attachment_all_list' %}{% elif truck %}{% url 'iroad_tenants:truck_attachment_list' truck.truck_id %}{% else %}{% url 'iroad_tenants:truck_attachment_all_list' %}{% endif %}" class="btn btn-outline-secondary">
+      <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}" class="btn btn-outline-secondary">
         <i class="bi bi-x-lg"></i>
         Cancel
       </a>
