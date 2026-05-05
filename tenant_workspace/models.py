@@ -910,6 +910,17 @@ class TruckImage(models.Model):
         return f'Image for {self.truck.truck_code}'
 
 
+def truck_attachment_upload_to(instance, filename):
+    """Store as: TA-0001abc.ext (attachment_no + 3 random chars)."""
+    ext = os.path.splitext(filename or '')[1].lower() or '.bin'
+    base = (getattr(instance, 'attachment_no', '') or 'ATT').strip()
+    suffix = ''.join(
+        secrets.choice(string.ascii_lowercase + string.digits)
+        for _ in range(3)
+    )
+    return f'trucks/attachments/{base}{suffix}{ext}'
+
+
 class TruckAttachment(models.Model):
     """TR-ATT-001 Truck attachment (tenant schema).
 
@@ -926,16 +937,6 @@ class TruckAttachment(models.Model):
     )
     ATTACHMENT_MAX_SIZE_MB = 10
     ATTACHMENT_MAX_SIZE_BYTES = ATTACHMENT_MAX_SIZE_MB * 1024 * 1024
-
-    @staticmethod
-    def _upload_to(instance, filename):
-        ext = os.path.splitext(filename or '')[1].lower() or '.bin'
-        base = (getattr(instance, 'attachment_no', '') or 'ATT').strip()
-        suffix = ''.join(
-            secrets.choice(string.ascii_lowercase + string.digits)
-            for _ in range(3)
-        )
-        return f'trucks/attachments/{base}{suffix}{ext}'
 
     attachment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     attachment_no = models.CharField(
@@ -957,7 +958,7 @@ class TruckAttachment(models.Model):
     attachment_date = models.DateField(default=date.today)
     is_expiry_applicable = models.BooleanField(default=False)
     expiry_date = models.DateField(blank=True, null=True)
-    attachment_file = models.FileField(upload_to=_upload_to, max_length=500)
+    attachment_file = models.FileField(upload_to=truck_attachment_upload_to, max_length=500)
     file_notes = models.TextField(
         help_text=_('Notes about this attachment document'),
     )
