@@ -1,0 +1,117 @@
+Push Notifications Manager - End-to-End Walkthrough
+===================================================
+
+Goal
+----
+Validate both modes of Push Notifications Manager (FRM-CP-05-04):
+1) Manual_Broadcast
+2) System_Event
+
+
+1) Start Required Services
+--------------------------
+Open separate terminals at project root:
+
+Terminal A:
+python manage.py runserver
+
+Terminal B (Celery worker):
+celery -A config worker -l info -P solo
+
+Terminal C (Redis):
+Start Redis on 127.0.0.1:6379
+
+Note:
+If Redis/Celery are down, background push dispatch will not run.
+
+
+2) Create a Test Device Token (one-time)
+----------------------------------------
+Run:
+python manage.py shell
+
+Then:
+from superadmin.models import PushDeviceToken
+PushDeviceToken.objects.create(
+    user_domain="Tenant_User",
+    reference_id="TENANT-001",
+    device_token="TEST_FCM_TOKEN_001",
+    is_active=True,
+)
+
+Use a real FCM token for real device delivery.
+
+
+3) Test Manual Broadcast
+------------------------
+In Superadmin UI:
+Communication -> Push Notifications -> Add Push Notification
+
+Create record with example values:
+- Internal Name: Promo May
+- Trigger Mode: Manual_Broadcast
+- Target Audience: Specific
+- Specific Target: TENANT-001
+- Title EN: Promo Alert
+- Message EN: Hi {{client_name}}, offer is live
+- Dispatch Status: Scheduled
+- Scheduled At: now + 2 minutes
+
+Expected behavior:
+- linked_event is hidden/ignored
+- record is queued in background (non-blocking UI)
+- after execution, status becomes Completed
+
+
+4) Test System Event
+--------------------
+In Superadmin UI create:
+- Internal Name: Shipment Assigned Push
+- Trigger Mode: System_Event
+- Linked Event: Shipment_Assigned_to_Driver
+- Is Active: ON
+
+Expected behavior:
+- scheduled_at hidden/irrelevant
+- dispatch_status hidden/irrelevant
+- push acts as active rule fired by backend event trigger
+
+Trigger backend event manually:
+
+python manage.py shell
+
+from superadmin.communication_helpers import dispatch_event_notification
+dispatch_event_notification(
+    event_code="Shipment_Assigned_to_Driver",
+    context_dict={"client_name": "Acme Logistics"},
+    use_async_tasks=False,
+)
+
+Expected:
+- system-event push dispatch path executes
+- entries appear in logs/receipts
+
+
+5) Verify Results
+-----------------
+UI checks:
+- Communication -> Push Notifications
+- Communication -> Communication Logs
+
+DB check (optional):
+
+python manage.py shell
+
+from superadmin.models import PushNotificationReceipt
+PushNotificationReceipt.objects.order_by("-created_at")[:5]
+
+
+Troubleshooting
+---------------
+1) No push sent:
+   - Ensure Redis and Celery are running.
+2) No device target:
+   - Ensure PushDeviceToken exists and is_active=True.
+3) FCM failures:
+   - Verify FCM_SERVER_KEY and token validity.
+

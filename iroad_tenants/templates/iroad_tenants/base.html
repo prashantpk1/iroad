@@ -26,6 +26,19 @@
 {% include 'iroad_tenants/partials/sidebar.html' %}
     <main class="main-content">
 {% include 'iroad_tenants/partials/navbar.html' %}
+{% if tenant_system_banners %}
+<div class="page-content px-3 pt-2">
+  {% for banner in tenant_system_banners %}
+    <div class="alert {% if banner.severity == 'Critical' %}alert-danger{% elif banner.severity == 'Warning' %}alert-warning{% else %}alert-info{% endif %} {% if banner.is_dismissible %}alert-dismissible{% endif %} fade show mb-2" role="alert">
+      <strong>{{ banner.title_en }}</strong>
+      <div>{{ banner.message_en }}</div>
+      {% if banner.is_dismissible %}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
 {% if messages %}
 <div class="page-content px-3 pt-2">
   {% for message in messages %}

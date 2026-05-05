@@ -7498,7 +7498,7 @@ class PushNotificationCreateView(LoginRequiredMixin, View):
         obj.save()
         from superadmin.push_helpers import queue_push_notification
 
-        if obj.trigger_mode == 'Manual_Broadcast':
+        if obj.trigger_mode == 'Manual_Broadcast' and obj.dispatch_status == 'Scheduled':
             queue_push_notification(obj)
         messages.success(request, 'Push notification created successfully.')
         return redirect(reverse('push_notif_list'))
@@ -7539,7 +7539,7 @@ class PushNotificationUpdateView(LoginRequiredMixin, View):
         updated = form.save()
         from superadmin.push_helpers import queue_push_notification
 
-        if updated.trigger_mode == 'Manual_Broadcast' and updated.dispatch_status != 'Completed':
+        if updated.trigger_mode == 'Manual_Broadcast' and updated.dispatch_status == 'Scheduled':
             queue_push_notification(updated)
         messages.success(request, 'Push notification updated successfully.')
         return redirect(reverse('push_notif_list'))
@@ -7664,6 +7664,9 @@ class SystemBannerUpdateView(LoginRequiredMixin, View):
 
 class SystemBannerToggleStatusView(LoginRequiredMixin, View):
     def post(self, request, pk):
+        redirect_resp = _require_root_or_redirect(request)
+        if redirect_resp:
+            return redirect_resp
         banner = get_object_or_404(SystemBanner, pk=pk)
         banner.is_active = not banner.is_active
         banner.save(update_fields=['is_active'])
@@ -10669,6 +10672,12 @@ class TicketDetailView(LoginRequiredMixin, View):
 class TicketAdminReplyView(LoginRequiredMixin, View):
     def post(self, request, pk):
         ticket = get_object_or_404(SupportTicket, pk=pk)
+        if ticket.status == 'Closed':
+            messages.error(
+                request,
+                'Cannot reply to a closed ticket. Reopen workflow is required.',
+            )
+            return redirect('ticket_detail', pk=ticket.pk)
         form = AdminReplyForm(request.POST, request.FILES)
 
         if not form.is_valid():
@@ -10707,7 +10716,7 @@ class TicketAssignView(LoginRequiredMixin, View):
             return redirect('ticket_detail', pk=ticket.pk)
 
         ticket = form.save(commit=False)
-        if ticket.status == 'New':
+        if ticket.assigned_to and ticket.status != 'Closed':
             ticket.status = 'In_Progress'
         ticket.save()
 

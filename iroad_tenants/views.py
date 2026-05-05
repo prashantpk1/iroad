@@ -50,6 +50,9 @@ from superadmin.models import (
     SubscriptionOrder,
     SubscriptionFAQ,
     SubscriptionPlan,
+    SupportCategory,
+    SupportTicket,
+    TicketReply,
 )
 from superadmin.redis_helpers import (
     get_all_active_tenant_sessions,
@@ -176,6 +179,45 @@ CLIENT_CONTRACT_ALLOWED_EXT = frozenset({
     '.gif',
     '.webp',
 })
+
+MAX_SUPPORT_ATTACHMENT_BYTES = 10 * 1024 * 1024
+SUPPORT_ATTACHMENT_ALLOWED_EXT = frozenset({
+    '.pdf',
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.gif',
+    '.webp',
+    '.log',
+})
+
+
+def _validate_support_attachment_upload(upload, *, allow_empty=True):
+    if not upload:
+        return '' if allow_empty else 'Attachment is required.'
+    try:
+        size = int(upload.size)
+    except (TypeError, ValueError):
+        size = 0
+    if size > MAX_SUPPORT_ATTACHMENT_BYTES:
+        return 'Attachment must be 10MB or smaller.'
+    name = (getattr(upload, 'name', None) or '').lower()
+    ext = os.path.splitext(name)[1]
+    if ext not in SUPPORT_ATTACHMENT_ALLOWED_EXT:
+        return 'Attachment must be Image, PDF, or LOG file.'
+    return ''
+
+
+def _normalize_support_attachment_name(upload, row_id):
+    """Rename support attachment file to <id>.<ext> before model save."""
+    if not upload:
+        return upload
+    name = (getattr(upload, 'name', None) or '').lower()
+    ext = os.path.splitext(name)[1]
+    if not ext:
+        ext = '.bin'
+    upload.name = f'{row_id}{ext}'
+    return upload
 
 
 def _validate_client_attachment_upload(upload):
@@ -457,6 +499,232 @@ class TenantDashboardView(View):
             clear_tenant_portal_cookie(response, request=request)
             return response
         return render(request, 'iroad_tenants/index.html', context)
+
+
+class TenantSupportTicketListView(View):
+    template_name = 'iroad_tenants/Support_Management/Support-ticket-master.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        tenant = context['tenant']
+        q = (request.GET.get('q') or '').strip()
+        status = (request.GET.get('status') or '').strip()
+
+        tickets_qs = SupportTicket.objects.filter(
+            tenant=tenant,
+        ).select_related(
+            'category',
+            'assigned_to',
+        ).order_by('-created_at')
+
+        if q:
+            tickets_qs = tickets_qs.filter(
+                Q(ticket_no__icontains=q) |
+                Q(subject__icontains=q) |
+                Q(category__name_en__icontains=q)
+            )
+        if status:
+            tickets_qs = tickets_qs.filter(status=status)
+
+        total_count = SupportTicket.objects.filter(tenant=tenant).count()
+        open_count = SupportTicket.objects.filter(
+            tenant=tenant,
+            status='New',
+        ).count()
+        in_progress_count = SupportTicket.objects.filter(
+            tenant=tenant,
+            status='In_Progress',
+        ).count()
+        closed_count = SupportTicket.objects.filter(
+            tenant=tenant,
+            status='Closed',
+        ).count()
+
+        context.update({
+            'tickets': tickets_qs,
+            'search_q': q,
+            'status_filter': status,
+            'status_choices': SupportTicket.STATUS_CHOICES,
+            'total_count': total_count,
+            'open_count': open_count,
+            'in_progress_count': in_progress_count,
+            'closed_count': closed_count,
+        })
+        return render(request, self.template_name, context)
+
+
+class TenantSupportTicketCreateView(View):
+    template_name = 'iroad_tenants/Support_Management/Support-ticket-master-edit.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        context.update({
+            'categories': SupportCategory.objects.filter(
+                is_active=True
+            ).order_by('name_en'),
+        })
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        tenant = context['tenant']
+        subject = (request.POST.get('subject') or '').strip()
+        category_id = (request.POST.get('category_id') or '').strip()
+        message_body = (request.POST.get('message_body') or '').strip()
+        attachment = request.FILES.get('attachment')
+
+        if not subject:
+            messages.error(request, 'Subject is required.', extra_tags='tenant')
+            return redirect('iroad_tenants:tenant_support_ticket_create')
+        if not category_id:
+            messages.error(request, 'Category is required.', extra_tags='tenant')
+            return redirect('iroad_tenants:tenant_support_ticket_create')
+        if not message_body:
+            messages.error(request, 'Message is required.', extra_tags='tenant')
+            return redirect('iroad_tenants:tenant_support_ticket_create')
+        attachment_error = _validate_support_attachment_upload(attachment)
+        if attachment_error:
+            messages.error(request, attachment_error, extra_tags='tenant')
+            return redirect('iroad_tenants:tenant_support_ticket_create')
+
+        category = SupportCategory.objects.filter(
+            category_id=category_id,
+            is_active=True,
+        ).first()
+        if category is None:
+            messages.error(request, 'Invalid category selected.', extra_tags='tenant')
+            return redirect('iroad_tenants:tenant_support_ticket_create')
+
+        actor_id = _current_tenant_actor_id(request) or str(tenant.tenant_id)
+        ticket = SupportTicket.objects.create(
+            ticket_no=SupportTicket.generate_ticket_no(),
+            tenant=tenant,
+            subject=subject,
+            category=category,
+            priority='Medium',
+            status='New',
+            created_by=actor_id,
+            description=message_body,
+        )
+
+        first_reply = TicketReply(
+            ticket=ticket,
+            sender_type='Tenant_User',
+            sender_id=actor_id,
+            message_body=message_body,
+            is_internal=False,
+        )
+        if attachment:
+            first_reply.attachment = _normalize_support_attachment_name(
+                attachment,
+                first_reply.reply_id,
+            )
+        first_reply.save()
+
+        messages.success(
+            request,
+            f'Support ticket {ticket.ticket_no} created successfully.',
+            extra_tags='tenant',
+        )
+        return redirect('iroad_tenants:tenant_support_ticket_detail', ticket_id=ticket.ticket_id)
+
+
+class TenantSupportTicketDetailView(View):
+    template_name = 'iroad_tenants/Support_Management/Support-ticket-master-edit.html'
+
+    def get(self, request, ticket_id):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        ticket = SupportTicket.objects.select_related(
+            'category',
+        ).filter(
+            ticket_id=ticket_id,
+            tenant=context['tenant'],
+        ).first()
+        if ticket is None:
+            messages.error(request, 'Ticket not found.', extra_tags='tenant')
+            return redirect('iroad_tenants:tenant_support_ticket_list')
+
+        replies = ticket.replies.filter(
+            is_internal=False,
+        ).order_by('created_at')
+
+        context.update({
+            'ticket': ticket,
+            'replies': replies,
+            'is_ticket_detail': True,
+        })
+        return render(request, self.template_name, context)
+
+    def post(self, request, ticket_id):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        ticket = SupportTicket.objects.filter(
+            ticket_id=ticket_id,
+            tenant=context['tenant'],
+        ).first()
+        if ticket is None:
+            messages.error(request, 'Ticket not found.', extra_tags='tenant')
+            return redirect('iroad_tenants:tenant_support_ticket_list')
+        if ticket.status == 'Closed':
+            messages.error(
+                request,
+                'Cannot reply to a closed ticket. Please create a new ticket.',
+                extra_tags='tenant',
+            )
+            return redirect('iroad_tenants:tenant_support_ticket_detail', ticket_id=ticket.ticket_id)
+
+        message_body = (request.POST.get('message_body') or '').strip()
+        attachment = request.FILES.get('attachment')
+        if not message_body:
+            messages.error(request, 'Message is required.', extra_tags='tenant')
+            return redirect('iroad_tenants:tenant_support_ticket_detail', ticket_id=ticket.ticket_id)
+        attachment_error = _validate_support_attachment_upload(attachment)
+        if attachment_error:
+            messages.error(request, attachment_error, extra_tags='tenant')
+            return redirect('iroad_tenants:tenant_support_ticket_detail', ticket_id=ticket.ticket_id)
+
+        actor_id = _current_tenant_actor_id(request) or str(context['tenant'].tenant_id)
+        reply = TicketReply(
+            ticket=ticket,
+            sender_type='Tenant_User',
+            sender_id=actor_id,
+            message_body=message_body,
+            is_internal=False,
+        )
+        if attachment:
+            reply.attachment = _normalize_support_attachment_name(
+                attachment,
+                reply.reply_id,
+            )
+        reply.save()
+        ticket.status = 'In_Progress'
+        ticket.save(update_fields=['status'])
+        messages.success(request, 'Reply submitted successfully.', extra_tags='tenant')
+        return redirect('iroad_tenants:tenant_support_ticket_detail', ticket_id=ticket.ticket_id)
 
 
 def _tenant_cargo_master_access_guard(request, context):
@@ -2432,7 +2700,7 @@ class TenantServiceItemMasterListView(TenantSimplePageView):
 
 
 class TenantServiceItemMasterCreateView(TenantSimplePageView):
-    """Render service item master create page."""
+    """Create a new service item using the service-item form layout."""
 
     template_name = 'iroad_tenants/Master_Data/service_item_master/Service-item-master.html'
 
@@ -2443,7 +2711,7 @@ class TenantServiceItemMasterCreateView(TenantSimplePageView):
             clear_tenant_portal_cookie(response, request=request)
             return response
         if not context.get('is_tenant_admin'):
-            messages.error(request, 'You do not have permission to view Services Management.', extra_tags='tenant')
+            messages.error(request, 'You do not have permission to manage Services Management.', extra_tags='tenant')
             return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
 
         tenant_registry = _activate_tenant_workspace_schema(request)
@@ -3352,6 +3620,157 @@ class TenantPriceListMasterCreateView(TenantSimplePageView):
             return render(request, self.template_name, context)
         finally:
             connection.set_schema_to_public()
+
+
+class TenantPriceListMasterDetailView(TenantSimplePageView):
+    """Read-only price list detail page."""
+
+    template_name = 'iroad_tenants/Master_Data/service_item_master/Price-list.html'
+
+    def get(self, request, price_list_id):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        if not context.get('is_tenant_admin'):
+            messages.error(request, 'You do not have permission to view Services Management.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            price_list = TenantPriceList.objects.select_related('client_account').filter(price_list_id=price_list_id).first()
+            if price_list is None:
+                messages.error(request, 'Price list not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:tenant_price_list_master_list')
+            context.update(
+                {
+                    'preview_price_list_code': price_list.price_list_code,
+                    'active_clients': [],
+                    'tenant_base_currency': price_list.base_currency or 'SAR',
+                    'active_trip_services': [],
+                    'active_service_items': [],
+                    'form_data': {
+                        'price_list_name': price_list.price_list_name,
+                        'client_account_id': str(price_list.client_account_id or ''),
+                        'status': price_list.status,
+                        'effective_from': str(price_list.effective_from or ''),
+                        'effective_to': str(price_list.effective_to or ''),
+                        'notes': price_list.notes or '',
+                    },
+                    'field_errors': {},
+                    'is_view_mode': True,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantPriceListMasterEditView(TenantSimplePageView):
+    """Edit price list header values."""
+
+    template_name = 'iroad_tenants/Master_Data/service_item_master/Price-list.html'
+
+    def get(self, request, price_list_id):
+        return TenantPriceListMasterDetailView().get(request, price_list_id)
+
+    def post(self, request, price_list_id):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        if not context.get('is_tenant_admin'):
+            messages.error(request, 'You do not have permission to manage Services Management.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            price_list = TenantPriceList.objects.filter(price_list_id=price_list_id).first()
+            if price_list is None:
+                messages.error(request, 'Price list not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:tenant_price_list_master_list')
+            status = (request.POST.get('status') or '').strip()
+            if status in {TenantPriceList.Status.DRAFT, TenantPriceList.Status.ACTIVE, TenantPriceList.Status.INACTIVE}:
+                price_list.status = status
+            price_list.notes = (request.POST.get('notes') or '').strip()
+            price_list.save(update_fields=['status', 'notes', 'updated_at'])
+            messages.success(request, f'{price_list.price_list_code} updated successfully.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_price_list_master_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantPriceListMasterDeleteView(View):
+    """Soft delete by setting price list inactive."""
+
+    def post(self, request, price_list_id):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        if not context.get('is_tenant_admin'):
+            messages.error(request, 'You do not have permission to manage Services Management.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            price_list = TenantPriceList.objects.filter(price_list_id=price_list_id).first()
+            if price_list is None:
+                messages.error(request, 'Price list not found.', extra_tags='tenant')
+            else:
+                price_list.status = TenantPriceList.Status.INACTIVE
+                price_list.save(update_fields=['status', 'updated_at'])
+                messages.success(request, f'{price_list.price_list_code} set to inactive.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_price_list_master_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantOperationBookingCreateView(TenantSimplePageView):
+    """Render booking create page."""
+
+    template_name = 'iroad_tenants/Operation_management/Booking/Booking.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        if not context.get('is_tenant_admin') and not context.get('can_view_booking'):
+            messages.error(request, 'You do not have permission to view Booking.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+        return render(request, self.template_name, context)
+
+
+class TenantOperationBookingListView(TenantSimplePageView):
+    """Render booking list page."""
+
+    template_name = 'iroad_tenants/Operation_management/Booking/Booking-list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        if not context.get('is_tenant_admin') and not context.get('can_view_booking'):
+            messages.error(request, 'You do not have permission to view Booking.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+        return render(request, self.template_name, context)
 
 
 def _get_singleton_client_account_settings():
@@ -6539,6 +6958,60 @@ class TenantAddressMasterEditView(View):
             connection.set_schema_to_public()
 
         return redirect_resp
+
+
+class TenantAddressMasterDetailView(View):
+    """AD-001 detail page (read-only), accessed from list action menu."""
+
+    template_name = 'iroad_tenants/Master_Data/address_master_detail.html'
+
+    def get(self, request, address_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_address_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            address = (
+                TenantAddressMaster.objects.select_related('client_account')
+                .filter(pk=address_id)
+                .first()
+            )
+            if not address:
+                messages.error(request, 'Address not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:tenant_address_master')
+
+            country_display = '—'
+            country_code = (getattr(address, 'country_id', '') or '').strip()
+            if country_code:
+                with schema_context('public'):
+                    country = Country.objects.filter(country_code=country_code).first()
+                    if country:
+                        country_display = f'{country.name_en} ({country.country_code})'
+
+            context.update(
+                {
+                    'address': address,
+                    'country_display': country_display,
+                    'city_country_display': f'{(address.city or "").strip()} / {country_display}'
+                    if (address.city or '').strip()
+                    else f'— / {country_display}',
+                    'mobile_no_1_display': _format_digits_display(address.mobile_no_1),
+                    'mobile_no_2_display': _format_digits_display(address.mobile_no_2),
+                    'phone_no_display': _format_digits_display(address.phone_no),
+                    'whatsapp_no_display': _format_digits_display(address.whatsapp_no),
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
 
 
 class TruckTypeMasterListView(View):

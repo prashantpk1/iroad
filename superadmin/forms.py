@@ -1,3 +1,4 @@
+import os
 import re
 
 from django import forms
@@ -1295,6 +1296,8 @@ class PushNotificationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_premium_styling(self)
+        if self.instance and self.instance.pk and self.instance.dispatch_status == 'Completed':
+            self.fields['dispatch_status'].disabled = True
 
     def clean(self):
         cleaned = super().clean()
@@ -1332,8 +1335,12 @@ class PushNotificationForm(forms.ModelForm):
             # Manual broadcast does not use linked_event/is_active rule flags.
             cleaned['linked_event'] = None
             cleaned['is_active'] = True
-            # Scheduled campaigns are marked Scheduled; otherwise Draft until queued.
-            if scheduled_at:
+            if cleaned.get('dispatch_status') == 'Completed':
+                raise forms.ValidationError(
+                    'Dispatch status "Completed" is system-managed and cannot be set manually.'
+                )
+            # Scheduled campaigns are marked Scheduled; otherwise keep as Draft.
+            if scheduled_at and cleaned.get('dispatch_status') == 'Draft':
                 cleaned['dispatch_status'] = 'Scheduled'
             elif not cleaned.get('dispatch_status'):
                 cleaned['dispatch_status'] = 'Draft'
@@ -1636,7 +1643,6 @@ class SupportTicketForm(forms.ModelForm):
             'category',
             'description',
             'priority',
-            'status',
             'assigned_to',
         ]
         widgets = {
@@ -1693,6 +1699,19 @@ class AdminReplyForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         apply_premium_styling(self)
 
+    def clean_attachment(self):
+        attachment = self.cleaned_data.get('attachment')
+        if not attachment:
+            return attachment
+        name = (getattr(attachment, 'name', '') or '').lower()
+        ext = os.path.splitext(name)[1]
+        allowed_ext = {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.pdf'}
+        if ext not in allowed_ext:
+            raise forms.ValidationError(
+                'Attachment must be an image or PDF file.'
+            )
+        return attachment
+
 
 class TenantReplyForm(forms.ModelForm):
     class Meta:
@@ -1705,6 +1724,19 @@ class TenantReplyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         apply_premium_styling(self)
+
+    def clean_attachment(self):
+        attachment = self.cleaned_data.get('attachment')
+        if not attachment:
+            return attachment
+        name = (getattr(attachment, 'name', '') or '').lower()
+        ext = os.path.splitext(name)[1]
+        allowed_ext = {'.png', '.jpg', '.jpeg', '.webp', '.gif', '.pdf'}
+        if ext not in allowed_ext:
+            raise forms.ValidationError(
+                'Attachment must be an image or PDF file.'
+            )
+        return attachment
 
 
 class TenantTicketCreateForm(forms.ModelForm):

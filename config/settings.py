@@ -103,6 +103,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'superadmin.context_processors.internal_alert_notifications',
+                'iroad_tenants.context_processors.tenant_system_banners',
             ],
         },
     },

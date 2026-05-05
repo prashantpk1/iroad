@@ -1199,6 +1199,7 @@ class EventMapping(models.Model):
         ('Subscription_Expired', 'Subscription Expired'),
         ('Subscription_Renewed', 'Subscription Renewed'),
         ('Account_Suspended', 'Account Suspended'),
+        ('Shipment_Assigned_to_Driver', 'Shipment Assigned to Driver'),
         ('Welcome_Email', 'Welcome Email'),
         ('Password_Reset_Requested', 'Password Reset Requested'),
         ('Payment_Failed', 'Payment Failed'),

@@ -57,6 +57,7 @@
 <script>
   (function () {
     const trigger = document.getElementById('id_trigger_mode');
+    const audienceInput = document.getElementById('id_target_audience');
     const linked = document.getElementById('wrap-linked-event');
     const active = document.getElementById('wrap-is-active');
     const audience = document.getElementById('wrap-target-audience');
@@ -66,17 +67,21 @@
     function toggleModeFields() {
       const mode = trigger ? trigger.value : '';
       const isSystem = mode === 'System_Event';
+      const isSpecificTarget = audienceInput && audienceInput.value === 'Specific';
       linked.style.display = isSystem ? '' : 'none';
       active.style.display = isSystem ? '' : 'none';
       audience.style.display = isSystem ? 'none' : '';
-      target.style.display = isSystem ? 'none' : '';
+      target.style.display = isSystem ? 'none' : (isSpecificTarget ? '' : 'none');
       schedule.style.display = isSystem ? 'none' : '';
       dispatch.style.display = isSystem ? 'none' : '';
     }
     if (trigger) {
       trigger.addEventListener('change', toggleModeFields);
-      toggleModeFields();
     }
+    if (audienceInput) {
+      audienceInput.addEventListener('change', toggleModeFields);
+    }
+    toggleModeFields();
   })();
 </script>
 {% endblock %}

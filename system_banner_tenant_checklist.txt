@@ -1,0 +1,115 @@
+System Banner Tenant Verification Checklist
+=========================================
+
+Purpose
+-------
+Verify that FRM-CP-05-05 System Banners created/updated in Superadmin
+are correctly shown in Tenant Control Panel.
+
+
+Pre-Checks
+----------
+1) Run server:
+   python manage.py runserver
+
+2) Login to Superadmin and Tenant in separate browser tabs.
+
+
+Banner Visibility Rules (must all pass)
+---------------------------------------
+A banner is shown to tenant only when:
+- is_active = True
+- valid_from <= current server time
+- valid_until is empty OR valid_until > current server time
+
+If any rule fails, banner must not be shown.
+
+
+Test Case 1 - Happy Path
+------------------------
+In Superadmin -> Communication -> System Banners -> Create:
+- Title EN: Maintenance Notice
+- Message EN: Platform maintenance tonight 11 PM.
+- Severity: Warning
+- is_dismissible: True
+- valid_from: current time
+- valid_until: current time + 1 day
+- is_active: True
+
+Expected on Tenant page:
+- Banner appears at top area.
+- Color is warning (yellow).
+- Close (X) button is visible.
+
+
+Test Case 2 - is_dismissible = False
+------------------------------------
+Edit same banner:
+- is_dismissible: False
+
+Expected:
+- Banner still visible (if active/time-valid).
+- Close (X) button is NOT visible.
+
+
+Test Case 3 - is_active = False
+-------------------------------
+Edit same banner:
+- is_active: False
+
+Expected:
+- Banner is NOT shown on tenant pages.
+
+
+Test Case 4 - Future valid_from
+-------------------------------
+Edit/create banner:
+- is_active: True
+- valid_from: current time + 2 hours
+
+Expected:
+- Banner is NOT shown before valid_from time.
+
+
+Test Case 5 - Expired valid_until
+---------------------------------
+Edit/create banner:
+- is_active: True
+- valid_from: current time - 2 days
+- valid_until: current time - 1 minute
+
+Expected:
+- Banner is NOT shown.
+
+
+Test Case 6 - Severity Color Mapping
+------------------------------------
+Create 3 active, currently valid banners:
+- Info
+- Warning
+- Critical
+
+Expected:
+- Info shows blue style.
+- Warning shows yellow style.
+- Critical shows red style.
+
+
+Quick Troubleshooting
+---------------------
+1) Banner not appearing:
+   - Check is_active, valid_from, valid_until.
+   - Refresh tenant page.
+   - Confirm tenant URL starts with /tenant/.
+
+2) Wrong time behavior:
+   - Check server timezone and entered datetime values.
+
+3) Dismiss button behavior wrong:
+   - Verify is_dismissible value in banner record.
+
+
+Pass Criteria
+-------------
+Implementation is correct if all 6 test cases produce expected results.
+

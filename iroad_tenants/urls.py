@@ -59,6 +59,9 @@ from .views import (
     TenantCriticalAccountChangesView,
     TenantSubscriptionBillingView,
     TenantSubscriptionPlanView,
+    TenantSupportTicketCreateView,
+    TenantSupportTicketDetailView,
+    TenantSupportTicketListView,
     TenantDashboardView,
     TenantUsersAdministrationDeleteView,
     TenantUsersAdministrationEditView,
@@ -114,6 +117,21 @@ app_name = 'iroad_tenants'
 
 urlpatterns = [
     path('dashboard/', TenantDashboardView.as_view(), name='tenant_dashboard'),
+    path(
+        'administration/support/tickets/',
+        TenantSupportTicketListView.as_view(),
+        name='tenant_support_ticket_list',
+    ),
+    path(
+        'administration/support/tickets/create/',
+        TenantSupportTicketCreateView.as_view(),
+        name='tenant_support_ticket_create',
+    ),
+    path(
+        'administration/support/tickets/<uuid:ticket_id>/',
+        TenantSupportTicketDetailView.as_view(),
+        name='tenant_support_ticket_detail',
+    ),
     path(
         'administration/organization-profile/',
         TenantOrganizationProfileView.as_view(),
