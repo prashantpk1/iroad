@@ -1,7 +1,7 @@
 {% extends 'iroad_tenants/base.html' %}
 {% load static %}
 
-{% block title %}Truck Attachments | iRoad{% endblock %}
+{% block title %}Truck Attachments List | iRoad{% endblock %}
 {% block breadcrumb %}{% endblock %}
 
 {% block content %}
@@ -11,76 +11,83 @@
       <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
       <li class="breadcrumb-item">Operations</li>
       <li class="breadcrumb-item">Fleet Management</li>
-      <li class="breadcrumb-item active" aria-current="page">Truck Attachments</li>
+      <li class="breadcrumb-item active" aria-current="page">Truck Attachments List</li>
     </ol>
   </nav>
   <div class="page-header-row">
     <div class="page-header-left">
-      <h1 class="page-title">{{ page_title }}</h1>
+      <h1 class="page-title">Truck Attachments List</h1>
       <p class="page-subtitle">
-        All attachment documents across trucks. Open a truck from Truck Master to add files.
+        Manage and view all truck attachment documents.
       </p>
     </div>
     <div class="page-header-right">
-      <div class="eal-header-actions gap-2">
+      <div class="eal-header-actions">
+        <button type="button" class="eal-btn eal-btn-outline">
+          <i class="bi bi-download"></i>
+          <span>Export</span>
+        </button>
         <a href="{% url 'iroad_tenants:truck_attachment_select_truck' %}" class="eal-btn eal-btn-primary" title="Add a new attachment">
           <i class="bi bi-plus-lg"></i>
-          <span>Add Attachment</span>
+          <span>Add Truck Attachment</span>
         </a>
       </div>
     </div>
   </div>
 </div>
 
-<div class="eal-stats-row eal-stats-row--ta">
+<div class="eal-stats-row">
   <div class="eal-stat-card">
-    <div class="eal-stat-icon purple"><i class="bi bi-paperclip"></i></div>
+    <div class="eal-stat-icon purple">
+      <i class="bi bi-paperclip"></i>
+    </div>
     <div>
       <div class="eal-stat-value">{{ stats.total }}</div>
-      <div class="eal-stat-label">Total</div>
+      <div class="eal-stat-label">Total Attachments</div>
     </div>
   </div>
   <div class="eal-stat-card">
-    <div class="eal-stat-icon green"><i class="bi bi-check-circle"></i></div>
+    <div class="eal-stat-icon green">
+      <i class="bi bi-check-circle"></i>
+    </div>
     <div>
-      <div class="eal-stat-value">{{ stats.valid_count }}</div>
-      <div class="eal-stat-label">Valid</div>
+      <div class="eal-stat-value">{{ stats.active_count }}</div>
+      <div class="eal-stat-label">Active</div>
     </div>
   </div>
   <div class="eal-stat-card">
-    <div class="eal-stat-icon red"><i class="bi bi-calendar-x"></i></div>
+    <div class="eal-stat-icon amber">
+      <i class="bi bi-hourglass-split"></i>
+    </div>
+    <div>
+      <div class="eal-stat-value">{{ stats.expiring_soon_count }}</div>
+      <div class="eal-stat-label">Expiring Soon</div>
+    </div>
+  </div>
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon red">
+      <i class="bi bi-x-octagon"></i>
+    </div>
     <div>
       <div class="eal-stat-value">{{ stats.expired_count }}</div>
       <div class="eal-stat-label">Expired</div>
     </div>
   </div>
-  <div class="eal-stat-card">
-    <div class="eal-stat-icon blue"><i class="bi bi-infinity"></i></div>
-    <div>
-      <div class="eal-stat-value">{{ stats.does_not_expire_count }}</div>
-      <div class="eal-stat-label">Does Not Expire</div>
-    </div>
-  </div>
 </div>
 
-<div
-  class="eal-table-card"
-  data-eal-filterable-table
-  data-eal-empty-colspan="9"
-  data-eal-empty-filter-message="No attachments match the selected filters."
->
+<div class="eal-table-card">
   <form method="get" class="eal-toolbar eal-toolbar--inline-filters">
     <div class="eal-toolbar-left w-100">
       <div class="eal-toolbar-filters-row flex-wrap gap-2 align-items-end">
-        <div class="eal-toolbar-filter-pair flex-grow-1" style="min-width: 12rem;">
-          <label class="form-label mb-0 small text-nowrap text-muted" for="taAllSearch">Search</label>
+        <input type="hidden" name="sort" value="{{ sort_field }}" />
+        <input type="hidden" name="dir" value="{{ sort_dir }}" />
+        <div class="eal-search eal-search--toolbar-grow">
+          <i class="bi bi-search"></i>
           <input
             type="search"
             name="q"
-            id="taAllSearch"
-            class="form-control form-control-sm"
             value="{{ search_q }}"
-            placeholder="Truck code or plate..."
+            placeholder="Search truck attachments…"
             autocomplete="off"
           />
         </div>
@@ -102,43 +109,104 @@
     <table class="eal-table">
       <thead>
         <tr>
-          <th>Attachment No</th>
-          <th>Date</th>
-          <th>Truck</th>
-          <th>Ref Number</th>
-          <th>Arabic Label</th>
-          <th>English Label</th>
-          <th>File Attached</th>
-          <th>Status</th>
-          <th>Actions</th>
+          <th class="eal-col-check">
+            <input type="checkbox" class="eal-custom-check" id="taListSelectAll" aria-label="Select all rows" />
+          </th>
+          <th>
+            <a href="{{ sort_urls.attachment_no }}" class="eal-sort-link">
+              <span>Attachment ID</span>
+              <span class="sort-indicator" role="presentation">
+                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'attachment_no' and sort_dir == 'asc' %} is-active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'attachment_no' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_urls.truck }}" class="eal-sort-link">
+              <span>Truck</span>
+              <span class="sort-indicator" role="presentation">
+                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'truck' and sort_dir == 'asc' %} is-active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'truck' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_urls.attachment_date }}" class="eal-sort-link">
+              <span>Attachment Date</span>
+              <span class="sort-indicator" role="presentation">
+                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'attachment_date' and sort_dir == 'asc' %} is-active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'attachment_date' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_urls.expiry_date }}" class="eal-sort-link">
+              <span>Expiry Date</span>
+              <span class="sort-indicator" role="presentation">
+                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'expiry_date' and sort_dir == 'asc' %} is-active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'expiry_date' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_urls.file }}" class="eal-sort-link">
+              <span>File Name</span>
+              <span class="sort-indicator" role="presentation">
+                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'file' and sort_dir == 'asc' %} is-active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'file' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_urls.status }}" class="eal-sort-link">
+              <span>Status</span>
+              <span class="sort-indicator" role="presentation">
+                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'status' and sort_dir == 'asc' %} is-active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'status' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>ACTIONS</th>
         </tr>
       </thead>
       <tbody>
         {% for row in attachments_page %}
         <tr>
-          <td><span class="eal-entity-id">{{ row.attachment_no|default:"—" }}</span></td>
-          <td>{{ row.attachment_date }}</td>
-          <td>
-            <a href="{% url 'iroad_tenants:truck_master_detail' row.truck.truck_id %}" class="text-decoration-none">
-              {{ row.truck.truck_code }}{% if row.truck.truck_type %} — {{ row.truck.truck_type.english_label }}{% endif %}
-            </a>
+          <td class="eal-col-check">
+            <input type="checkbox" class="eal-custom-check ta-row-check" aria-label="Select row" />
           </td>
-          <td>{{ row.doc_ref_number|default:"—" }}</td>
-          <td>{{ row.arabic_label|default:"—"|truncatechars:24 }}</td>
-          <td>{{ row.english_label|default:"—"|truncatechars:24 }}</td>
           <td>
-            {% if row.attachment_file %}
-            <a href="{{ row.attachment_file.url }}" target="_blank" rel="noopener" class="text-decoration-none small">{{ row.attachment_file.name }}</a>
-            <small class="text-muted d-block">{{ row.attachment_file.size|filesizeformat }}</small>
-            {% else %}—{% endif %}
+            <span class="eal-entity-id">{{ row.attachment_no|default:"—" }}</span>
+          </td>
+          <td>
+            <div class="eal-name-cell">
+              <span class="eal-name-text">
+                {{ row.truck.truck_code }}{% if row.truck.truck_type %} — {{ row.truck.truck_type.english_label }}{% endif %}
+              </span>
+            </div>
+          </td>
+          <td>{{ row.attachment_date|date:"j M Y" }}</td>
+          <td>
+            {% if row.is_expiry_applicable and row.expiry_date %}
+              {{ row.expiry_date|date:"j M Y" }}
+            {% else %}
+              &mdash;
+            {% endif %}
+          </td>
+          <td>
+            {% if row.list_file_name %}
+              <span class="text-break">{{ row.list_file_name }}</span>
+            {% else %}
+              &mdash;
+            {% endif %}
           </td>
           <td>
             {% if row.status == 'Valid' %}
-            <span class="status-badge ta-att-valid"><i class="bi bi-check2-circle"></i> Valid</span>
+            <span class="status-badge active">Active</span>
             {% elif row.status == 'Expired' %}
-            <span class="status-badge ta-att-expired"><i class="bi bi-x-circle"></i> Expired</span>
+            <span class="status-badge inactive">Expired</span>
             {% else %}
-            <span class="status-badge ta-att-nexp"><i class="bi bi-infinity"></i> Does Not Expire</span>
+            <span class="status-badge warning">Does Not Expire</span>
             {% endif %}
           </td>
           <td>
@@ -196,11 +264,11 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="9" class="text-center text-muted py-5">
+          <td colspan="8" class="text-center text-muted py-5">
             {% if search_q or filter_status %}
             No attachments match your search or filters.
             {% else %}
-            No truck attachments recorded yet. Use Truck Master to open a truck and upload files.
+            No truck attachments recorded yet. Add an attachment to get started.
             {% endif %}
           </td>
         </tr>
@@ -212,7 +280,11 @@
   {% if pagination_total > 0 %}
   <div class="eal-pagination">
     <div class="eal-pagination-info">
-      Showing <strong>{{ pagination_start }}-{{ pagination_end }}</strong> of <strong>{{ pagination_total }}</strong>
+      Showing
+      <strong>{{ pagination_start }}&ndash;{{ pagination_end }}</strong>
+      of
+      <strong>{{ pagination_total }}</strong>
+      truck attachments
     </div>
     <div class="eal-pagination-controls">
       {% if pagination_prev_url %}
@@ -255,34 +327,35 @@
 </div>
 
 <style>
-  .page-subtitle { max-width: 700px; }
-  .eal-stats-row--ta {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(170px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-  .eal-stat-card {
-    border: 1px solid #eef1f7;
-    border-radius: 12px;
-    padding: 1rem;
-    background: #fff;
-  }
-  .eal-stat-icon.red { background: #dc3545; color: #fff; }
-  .eal-stat-icon.blue { background: #0d6efd; color: #fff; }
-  .eal-stat-icon.green { background: #e8f9ee; color: #198754; }
-  .eal-stat-icon.purple { background: #f2edff; color: #6f42c1; }
-  .status-badge.ta-att-valid { background: #198754; color: #fff; border: 0; }
-  .status-badge.ta-att-expired { background: #dc3545; color: #fff; border: 0; }
-  .status-badge.ta-att-nexp { background: #0d6efd; color: #fff; border: 0; }
+  .page-subtitle { max-width: 720px; }
   .eal-table thead th {
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: .03em;
+    letter-spacing: 0.03em;
     color: #7f8aa3;
   }
   .eal-table td { vertical-align: middle; }
-  .eal-table .btn { min-width: 42px; }
+  .eal-table .eal-row-btn { min-width: 42px; }
+  .eal-sort-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: inherit;
+    text-decoration: none;
+    font-weight: inherit;
+  }
+  .eal-sort-link:hover {
+    color: #5051f9;
+  }
+  .eal-sort-caret {
+    opacity: 0.35;
+    font-size: 0.65em;
+    line-height: 1;
+  }
+  .eal-sort-caret.is-active {
+    opacity: 1;
+    color: #5051f9;
+  }
 </style>
 {% endblock %}
 
@@ -306,6 +379,16 @@
       modal.show();
     });
   });
+
+  var selectAll = document.getElementById("taListSelectAll");
+  if (selectAll) {
+    selectAll.addEventListener("change", function () {
+      var on = selectAll.checked;
+      document.querySelectorAll(".ta-row-check").forEach(function (cb) {
+        cb.checked = on;
+      });
+    });
+  }
 })();
 </script>
 {% endblock %}

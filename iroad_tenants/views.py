@@ -8463,10 +8463,32 @@ class TruckAttachmentAllListView(View):
         filter_status = status_param if status_param in allowed else ''
         sq = (request.GET.get('q') or '').strip()
 
+        allowed_sort = frozenset(
+            {
+                'attachment_no',
+                'truck',
+                'attachment_date',
+                'expiry_date',
+                'file',
+                'status',
+            },
+        )
+        raw_sort = (request.GET.get('sort') or '').strip()
+        raw_dir = (request.GET.get('dir') or '').strip().lower()
+        if raw_dir not in ('asc', 'desc'):
+            raw_dir = ''
+        if not raw_sort and not raw_dir:
+            sort_field = 'attachment_date'
+            sort_dir = 'desc'
+        else:
+            sort_field = raw_sort if raw_sort in allowed_sort else 'attachment_date'
+            sort_dir = raw_dir if raw_dir in ('asc', 'desc') else 'desc'
+        sort_reverse = sort_dir == 'desc'
+
         try:
-            qs = ta.objects.filter(is_deleted=False).select_related('truck').order_by(
-                '-attachment_date',
-                '-created_at',
+            qs = ta.objects.filter(is_deleted=False).select_related(
+                'truck',
+                'truck__truck_type',
             )
             if sq:
                 qs = qs.filter(
@@ -8475,24 +8497,108 @@ class TruckAttachmentAllListView(View):
                 )
 
             all_attachments = list(qs)
+            today = timezone.localdate()
+            soon_cutoff = today + timezone.timedelta(days=30)
+            active_count = 0
+            expiring_soon_count = 0
+            expired_count = 0
+            for a in all_attachments:
+                st = a.status
+                if st == ta.Status.EXPIRED:
+                    expired_count += 1
+                elif st == ta.Status.DOES_NOT_EXPIRE:
+                    active_count += 1
+                elif st == ta.Status.VALID:
+                    ed = a.expiry_date
+                    if (
+                        ed is not None
+                        and today <= ed <= soon_cutoff
+                    ):
+                        expiring_soon_count += 1
+                    else:
+                        active_count += 1
             stats = {
                 'total': len(all_attachments),
-                'valid_count': sum(
-                    1 for a in all_attachments if a.status == ta.Status.VALID
-                ),
-                'expired_count': sum(
-                    1 for a in all_attachments if a.status == ta.Status.EXPIRED
-                ),
-                'does_not_expire_count': sum(
-                    1
-                    for a in all_attachments
-                    if a.status == ta.Status.DOES_NOT_EXPIRE
-                ),
+                'active_count': active_count,
+                'expiring_soon_count': expiring_soon_count,
+                'expired_count': expired_count,
             }
 
             filtered = all_attachments
             if filter_status:
                 filtered = [a for a in all_attachments if a.status == filter_status]
+
+            def _sort_file_key(att):
+                if att.attachment_file and att.attachment_file.name:
+                    return os.path.basename(att.attachment_file.name).lower()
+                return ''
+
+            def _status_rank(att):
+                st = att.status
+                if st == ta.Status.EXPIRED:
+                    return 0
+                if st == ta.Status.VALID:
+                    return 1
+                if st == ta.Status.DOES_NOT_EXPIRE:
+                    return 2
+                return 3
+
+            dated = [
+                a
+                for a in filtered
+                if a.is_expiry_applicable and a.expiry_date
+            ]
+            undated = [
+                a
+                for a in filtered
+                if not (a.is_expiry_applicable and a.expiry_date)
+            ]
+
+            if sort_field == 'attachment_no':
+                filtered = sorted(
+                    filtered,
+                    key=lambda a: (
+                        not bool((a.attachment_no or '').strip()),
+                        (a.attachment_no or '').lower(),
+                    ),
+                    reverse=sort_reverse,
+                )
+            elif sort_field == 'truck':
+                filtered = sorted(
+                    filtered,
+                    key=lambda a: (a.truck.truck_code or '').lower(),
+                    reverse=sort_reverse,
+                )
+            elif sort_field == 'attachment_date':
+                filtered = sorted(
+                    filtered,
+                    key=lambda a: a.attachment_date,
+                    reverse=sort_reverse,
+                )
+            elif sort_field == 'expiry_date':
+                dated.sort(
+                    key=lambda a: a.expiry_date,
+                    reverse=sort_reverse,
+                )
+                filtered = dated + undated
+            elif sort_field == 'file':
+                filtered = sorted(
+                    filtered,
+                    key=_sort_file_key,
+                    reverse=sort_reverse,
+                )
+            elif sort_field == 'status':
+                filtered = sorted(
+                    filtered,
+                    key=_status_rank,
+                    reverse=sort_reverse,
+                )
+            else:
+                filtered = sorted(
+                    filtered,
+                    key=lambda a: a.attachment_date,
+                    reverse=True,
+                )
 
             paginator = Paginator(filtered, 10)
             try:
@@ -8500,6 +8606,12 @@ class TruckAttachmentAllListView(View):
             except ValueError:
                 page_no = 1
             page = paginator.get_page(page_no)
+
+            for att in page.object_list:
+                if att.attachment_file:
+                    att.list_file_name = os.path.basename(att.attachment_file.name)
+                else:
+                    att.list_file_name = ''
 
             total_count = paginator.count
             if total_count == 0:
@@ -8520,6 +8632,18 @@ class TruckAttachmentAllListView(View):
                 else:
                     q.pop('page', None)
                 return '?' + q.urlencode()
+
+            def _sort_url(target_field):
+                q = request.GET.copy()
+                q.pop('page', None)
+                q['sort'] = target_field
+                if sort_field == target_field:
+                    q['dir'] = 'asc' if sort_dir == 'desc' else 'desc'
+                else:
+                    q['dir'] = 'asc'
+                return '?' + q.urlencode()
+
+            sort_urls = {f: _sort_url(f) for f in allowed_sort}
 
             pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
             prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
@@ -8542,8 +8666,11 @@ class TruckAttachmentAllListView(View):
                         ta.Status.EXPIRED,
                         ta.Status.DOES_NOT_EXPIRE,
                     ],
-                    'page_title': 'Truck Attachments',
+                    'page_title': 'Truck Attachments List',
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    'sort_field': sort_field,
+                    'sort_dir': sort_dir,
+                    'sort_urls': sort_urls,
                 }
             )
             return render(request, self.template_name, context)

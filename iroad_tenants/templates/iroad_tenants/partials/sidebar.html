@@ -237,37 +237,6 @@
           </li>
           {% endif %}
 
-          <!-- Fleet Management -->
-          {% if is_tenant_admin %}
-          <li class="nav-item has-submenu{% if request.resolver_match and 'truck_' in request.resolver_match.url_name %} open{% endif %}">
-            <a href="#" class="nav-link" data-tooltip="Fleet Management">
-              <i class="bi bi-truck"></i>
-              <span class="nav-text">Fleet Management</span>
-              <i class="bi bi-chevron-right arrow"></i>
-            </a>
-            <ul class="submenu">
-              <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:truck_type_master' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'truck_type_master' or request.resolver_match.url_name == 'truck_type_master_create' or request.resolver_match.url_name == 'truck_type_master_edit' %} active{% endif %}{% endif %}">
-                  <i class="bi bi-tags"></i>
-                  <span>Truck Type Master</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:truck_master' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'truck_master' or request.resolver_match.url_name == 'truck_master_create' or request.resolver_match.url_name == 'truck_master_edit' or request.resolver_match.url_name == 'truck_master_detail' %} active{% endif %}{% endif %}">
-                  <i class="bi bi-truck-front"></i>
-                  <span>Truck Master</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'truck_attachment_all_list' or request.resolver_match.url_name == 'truck_attachment_list' or request.resolver_match.url_name == 'truck_attachment_create' or request.resolver_match.url_name == 'truck_attachment_delete' %} active{% endif %}{% endif %}">
-                  <i class="bi bi-paperclip"></i>
-                  <span>Truck Attachments</span>
-                </a>
-              </li>
-            </ul>
-          </li>
-          {% endif %}
-
           <!-- Cargo Management -->
           {% if is_tenant_admin or can_view_cargo_master %}
           <li class="nav-item has-submenu{% if request.resolver_match and 'tenant_cargo_' in request.resolver_match.url_name %} open{% endif %}">
@@ -420,8 +389,36 @@
           </li>
           {% endif %}
 
-
-          {# Fleet links live under Master Data (canonical). Duplicate static designer links removed. #}
+          <!-- Fleet Management -->
+          {% if is_tenant_admin %}
+          <li class="nav-item has-submenu{% if request.resolver_match and 'truck_' in request.resolver_match.url_name %} open{% endif %}">
+            <a href="#" class="nav-link" data-tooltip="Fleet Management">
+              <i class="bi bi-truck"></i>
+              <span class="nav-text">Fleet Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:truck_master' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'truck_master' or request.resolver_match.url_name == 'truck_master_create' or request.resolver_match.url_name == 'truck_master_edit' or request.resolver_match.url_name == 'truck_master_detail' %} active{% endif %}{% endif %}">
+                  <i class="bi bi-truck-front"></i>
+                  <span>Truck Master</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:truck_type_master' %}" class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'truck_type_master' or request.resolver_match.url_name == 'truck_type_master_create' or request.resolver_match.url_name == 'truck_type_master_edit' %} active{% endif %}{% endif %}">
+                  <i class="bi bi-tags"></i>
+                  <span>Truck Type Master</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:truck_attachment_all_list' %}" class="submenu-link{% if request.resolver_match and 'truck_attachment_' in request.resolver_match.url_name %} active{% endif %}">
+                  <i class="bi bi-paperclip"></i>
+                  <span>Truck Attachments</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          {% endif %}
 
           <!-- Drivers Management -->
           {% if is_tenant_admin %}
