@@ -36,6 +36,17 @@
 <form id="driverMasterForm" method="post" enctype="multipart/form-data" novalidate>
   {% csrf_token %}
 
+  {% if not is_edit %}
+  <div class="alert alert-info small" role="alert">
+    <i class="bi bi-info-circle me-1"></i>
+    New driver defaults from Driver Settings:
+    Status will be set to <strong>{{ settings_default_status_effective|default:"Active" }}</strong>
+    on save.
+    {% if settings_driver_assignment_required %}Truck assignment is required.{% endif %}
+    {% if settings_document_upload_mandatory %}At least one core document is required for Active status.{% endif %}
+  </div>
+  {% endif %}
+
   {% if form.non_field_errors %}
   <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
   {% endif %}
@@ -87,6 +98,9 @@
         <div class="field">
           <label class="form-label" for="{{ form.driver_status.id_for_label }}">{{ form.driver_status.label }}</label>
           {{ form.driver_status }}
+          {% if not is_edit %}
+          <span class="field-hint">For new drivers, this value is auto-applied from Driver Settings on save.</span>
+          {% endif %}
           {% if form.driver_status.errors %}<div class="text-danger small">{{ form.driver_status.errors }}</div>{% endif %}
         </div>
         <div class="field">
@@ -347,6 +361,9 @@
         <div class="field">
           <label class="form-label" for="{{ form.default_truck_id.id_for_label }}">{{ form.default_truck_id.label }}</label>
           {{ form.default_truck_id }}
+          {% if settings_driver_assignment_required %}
+          <span class="field-hint">Required by Driver Settings.</span>
+          {% endif %}
           {% if form.default_truck_id.errors %}<div class="text-danger small">{{ form.default_truck_id.errors }}</div>{% endif %}
         </div>
         <div class="field">

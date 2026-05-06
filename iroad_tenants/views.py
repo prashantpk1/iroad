@@ -8316,6 +8316,22 @@ class DriverMasterListView(View):
             if not row:
                 messages.error(request, 'Driver not found.', extra_tags='tenant')
             else:
+                settings = DriverSettings.get_or_create_singleton()
+                if new_status == DriverMaster.Status.ACTIVE:
+                    if (
+                        settings.document_upload_mandatory
+                        and not _driver_has_any_core_document(row)
+                    ):
+                        messages.error(
+                            request,
+                            'Cannot activate: Driver Settings requires at least one core document upload.',
+                            extra_tags='tenant',
+                        )
+                        rq = (request.POST.get('redirect_query') or '').strip()
+                        base = reverse('iroad_tenants:driver_master')
+                        if rq:
+                            return redirect(f'{base}?{rq}')
+                        return _tenant_redirect(request, 'iroad_tenants:driver_master')
                 # TODO: Check active bookings when built
                 row.driver_status = new_status
                 row.save(update_fields=['driver_status', 'updated_at'])
@@ -8371,6 +8387,24 @@ def _assign_default_truck_for_driver(driver, selected_truck):
         )
 
 
+def _settings_effective_driver_status(default_status_value):
+    """
+    Map DriverSettings default status to DriverMaster status domain.
+    DriverMaster supports Active/Inactive only.
+    """
+    if default_status_value == DriverSettings.DefaultStatus.ACTIVE:
+        return DriverMaster.Status.ACTIVE
+    return DriverMaster.Status.INACTIVE
+
+
+def _driver_has_any_core_document(driver_obj):
+    """True if at least one core identity document file exists on driver."""
+    return any(
+        bool(getattr(driver_obj, fname, None))
+        for fname in ('id_image', 'passport_image', 'dl_image', 'card_image')
+    )
+
+
 class DriverMasterCreateView(View):
     template_name = 'iroad_tenants/drivers/driver_master/driver_form.html'
 
@@ -8387,14 +8421,26 @@ class DriverMasterCreateView(View):
             return response
 
         try:
+            settings = DriverSettings.get_or_create_singleton()
             code_preview = _preview_next_driver_master_code()
-            form = DriverMasterForm()
+            form = DriverMasterForm(
+                initial={
+                    'driver_status': _settings_effective_driver_status(
+                        settings.default_driver_status
+                    )
+                }
+            )
             form.fields['default_truck_id'].initial = None
             context.update(
                 {
                     'form': form,
                     'code_preview': code_preview,
                     'assigned_truck_date': None,
+                    'settings_default_status_effective': _settings_effective_driver_status(
+                        settings.default_driver_status
+                    ),
+                    'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                    'settings_document_upload_mandatory': bool(settings.document_upload_mandatory),
                     'page_title': 'Create Driver Profile',
                     'is_edit': False,
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8418,6 +8464,7 @@ class DriverMasterCreateView(View):
 
         redirect_resp = None
         try:
+            settings = DriverSettings.get_or_create_singleton()
             form = DriverMasterForm(request.POST, request.FILES)
             if not form.is_valid():
                 code_preview = _preview_next_driver_master_code()
@@ -8426,6 +8473,11 @@ class DriverMasterCreateView(View):
                         'form': form,
                         'code_preview': code_preview,
                         'assigned_truck_date': None,
+                        'settings_default_status_effective': _settings_effective_driver_status(
+                            settings.default_driver_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                        'settings_document_upload_mandatory': bool(settings.document_upload_mandatory),
                         'page_title': 'Create Driver Profile',
                         'is_edit': False,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8436,6 +8488,14 @@ class DriverMasterCreateView(View):
 
             try:
                 with db_transaction.atomic():
+                    selected_truck = form.cleaned_data.get('default_truck_id')
+                    if settings.driver_assignment_required and not selected_truck:
+                        form.add_error(
+                            'default_truck_id',
+                            'Driver Settings requires assigning a truck.',
+                        )
+                        raise ValidationError('Driver assignment is required by settings.')
+
                     code, seq = _next_auto_number_for_form(
                         DRIVER_MASTER_AUTO_FORM_CODE,
                         DRIVER_MASTER_AUTO_FORM_LABEL,
@@ -8448,11 +8508,32 @@ class DriverMasterCreateView(View):
                         upl = request.FILES.get(fname)
                         if upl:
                             setattr(obj, fname, upl)
+
+                    # Enforce default status from Driver Settings for new driver creation.
+                    obj.driver_status = _settings_effective_driver_status(
+                        settings.default_driver_status
+                    )
+
+                    if (
+                        settings.document_upload_mandatory
+                        and obj.driver_status == DriverMaster.Status.ACTIVE
+                        and not _driver_has_any_core_document(obj)
+                    ):
+                        form.add_error(
+                            None,
+                            'Driver Settings requires document upload before activating driver.',
+                        )
+                        form.add_error(
+                            'driver_status',
+                            'Status is forced to Active by settings; upload at least one core document.',
+                        )
+                        raise ValidationError('Mandatory document rule failed.')
+
                     obj.full_clean()
                     obj.save()
                     _assign_default_truck_for_driver(
                         driver=obj,
-                        selected_truck=form.cleaned_data.get('default_truck_id'),
+                        selected_truck=selected_truck,
                     )
             except IntegrityError:
                 logger.exception('Driver Master create integrity violation')
@@ -8469,6 +8550,11 @@ class DriverMasterCreateView(View):
                         'form': form,
                         'code_preview': code_preview,
                         'assigned_truck_date': None,
+                        'settings_default_status_effective': _settings_effective_driver_status(
+                            settings.default_driver_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                        'settings_document_upload_mandatory': bool(settings.document_upload_mandatory),
                         'page_title': 'Create Driver Profile',
                         'is_edit': False,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8490,6 +8576,11 @@ class DriverMasterCreateView(View):
                         'form': form,
                         'code_preview': code_preview,
                         'assigned_truck_date': None,
+                        'settings_default_status_effective': _settings_effective_driver_status(
+                            settings.default_driver_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                        'settings_document_upload_mandatory': bool(settings.document_upload_mandatory),
                         'page_title': 'Create Driver Profile',
                         'is_edit': False,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8538,6 +8629,7 @@ class DriverMasterEditView(View):
                 messages.error(request, 'Driver not found.', extra_tags='tenant')
                 return _tenant_redirect(request, 'iroad_tenants:driver_master')
 
+            settings = DriverSettings.get_or_create_singleton()
             form = DriverMasterForm(instance=driver)
             current_truck = (
                 TruckMaster.objects.filter(default_driver_id=driver)
@@ -8555,6 +8647,11 @@ class DriverMasterEditView(View):
                     'form': form,
                     'driver': driver,
                     'assigned_truck_date': current_truck.updated_at if current_truck else None,
+                    'settings_default_status_effective': _settings_effective_driver_status(
+                        settings.default_driver_status
+                    ),
+                    'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                    'settings_document_upload_mandatory': bool(settings.document_upload_mandatory),
                     'page_title': 'Edit Driver',
                     'is_edit': True,
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8583,6 +8680,7 @@ class DriverMasterEditView(View):
                 messages.error(request, 'Driver not found.', extra_tags='tenant')
                 return _tenant_redirect(request, 'iroad_tenants:driver_master')
 
+            settings = DriverSettings.get_or_create_singleton()
             immutable_code = driver.driver_code
             form = DriverMasterForm(request.POST, request.FILES, instance=driver)
             current_truck = (
@@ -8601,6 +8699,11 @@ class DriverMasterEditView(View):
                         'form': form,
                         'driver': driver,
                         'assigned_truck_date': current_truck.updated_at if current_truck else None,
+                        'settings_default_status_effective': _settings_effective_driver_status(
+                            settings.default_driver_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                        'settings_document_upload_mandatory': bool(settings.document_upload_mandatory),
                         'page_title': 'Edit Driver',
                         'is_edit': True,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8611,17 +8714,39 @@ class DriverMasterEditView(View):
 
             try:
                 with db_transaction.atomic():
+                    selected_truck = form.cleaned_data.get('default_truck_id')
+                    if settings.driver_assignment_required and not selected_truck:
+                        form.add_error(
+                            'default_truck_id',
+                            'Driver Settings requires assigning a truck.',
+                        )
+                        raise ValidationError('Driver assignment is required by settings.')
+
                     obj = form.save(commit=False)
                     obj.driver_code = immutable_code
                     for fname in ('id_image', 'passport_image', 'dl_image', 'card_image'):
                         upl = request.FILES.get(fname)
                         if upl:
                             setattr(obj, fname, upl)
+                    if (
+                        settings.document_upload_mandatory
+                        and obj.driver_status == DriverMaster.Status.ACTIVE
+                        and not _driver_has_any_core_document(obj)
+                    ):
+                        form.add_error(
+                            None,
+                            'Driver Settings requires document upload before activating driver.',
+                        )
+                        form.add_error(
+                            'driver_status',
+                            'Active status is blocked until at least one core document is uploaded.',
+                        )
+                        raise ValidationError('Mandatory document rule failed.')
                     obj.full_clean()
                     obj.save()
                     _assign_default_truck_for_driver(
                         driver=obj,
-                        selected_truck=form.cleaned_data.get('default_truck_id'),
+                        selected_truck=selected_truck,
                     )
             except IntegrityError:
                 form.add_error(
@@ -8636,6 +8761,11 @@ class DriverMasterEditView(View):
                         'form': form,
                         'driver': driver,
                         'assigned_truck_date': current_truck.updated_at if current_truck else None,
+                        'settings_default_status_effective': _settings_effective_driver_status(
+                            settings.default_driver_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                        'settings_document_upload_mandatory': bool(settings.document_upload_mandatory),
                         'page_title': 'Edit Driver',
                         'is_edit': True,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8656,6 +8786,11 @@ class DriverMasterEditView(View):
                         'form': form,
                         'driver': driver,
                         'assigned_truck_date': current_truck.updated_at if current_truck else None,
+                        'settings_default_status_effective': _settings_effective_driver_status(
+                            settings.default_driver_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                        'settings_document_upload_mandatory': bool(settings.document_upload_mandatory),
                         'page_title': 'Edit Driver',
                         'is_edit': True,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
