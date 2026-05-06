@@ -40,25 +40,6 @@
   <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
   {% endif %}
 
-  <!-- Driver code preview / read-only -->
-  <div class="form-card" data-section="code">
-    <div class="form-card-body pt-4">
-      <div class="fields-grid cols-3">
-        <div class="field">
-          <label class="form-label" for="{% if is_edit %}dmDriverCodeReadonly{% else %}dmDriverCodePreview{% endif %}">
-            Driver Code
-          </label>
-          {% if is_edit %}
-          <input type="text" class="form-control" id="dmDriverCodeReadonly" readonly value="{{ driver.driver_code }}" aria-readonly="true" />
-          {% else %}
-          <input type="text" class="form-control" id="dmDriverCodePreview" readonly value="{{ code_preview|default:'' }}" placeholder="Auto generated" aria-readonly="true" />
-          {% endif %}
-          <span class="field-hint">Unique identifier (assigned on save).</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   {# ── SECTION A — Basic Information ───────────────────── #}
   <div class="form-card" data-section="a">
     <div class="form-card-header">
@@ -73,10 +54,27 @@
     <div class="form-card-body">
       <div class="fields-grid cols-3">
         <div class="field">
+          <label class="form-label" for="{% if is_edit %}dmDriverCodeReadonly{% else %}dmDriverCodePreview{% endif %}">
+            Driver Code <span class="required">*</span>
+          </label>
+          {% if is_edit %}
+          <input type="text" class="form-control" id="dmDriverCodeReadonly" readonly value="{{ driver.driver_code }}" aria-readonly="true" />
+          {% else %}
+          <input type="text" class="form-control" id="dmDriverCodePreview" readonly value="{{ code_preview|default:'' }}" placeholder="e.g. DRV-1001" aria-readonly="true" />
+          {% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.user_account_id.id_for_label }}">{{ form.user_account_id.label }} <span class="required">*</span></label>
+          {{ form.user_account_id }}
+          {% if form.user_account_id.errors %}<div class="text-danger small">{{ form.user_account_id.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
           <label class="form-label" for="{{ form.driver_source.id_for_label }}">{{ form.driver_source.label }}</label>
           {{ form.driver_source }}
           {% if form.driver_source.errors %}<div class="text-danger small">{{ form.driver_source.errors }}</div>{% endif %}
         </div>
+      </div>
+      <div class="fields-grid cols-3">
         <div class="field d-none" id="dmVendorAccountWrap">
           <label class="form-label" for="{{ form.vendor_account_id.id_for_label }}">
             {{ form.vendor_account_id.label }}
@@ -96,6 +94,7 @@
           {{ form.driver_type }}
           {% if form.driver_type.errors %}<div class="text-danger small">{{ form.driver_type.errors }}</div>{% endif %}
         </div>
+        <div class="field"></div>
       </div>
     </div>
   </div>
@@ -327,6 +326,39 @@
             <span class="toggle-label js-dm-wa-toggle-label">No</span>
           </label>
           {% if form.whatsapp_same_as_mobile.errors %}<div class="text-danger small">{{ form.whatsapp_same_as_mobile.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION H — Truck Details ─────────────────────── #}
+  <div class="form-card" data-section="h">
+    <div class="form-card-header">
+      <div class="form-card-icon blue">
+        <i class="bi bi-truck"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Truck Details</h2>
+        <p class="form-card-desc">Assign default truck directly during driver create/edit.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-2">
+        <div class="field">
+          <label class="form-label" for="{{ form.default_truck_id.id_for_label }}">{{ form.default_truck_id.label }}</label>
+          {{ form.default_truck_id }}
+          {% if form.default_truck_id.errors %}<div class="text-danger small">{{ form.default_truck_id.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="dmAssignedTruckDate">Assigned Date (Date-Time)</label>
+          <input
+            type="text"
+            id="dmAssignedTruckDate"
+            class="form-control"
+            readonly
+            value="{% if assigned_truck_date %}{{ assigned_truck_date|date:'Y-m-d H:i' }}{% else %}Will be set on save{% endif %}"
+            aria-readonly="true"
+          />
         </div>
       </div>
     </div>

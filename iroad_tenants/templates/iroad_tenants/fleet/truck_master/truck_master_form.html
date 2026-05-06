@@ -403,19 +403,16 @@
           <label class="form-label" for="{{ form.default_driver_id.id_for_label }}">
             {{ form.default_driver_id.label }}
             <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem;">
-              Lookup — Coming Soon
+              Lookup — Driver Master
             </span>
           </label>
           <small class="text-muted d-block mb-1">
-            Enter driver code manually or
-            <a href="{% url 'iroad_tenants:driver_master' %}">
-              view available drivers
-            </a>.
-            Searchable lookup coming when driver module completes.
+            Select from active drivers in Driver Master.
+            If needed, <a href="{% url 'iroad_tenants:driver_master' %}">view available drivers</a>.
           </small>
           {{ form.default_driver_id }}
           {% if form.default_driver_id.errors %}<div class="text-danger small">{{ form.default_driver_id.errors }}</div>{% endif %}
-          <span class="field-hint">Driver linking — Phase 2</span>
+          <span class="field-hint">Driver linking — enabled</span>
         </div>
       </div>
     </div>

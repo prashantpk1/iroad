@@ -764,8 +764,15 @@ class TruckMaster(models.Model):
     gross_weight_ton = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     volume_m3 = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
 
-    # TODO: Replace with FK to DriverMaster when built
-    default_driver_id = models.CharField(max_length=64, blank=True, default='')
+    # TR-001: Link truck to its default driver (optional).
+    # Historical note: earlier implementation stored `driver_code` in a CharField.
+    default_driver_id = models.ForeignKey(
+        'tenant_workspace.DriverMaster',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='trucks_as_default_driver',
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -883,6 +890,43 @@ class TruckMaster(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+
+class TruckDriverAssignmentHistory(models.Model):
+    """History of driver assignments per truck (current + ended rows)."""
+
+    assignment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    truck = models.ForeignKey(
+        TruckMaster,
+        on_delete=models.CASCADE,
+        related_name='driver_assignments',
+    )
+    driver = models.ForeignKey(
+        'tenant_workspace.DriverMaster',
+        on_delete=models.PROTECT,
+        related_name='truck_assignment_history',
+    )
+    assigned_from = models.DateTimeField(default=timezone.now)
+    assigned_to = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_truck_driver_assignment_history'
+        ordering = ['-assigned_from', '-created_at']
+        indexes = [
+            models.Index(fields=['truck', 'assigned_to'], name='truck_drv_assign_cur_idx'),
+            models.Index(fields=['driver', 'assigned_from'], name='drv_assign_hist_idx'),
+        ]
+        verbose_name = _('Truck Driver Assignment History')
+        verbose_name_plural = _('Truck Driver Assignment History')
+
+    def __str__(self):
+        return f'{self.truck.truck_code} -> {self.driver.driver_code}'
+
+    @property
+    def assignment_status(self):
+        return 'Current' if self.assigned_to is None else 'Ended'
 
 
 class TruckImage(models.Model):
@@ -1094,11 +1138,14 @@ class DriverMaster(models.Model):
     driver_sequence = models.PositiveIntegerField(default=0)
 
     # ── Section A: Basic Information ──────────────────
-    user_account_id = models.CharField(
-        max_length=100,
+    user_account_id = models.OneToOneField(
+        'tenant_workspace.TenantUser',
+        on_delete=models.PROTECT,
+        null=True,
         blank=True,
-        default='',
-        help_text='TODO: Replace with FK to UserAccount',
+        unique=True,
+        related_name='linked_driver_profile',
+        db_column='user_account_id',
     )
     driver_source = models.CharField(
         max_length=20,
@@ -1270,6 +1317,9 @@ class DriverMaster(models.Model):
         today = timezone.localdate()
 
         # Rule 1: Out-Source requires vendor
+        if self.user_account_id_id is None:
+            errors['user_account_id'] = 'User account is required'
+
         if self.driver_source == self.DriverSource.OUT_SOURCE:
             if not self.vendor_account_id or \
                not self.vendor_account_id.strip():

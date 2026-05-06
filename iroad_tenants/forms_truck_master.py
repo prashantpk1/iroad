@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from django_tenants.utils import schema_context
 
 from superadmin.models import Country
-from tenant_workspace.models import TruckMaster, TruckTypeMaster
+from tenant_workspace.models import DriverMaster, TruckMaster, TruckTypeMaster
 
 from iroad_tenants.forms_tenant_address import PublicCountryChoiceField
 
@@ -88,6 +88,26 @@ class TruckMasterForm(forms.ModelForm):
         tt.queryset = TruckTypeMaster.active_objects.all()
         tt.empty_label = _('— Select Truck Type —')
         tt.required = False
+
+        # Link Truck -> Driver module: pick a driver from Driver Master.
+        # If the truck currently points to an inactive driver, still include it in the dropdown.
+        self.fields.pop('default_driver_id', None)
+        instance_driver = getattr(self.instance, 'default_driver_id', None)
+        base_qs = DriverMaster.active_objects.all()
+        if instance_driver and instance_driver.pk:
+            queryset = (DriverMaster.objects.filter(pk=instance_driver.pk) | base_qs).distinct()
+        else:
+            queryset = base_qs
+
+        self.fields['default_driver_id'] = forms.ModelChoiceField(
+            queryset=queryset.order_by('driver_code'),
+            required=False,
+            label=_('Default driver'),
+            empty_label=_('— Select Driver —'),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+        )
+        if instance_driver and instance_driver.pk:
+            self.fields['default_driver_id'].initial = instance_driver.pk
 
         self.fields['vendor_account_id'].required = False
 

@@ -90,6 +90,7 @@ from tenant_workspace.models import (
     DriverSettings,
     TruckAttachment,
     TruckImage,
+    TruckDriverAssignmentHistory,
     TruckMaster,
     TruckTypeMaster,
     TenantRole,
@@ -819,7 +820,7 @@ class TenantCargoMasterListView(View):
         sort_map = {
             'truck_code': 'truck_code',
             'owner_name': 'owner_name',
-            'default_driver_id': 'default_driver_id',
+            'default_driver_id': 'default_driver_id__driver_code',
             'sourcing_mode': 'sourcing_mode',
             'truck_type': 'truck_type__english_label',
             'plate_number': 'plate_number',
@@ -7734,6 +7735,31 @@ class TruckMasterListView(View):
         return _tenant_redirect(request, 'iroad_tenants:truck_master')
 
 
+def _sync_truck_driver_assignment_history(truck, previous_driver_id=None):
+    """Maintain truck-driver assignment history when default driver changes."""
+    now = timezone.now()
+    current_driver_id = getattr(truck, 'default_driver_id_id', None)
+
+    # No change: keep current history as-is.
+    if previous_driver_id == current_driver_id:
+        return
+
+    # Close any open assignments for this truck.
+    TruckDriverAssignmentHistory.objects.filter(
+        truck=truck,
+        assigned_to__isnull=True,
+    ).update(assigned_to=now, updated_at=now)
+
+    # Open a new current assignment if a driver is selected.
+    if current_driver_id:
+        TruckDriverAssignmentHistory.objects.create(
+            truck=truck,
+            driver_id=current_driver_id,
+            assigned_from=now,
+            assigned_to=None,
+        )
+
+
 class TruckMasterCreateView(View):
     template_name = 'iroad_tenants/fleet/truck_master/truck_master_form.html'
 
@@ -7806,6 +7832,7 @@ class TruckMasterCreateView(View):
                     obj.truck_sequence = seq
                     obj.full_clean()
                     obj.save()
+                    _sync_truck_driver_assignment_history(obj, previous_driver_id=None)
                     truck_image_files = request.FILES.getlist('truck_images')
                     for img_file in truck_image_files:
                         if getattr(img_file, 'name', '').strip():
@@ -7927,6 +7954,7 @@ class TruckMasterEditView(View):
                 return _tenant_redirect(request, 'iroad_tenants:truck_master')
 
             immutable_code = truck.truck_code
+            previous_driver_id = truck.default_driver_id_id
             form = TruckMasterForm(request.POST, request.FILES, instance=truck)
             if not form.is_valid():
                 context.update(
@@ -7947,6 +7975,10 @@ class TruckMasterEditView(View):
                     obj.truck_code = immutable_code
                     obj.full_clean()
                     obj.save()
+                    _sync_truck_driver_assignment_history(
+                        obj,
+                        previous_driver_id=previous_driver_id,
+                    )
 
                     delete_uuids = []
                     for raw in request.POST.getlist('delete_image_ids'):
@@ -8041,7 +8073,7 @@ class TruckMasterDetailView(View):
 
         try:
             truck = (
-                TruckMaster.objects.select_related('truck_type')
+                TruckMaster.objects.select_related('truck_type', 'default_driver_id')
                 .prefetch_related('truck_images')
                 .filter(pk=truck_id)
                 .first()
@@ -8053,6 +8085,18 @@ class TruckMasterDetailView(View):
             doc_att_qs = truck.attachments.filter(is_deleted=False).order_by('-attachment_date', '-created_at')
             document_attachment_count = doc_att_qs.count()
             document_attachments_preview = list(doc_att_qs[:3])
+            assignments_qs = truck.driver_assignments.select_related('driver').order_by(
+                '-assigned_from', '-created_at'
+            )
+            assigned_drivers_rows = [
+                {
+                    'driver': row.driver,
+                    'assigned_from': row.assigned_from,
+                    'assigned_to': row.assigned_to,
+                    'status': row.assignment_status,
+                }
+                for row in assignments_qs
+            ]
             reg_country_display = '—'
             rc = getattr(truck, 'registration_country_id', None)
             if rc:
@@ -8067,6 +8111,7 @@ class TruckMasterDetailView(View):
                     'truck_images': list(truck.truck_images.all()),
                     'document_attachment_count': document_attachment_count,
                     'document_attachments_preview': document_attachments_preview,
+                    'assigned_drivers_rows': assigned_drivers_rows,
                     'reg_country_display': reg_country_display,
                     'page_title': truck.truck_code,
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8253,6 +8298,43 @@ class DriverMasterListView(View):
         return _tenant_redirect(request, 'iroad_tenants:driver_master')
 
 
+def _assign_default_truck_for_driver(driver, selected_truck):
+    """Assign/unassign driver's default truck and keep truck-side history in sync."""
+    current_trucks = list(TruckMaster.objects.filter(default_driver_id=driver))
+
+    if selected_truck is None:
+        for truck in current_trucks:
+            prev_driver_id = truck.default_driver_id_id
+            truck.default_driver_id = None
+            truck.save(update_fields=['default_driver_id', 'updated_at'])
+            _sync_truck_driver_assignment_history(
+                truck,
+                previous_driver_id=prev_driver_id,
+            )
+        return
+
+    selected_truck_id = selected_truck.pk
+    for truck in current_trucks:
+        if truck.pk == selected_truck_id:
+            continue
+        prev_driver_id = truck.default_driver_id_id
+        truck.default_driver_id = None
+        truck.save(update_fields=['default_driver_id', 'updated_at'])
+        _sync_truck_driver_assignment_history(
+            truck,
+            previous_driver_id=prev_driver_id,
+        )
+
+    if selected_truck.default_driver_id_id != driver.pk:
+        prev_driver_id = selected_truck.default_driver_id_id
+        selected_truck.default_driver_id = driver
+        selected_truck.save(update_fields=['default_driver_id', 'updated_at'])
+        _sync_truck_driver_assignment_history(
+            selected_truck,
+            previous_driver_id=prev_driver_id,
+        )
+
+
 class DriverMasterCreateView(View):
     template_name = 'iroad_tenants/drivers/driver_master/driver_form.html'
 
@@ -8271,11 +8353,13 @@ class DriverMasterCreateView(View):
         try:
             code_preview = _preview_next_driver_master_code()
             form = DriverMasterForm()
+            form.fields['default_truck_id'].initial = None
             context.update(
                 {
                     'form': form,
                     'code_preview': code_preview,
-                    'page_title': 'Add Driver',
+                    'assigned_truck_date': None,
+                    'page_title': 'Create Driver Profile',
                     'is_edit': False,
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
                 }
@@ -8305,7 +8389,8 @@ class DriverMasterCreateView(View):
                     {
                         'form': form,
                         'code_preview': code_preview,
-                        'page_title': 'Add Driver',
+                        'assigned_truck_date': None,
+                        'page_title': 'Create Driver Profile',
                         'is_edit': False,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
                     }
@@ -8329,6 +8414,10 @@ class DriverMasterCreateView(View):
                             setattr(obj, fname, upl)
                     obj.full_clean()
                     obj.save()
+                    _assign_default_truck_for_driver(
+                        driver=obj,
+                        selected_truck=form.cleaned_data.get('default_truck_id'),
+                    )
             except IntegrityError:
                 logger.exception('Driver Master create integrity violation')
                 code_preview = _preview_next_driver_master_code()
@@ -8343,7 +8432,8 @@ class DriverMasterCreateView(View):
                     {
                         'form': form,
                         'code_preview': code_preview,
-                        'page_title': 'Add Driver',
+                        'assigned_truck_date': None,
+                        'page_title': 'Create Driver Profile',
                         'is_edit': False,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
                     }
@@ -8363,7 +8453,8 @@ class DriverMasterCreateView(View):
                     {
                         'form': form,
                         'code_preview': code_preview,
-                        'page_title': 'Add Driver',
+                        'assigned_truck_date': None,
+                        'page_title': 'Create Driver Profile',
                         'is_edit': False,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
                     }
@@ -8412,10 +8503,22 @@ class DriverMasterEditView(View):
                 return _tenant_redirect(request, 'iroad_tenants:driver_master')
 
             form = DriverMasterForm(instance=driver)
+            current_truck = (
+                TruckMaster.objects.filter(default_driver_id=driver)
+                .order_by('-updated_at')
+                .first()
+            )
+            if current_truck:
+                form.fields['default_truck_id'].queryset = (
+                    form.fields['default_truck_id'].queryset
+                    | TruckMaster.objects.filter(pk=current_truck.pk)
+                ).distinct().order_by('truck_code')
+                form.fields['default_truck_id'].initial = current_truck.pk
             context.update(
                 {
                     'form': form,
                     'driver': driver,
+                    'assigned_truck_date': current_truck.updated_at if current_truck else None,
                     'page_title': 'Edit Driver',
                     'is_edit': True,
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8446,11 +8549,22 @@ class DriverMasterEditView(View):
 
             immutable_code = driver.driver_code
             form = DriverMasterForm(request.POST, request.FILES, instance=driver)
+            current_truck = (
+                TruckMaster.objects.filter(default_driver_id=driver)
+                .order_by('-updated_at')
+                .first()
+            )
+            if current_truck:
+                form.fields['default_truck_id'].queryset = (
+                    form.fields['default_truck_id'].queryset
+                    | TruckMaster.objects.filter(pk=current_truck.pk)
+                ).distinct().order_by('truck_code')
             if not form.is_valid():
                 context.update(
                     {
                         'form': form,
                         'driver': driver,
+                        'assigned_truck_date': current_truck.updated_at if current_truck else None,
                         'page_title': 'Edit Driver',
                         'is_edit': True,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8469,6 +8583,10 @@ class DriverMasterEditView(View):
                             setattr(obj, fname, upl)
                     obj.full_clean()
                     obj.save()
+                    _assign_default_truck_for_driver(
+                        driver=obj,
+                        selected_truck=form.cleaned_data.get('default_truck_id'),
+                    )
             except IntegrityError:
                 form.add_error(
                     None,
@@ -8481,6 +8599,7 @@ class DriverMasterEditView(View):
                     {
                         'form': form,
                         'driver': driver,
+                        'assigned_truck_date': current_truck.updated_at if current_truck else None,
                         'page_title': 'Edit Driver',
                         'is_edit': True,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8500,6 +8619,7 @@ class DriverMasterEditView(View):
                     {
                         'form': form,
                         'driver': driver,
+                        'assigned_truck_date': current_truck.updated_at if current_truck else None,
                         'page_title': 'Edit Driver',
                         'is_edit': True,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8547,11 +8667,29 @@ class DriverMasterDetailView(View):
                     '-attachment_date', '-created_at'
                 )[:3]
             )
+            assigned_trucks_qs = (
+                TruckDriverAssignmentHistory.objects.select_related(
+                    'truck',
+                    'truck__truck_type',
+                )
+                .filter(driver=driver)
+                .order_by('-assigned_from', '-created_at')
+            )
+            assigned_trucks_rows = [
+                {
+                    'truck': row.truck,
+                    'assigned_from': row.assigned_from,
+                    'assigned_to': row.assigned_to,
+                    'status': row.assignment_status,
+                }
+                for row in assigned_trucks_qs
+            ]
             context.update(
                 {
                     'driver': driver,
                     'attachments_count': attachments_count,
                     'attachments_preview': attachments_preview,
+                    'assigned_trucks_rows': assigned_trucks_rows,
                     'id_document_status': driver.id_status,
                     'passport_document_status': driver.passport_status,
                     'dl_document_status': driver.dl_status,

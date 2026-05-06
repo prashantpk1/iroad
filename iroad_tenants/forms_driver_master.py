@@ -8,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from django_tenants.utils import schema_context
 
 from superadmin.models import Country
-from tenant_workspace.models import DriverMaster
+from tenant_workspace.models import DriverMaster, TenantUser, TruckMaster
 
 from iroad_tenants.forms_tenant_address import PublicCountryChoiceField
 
@@ -23,6 +23,7 @@ class DriverMasterForm(forms.ModelForm):
     class Meta:
         model = DriverMaster
         fields = [
+            'user_account_id',
             'driver_source',
             'vendor_account_id',
             'driver_status',
@@ -141,6 +142,39 @@ class DriverMasterForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # User account lookup (required, 1:1 at Driver level)
+        self.fields.pop('user_account_id', None)
+        instance_user = getattr(self.instance, 'user_account_id', None)
+        base_users_qs = TenantUser.objects.filter(status=TenantUser.Status.ACTIVE)
+        if instance_user and instance_user.pk:
+            users_qs = (
+                TenantUser.objects.filter(pk=instance_user.pk) | base_users_qs
+            ).distinct().order_by('full_name')
+        else:
+            users_qs = base_users_qs.order_by('full_name')
+        self.fields['user_account_id'] = forms.ModelChoiceField(
+            required=True,
+            label=_('User account'),
+            queryset=users_qs,
+            empty_label=_('Select user...'),
+            to_field_name='user_id',
+            widget=forms.Select(attrs={'class': 'form-select'}),
+        )
+        self.fields['user_account_id'].label_from_instance = (
+            lambda u: f'{u.full_name} ({u.username})'
+        )
+        if instance_user and instance_user.pk:
+            self.fields['user_account_id'].initial = instance_user.pk
+
+        # Truck assignment lookup (optional, managed in view layer)
+        self.fields['default_truck_id'] = forms.ModelChoiceField(
+            queryset=TruckMaster.active_objects.all().order_by('truck_code'),
+            required=False,
+            label=_('Default truck'),
+            empty_label=_('— Select Truck —'),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+        )
+
         self.fields.pop('nationality_country', None)
         country_pairs = self._build_country_choices()
         self.fields['nationality_country'] = PublicCountryChoiceField(
@@ -198,6 +232,18 @@ class DriverMasterForm(forms.ModelForm):
     def clean(self):
         cleaned = super().clean()
         errors = {}
+
+        selected_user = cleaned.get('user_account_id')
+        if not selected_user:
+            errors['user_account_id'] = _('User account is required.')
+        else:
+            uq = DriverMaster.objects.filter(user_account_id=selected_user)
+            if self.instance.pk:
+                uq = uq.exclude(pk=self.instance.pk)
+            if uq.exists():
+                errors['user_account_id'] = _(
+                    'This user account is already linked to another driver.'
+                )
 
         vendor_raw = (cleaned.get('vendor_account_id') or '').strip()
         if (
