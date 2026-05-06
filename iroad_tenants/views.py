@@ -91,6 +91,7 @@ from tenant_workspace.models import (
     TruckAttachment,
     TruckImage,
     TruckDriverAssignmentHistory,
+    TruckSettings,
     TruckMaster,
     TruckTypeMaster,
     TenantRole,
@@ -106,6 +107,7 @@ from iroad_tenants.forms_truck_type import TruckTypeMasterForm
 from iroad_tenants.forms_driver import DriverAttachmentForm, DriverSettingsForm
 from iroad_tenants.forms_driver_master import DriverMasterForm
 from iroad_tenants.forms_truck_master import TruckMasterForm
+from iroad_tenants.forms_truck import TruckSettingsForm
 from iroad_tenants.forms_truck_attachment import TruckAttachmentForm
 
 logger = logging.getLogger(__name__)
@@ -7760,6 +7762,12 @@ def _sync_truck_driver_assignment_history(truck, previous_driver_id=None):
         )
 
 
+def _settings_effective_truck_status(default_status_value):
+    if default_status_value == TruckSettings.DefaultStatus.ACTIVE:
+        return TruckMaster.Status.ACTIVE
+    return TruckMaster.Status.INACTIVE
+
+
 class TruckMasterCreateView(View):
     template_name = 'iroad_tenants/fleet/truck_master/truck_master_form.html'
 
@@ -7776,12 +7784,23 @@ class TruckMasterCreateView(View):
             return response
 
         try:
+            settings = TruckSettings.get_or_create_singleton()
             code_preview = _preview_next_truck_master_code()
-            form = TruckMasterForm()
+            form = TruckMasterForm(
+                initial={
+                    'status': _settings_effective_truck_status(
+                        settings.default_truck_status
+                    )
+                }
+            )
             context.update(
                 {
                     'form': form,
                     'code_preview': code_preview,
+                    'settings_default_status_effective': _settings_effective_truck_status(
+                        settings.default_truck_status
+                    ),
+                    'settings_driver_assignment_required': bool(settings.driver_assignment_required),
                     'page_title': 'Add Truck',
                     'is_edit': False,
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -7805,6 +7824,7 @@ class TruckMasterCreateView(View):
 
         redirect_resp = None
         try:
+            settings = TruckSettings.get_or_create_singleton()
             form = TruckMasterForm(request.POST, request.FILES)
             if not form.is_valid():
                 code_preview = _preview_next_truck_master_code()
@@ -7812,6 +7832,34 @@ class TruckMasterCreateView(View):
                     {
                         'form': form,
                         'code_preview': code_preview,
+                        'settings_default_status_effective': _settings_effective_truck_status(
+                            settings.default_truck_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                        'page_title': 'Add Truck',
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            if settings.driver_assignment_required and not form.cleaned_data.get(
+                'default_driver_id'
+            ):
+                form.add_error(
+                    'default_driver_id',
+                    'Truck Settings requires assigning a default driver.',
+                )
+                code_preview = _preview_next_truck_master_code()
+                context.update(
+                    {
+                        'form': form,
+                        'code_preview': code_preview,
+                        'settings_default_status_effective': _settings_effective_truck_status(
+                            settings.default_truck_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
                         'page_title': 'Add Truck',
                         'is_edit': False,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -7830,6 +7878,9 @@ class TruckMasterCreateView(View):
                     obj = form.save(commit=False)
                     obj.truck_code = code
                     obj.truck_sequence = seq
+                    obj.status = _settings_effective_truck_status(
+                        settings.default_truck_status
+                    )
                     obj.full_clean()
                     obj.save()
                     _sync_truck_driver_assignment_history(obj, previous_driver_id=None)
@@ -7851,6 +7902,10 @@ class TruckMasterCreateView(View):
                     {
                         'form': form,
                         'code_preview': code_preview,
+                        'settings_default_status_effective': _settings_effective_truck_status(
+                            settings.default_truck_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
                         'page_title': 'Add Truck',
                         'is_edit': False,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -7871,6 +7926,10 @@ class TruckMasterCreateView(View):
                     {
                         'form': form,
                         'code_preview': code_preview,
+                        'settings_default_status_effective': _settings_effective_truck_status(
+                            settings.default_truck_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
                         'page_title': 'Add Truck',
                         'is_edit': False,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -7920,11 +7979,16 @@ class TruckMasterEditView(View):
                 messages.error(request, 'Truck not found.', extra_tags='tenant')
                 return _tenant_redirect(request, 'iroad_tenants:truck_master')
 
+            settings = TruckSettings.get_or_create_singleton()
             form = TruckMasterForm(instance=truck)
             context.update(
                 {
                     'form': form,
                     'truck': truck,
+                    'settings_default_status_effective': _settings_effective_truck_status(
+                        settings.default_truck_status
+                    ),
+                    'settings_driver_assignment_required': bool(settings.driver_assignment_required),
                     'page_title': 'Edit Truck',
                     'is_edit': True,
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -7955,12 +8019,40 @@ class TruckMasterEditView(View):
 
             immutable_code = truck.truck_code
             previous_driver_id = truck.default_driver_id_id
+            settings = TruckSettings.get_or_create_singleton()
             form = TruckMasterForm(request.POST, request.FILES, instance=truck)
             if not form.is_valid():
                 context.update(
                     {
                         'form': form,
                         'truck': truck,
+                        'settings_default_status_effective': _settings_effective_truck_status(
+                            settings.default_truck_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
+                        'page_title': 'Edit Truck',
+                        'is_edit': True,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            if settings.driver_assignment_required and not form.cleaned_data.get(
+                'default_driver_id'
+            ):
+                form.add_error(
+                    'default_driver_id',
+                    'Truck Settings requires assigning a default driver.',
+                )
+                context.update(
+                    {
+                        'form': form,
+                        'truck': truck,
+                        'settings_default_status_effective': _settings_effective_truck_status(
+                            settings.default_truck_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
                         'page_title': 'Edit Truck',
                         'is_edit': True,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8021,6 +8113,10 @@ class TruckMasterEditView(View):
                     {
                         'form': form,
                         'truck': truck,
+                        'settings_default_status_effective': _settings_effective_truck_status(
+                            settings.default_truck_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
                         'page_title': 'Edit Truck',
                         'is_edit': True,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -8040,6 +8136,10 @@ class TruckMasterEditView(View):
                     {
                         'form': form,
                         'truck': truck,
+                        'settings_default_status_effective': _settings_effective_truck_status(
+                            settings.default_truck_status
+                        ),
+                        'settings_driver_assignment_required': bool(settings.driver_assignment_required),
                         'page_title': 'Edit Truck',
                         'is_edit': True,
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -9544,6 +9644,70 @@ class DriverSettingsView(View):
                     'form': form,
                     'settings': settings,
                     'page_title': 'Driver Settings',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TruckSettingsView(View):
+    template_name = 'iroad_tenants/fleet/truck_settings/truck_settings.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            settings = TruckSettings.get_or_create_singleton()
+            form = TruckSettingsForm(instance=settings)
+            context.update(
+                {
+                    'form': form,
+                    'settings': settings,
+                    'page_title': 'Truck Settings',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_truck_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            settings = TruckSettings.get_or_create_singleton()
+            form = TruckSettingsForm(request.POST, instance=settings)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Settings saved.', extra_tags='tenant')
+                return redirect('iroad_tenants:truck_settings')
+
+            messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+            context.update(
+                {
+                    'form': form,
+                    'settings': settings,
+                    'page_title': 'Truck Settings',
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
                 }
             )

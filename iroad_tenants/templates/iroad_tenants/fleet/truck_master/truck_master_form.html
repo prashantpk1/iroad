@@ -34,6 +34,20 @@
 <form id="truckMasterForm" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
   {% csrf_token %}
 
+  {% if not is_edit %}
+  <div class="alert alert-info d-flex align-items-start gap-2" role="alert">
+    <i class="bi bi-info-circle mt-1"></i>
+    <div>
+      <strong>Truck Settings applied on create.</strong>
+      Default status: <strong>{{ settings_default_status_effective|default:'Active' }}</strong>.
+      {% if settings_driver_assignment_required %}
+      Default driver is required by Truck Settings.
+      {% endif %}
+      <a href="{% url 'iroad_tenants:truck_settings' %}" class="alert-link">Manage Truck Settings</a>.
+    </div>
+  </div>
+  {% endif %}
+
   {% if form.non_field_errors %}
   <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
   {% endif %}
@@ -89,6 +103,9 @@
               {{ form.status.label }} <span class="required">*</span>
             </label>
             {{ form.status }}
+            {% if not is_edit %}
+            <span class="field-hint">Auto-applied from Truck Settings on create.</span>
+            {% endif %}
             {% if form.status.errors %}<div class="text-danger small">{{ form.status.errors }}</div>{% endif %}
           </div>
           <div class="field">
@@ -394,7 +411,7 @@
       </div>
       <div class="form-card-header-text">
         <h2 class="form-card-title">Driver link</h2>
-        <p class="form-card-desc">Placeholder for future driver assignment.</p>
+        <p class="form-card-desc">Link this truck with a default driver from Driver Master.</p>
       </div>
     </div>
     <div class="form-card-body">
@@ -402,9 +419,6 @@
         <div class="field">
           <label class="form-label" for="{{ form.default_driver_id.id_for_label }}">
             {{ form.default_driver_id.label }}
-            <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem;">
-              Lookup — Driver Master
-            </span>
           </label>
           <small class="text-muted d-block mb-1">
             Select from active drivers in Driver Master.
@@ -412,7 +426,7 @@
           </small>
           {{ form.default_driver_id }}
           {% if form.default_driver_id.errors %}<div class="text-danger small">{{ form.default_driver_id.errors }}</div>{% endif %}
-          <span class="field-hint">Driver linking — enabled</span>
+          <span class="field-hint">Driver linking — enabled{% if settings_driver_assignment_required %} (Required by Truck Settings){% endif %}</span>
         </div>
       </div>
     </div>
@@ -483,6 +497,15 @@
   applySourcing(true);
   applyCountry();
   refreshOwnerToggleLabel();
+
+  var firstError = form.querySelector(".text-danger.small");
+  if (firstError) {
+    var field = firstError.previousElementSibling;
+    if (field && typeof field.focus === "function") {
+      field.focus({ preventScroll: true });
+    }
+    firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 })();
 </script>
 {% endblock %}

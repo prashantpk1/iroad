@@ -416,6 +416,12 @@
                   <span>Truck Attachments</span>
                 </a>
               </li>
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:truck_settings' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'truck_settings' %} active{% endif %}">
+                  <i class="bi bi-gear"></i>
+                  <span>Truck Settings</span>
+                </a>
+              </li>
             </ul>
           </li>
           {% endif %}

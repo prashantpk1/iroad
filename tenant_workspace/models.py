@@ -1096,6 +1096,65 @@ class TruckAttachment(models.Model):
             raise ValidationError(errors)
 
 
+class TruckSettings(models.Model):
+    """Singleton truck settings per tenant schema."""
+
+    class DefaultStatus(models.TextChoices):
+        ACTIVE = 'Active', 'Active'
+        IN_MAINTENANCE = 'In Maintenance', 'In Maintenance'
+        INACTIVE = 'Inactive', 'Inactive'
+
+    settings_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    default_truck_status = models.CharField(
+        max_length=20,
+        choices=DefaultStatus.choices,
+        default=DefaultStatus.ACTIVE,
+    )
+    maintenance_reminder_days = models.PositiveIntegerField(default=30)
+    insurance_expiry_alert_days = models.PositiveIntegerField(default=30)
+    registration_expiry_alert_days = models.PositiveIntegerField(default=30)
+    fuel_consumption_tracking_enabled = models.BooleanField(default=True)
+    driver_assignment_required = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_truck_settings'
+        verbose_name = 'Truck Settings'
+        verbose_name_plural = 'Truck Settings'
+
+    def __str__(self):
+        return 'Truck Settings'
+
+    @classmethod
+    def get_or_create_singleton(cls):
+        obj = cls.objects.first()
+        if not obj:
+            obj = cls.objects.create()
+        return obj
+
+    def clean(self):
+        errors = {}
+        if self.maintenance_reminder_days is not None and not (
+            0 <= self.maintenance_reminder_days <= 365
+        ):
+            errors['maintenance_reminder_days'] = 'Must be between 0 and 365.'
+        if self.insurance_expiry_alert_days is not None and not (
+            0 <= self.insurance_expiry_alert_days <= 180
+        ):
+            errors['insurance_expiry_alert_days'] = 'Must be between 0 and 180.'
+        if self.registration_expiry_alert_days is not None and not (
+            0 <= self.registration_expiry_alert_days <= 180
+        ):
+            errors['registration_expiry_alert_days'] = 'Must be between 0 and 180.'
+        if errors:
+            raise ValidationError(errors)
+
+
 class DriverMaster(models.Model):
     class Status(models.TextChoices):
         ACTIVE = 'Active', 'Active'

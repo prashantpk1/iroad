@@ -14,6 +14,7 @@ from .views import (
     DriverAttachmentDeleteView,
     DriverAttachmentDriverSelectView,
     DriverSettingsView,
+    TruckSettingsView,
     TruckAttachmentAllListView,
     TruckAttachmentCreateView,
     TruckAttachmentDetailView,
@@ -453,6 +454,11 @@ urlpatterns = [
         'fleet/trucks/create/',
         TruckMasterCreateView.as_view(),
         name='truck_master_create',
+    ),
+    path(
+        'fleet/trucks/settings/',
+        TruckSettingsView.as_view(),
+        name='truck_settings',
     ),
     path(
         'fleet/trucks/<uuid:truck_id>/edit/',
