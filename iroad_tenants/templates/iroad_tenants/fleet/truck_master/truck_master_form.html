@@ -407,9 +407,11 @@
             </span>
           </label>
           <small class="text-muted d-block mb-1">
-            Enter driver reference manually.
-            Searchable driver lookup will be available
-            when Driver module is activated.
+            Enter driver code manually or
+            <a href="{% url 'iroad_tenants:driver_master' %}">
+              view available drivers
+            </a>.
+            Searchable lookup coming when driver module completes.
           </small>
           {{ form.default_driver_id }}
           {% if form.default_driver_id.errors %}<div class="text-danger small">{{ form.default_driver_id.errors }}</div>{% endif %}

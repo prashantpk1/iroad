@@ -5,6 +5,7 @@ Control Panel / billing ORM stays in ``public`` (``SHARED_APPS``); this app is
 listed in ``TENANT_APPS`` and is migrated per tenant via django-tenants.
 """
 import os
+import re
 import uuid
 import secrets
 import string
@@ -921,6 +922,19 @@ def truck_attachment_upload_to(instance, filename):
     return f'trucks/attachments/{base}{suffix}{ext}'
 
 
+def driver_attachment_upload_to(instance, filename):
+    """
+    Store as: DA-0001abc.ext (attachment_no + 3 random chars).
+    """
+    ext = os.path.splitext(filename or '')[1].lower() or '.bin'
+    base = (getattr(instance, 'attachment_no', '') or 'DA').strip()
+    suffix = ''.join(
+        secrets.choice(string.ascii_lowercase + string.digits)
+        for _ in range(3)
+    )
+    return f'drivers/attachments/{base}{suffix}{ext}'
+
+
 class TruckAttachment(models.Model):
     """TR-ATT-001 Truck attachment (tenant schema).
 
@@ -1036,6 +1050,513 @@ class TruckAttachment(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+
+class DriverMaster(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = 'Active', 'Active'
+        INACTIVE = 'Inactive', 'Inactive'
+
+    class DriverSource(models.TextChoices):
+        IN_SOURCE = 'In-Source', 'In-Source'
+        OUT_SOURCE = 'Out-Source', 'Out-Source'
+
+    class DriverType(models.TextChoices):
+        COMPANY = 'Company', 'Company'
+        VENDOR = 'Vendor', 'Vendor'
+        OTHER = 'Other', 'Other'
+
+    class DocumentStatus(models.TextChoices):
+        VALID = 'Valid', 'Valid'
+        EXPIRED = 'Expired', 'Expired'
+        NOT_PROVIDED = 'Not Provided', 'Not Provided'
+
+    objects = models.Manager()
+
+    class ActiveDriverManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(
+                driver_status=DriverMaster.Status.ACTIVE
+            )
+
+    active_objects = ActiveDriverManager()
+
+    # ── Identity ──────────────────────────────────────
+    driver_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    driver_code = models.CharField(
+        max_length=64,
+        unique=True,
+    )
+    driver_sequence = models.PositiveIntegerField(default=0)
+
+    # ── Section A: Basic Information ──────────────────
+    user_account_id = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='TODO: Replace with FK to UserAccount',
+    )
+    driver_source = models.CharField(
+        max_length=20,
+        choices=DriverSource.choices,
+        default=DriverSource.IN_SOURCE,
+    )
+    vendor_account_id = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='TODO: Replace with FK to VendorAccount',
+    )
+    driver_status = models.CharField(
+        max_length=12,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+    )
+    driver_type = models.CharField(
+        max_length=20,
+        choices=DriverType.choices,
+        blank=True,
+        default='',
+    )
+
+    # ── Section B: Driver Information ─────────────────
+    arabic_name = models.CharField(max_length=200)
+    english_name = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+    )
+    nationality_country = models.ForeignKey(
+        'superadmin.Country',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+        to_field='country_code',
+        db_column='nationality_country_id',
+        db_constraint=False,
+    )
+    birth_date = models.DateField(null=True, blank=True)
+
+    # ── Section C: ID / IQAMA ─────────────────────────
+    id_number = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+    )
+    id_expiry_date = models.DateField(null=True, blank=True)
+    id_image = models.FileField(
+        upload_to='drivers/id/',
+        blank=True,
+        null=True,
+        max_length=500,
+    )
+
+    # ── Section D: Passport ───────────────────────────
+    passport_number = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+    )
+    passport_expiry_date = models.DateField(null=True, blank=True)
+    passport_image = models.FileField(
+        upload_to='drivers/passport/',
+        blank=True,
+        null=True,
+        max_length=500,
+    )
+
+    # ── Section E: Driving License ────────────────────
+    dl_number = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+    )
+    dl_expiry_date = models.DateField(null=True, blank=True)
+    dl_image = models.FileField(
+        upload_to='drivers/license/',
+        blank=True,
+        null=True,
+        max_length=500,
+    )
+
+    # ── Section F: Driver Card ────────────────────────
+    card_number = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+    )
+    card_expiry_date = models.DateField(null=True, blank=True)
+    card_image = models.FileField(
+        upload_to='drivers/card/',
+        blank=True,
+        null=True,
+        max_length=500,
+    )
+
+    # ── Section G: Contact ────────────────────────────
+    mobile_number = models.CharField(max_length=30)
+    whatsapp_number = models.CharField(
+        max_length=30,
+        blank=True,
+        default='',
+    )
+    whatsapp_same_as_mobile = models.BooleanField(default=False)
+
+    # ── Audit ─────────────────────────────────────────
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_driver_master'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(
+                fields=['driver_status'],
+                name='tenant_driver_status_idx',
+            ),
+            models.Index(
+                fields=['driver_code'],
+                name='tenant_driver_code_idx',
+            ),
+        ]
+        verbose_name = 'Driver'
+        verbose_name_plural = 'Drivers'
+
+    def __str__(self):
+        return f'{self.driver_code} — {self.arabic_name}'
+
+    # ── Derived document status properties ────────────
+    @staticmethod
+    def _derive_doc_status(number, expiry_date):
+        if not number or not number.strip():
+            return DriverMaster.DocumentStatus.NOT_PROVIDED
+        today = timezone.localdate()
+        if expiry_date and expiry_date < today:
+            return DriverMaster.DocumentStatus.EXPIRED
+        return DriverMaster.DocumentStatus.VALID
+
+    @property
+    def id_status(self):
+        return self._derive_doc_status(
+            self.id_number, self.id_expiry_date
+        )
+
+    @property
+    def passport_status(self):
+        return self._derive_doc_status(
+            self.passport_number, self.passport_expiry_date
+        )
+
+    @property
+    def dl_status(self):
+        return self._derive_doc_status(
+            self.dl_number, self.dl_expiry_date
+        )
+
+    @property
+    def card_status(self):
+        return self._derive_doc_status(
+            self.card_number, self.card_expiry_date
+        )
+
+    # ── Validation ────────────────────────────────────
+    def clean(self):
+        errors = {}
+        today = timezone.localdate()
+
+        # Rule 1: Out-Source requires vendor
+        if self.driver_source == self.DriverSource.OUT_SOURCE:
+            if not self.vendor_account_id or \
+               not self.vendor_account_id.strip():
+                errors['vendor_account_id'] = (
+                    'Vendor account is required '
+                    'for Out-Source drivers'
+                )
+
+        # Rule 2: arabic_name required
+        if not self.arabic_name or not self.arabic_name.strip():
+            errors['arabic_name'] = 'Arabic name is required'
+
+        # Rule 3: mobile_number digits only
+        if self.mobile_number:
+            if not re.match(r'^\d+$', self.mobile_number):
+                errors['mobile_number'] = (
+                    'Mobile number must contain digits only'
+                )
+
+        # Rule 4: whatsapp_number digits only if provided
+        if self.whatsapp_number:
+            if not re.match(r'^\d+$', self.whatsapp_number):
+                errors['whatsapp_number'] = (
+                    'WhatsApp number must contain digits only'
+                )
+
+        # Rule 5: id_number digits only if provided
+        if self.id_number:
+            if not re.match(r'^\d+$', self.id_number):
+                errors['id_number'] = (
+                    'ID number must contain digits only'
+                )
+
+        # Rule 6: Uniqueness checks (if provided)
+        def _check_unique(field_name, value, label):
+            if not value or not value.strip():
+                return
+            qs = DriverMaster.objects.filter(
+                **{field_name: value}
+            )
+            if self.pk:
+                qs = qs.exclude(pk=self.pk)
+            if qs.exists():
+                errors[field_name] = (
+                    f'{label} already exists '
+                    f'for another driver'
+                )
+
+        _check_unique('id_number', self.id_number, 'ID number')
+        _check_unique(
+            'passport_number',
+            self.passport_number,
+            'Passport number',
+        )
+        _check_unique('dl_number', self.dl_number, 'DL number')
+        _check_unique(
+            'card_number', self.card_number, 'Card number'
+        )
+
+        # Rule 7: Expiry date >= today on CREATE
+        def _check_expiry(number, expiry, expiry_field, label):
+            if not number or not number.strip():
+                return
+            if not expiry:
+                return
+            if not self.pk and expiry < today:
+                errors[expiry_field] = (
+                    f'{label} expiry date cannot '
+                    f'be in the past'
+                )
+
+        _check_expiry(
+            self.id_number,
+            self.id_expiry_date,
+            'id_expiry_date',
+            'ID',
+        )
+        _check_expiry(
+            self.passport_number,
+            self.passport_expiry_date,
+            'passport_expiry_date',
+            'Passport',
+        )
+        _check_expiry(
+            self.dl_number,
+            self.dl_expiry_date,
+            'dl_expiry_date',
+            'Driving license',
+        )
+        _check_expiry(
+            self.card_number,
+            self.card_expiry_date,
+            'card_expiry_date',
+            'Driver card',
+        )
+
+        # Rule 8: whatsapp_same_as_mobile → copy number
+        if self.whatsapp_same_as_mobile:
+            self.whatsapp_number = self.mobile_number
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class DriverAttachment(models.Model):
+    class Status(models.TextChoices):
+        VALID = 'Valid', 'Valid'
+        EXPIRED = 'Expired', 'Expired'
+        DOES_NOT_EXPIRE = 'Does Not Expire', 'Does Not Expire'
+
+    _ALLOWED_EXTENSIONS = {
+        '.pdf', '.jpg', '.jpeg',
+        '.png', '.doc', '.docx',
+    }
+    ATTACHMENT_MAX_SIZE_MB = 10
+    ATTACHMENT_MAX_SIZE_BYTES = (
+        ATTACHMENT_MAX_SIZE_MB * 1024 * 1024
+    )
+
+    attachment_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    attachment_no = models.CharField(
+        max_length=64,
+        unique=True,
+        blank=True,
+        null=True,
+        help_text='Auto-generated attachment number',
+    )
+    attachment_sequence = models.PositiveIntegerField(default=0)
+    driver = models.ForeignKey(
+        DriverMaster,
+        on_delete=models.CASCADE,
+        related_name='attachments',
+    )
+    arabic_label = models.CharField(max_length=200, blank=True, default='')
+    english_label = models.CharField(max_length=200, blank=True, default='')
+    doc_ref_number = models.CharField(max_length=120, blank=True, default='')
+    attachment_date = models.DateField(default=date.today)
+    is_expiry_applicable = models.BooleanField(default=False)
+    expiry_date = models.DateField(null=True, blank=True)
+    attachment_file = models.FileField(
+        upload_to=driver_attachment_upload_to,
+        max_length=500,
+    )
+    file_notes = models.TextField(
+        help_text='Describe this document'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_driver_attachments'
+        ordering = ['-attachment_date', '-created_at']
+        verbose_name = 'Driver Attachment'
+        verbose_name_plural = 'Driver Attachments'
+
+    def __str__(self):
+        return (
+            f'Attachment for '
+            f'{self.driver.driver_code} — '
+            f'{self.attachment_date}'
+        )
+
+    @property
+    def status(self):
+        if not self.is_expiry_applicable:
+            return self.Status.DOES_NOT_EXPIRE
+        today = timezone.localdate()
+        if (
+            self.expiry_date is not None
+            and self.expiry_date < today
+        ):
+            return self.Status.EXPIRED
+        return self.Status.VALID
+
+    def clean(self):
+        errors = {}
+
+        if self.is_expiry_applicable:
+            if not self.expiry_date:
+                errors['expiry_date'] = (
+                    'Expiry date is required '
+                    'when expiry is applicable'
+                )
+        else:
+            self.expiry_date = None
+
+        if not self.file_notes or \
+           not str(self.file_notes).strip():
+            errors['file_notes'] = 'File notes are required'
+
+        if self.attachment_file:
+            try:
+                ext = os.path.splitext(
+                    self.attachment_file.name
+                )[1].lower()
+                if ext not in self._ALLOWED_EXTENSIONS:
+                    errors['attachment_file'] = (
+                        'Allowed: PDF, JPG, PNG, DOC, DOCX'
+                    )
+                elif (
+                    self.attachment_file.size
+                    > self.ATTACHMENT_MAX_SIZE_BYTES
+                ):
+                    size_mb = round(
+                        self.attachment_file.size
+                        / 1024 / 1024,
+                        1,
+                    )
+                    errors['attachment_file'] = (
+                        f'Max size 10MB. '
+                        f'Your file: {size_mb}MB'
+                    )
+            except AttributeError:
+                pass
+
+        if errors:
+            raise ValidationError(errors)
+
+
+class DriverSettings(models.Model):
+    """
+    Singleton tenant-level driver configuration.
+    Not per-driver — applies to the whole tenant.
+    From Driver-settings.html designer page.
+    """
+
+    class NotificationAudience(models.TextChoices):
+        SYSTEM_ADMIN = 'System Admin', 'System Admin'
+        FLEET_MANAGER = 'Fleet Manager', 'Fleet Manager'
+        BOTH = 'Both', 'Both'
+
+    class DefaultStatus(models.TextChoices):
+        ACTIVE = 'Active', 'Active'
+        SUSPENDED = 'Suspended', 'Suspended'
+        INACTIVE = 'Inactive', 'Inactive'
+
+    settings_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    default_driver_status = models.CharField(
+        max_length=20,
+        choices=DefaultStatus.choices,
+        default=DefaultStatus.ACTIVE,
+    )
+    notification_audience = models.CharField(
+        max_length=30,
+        choices=NotificationAudience.choices,
+        default=NotificationAudience.SYSTEM_ADMIN,
+    )
+    license_expiry_alert_days = models.PositiveIntegerField(
+        default=30,
+    )
+    document_expiry_alert_days = models.PositiveIntegerField(
+        default=30,
+    )
+    medical_expiry_alert_days = models.PositiveIntegerField(
+        default=30,
+    )
+    driver_assignment_required = models.BooleanField(
+        default=False,
+    )
+    document_upload_mandatory = models.BooleanField(
+        default=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_driver_settings'
+        verbose_name = 'Driver Settings'
+        verbose_name_plural = 'Driver Settings'
+
+    def __str__(self):
+        return 'Driver Settings'
+
+    @classmethod
+    def get_or_create_singleton(cls):
+        obj = cls.objects.first()
+        if not obj:
+            obj = cls.objects.create()
+        return obj
 
 
 class TenantCargoCategory(models.Model):

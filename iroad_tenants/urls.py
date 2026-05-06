@@ -2,6 +2,18 @@ from django.urls import path
 from django.views.generic import TemplateView
 
 from .views import (
+    DriverMasterListView,
+    DriverMasterCreateView,
+    DriverMasterEditView,
+    DriverMasterDetailView,
+    DriverAttachmentAllListView,
+    DriverAttachmentListView,
+    DriverAttachmentCreateView,
+    DriverAttachmentEditView,
+    DriverAttachmentDetailView,
+    DriverAttachmentDeleteView,
+    DriverAttachmentDriverSelectView,
+    DriverSettingsView,
     TruckAttachmentAllListView,
     TruckAttachmentCreateView,
     TruckAttachmentDetailView,
@@ -476,6 +488,69 @@ urlpatterns = [
         'fleet/trucks/<uuid:truck_id>/',
         TruckMasterDetailView.as_view(),
         name='truck_master_detail',
+    ),
+    # ── Driver Master ──────────────────────────────────
+    path(
+        'fleet/drivers/',
+        DriverMasterListView.as_view(),
+        name='driver_master',
+    ),
+    path(
+        'fleet/drivers/create/',
+        DriverMasterCreateView.as_view(),
+        name='driver_master_create',
+    ),
+    path(
+        'fleet/drivers/<uuid:driver_id>/edit/',
+        DriverMasterEditView.as_view(),
+        name='driver_master_edit',
+    ),
+    path(
+        'fleet/drivers/<uuid:driver_id>/',
+        DriverMasterDetailView.as_view(),
+        name='driver_master_detail',
+    ),
+    # ── Driver Attachments ─────────────────────────────
+    path(
+        'fleet/drivers/attachments/select-driver/',
+        DriverAttachmentDriverSelectView.as_view(),
+        name='driver_attachment_select_driver',
+    ),
+    path(
+        'fleet/drivers/attachments/add/',
+        DriverAttachmentCreateView.as_view(),
+        name='driver_attachment_create_any',
+    ),
+    path(
+        'fleet/drivers/attachments/',
+        DriverAttachmentAllListView.as_view(),
+        name='driver_attachment_all_list',
+    ),
+    path(
+        'fleet/drivers/<uuid:driver_id>/attachments/add/',
+        DriverAttachmentCreateView.as_view(),
+        name='driver_attachment_create',
+    ),
+    path(
+        'fleet/drivers/<uuid:driver_id>/attachments/<uuid:attachment_id>/view/',
+        DriverAttachmentDetailView.as_view(),
+        name='driver_attachment_detail',
+    ),
+    path(
+        'fleet/drivers/<uuid:driver_id>/attachments/<uuid:attachment_id>/edit/',
+        DriverAttachmentEditView.as_view(),
+        name='driver_attachment_edit',
+    ),
+    path(
+        'fleet/drivers/<uuid:driver_id>/attachments/<uuid:attachment_id>/delete/',
+        DriverAttachmentDeleteView.as_view(),
+        name='driver_attachment_delete',
+    ),
+    # ── Driver Settings ────────────────────────────────
+    path(
+        'fleet/drivers/settings/',
+        DriverSettingsView.as_view(),
+        name='driver_settings',
     ),
     path(
         'master-data/cargo/',

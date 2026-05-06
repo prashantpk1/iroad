@@ -1,0 +1,7 @@
+{% if status == 'Valid' %}
+<span class="status-badge dm-doc-valid">Valid</span>
+{% elif status == 'Expired' %}
+<span class="status-badge dm-doc-expired">Expired</span>
+{% else %}
+<span class="status-badge dm-doc-none">{% firstof status "Not Provided" %}</span>
+{% endif %}

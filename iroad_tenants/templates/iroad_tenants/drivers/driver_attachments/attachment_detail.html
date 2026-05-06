@@ -1,0 +1,282 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}Attachment Detail | {{ driver.driver_code }} | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:driver_master' %}">Driver Master</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:driver_attachment_all_list' %}">Driver Attachments</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Attachment Detail</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">Attachment Detail</h1>
+      <p class="page-subtitle">Review attachment metadata and document status.</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions gap-2">
+        <a href="{% url 'iroad_tenants:driver_attachment_edit' driver_id=driver.driver_id attachment_id=attachment.attachment_id %}" class="eal-btn eal-btn-primary">
+          <i class="bi bi-pencil"></i>
+          <span>Edit</span>
+        </a>
+        <a href="{% url 'iroad_tenants:driver_master_detail' driver.driver_id %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i>
+          <span>Back to driver</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-card mb-3" data-section="driver-summary">
+  <div class="form-card-body py-3">
+    <div class="fields-grid cols-3 mb-0">
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Driver Code</span>
+        <span class="fw-semibold eal-entity-id">{{ driver.driver_code }}</span>
+      </div>
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Arabic Name</span>
+        <span class="fw-semibold" dir="rtl" lang="ar">{{ driver.arabic_name }}</span>
+      </div>
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Driver Status</span>
+        {% if driver.driver_status == 'Active' %}
+        <span class="status-badge da-driver-active"><i class="bi bi-check2-circle"></i> Active</span>
+        {% else %}
+        <span class="status-badge da-driver-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-card mb-3" data-section="attachment-detail">
+  <div class="form-card-header">
+    <div class="form-card-icon blue">
+      <i class="bi bi-paperclip"></i>
+    </div>
+    <div class="form-card-header-text">
+      <h2 class="form-card-title">Attachment Details</h2>
+      <p class="form-card-desc">Read-only attachment metadata.</p>
+    </div>
+  </div>
+  <div class="form-card-body">
+    <div class="fields-grid cols-2">
+      <div class="field">
+        <span class="field-hint d-block mb-1">Attachment No</span>
+        <span class="fw-semibold">{{ attachment.attachment_no|default:"—" }}</span>
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">Doc Ref Number</span>
+        <span>{{ attachment.doc_ref_number|default:"—" }}</span>
+      </div>
+
+      <div class="field">
+        <span class="field-hint d-block mb-1">Arabic Label</span>
+        <span dir="rtl" lang="ar">{{ attachment.arabic_label|default:"—" }}</span>
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">English Label</span>
+        <span>{{ attachment.english_label|default:"—" }}</span>
+      </div>
+
+      <div class="field">
+        <span class="field-hint d-block mb-1">Attachment Date</span>
+        <span class="fw-semibold">{{ attachment.attachment_date }}</span>
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">File Notes</span>
+        <span>{{ attachment.file_notes|default:"—" }}</span>
+      </div>
+
+      <div class="field">
+        <span class="field-hint d-block mb-1">Expiry Applicable</span>
+        {% if attachment.is_expiry_applicable %}
+        <span class="badge rounded-pill bg-success bg-opacity-10 text-success da-compact-pill">Yes</span>
+        {% else %}
+        <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary da-compact-pill">No</span>
+        {% endif %}
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">Expiry Date</span>
+        <span class="fw-semibold">{{ attachment.expiry_date|default:"—" }}</span>
+      </div>
+
+      <div class="field">
+        <span class="field-hint d-block mb-1">Uploaded</span>
+        <span>{{ attachment.created_at|date:"Y-m-d H:i" }}</span>
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">Last Updated</span>
+        <span>{{ attachment.updated_at|date:"Y-m-d H:i" }}</span>
+      </div>
+
+      <div class="field">
+        <span class="field-hint d-block mb-1">Status</span>
+        {% if attachment.status == 'Valid' %}
+        <span class="status-badge da-att-valid"><i class="bi bi-check2-circle"></i> Valid</span>
+        {% elif attachment.status == 'Expired' %}
+        <span class="status-badge da-att-expired"><i class="bi bi-x-circle"></i> Expired</span>
+        {% else %}
+        <span class="status-badge da-att-dne"><i class="bi bi-infinity"></i> Does Not Expire</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-card mb-3" data-section="attachment-file">
+  <div class="form-card-header">
+    <div class="form-card-icon green">
+      <i class="bi bi-file-earmark-arrow-down"></i>
+    </div>
+    <div class="form-card-header-text">
+      <h2 class="form-card-title">Attachment File</h2>
+      <p class="form-card-desc">Open or download the uploaded file.</p>
+    </div>
+  </div>
+  <div class="form-card-body">
+    {% if attachment.attachment_file %}
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <i class="bi bi-paperclip"></i>
+      <span class="fw-semibold text-break">{{ attachment.attachment_file.name }}</span>
+      <a href="{{ attachment.attachment_file.url }}" download class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-download"></i> Download
+      </a>
+    </div>
+    {% with file_name=attachment.attachment_file.name|lower %}
+      {% if '.jpg' in file_name or '.jpeg' in file_name or '.png' in file_name %}
+      <a href="{{ attachment.attachment_file.url }}" target="_blank" rel="noopener">
+        <img src="{{ attachment.attachment_file.url }}" alt="Attachment preview" style="max-width: 240px; max-height: 180px; object-fit: cover;" class="rounded border">
+      </a>
+      {% endif %}
+    {% endwith %}
+    {% else %}
+    <p class="text-muted mb-0">No file attached.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="form-actions-bar">
+  <div class="form-actions-left">
+    <a href="{% url 'iroad_tenants:driver_attachment_edit' driver_id=driver.driver_id attachment_id=attachment.attachment_id %}" class="btn btn-primary">
+      <i class="bi bi-pencil"></i>
+      Edit Attachment
+    </a>
+  </div>
+  <div class="form-actions-right d-flex gap-2">
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#driverAttachmentDeleteModal">
+      <i class="bi bi-trash3"></i>
+      Delete
+    </button>
+    <a href="{% url 'iroad_tenants:driver_attachment_all_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i>
+      Back to List
+    </a>
+  </div>
+</div>
+
+<div class="modal fade" id="driverAttachmentDeleteModal" tabindex="-1" aria-labelledby="driverAttachmentDelTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'iroad_tenants:driver_attachment_delete' driver_id=driver.driver_id attachment_id=attachment.attachment_id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="driverAttachmentDelTitle">Delete attachment</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">Delete this attachment permanently? This cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .form-card {
+    border: 1px solid #e9edf5;
+    border-radius: 10px;
+    box-shadow: none;
+  }
+  .form-card-header {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #eef2f8;
+  }
+  .form-card-body {
+    padding: 0.9rem 1rem;
+  }
+  .form-card-title {
+    font-size: 1rem;
+    margin-bottom: 0.15rem;
+  }
+  .form-card-desc {
+    font-size: 0.82rem;
+    color: #72809a;
+    margin-bottom: 0;
+  }
+  .field .field-hint {
+    font-size: 0.72rem;
+    color: #8a96ab;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .field span {
+    font-size: 0.92rem;
+    color: #263246;
+  }
+  .eal-entity-id {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: max-content;
+    min-width: 0 !important;
+    padding: 0.15rem 0.45rem;
+    border-radius: 6px;
+  }
+  .form-actions-bar {
+    border: 1px solid #e9edf5;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    background: #fff;
+  }
+  .status-badge {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.1;
+    white-space: nowrap;
+    width: auto !important;
+    max-width: max-content;
+    min-width: 0 !important;
+  }
+  .status-badge.da-driver-active { background: #e9f8ef; color: #0f8a43; border: 1px solid #c7efd5; }
+  .status-badge.da-driver-inactive { background: #f2f4f8; color: #6f7b90; border: 1px solid #e3e7ee; }
+  .status-badge.da-att-valid { background: #e9f8ef; color: #0f8a43; border: 1px solid #c7efd5; }
+  .status-badge.da-att-expired { background: #ffecec; color: #c73535; border: 1px solid #ffd2d2; }
+  .status-badge.da-att-dne { background: #edf4ff; color: #2f6fd8; border: 1px solid #d6e5ff; }
+  .da-compact-pill {
+    display: inline-flex !important;
+    align-items: center;
+    width: auto !important;
+    max-width: max-content;
+    min-width: 0 !important;
+    white-space: nowrap;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,454 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a>
+      </li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Drivers Management</li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:driver_master' %}">Driver Master</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+      <p class="page-subtitle">
+        {% if is_edit %}
+          Update driver details, documents, and contact information.
+        {% else %}
+          Fill in the details below to register a new driver.
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+<form id="driverMasterForm" method="post" enctype="multipart/form-data" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <!-- Driver code preview / read-only -->
+  <div class="form-card" data-section="code">
+    <div class="form-card-body pt-4">
+      <div class="fields-grid cols-3">
+        <div class="field">
+          <label class="form-label" for="{% if is_edit %}dmDriverCodeReadonly{% else %}dmDriverCodePreview{% endif %}">
+            Driver Code
+          </label>
+          {% if is_edit %}
+          <input type="text" class="form-control" id="dmDriverCodeReadonly" readonly value="{{ driver.driver_code }}" aria-readonly="true" />
+          {% else %}
+          <input type="text" class="form-control" id="dmDriverCodePreview" readonly value="{{ code_preview|default:'' }}" placeholder="Auto generated" aria-readonly="true" />
+          {% endif %}
+          <span class="field-hint">Unique identifier (assigned on save).</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION A — Basic Information ───────────────────── #}
+  <div class="form-card" data-section="a">
+    <div class="form-card-header">
+      <div class="form-card-icon blue">
+        <i class="bi bi-gear"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Basic Information</h2>
+        <p class="form-card-desc">Driver source, vendor link (when outsourced), status, and type.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-3">
+        <div class="field">
+          <label class="form-label" for="{{ form.driver_source.id_for_label }}">{{ form.driver_source.label }}</label>
+          {{ form.driver_source }}
+          {% if form.driver_source.errors %}<div class="text-danger small">{{ form.driver_source.errors }}</div>{% endif %}
+        </div>
+        <div class="field d-none" id="dmVendorAccountWrap">
+          <label class="form-label" for="{{ form.vendor_account_id.id_for_label }}">
+            {{ form.vendor_account_id.label }}
+            <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem;">Coming Soon</span>
+          </label>
+          <small class="text-muted d-block mb-1">Vendor lookup will replace manual entry.</small>
+          {{ form.vendor_account_id }}
+          {% if form.vendor_account_id.errors %}<div class="text-danger small">{{ form.vendor_account_id.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.driver_status.id_for_label }}">{{ form.driver_status.label }}</label>
+          {{ form.driver_status }}
+          {% if form.driver_status.errors %}<div class="text-danger small">{{ form.driver_status.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.driver_type.id_for_label }}">{{ form.driver_type.label }}</label>
+          {{ form.driver_type }}
+          {% if form.driver_type.errors %}<div class="text-danger small">{{ form.driver_type.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION B — Driver Information ─────────────────── #}
+  <div class="form-card" data-section="b">
+    <div class="form-card-header">
+      <div class="form-card-icon green">
+        <i class="bi bi-person-vcard"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Driver Information</h2>
+        <p class="form-card-desc">Names, nationality, and date of birth.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-2">
+        <div class="field">
+          <label class="form-label" for="{{ form.arabic_name.id_for_label }}">{{ form.arabic_name.label }} <span class="required">*</span></label>
+          {{ form.arabic_name }}
+          {% if form.arabic_name.errors %}<div class="text-danger small">{{ form.arabic_name.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.english_name.id_for_label }}">{{ form.english_name.label }}</label>
+          {{ form.english_name }}
+          {% if form.english_name.errors %}<div class="text-danger small">{{ form.english_name.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.nationality_country.id_for_label }}">{{ form.nationality_country.label }}</label>
+          {{ form.nationality_country }}
+          {% if form.nationality_country.errors %}<div class="text-danger small">{{ form.nationality_country.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.birth_date.id_for_label }}">{{ form.birth_date.label }}</label>
+          {{ form.birth_date }}
+          {% if form.birth_date.errors %}<div class="text-danger small">{{ form.birth_date.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION C — ID / IQAMA ─────────────────────────── #}
+  <div class="form-card" data-section="c">
+    <div class="form-card-header">
+      <div class="form-card-icon amber">
+        <i class="bi bi-credit-card"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">ID / IQAMA</h2>
+        <p class="form-card-desc">National ID / Iqama and derived validity (preview).</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-2">
+        <div class="field">
+          <label class="form-label" for="{{ form.id_number.id_for_label }}">{{ form.id_number.label }}</label>
+          {{ form.id_number }}
+          {% if form.id_number.errors %}<div class="text-danger small">{{ form.id_number.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.id_expiry_date.id_for_label }}">{{ form.id_expiry_date.label }}</label>
+          {{ form.id_expiry_date }}
+          {% if form.id_expiry_date.errors %}<div class="text-danger small">{{ form.id_expiry_date.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <span class="form-label d-block">ID Status</span>
+          <div id="dmBadgeIdWrap">
+            <span id="dmBadgeId" class="status-badge dm-doc-none" data-role="doc-badge">{% if is_edit %}{{ driver.id_status }}{% else %}Not Provided{% endif %}</span>
+          </div>
+          <small class="text-muted">Derived on save; shown as preview while editing.</small>
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.id_image.id_for_label }}">{{ form.id_image.label }}</label>
+          <input type="file" name="{{ form.id_image.html_name }}" id="{{ form.id_image.id_for_label }}" class="form-control" accept="image/*,.pdf" />
+          {% if form.id_image.errors %}<div class="text-danger small">{{ form.id_image.errors }}</div>{% endif %}
+          {% if is_edit and driver.id_image %}
+          <small class="text-muted d-block mt-1">Current: <a href="{{ driver.id_image.url }}" target="_blank" rel="noopener">View file</a></small>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION D — Passport ──────────────────────────── #}
+  <div class="form-card" data-section="d">
+    <div class="form-card-header">
+      <div class="form-card-icon red">
+        <i class="bi bi-journal-text"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Passport</h2>
+        <p class="form-card-desc">Passport number, expiry, and scan.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-2">
+        <div class="field">
+          <label class="form-label" for="{{ form.passport_number.id_for_label }}">{{ form.passport_number.label }}</label>
+          {{ form.passport_number }}
+          {% if form.passport_number.errors %}<div class="text-danger small">{{ form.passport_number.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.passport_expiry_date.id_for_label }}">{{ form.passport_expiry_date.label }}</label>
+          {{ form.passport_expiry_date }}
+          {% if form.passport_expiry_date.errors %}<div class="text-danger small">{{ form.passport_expiry_date.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <span class="form-label d-block">Passport Status</span>
+          <span id="dmBadgePassport" class="status-badge dm-doc-none" data-role="doc-badge">{% if is_edit %}{{ driver.passport_status }}{% else %}Not Provided{% endif %}</span>
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.passport_image.id_for_label }}">{{ form.passport_image.label }}</label>
+          <input type="file" name="{{ form.passport_image.html_name }}" id="{{ form.passport_image.id_for_label }}" class="form-control" accept="image/*,.pdf" />
+          {% if form.passport_image.errors %}<div class="text-danger small">{{ form.passport_image.errors }}</div>{% endif %}
+          {% if is_edit and driver.passport_image %}
+          <small class="text-muted d-block mt-1">Current: <a href="{{ driver.passport_image.url }}" target="_blank" rel="noopener">View file</a></small>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION E — Driving License ───────────────────── #}
+  <div class="form-card" data-section="e">
+    <div class="form-card-header">
+      <div class="form-card-icon blue">
+        <i class="bi bi-file-earmark-text"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Driving License</h2>
+        <p class="form-card-desc">License number, expiry, and image.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-2">
+        <div class="field">
+          <label class="form-label" for="{{ form.dl_number.id_for_label }}">{{ form.dl_number.label }}</label>
+          {{ form.dl_number }}
+          {% if form.dl_number.errors %}<div class="text-danger small">{{ form.dl_number.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.dl_expiry_date.id_for_label }}">{{ form.dl_expiry_date.label }}</label>
+          {{ form.dl_expiry_date }}
+          {% if form.dl_expiry_date.errors %}<div class="text-danger small">{{ form.dl_expiry_date.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <span class="form-label d-block">DL Status</span>
+          <span id="dmBadgeDl" class="status-badge dm-doc-none" data-role="doc-badge">{% if is_edit %}{{ driver.dl_status }}{% else %}Not Provided{% endif %}</span>
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.dl_image.id_for_label }}">{{ form.dl_image.label }}</label>
+          <input type="file" name="{{ form.dl_image.html_name }}" id="{{ form.dl_image.id_for_label }}" class="form-control" accept="image/*,.pdf" />
+          {% if form.dl_image.errors %}<div class="text-danger small">{{ form.dl_image.errors }}</div>{% endif %}
+          {% if is_edit and driver.dl_image %}
+          <small class="text-muted d-block mt-1">Current: <a href="{{ driver.dl_image.url }}" target="_blank" rel="noopener">View file</a></small>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION F — Driver Card ───────────────────────── #}
+  <div class="form-card" data-section="f">
+    <div class="form-card-header">
+      <div class="form-card-icon red">
+        <i class="bi bi-card-heading"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Driver Card</h2>
+        <p class="form-card-desc">Card number, expiry, and image.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-2">
+        <div class="field">
+          <label class="form-label" for="{{ form.card_number.id_for_label }}">{{ form.card_number.label }}</label>
+          {{ form.card_number }}
+          {% if form.card_number.errors %}<div class="text-danger small">{{ form.card_number.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.card_expiry_date.id_for_label }}">{{ form.card_expiry_date.label }}</label>
+          {{ form.card_expiry_date }}
+          {% if form.card_expiry_date.errors %}<div class="text-danger small">{{ form.card_expiry_date.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <span class="form-label d-block">Card Status</span>
+          <span id="dmBadgeCard" class="status-badge dm-doc-none" data-role="doc-badge">{% if is_edit %}{{ driver.card_status }}{% else %}Not Provided{% endif %}</span>
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.card_image.id_for_label }}">{{ form.card_image.label }}</label>
+          <input type="file" name="{{ form.card_image.html_name }}" id="{{ form.card_image.id_for_label }}" class="form-control" accept="image/*,.pdf" />
+          {% if form.card_image.errors %}<div class="text-danger small">{{ form.card_image.errors }}</div>{% endif %}
+          {% if is_edit and driver.card_image %}
+          <small class="text-muted d-block mt-1">Current: <a href="{{ driver.card_image.url }}" target="_blank" rel="noopener">View file</a></small>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── SECTION G — Contact ───────────────────────────── #}
+  <div class="form-card" data-section="g">
+    <div class="form-card-header">
+      <div class="form-card-icon green">
+        <i class="bi bi-telephone"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Contact</h2>
+        <p class="form-card-desc">Mobile and WhatsApp.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-3">
+        <div class="field">
+          <label class="form-label" for="{{ form.mobile_number.id_for_label }}">{{ form.mobile_number.label }} <span class="required">*</span></label>
+          {{ form.mobile_number }}
+          {% if form.mobile_number.errors %}<div class="text-danger small">{{ form.mobile_number.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.whatsapp_number.id_for_label }}">{{ form.whatsapp_number.label }}</label>
+          {{ form.whatsapp_number }}
+          {% if form.whatsapp_number.errors %}<div class="text-danger small">{{ form.whatsapp_number.errors }}</div>{% endif %}
+        </div>
+        <div class="field field-toggle-end">
+          <label class="form-label d-block">{{ form.whatsapp_same_as_mobile.label }}</label>
+          <label class="setting-toggle" for="{{ form.whatsapp_same_as_mobile.id_for_label }}">
+            {{ form.whatsapp_same_as_mobile }}
+            <span class="toggle-track"></span>
+            <span class="toggle-label js-dm-wa-toggle-label">No</span>
+          </label>
+          {% if form.whatsapp_same_as_mobile.errors %}<div class="text-danger small">{{ form.whatsapp_same_as_mobile.errors }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions-bar">
+    <div class="form-actions-left">
+      <a href="{% url 'iroad_tenants:driver_master' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg"></i>
+        Cancel
+      </a>
+    </div>
+    <div class="form-actions-right">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle"></i>
+        Save Driver
+      </button>
+    </div>
+  </div>
+</form>
+
+<style>
+  .status-badge.dm-doc-valid { background: #198754; color: #fff; border: 0; }
+  .status-badge.dm-doc-expired { background: #dc3545; color: #fff; border: 0; }
+  .status-badge.dm-doc-none { background: #64748b; color: #fff; border: 0; }
+  /* Keep doc status badges compact (avoid full-width bars) */
+  .status-badge[data-role="doc-badge"] {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    max-width: max-content;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var OUT = "Out-Source";
+  var IN = "In-Source";
+
+  function deriveDocStatus(numStr, expiryStr) {
+    if (!numStr || !String(numStr).trim()) return "Not Provided";
+    if (!expiryStr || !String(expiryStr).trim()) return "Valid";
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    var parts = String(expiryStr).split("-");
+    if (parts.length < 3) return "Valid";
+    var ex = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    ex.setHours(0, 0, 0, 0);
+    return ex < today ? "Expired" : "Valid";
+  }
+
+  function applyBadge(el, status) {
+    if (!el) return;
+    el.textContent = status;
+    el.classList.remove("dm-doc-valid", "dm-doc-expired", "dm-doc-none");
+    if (status === "Valid") el.classList.add("dm-doc-valid");
+    else if (status === "Expired") el.classList.add("dm-doc-expired");
+    else el.classList.add("dm-doc-none");
+  }
+
+  function wireDocPreview(numId, expId, badgeId) {
+    var numEl = document.getElementById(numId);
+    var expEl = document.getElementById(expId);
+    var badge = document.getElementById(badgeId);
+    function refresh() {
+      var n = numEl ? numEl.value : "";
+      var e = expEl ? expEl.value : "";
+      applyBadge(badge, deriveDocStatus(n, e));
+    }
+    if (numEl) numEl.addEventListener("input", refresh);
+    if (numEl) numEl.addEventListener("change", refresh);
+    if (expEl) expEl.addEventListener("change", refresh);
+    if (expEl) expEl.addEventListener("input", refresh);
+    refresh();
+  }
+
+  var sourceEl = document.getElementById("{{ form.driver_source.id_for_label }}");
+  var vendorWrap = document.getElementById("dmVendorAccountWrap");
+  var vendorInput = document.getElementById("{{ form.vendor_account_id.id_for_label }}");
+  var sameEl = document.getElementById("{{ form.whatsapp_same_as_mobile.id_for_label }}");
+  var mobileEl = document.getElementById("{{ form.mobile_number.id_for_label }}");
+  var waEl = document.getElementById("{{ form.whatsapp_number.id_for_label }}");
+  var waLabel = document.querySelector(".js-dm-wa-toggle-label");
+
+  function applySource(isInitial) {
+    var v = sourceEl && sourceEl.value;
+    var out = v === OUT;
+    if (vendorWrap) vendorWrap.classList.toggle("d-none", !out);
+    if (vendorInput) {
+      if (out) vendorInput.setAttribute("required", "required");
+      else {
+        vendorInput.removeAttribute("required");
+        if (!isInitial) vendorInput.value = "";
+      }
+    }
+  }
+
+  function syncWhatsApp() {
+    if (!waEl || !mobileEl) return;
+    if (sameEl && sameEl.checked) {
+      waEl.value = mobileEl.value;
+      waEl.setAttribute("readonly", "readonly");
+    } else {
+      waEl.removeAttribute("readonly");
+    }
+    if (waLabel) waLabel.textContent = sameEl && sameEl.checked ? "Yes" : "No";
+  }
+
+  if (sourceEl) sourceEl.addEventListener("change", function () { applySource(false); });
+  if (sameEl) sameEl.addEventListener("change", syncWhatsApp);
+  if (mobileEl) mobileEl.addEventListener("input", function () { if (sameEl && sameEl.checked) syncWhatsApp(); });
+
+  applySource(true);
+  syncWhatsApp();
+
+  wireDocPreview("{{ form.id_number.id_for_label }}", "{{ form.id_expiry_date.id_for_label }}", "dmBadgeId");
+  wireDocPreview("{{ form.passport_number.id_for_label }}", "{{ form.passport_expiry_date.id_for_label }}", "dmBadgePassport");
+  wireDocPreview("{{ form.dl_number.id_for_label }}", "{{ form.dl_expiry_date.id_for_label }}", "dmBadgeDl");
+  wireDocPreview("{{ form.card_number.id_for_label }}", "{{ form.card_expiry_date.id_for_label }}", "dmBadgeCard");
+})();
+</script>
+{% endblock %}

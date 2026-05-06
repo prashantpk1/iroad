@@ -85,6 +85,9 @@ from tenant_workspace.models import (
     TenantClientContact,
     TenantClientContract,
     TenantClientContractSetting,
+    DriverAttachment,
+    DriverMaster,
+    DriverSettings,
     TruckAttachment,
     TruckImage,
     TruckMaster,
@@ -99,6 +102,8 @@ from iroad_tenants.forms_tenant_cargo import TenantCargoCategoryForm, TenantCarg
 from iroad_tenants.forms_tenant_location import TenantLocationMasterForm
 from iroad_tenants.forms_tenant_route import TenantRouteMasterForm
 from iroad_tenants.forms_truck_type import TruckTypeMasterForm
+from iroad_tenants.forms_driver import DriverAttachmentForm, DriverSettingsForm
+from iroad_tenants.forms_driver_master import DriverMasterForm
 from iroad_tenants.forms_truck_master import TruckMasterForm
 from iroad_tenants.forms_truck_attachment import TruckAttachmentForm
 
@@ -115,9 +120,18 @@ TRUCK_TYPE_REF_PREFIX = 'TRT'
 TRUCK_MASTER_AUTO_FORM_CODE = 'truck-master'
 TRUCK_MASTER_AUTO_FORM_LABEL = 'Truck Code'
 TRUCK_MASTER_REF_PREFIX = 'TR'
+
+DRIVER_MASTER_AUTO_FORM_CODE = 'driver-master'
+DRIVER_MASTER_AUTO_FORM_LABEL = 'Driver Code'
+DRIVER_MASTER_REF_PREFIX = 'DR'
+
 TRUCK_ATTACHMENT_AUTO_FORM_CODE = 'truck-attachment'
 TRUCK_ATTACHMENT_AUTO_FORM_LABEL = 'Truck Attachment No'
 TRUCK_ATTACHMENT_REF_PREFIX = 'TA'
+
+DRIVER_ATTACHMENT_AUTO_FORM_CODE = 'driver-attachment'
+DRIVER_ATTACHMENT_AUTO_FORM_LABEL = 'Driver Attachment No'
+DRIVER_ATTACHMENT_REF_PREFIX = 'DA'
 
 CARGO_MASTER_AUTO_FORM_CODE = 'cargo-master'
 CARGO_MASTER_AUTO_FORM_LABEL = 'Cargo code'
@@ -6326,6 +6340,22 @@ def _tenant_truck_master_access(request, context):
     return None
 
 
+def _tenant_driver_master_access(request, context):
+    """Same pattern as _tenant_truck_master_access."""
+    if context is None:
+        response = redirect('login')
+        clear_tenant_portal_cookie(response, request=request)
+        return response
+    if not context.get('is_tenant_admin'):
+        messages.error(
+            request,
+            'You do not have access to Driver Master.',
+            extra_tags='tenant',
+        )
+        return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+    return None
+
+
 def _active_truck_master_count_for_type(truck_type_pk):
     """Active ``TruckMaster`` rows using this truck type (0 if model/FK not present yet)."""
     from django.apps import apps
@@ -8047,6 +8077,1166 @@ class TruckMasterDetailView(View):
             connection.set_schema_to_public()
 
 
+class DriverMasterListView(View):
+    """Driver Master list: search, status/source filters, stats, paginate."""
+
+    template_name = 'iroad_tenants/drivers/driver_master/driver_list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        dm = DriverMaster
+        qs = dm.objects.select_related('nationality_country')
+
+        sq = (request.GET.get('q') or '').strip()
+
+        status_raw = (request.GET.get('status') or '').strip().lower()
+        if 'status' not in request.GET:
+            qs = qs.filter(driver_status=dm.Status.ACTIVE)
+            filter_status = ''
+        elif not status_raw:
+            qs = qs.filter(driver_status=dm.Status.ACTIVE)
+            filter_status = 'active'
+        elif status_raw == 'all':
+            filter_status = 'all'
+        elif status_raw == 'inactive':
+            qs = qs.filter(driver_status=dm.Status.INACTIVE)
+            filter_status = 'inactive'
+        elif status_raw == 'active':
+            qs = qs.filter(driver_status=dm.Status.ACTIVE)
+            filter_status = 'active'
+        else:
+            qs = qs.filter(driver_status=dm.Status.ACTIVE)
+            filter_status = 'active'
+
+        source_raw = (request.GET.get('driver_source') or 'all').strip().lower()
+        if source_raw == 'in_source':
+            qs = qs.filter(driver_source=dm.DriverSource.IN_SOURCE)
+            filter_driver_source = 'in_source'
+        elif source_raw == 'out_source':
+            qs = qs.filter(driver_source=dm.DriverSource.OUT_SOURCE)
+            filter_driver_source = 'out_source'
+        else:
+            filter_driver_source = 'all'
+
+        if sq:
+            qs = qs.filter(
+                Q(driver_code__icontains=sq)
+                | Q(arabic_name__icontains=sq)
+                | Q(english_name__icontains=sq)
+                | Q(mobile_number__icontains=sq)
+            )
+
+        qs_ordered = qs.order_by('-created_at')
+        stats = {
+            'total_count': dm.objects.count(),
+            'active_count': dm.objects.filter(
+                driver_status=dm.Status.ACTIVE
+            ).count(),
+            'inactive_count': dm.objects.filter(
+                driver_status=dm.Status.INACTIVE
+            ).count(),
+            'in_source_count': dm.objects.filter(
+                driver_source=dm.DriverSource.IN_SOURCE
+            ).count(),
+            'out_source_count': dm.objects.filter(
+                driver_source=dm.DriverSource.OUT_SOURCE
+            ).count(),
+        }
+
+        paginator = Paginator(qs_ordered, 10)
+        try:
+            page_no = max(1, int(request.GET.get('page') or 1))
+        except ValueError:
+            page_no = 1
+        page = paginator.get_page(page_no)
+
+        total_count = paginator.count
+        if total_count == 0:
+            ps, pe = 0, 0
+        else:
+            ps = (page.number - 1) * paginator.per_page + 1
+            pe = ps + len(page.object_list) - 1
+
+        def _page_url(page_num):
+            q = request.GET.copy()
+            q.pop('stype', None)
+            try:
+                pn = int(page_num)
+            except (TypeError, ValueError):
+                pn = 1
+            if pn > 1:
+                q['page'] = str(pn)
+            else:
+                q.pop('page', None)
+            return '?' + q.urlencode()
+
+        pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
+        prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
+        next_url = _page_url(page.next_page_number()) if page.has_next() else None
+
+        context.update(
+            {
+                'drivers_page': page,
+                'search_q': sq,
+                'filter_status': filter_status,
+                'filter_driver_source': filter_driver_source,
+                'stats': stats,
+                'pagination_page_links': pagination_page_links,
+                'pagination_prev_url': prev_url,
+                'pagination_next_url': next_url,
+                'pagination_start': ps,
+                'pagination_end': pe,
+                'pagination_total': total_count,
+                'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+            }
+        )
+        try:
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        if request.POST.get('action') != 'set_status':
+            return self.get(request)
+
+        driver_pk = (request.POST.get('driver_id') or '').strip()
+        new_status = (request.POST.get('new_status') or '').strip()
+        if new_status not in (DriverMaster.Status.ACTIVE, DriverMaster.Status.INACTIVE):
+            messages.error(request, 'Invalid status.', extra_tags='tenant')
+            rq = (request.POST.get('redirect_query') or '').strip()
+            base = reverse('iroad_tenants:driver_master')
+            if rq:
+                return redirect(f'{base}?{rq}')
+            return _tenant_redirect(request, 'iroad_tenants:driver_master')
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            row = DriverMaster.objects.filter(pk=driver_pk).first()
+            if not row:
+                messages.error(request, 'Driver not found.', extra_tags='tenant')
+            else:
+                # TODO: Check active bookings when built
+                row.driver_status = new_status
+                row.save(update_fields=['driver_status', 'updated_at'])
+                messages.success(
+                    request,
+                    f'Driver set to {new_status.lower()}.',
+                    extra_tags='tenant',
+                )
+        finally:
+            connection.set_schema_to_public()
+
+        rq = (request.POST.get('redirect_query') or '').strip()
+        base = reverse('iroad_tenants:driver_master')
+        if rq:
+            return redirect(f'{base}?{rq}')
+        return _tenant_redirect(request, 'iroad_tenants:driver_master')
+
+
+class DriverMasterCreateView(View):
+    template_name = 'iroad_tenants/drivers/driver_master/driver_form.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            code_preview = _preview_next_driver_master_code()
+            form = DriverMasterForm()
+            context.update(
+                {
+                    'form': form,
+                    'code_preview': code_preview,
+                    'page_title': 'Add Driver',
+                    'is_edit': False,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        redirect_resp = None
+        try:
+            form = DriverMasterForm(request.POST, request.FILES)
+            if not form.is_valid():
+                code_preview = _preview_next_driver_master_code()
+                context.update(
+                    {
+                        'form': form,
+                        'code_preview': code_preview,
+                        'page_title': 'Add Driver',
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            try:
+                with db_transaction.atomic():
+                    code, seq = _next_auto_number_for_form(
+                        DRIVER_MASTER_AUTO_FORM_CODE,
+                        DRIVER_MASTER_AUTO_FORM_LABEL,
+                        DRIVER_MASTER_REF_PREFIX,
+                    )
+                    obj = form.save(commit=False)
+                    obj.driver_code = code
+                    obj.driver_sequence = seq
+                    for fname in ('id_image', 'passport_image', 'dl_image', 'card_image'):
+                        upl = request.FILES.get(fname)
+                        if upl:
+                            setattr(obj, fname, upl)
+                    obj.full_clean()
+                    obj.save()
+            except IntegrityError:
+                logger.exception('Driver Master create integrity violation')
+                code_preview = _preview_next_driver_master_code()
+                form.add_error(
+                    None,
+                    ValidationError(
+                        'Unable to allocate a unique driver code or save this driver. Please retry.',
+                        code='driver_master_integrity',
+                    ),
+                )
+                context.update(
+                    {
+                        'form': form,
+                        'code_preview': code_preview,
+                        'page_title': 'Add Driver',
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save the driver.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+            except ValidationError as ve:
+                code_preview = _preview_next_driver_master_code()
+                if getattr(ve, 'error_dict', None):
+                    for field_name, errs in ve.error_dict.items():
+                        for err in errs:
+                            form.add_error(field_name, err)
+                else:
+                    for msg in getattr(ve, 'messages', []) or [str(ve)]:
+                        form.add_error(None, msg)
+                context.update(
+                    {
+                        'form': form,
+                        'code_preview': code_preview,
+                        'page_title': 'Add Driver',
+                        'is_edit': False,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save the driver.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            messages.success(
+                request,
+                f'Driver {obj.driver_code} created successfully.',
+                extra_tags='tenant',
+            )
+            redirect_resp = _tenant_redirect(request, 'iroad_tenants:driver_master')
+        finally:
+            connection.set_schema_to_public()
+
+        return redirect_resp
+
+
+class DriverMasterEditView(View):
+    template_name = 'iroad_tenants/drivers/driver_master/driver_form.html'
+
+    def _load(self, driver_id):
+        return (
+            DriverMaster.objects.select_related('nationality_country')
+            .filter(pk=driver_id)
+            .first()
+        )
+
+    def get(self, request, driver_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            driver = self._load(driver_id)
+            if not driver:
+                messages.error(request, 'Driver not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_master')
+
+            form = DriverMasterForm(instance=driver)
+            context.update(
+                {
+                    'form': form,
+                    'driver': driver,
+                    'page_title': 'Edit Driver',
+                    'is_edit': True,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, driver_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        redirect_resp = None
+        try:
+            driver = self._load(driver_id)
+            if not driver:
+                messages.error(request, 'Driver not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_master')
+
+            immutable_code = driver.driver_code
+            form = DriverMasterForm(request.POST, request.FILES, instance=driver)
+            if not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'driver': driver,
+                        'page_title': 'Edit Driver',
+                        'is_edit': True,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            try:
+                with db_transaction.atomic():
+                    obj = form.save(commit=False)
+                    obj.driver_code = immutable_code
+                    for fname in ('id_image', 'passport_image', 'dl_image', 'card_image'):
+                        upl = request.FILES.get(fname)
+                        if upl:
+                            setattr(obj, fname, upl)
+                    obj.full_clean()
+                    obj.save()
+            except IntegrityError:
+                form.add_error(
+                    None,
+                    ValidationError(
+                        'Conflict while saving this driver.',
+                        code='driver_master_integrity',
+                    ),
+                )
+                context.update(
+                    {
+                        'form': form,
+                        'driver': driver,
+                        'page_title': 'Edit Driver',
+                        'is_edit': True,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save changes.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+            except ValidationError as ve:
+                if getattr(ve, 'error_dict', None):
+                    for field_name, errs in ve.error_dict.items():
+                        for err in errs:
+                            form.add_error(field_name, err)
+                else:
+                    for msg in getattr(ve, 'messages', []) or [str(ve)]:
+                        form.add_error(None, msg)
+                context.update(
+                    {
+                        'form': form,
+                        'driver': driver,
+                        'page_title': 'Edit Driver',
+                        'is_edit': True,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Could not save changes.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            messages.success(request, 'Driver updated successfully.', extra_tags='tenant')
+            redirect_resp = _tenant_redirect(request, 'iroad_tenants:driver_master')
+        finally:
+            connection.set_schema_to_public()
+
+        return redirect_resp
+
+
+class DriverMasterDetailView(View):
+    template_name = 'iroad_tenants/drivers/driver_master/driver_detail.html'
+
+    def get(self, request, driver_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            driver = (
+                DriverMaster.objects.select_related('nationality_country')
+                .filter(pk=driver_id)
+                .first()
+            )
+            if not driver:
+                messages.error(request, 'Driver not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_master')
+
+            attachments_count = driver.attachments.count()
+            attachments_preview = list(
+                driver.attachments.order_by(
+                    '-attachment_date', '-created_at'
+                )[:3]
+            )
+            context.update(
+                {
+                    'driver': driver,
+                    'attachments_count': attachments_count,
+                    'attachments_preview': attachments_preview,
+                    'id_document_status': driver.id_status,
+                    'passport_document_status': driver.passport_status,
+                    'dl_document_status': driver.dl_status,
+                    'card_document_status': driver.card_status,
+                    'page_title': driver.driver_code,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverAttachmentAllListView(View):
+    """All driver attachments across drivers (tenant sidebar pattern)."""
+
+    template_name = 'iroad_tenants/drivers/driver_attachments/attachment_all_list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        da = DriverAttachment
+        status_param = (request.GET.get('status') or '').strip()
+        allowed = {
+            '',
+            da.Status.VALID,
+            da.Status.EXPIRED,
+            da.Status.DOES_NOT_EXPIRE,
+        }
+        filter_status = status_param if status_param in allowed else ''
+        sq = (request.GET.get('q') or '').strip()
+
+        allowed_sort = frozenset(
+            {'driver', 'attachment_date', 'expiry_date', 'file', 'status'},
+        )
+        raw_sort = (request.GET.get('sort') or '').strip()
+        raw_dir = (request.GET.get('dir') or '').strip().lower()
+        if raw_dir not in ('asc', 'desc'):
+            raw_dir = ''
+        if not raw_sort and not raw_dir:
+            sort_field = 'attachment_date'
+            sort_dir = 'desc'
+        else:
+            sort_field = raw_sort if raw_sort in allowed_sort else 'attachment_date'
+            sort_dir = raw_dir if raw_dir in ('asc', 'desc') else 'desc'
+        sort_reverse = sort_dir == 'desc'
+
+        try:
+            qs = da.objects.select_related('driver')
+            if sq:
+                qs = qs.filter(
+                    Q(driver__driver_code__icontains=sq)
+                    | Q(driver__arabic_name__icontains=sq),
+                )
+
+            all_attachments = list(qs)
+            today = timezone.localdate()
+            soon_cutoff = today + timezone.timedelta(days=30)
+            active_count = 0
+            expiring_soon_count = 0
+            expired_count = 0
+            for a in all_attachments:
+                st = a.status
+                if st == da.Status.EXPIRED:
+                    expired_count += 1
+                elif st == da.Status.DOES_NOT_EXPIRE:
+                    active_count += 1
+                elif st == da.Status.VALID:
+                    ed = a.expiry_date
+                    if (
+                        ed is not None
+                        and today <= ed <= soon_cutoff
+                    ):
+                        expiring_soon_count += 1
+                    else:
+                        active_count += 1
+            stats = {
+                'total': len(all_attachments),
+                'active_count': active_count,
+                'expiring_soon_count': expiring_soon_count,
+                'expired_count': expired_count,
+            }
+
+            filtered = all_attachments
+            if filter_status:
+                filtered = [a for a in all_attachments if a.status == filter_status]
+
+            def _sort_file_key(att):
+                if att.attachment_file and att.attachment_file.name:
+                    return os.path.basename(att.attachment_file.name).lower()
+                return ''
+
+            def _status_rank(att):
+                st = att.status
+                if st == da.Status.EXPIRED:
+                    return 0
+                if st == da.Status.VALID:
+                    return 1
+                if st == da.Status.DOES_NOT_EXPIRE:
+                    return 2
+                return 3
+
+            dated = [
+                a
+                for a in filtered
+                if a.is_expiry_applicable and a.expiry_date
+            ]
+            undated = [
+                a
+                for a in filtered
+                if not (a.is_expiry_applicable and a.expiry_date)
+            ]
+
+            if sort_field == 'driver':
+                filtered = sorted(
+                    filtered,
+                    key=lambda a: (a.driver.driver_code or '').lower(),
+                    reverse=sort_reverse,
+                )
+            elif sort_field == 'attachment_date':
+                filtered = sorted(
+                    filtered,
+                    key=lambda a: a.attachment_date,
+                    reverse=sort_reverse,
+                )
+            elif sort_field == 'expiry_date':
+                dated.sort(
+                    key=lambda a: a.expiry_date,
+                    reverse=sort_reverse,
+                )
+                filtered = dated + undated
+            elif sort_field == 'file':
+                filtered = sorted(
+                    filtered,
+                    key=_sort_file_key,
+                    reverse=sort_reverse,
+                )
+            elif sort_field == 'status':
+                filtered = sorted(
+                    filtered,
+                    key=_status_rank,
+                    reverse=sort_reverse,
+                )
+            else:
+                filtered = sorted(
+                    filtered,
+                    key=lambda a: a.attachment_date,
+                    reverse=True,
+                )
+
+            paginator = Paginator(filtered, 10)
+            try:
+                page_no = max(1, int(request.GET.get('page') or 1))
+            except ValueError:
+                page_no = 1
+            page = paginator.get_page(page_no)
+
+            for att in page.object_list:
+                if att.attachment_file:
+                    att.list_file_name = os.path.basename(att.attachment_file.name)
+                else:
+                    att.list_file_name = ''
+
+            total_count = paginator.count
+            if total_count == 0:
+                ps, pe = 0, 0
+            else:
+                ps = (page.number - 1) * paginator.per_page + 1
+                pe = ps + len(page.object_list) - 1
+
+            def _page_url(page_num):
+                q = request.GET.copy()
+                q.pop('stype', None)
+                try:
+                    pn = int(page_num)
+                except (TypeError, ValueError):
+                    pn = 1
+                if pn > 1:
+                    q['page'] = str(pn)
+                else:
+                    q.pop('page', None)
+                return '?' + q.urlencode()
+
+            def _sort_url(target_field):
+                q = request.GET.copy()
+                q.pop('page', None)
+                q['sort'] = target_field
+                if sort_field == target_field:
+                    q['dir'] = 'asc' if sort_dir == 'desc' else 'desc'
+                else:
+                    q['dir'] = 'asc'
+                return '?' + q.urlencode()
+
+            sort_urls = {f: _sort_url(f) for f in allowed_sort}
+
+            pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
+            prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
+            next_url = _page_url(page.next_page_number()) if page.has_next() else None
+
+            context.update(
+                {
+                    'attachments_page': page,
+                    'stats': stats,
+                    'filter_status': filter_status,
+                    'search_q': sq,
+                    'pagination_page_links': pagination_page_links,
+                    'pagination_prev_url': prev_url,
+                    'pagination_next_url': next_url,
+                    'pagination_start': ps,
+                    'pagination_end': pe,
+                    'pagination_total': total_count,
+                    'status_choices': [
+                        da.Status.VALID,
+                        da.Status.EXPIRED,
+                        da.Status.DOES_NOT_EXPIRE,
+                    ],
+                    'page_title': 'Driver Attachments List',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    'sort_field': sort_field,
+                    'sort_dir': sort_dir,
+                    'sort_urls': sort_urls,
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverAttachmentListView(View):
+    """Attachments for one driver (scoped list)."""
+
+    template_name = 'iroad_tenants/drivers/driver_attachments/attachment_list.html'
+
+    def get(self, request, driver_id):
+        # This per-driver list page should not appear in the UI.
+        # Keep the URL for backward compatibility, but redirect to the add form
+        # with the driver pre-selected (Fleet-style flow).
+        return redirect('iroad_tenants:driver_attachment_create', driver_id=driver_id)
+
+
+class DriverAttachmentCreateView(View):
+    template_name = 'iroad_tenants/drivers/driver_attachments/attachment_form.html'
+
+    def get(self, request, driver_id=None):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            driver = None
+            show_driver_selector = not bool(driver_id)
+            drivers_for_select = []
+            if driver_id:
+                driver = DriverMaster.objects.filter(pk=driver_id).first()
+                if not driver:
+                    messages.error(request, 'Driver not found.', extra_tags='tenant')
+                    return _tenant_redirect(request, 'iroad_tenants:driver_master')
+            else:
+                drivers_for_select = list(
+                    DriverMaster.objects.filter(
+                        driver_status=DriverMaster.Status.ACTIVE,
+                    ).order_by('driver_code')
+                )
+
+            form = DriverAttachmentForm()
+            context.update(
+                {
+                    'form': form,
+                    'driver': driver,
+                    'page_title': 'Add Attachment',
+                    'attachment_no_preview': _preview_next_driver_attachment_no(),
+                    'show_driver_selector': show_driver_selector,
+                    'drivers_for_select': drivers_for_select,
+                    'selected_driver_id': '',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, driver_id=None):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            driver = None
+            show_driver_selector = not bool(driver_id)
+            drivers_for_select = []
+            selected_driver_id = ''
+            driver_error = ''
+            if driver_id:
+                driver = DriverMaster.objects.filter(pk=driver_id).first()
+                if not driver:
+                    messages.error(request, 'Driver not found.', extra_tags='tenant')
+                    return _tenant_redirect(request, 'iroad_tenants:driver_master')
+            else:
+                selected_driver_id = (request.POST.get('driver_id') or '').strip()
+                drivers_for_select = list(
+                    DriverMaster.objects.filter(
+                        driver_status=DriverMaster.Status.ACTIVE,
+                    ).order_by('driver_code')
+                )
+                if selected_driver_id:
+                    driver = DriverMaster.objects.filter(
+                        pk=selected_driver_id,
+                        driver_status=DriverMaster.Status.ACTIVE,
+                    ).first()
+                if driver is None:
+                    driver_error = 'Please select an active driver.'
+
+            form = DriverAttachmentForm(request.POST, request.FILES)
+            if driver_error or not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'driver': driver,
+                        'page_title': 'Add Attachment',
+                        'attachment_no_preview': _preview_next_driver_attachment_no(),
+                        'show_driver_selector': show_driver_selector,
+                        'drivers_for_select': drivers_for_select,
+                        'selected_driver_id': selected_driver_id,
+                        'driver_error': driver_error,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            attachment_no, attachment_seq = _next_auto_number_for_form(
+                DRIVER_ATTACHMENT_AUTO_FORM_CODE,
+                DRIVER_ATTACHMENT_AUTO_FORM_LABEL,
+                DRIVER_ATTACHMENT_REF_PREFIX,
+            )
+            obj = form.save(commit=False)
+            obj.driver = driver
+            obj.attachment_no = attachment_no
+            obj.attachment_sequence = attachment_seq
+            obj.save()
+            messages.success(request, 'Attachment saved.', extra_tags='tenant')
+            return redirect('iroad_tenants:driver_attachment_all_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverAttachmentEditView(View):
+    template_name = 'iroad_tenants/drivers/driver_attachments/attachment_form.html'
+
+    def get(self, request, driver_id, attachment_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            driver = DriverMaster.objects.filter(pk=driver_id).first()
+            if not driver:
+                messages.error(request, 'Driver not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_master')
+
+            attachment = DriverAttachment.objects.filter(
+                pk=attachment_id,
+                driver=driver,
+            ).first()
+            if not attachment:
+                messages.error(request, 'Attachment not found.', extra_tags='tenant')
+                return redirect('iroad_tenants:driver_attachment_all_list')
+
+            form = DriverAttachmentForm(instance=attachment)
+            context.update(
+                {
+                    'form': form,
+                    'driver': driver,
+                    'attachment': attachment,
+                    'page_title': 'Edit Attachment',
+                    'is_edit': True,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, driver_id, attachment_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            driver = DriverMaster.objects.filter(pk=driver_id).first()
+            if not driver:
+                messages.error(request, 'Driver not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_master')
+
+            attachment = DriverAttachment.objects.filter(
+                pk=attachment_id,
+                driver=driver,
+            ).first()
+            if not attachment:
+                messages.error(request, 'Attachment not found.', extra_tags='tenant')
+                return redirect('iroad_tenants:driver_attachment_all_list')
+
+            old_file_name = (
+                attachment.attachment_file.name
+                if attachment and attachment.attachment_file
+                else ''
+            )
+
+            form = DriverAttachmentForm(
+                request.POST,
+                request.FILES,
+                instance=attachment,
+            )
+            if not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'driver': driver,
+                        'attachment': attachment,
+                        'page_title': 'Edit Attachment',
+                        'is_edit': True,
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(
+                    request,
+                    'Please fix the highlighted errors.',
+                    extra_tags='tenant',
+                )
+                return render(request, self.template_name, context)
+
+            obj = form.save(commit=False)
+            obj.driver = driver
+            obj.save()
+            new_file_uploaded = bool(request.FILES.get('attachment_file'))
+            new_file_name = obj.attachment_file.name if obj.attachment_file else ''
+            if (
+                new_file_uploaded
+                and old_file_name
+                and old_file_name != new_file_name
+                and default_storage.exists(old_file_name)
+            ):
+                default_storage.delete(old_file_name)
+            messages.success(
+                request,
+                'Attachment updated successfully.',
+                extra_tags='tenant',
+            )
+            return redirect('iroad_tenants:driver_attachment_all_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverAttachmentDetailView(View):
+    template_name = 'iroad_tenants/drivers/driver_attachments/attachment_detail.html'
+
+    def get(self, request, driver_id, attachment_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            driver = DriverMaster.objects.filter(pk=driver_id).first()
+            if not driver:
+                messages.error(request, 'Driver not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_master')
+
+            attachment = DriverAttachment.objects.filter(
+                pk=attachment_id,
+                driver=driver,
+            ).first()
+            if not attachment:
+                messages.error(request, 'Attachment not found.', extra_tags='tenant')
+                return redirect('iroad_tenants:driver_attachment_all_list')
+
+            context.update(
+                {
+                    'driver': driver,
+                    'attachment': attachment,
+                    'page_title': 'Attachment Detail',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverAttachmentDeleteView(View):
+    def post(self, request, driver_id, attachment_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            driver = DriverMaster.objects.filter(pk=driver_id).first()
+            if not driver:
+                messages.error(request, 'Driver not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_master')
+
+            att = DriverAttachment.objects.filter(
+                pk=attachment_id,
+                driver_id=driver.driver_id,
+            ).first()
+            if att is None:
+                messages.error(request, 'Attachment not found.', extra_tags='tenant')
+            else:
+                if att.attachment_file:
+                    att.attachment_file.delete(save=False)
+                att.delete()
+                messages.success(request, 'Attachment deleted.', extra_tags='tenant')
+
+            return redirect('iroad_tenants:driver_attachment_all_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverAttachmentDriverSelectView(View):
+    """
+    Intermediate page: pick an active driver, then Add Attachment for that driver.
+    """
+
+    template_name = (
+        'iroad_tenants/drivers/driver_attachments/attachment_driver_select.html'
+    )
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            sq = (request.GET.get('q') or '').strip()
+            drivers = DriverMaster.objects.filter(
+                driver_status=DriverMaster.Status.ACTIVE,
+            ).order_by('driver_code')
+
+            if sq:
+                drivers = drivers.filter(
+                    Q(driver_code__icontains=sq)
+                    | Q(arabic_name__icontains=sq),
+                )
+
+            paginator = Paginator(drivers, 10)
+            try:
+                page_no = max(1, int(request.GET.get('page') or 1))
+            except ValueError:
+                page_no = 1
+            page = paginator.get_page(page_no)
+
+            context.update(
+                {
+                    'drivers_page': page,
+                    'search_q': sq,
+                    'page_title': 'Select Driver — Add Attachment',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverSettingsView(View):
+    template_name = 'iroad_tenants/drivers/driver_settings/driver_settings.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            settings = DriverSettings.get_or_create_singleton()
+            form = DriverSettingsForm(instance=settings)
+            context.update(
+                {
+                    'form': form,
+                    'settings': settings,
+                    'page_title': 'Driver Settings',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_master_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            settings = DriverSettings.get_or_create_singleton()
+            form = DriverSettingsForm(request.POST, instance=settings)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Settings saved.', extra_tags='tenant')
+                return redirect('iroad_tenants:driver_settings')
+
+            messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+            context.update(
+                {
+                    'form': form,
+                    'settings': settings,
+                    'page_title': 'Driver Settings',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
 class TruckAttachmentListView(View):
     """TR-ATT-001 list for one truck; status filter uses derived ``TruckAttachment.status``."""
 
@@ -8796,6 +9986,7 @@ class TenantAutoNumberConfigurationView(View):
         ADDRESS_MASTER_AUTO_FORM_CODE: ADDRESS_MASTER_AUTO_FORM_LABEL,
         TRUCK_TYPE_AUTO_FORM_CODE: TRUCK_TYPE_AUTO_FORM_LABEL,
         TRUCK_MASTER_AUTO_FORM_CODE: TRUCK_MASTER_AUTO_FORM_LABEL,
+        DRIVER_MASTER_AUTO_FORM_CODE: DRIVER_MASTER_AUTO_FORM_LABEL,
         TRUCK_ATTACHMENT_AUTO_FORM_CODE: TRUCK_ATTACHMENT_AUTO_FORM_LABEL,
         CARGO_MASTER_AUTO_FORM_CODE: CARGO_MASTER_AUTO_FORM_LABEL,
         CARGO_CATEGORY_AUTO_FORM_CODE: CARGO_CATEGORY_AUTO_FORM_LABEL,
@@ -10969,6 +12160,24 @@ def _preview_next_truck_master_code():
     return _render_tenant_ref_no(next_seq, config, prefix=TRUCK_MASTER_REF_PREFIX)
 
 
+def _preview_next_driver_master_code():
+    """Next DR-xxxx preview in tenant schema without consuming the sequence."""
+    config, _ = AutoNumberConfiguration.objects.get_or_create(
+        form_code=DRIVER_MASTER_AUTO_FORM_CODE,
+        defaults={
+            'form_label': DRIVER_MASTER_AUTO_FORM_LABEL,
+            'number_of_digits': 4,
+            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
+            'is_unique': True,
+        },
+    )
+    sequence = AutoNumberSequence.objects.filter(
+        form_code=DRIVER_MASTER_AUTO_FORM_CODE,
+    ).first()
+    next_seq = sequence.next_number if sequence else 1
+    return _render_tenant_ref_no(next_seq, config, prefix=DRIVER_MASTER_REF_PREFIX)
+
+
 def _preview_next_truck_attachment_no():
     """Next TA-xxxx preview in tenant schema without consuming the sequence."""
     config, _ = AutoNumberConfiguration.objects.get_or_create(
@@ -10985,6 +12194,24 @@ def _preview_next_truck_attachment_no():
     ).first()
     next_seq = sequence.next_number if sequence else 1
     return _render_tenant_ref_no(next_seq, config, prefix=TRUCK_ATTACHMENT_REF_PREFIX)
+
+
+def _preview_next_driver_attachment_no():
+    """Next DA-xxxx preview in tenant schema without consuming the sequence."""
+    config, _ = AutoNumberConfiguration.objects.get_or_create(
+        form_code=DRIVER_ATTACHMENT_AUTO_FORM_CODE,
+        defaults={
+            'form_label': DRIVER_ATTACHMENT_AUTO_FORM_LABEL,
+            'number_of_digits': 4,
+            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
+            'is_unique': True,
+        },
+    )
+    sequence = AutoNumberSequence.objects.filter(
+        form_code=DRIVER_ATTACHMENT_AUTO_FORM_CODE,
+    ).first()
+    next_seq = sequence.next_number if sequence else 1
+    return _render_tenant_ref_no(next_seq, config, prefix=DRIVER_ATTACHMENT_REF_PREFIX)
 
 
 def _preview_next_cargo_master_code():

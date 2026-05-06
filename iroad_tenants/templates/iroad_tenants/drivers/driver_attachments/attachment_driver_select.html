@@ -1,0 +1,126 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}Select Driver to Add Attachment | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:driver_attachment_all_list' %}">Driver Attachments</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Select Driver</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">Select Driver to Add Attachment</h1>
+      <p class="page-subtitle">Choose an active driver before creating a new attachment.</p>
+    </div>
+    <div class="page-header-right">
+      <a href="{% url 'iroad_tenants:driver_attachment_all_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+        <span>Back</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-info" role="alert">
+  Search by driver code or Arabic name, then select a driver to add an attachment.
+</div>
+
+<div class="eal-table-card">
+  <form method="get" class="eal-toolbar eal-toolbar--inline-filters">
+    <div class="eal-toolbar-left w-100">
+      <div class="eal-toolbar-filters-row flex-wrap gap-2">
+        <div class="eal-search eal-search--toolbar-grow">
+          <i class="bi bi-search"></i>
+          <input type="text" name="q" value="{{ search_q }}" placeholder="Search by driver code or Arabic name…" autocomplete="off" />
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary eal-toolbar-apply">Search</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="eal-table-wrap">
+    <table class="eal-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Driver Code</th>
+          <th>Arabic Name</th>
+          <th>Mobile</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in drivers_page %}
+        <tr>
+          <td class="text-muted small">{{ drivers_page.start_index|add:forloop.counter0 }}</td>
+          <td><span class="eal-entity-id">{{ d.driver_code }}</span></td>
+          <td><span dir="rtl" lang="ar">{{ d.arabic_name }}</span></td>
+          <td>{{ d.mobile_number|default:"—" }}</td>
+          <td>
+            {% if d.driver_status == 'Active' %}
+            <span class="status-badge das-status-active"><i class="bi bi-check2-circle"></i> Active</span>
+            {% else %}
+            <span class="status-badge das-status-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'iroad_tenants:driver_attachment_create' driver_id=d.driver_id %}" class="btn btn-primary btn-sm">
+              Select
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-muted py-5">No active drivers found matching your search.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if drivers_page.paginator.count > 0 %}
+  <div class="eal-pagination">
+    <div class="eal-pagination-info">
+      Showing <strong>{{ drivers_page.start_index }}-{{ drivers_page.end_index }}</strong>
+      of <strong>{{ drivers_page.paginator.count }}</strong>
+    </div>
+    <div class="eal-pagination-controls">
+      {% if drivers_page.has_previous %}
+      <a class="eal-page-btn" href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}page={{ drivers_page.previous_page_number }}" title="Previous">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+      {% else %}
+      <span class="eal-page-btn disabled opacity-50"><i class="bi bi-chevron-left"></i></span>
+      {% endif %}
+
+      {% for num in drivers_page.paginator.page_range %}
+      {% if num >= drivers_page.number|add:-2 and num <= drivers_page.number|add:2 %}
+      <a class="eal-page-btn{% if num == drivers_page.number %} active{% endif %}" href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+      {% endif %}
+      {% endfor %}
+
+      {% if drivers_page.has_next %}
+      <a class="eal-page-btn" href="?{% if search_q %}q={{ search_q|urlencode }}&{% endif %}page={{ drivers_page.next_page_number }}" title="Next">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+      {% else %}
+      <span class="eal-page-btn disabled opacity-50"><i class="bi bi-chevron-right"></i></span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .status-badge.das-status-active { background: #198754; color: #fff; border: 0; }
+  .status-badge.das-status-inactive { background: #94a3b8; color: #fff; border: 0; }
+</style>
+{% endblock %}

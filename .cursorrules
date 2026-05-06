@@ -1029,3 +1029,63 @@
 #   Trigger: When Booking module is built
 #   File: iroad_tenants/views.py ~7069
 
+
+## Driver Management — Business Rules (DR-001)
+
+### Driver Master Rules
+- driver_code: auto-number prefix DR, never editable, read-only
+- driver_source: In-Source or Out-Source only, default In-Source
+- vendor_account_id: required ONLY if driver_source = Out-Source
+  Phase 1: CharField placeholder
+  TODO: Replace with FK to VendorAccount when module built
+- driver_status: Active or Inactive only, default Active
+- user_account_id: 1:1 one user per driver
+  Phase 1: CharField placeholder
+  TODO: Replace with FK to UserAccount when module built
+- driver_type: optional enum Company/Vendor/Other
+
+### Document Status Rules (ALL 4 documents: ID, Passport, DL, Card)
+- status fields are ALL @property — NEVER stored in DB
+- Not Provided: number is NULL or empty string
+- Expired: expiry_date < today
+- Valid: expiry_date >= today AND number is provided
+- Expiry date validation on CREATE:
+  if number provided AND expiry_date provided:
+  expiry_date must be >= today
+- On EDIT: only validate expiry_date if it has changed
+
+### Uniqueness Rules (if provided)
+- id_number: unique if not empty
+- passport_number: unique if not empty
+- dl_number: unique if not empty
+- card_number: unique if not empty
+
+### Numeric-Only Fields
+- mobile_number: digits only, required
+- whatsapp_number: digits only, optional
+- id_number: digits only
+
+### WhatsApp Rule
+- whatsapp_same_as_mobile = True:
+  auto-copy mobile_number to whatsapp_number
+  lock whatsapp field in UI
+
+### Driver Attachment Rules (same as Truck Attachments)
+- attachment_date: required, default today
+- is_expiry_applicable: boolean default False
+- expiry_date: required if is_expiry_applicable = True
+- status: @property derived (Valid/Expired/Does Not Expire)
+- attachment_file: required, allowed PDF/JPG/PNG/DOC/DOCX, max 10MB
+- file_notes: required
+- No hard delete restriction — documents can be deleted
+
+### Driver Settings Rules (separate config — not per-driver)
+- One settings record per tenant (singleton)
+- default_driver_status: Active/Suspended/Inactive
+- notification_audience: System Admin/Fleet Manager/Both
+- license_expiry_alert_days: integer 0-180, default 30
+- document_expiry_alert_days: integer 0-180, default 30
+- medical_expiry_alert_days: integer 0-180, default 30
+- driver_assignment_required: boolean default False
+- document_upload_mandatory: boolean default False
+

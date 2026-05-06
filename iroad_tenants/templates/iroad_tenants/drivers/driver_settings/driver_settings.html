@@ -1,0 +1,216 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}Driver Settings | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Drivers Management</li>
+      <li class="breadcrumb-item active" aria-current="page">Driver Settings</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">Driver Settings</h1>
+      <p class="page-subtitle">
+        Configure default behaviour for driver management.
+      </p>
+    </div>
+  </div>
+</div>
+
+<form id="driverSettingsForm" method="post" class="needs-validation" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <!-- SECTION 1 — Default Behaviour -->
+  <div class="form-card mb-3" data-section="1">
+    <div class="form-card-header">
+      <div class="form-card-icon blue">
+        <i class="bi bi-gear"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Default Behaviour</h2>
+        <p class="form-card-desc">
+          Defaults applied when creating new drivers and how notifications are routed.
+        </p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="field-group">
+        <h3 class="field-group-title">
+          <i class="bi bi-person-badge"></i>
+          Defaults
+        </h3>
+        <div class="fields-grid cols-2">
+          <div class="field">
+            <label class="form-label" for="{{ form.default_driver_status.id_for_label }}">Default Driver Status</label>
+            {{ form.default_driver_status }}
+            <span class="field-hint">Status applied to newly created drivers.</span>
+            {% if form.default_driver_status.errors %}<div class="text-danger small mt-1">{{ form.default_driver_status.errors }}</div>{% endif %}
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.notification_audience.id_for_label }}">Driver Notification Audience</label>
+            {{ form.notification_audience }}
+            <span class="field-hint">Who receives driver-related system alerts.</span>
+            {% if form.notification_audience.errors %}<div class="text-danger small mt-1">{{ form.notification_audience.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2 — Alert Settings -->
+  <div class="form-card mb-3" data-section="2">
+    <div class="form-card-header">
+      <div class="form-card-icon amber">
+        <i class="bi bi-bell"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Alert Settings</h2>
+        <p class="form-card-desc">
+          How many days before expiry alerts should be raised (0–180).
+        </p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="field-group">
+        <h3 class="field-group-title">
+          <i class="bi bi-calendar-event"></i>
+          Reminders
+        </h3>
+        <div class="fields-grid cols-2">
+          <div class="field">
+            <label class="form-label" for="{{ form.license_expiry_alert_days.id_for_label }}">License Expiry Alert Days</label>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-card-heading"></i>
+              {{ form.license_expiry_alert_days }}
+            </div>
+            <span class="field-hint">Days before expiry to trigger alert (0–180).</span>
+            {% if form.license_expiry_alert_days.errors %}<div class="text-danger small mt-1">{{ form.license_expiry_alert_days.errors }}</div>{% endif %}
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.document_expiry_alert_days.id_for_label }}">Document Expiry Reminder Days</label>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-file-earmark-text"></i>
+              {{ form.document_expiry_alert_days }}
+            </div>
+            <span class="field-hint">Days before document expiry to notify.</span>
+            {% if form.document_expiry_alert_days.errors %}<div class="text-danger small mt-1">{{ form.document_expiry_alert_days.errors }}</div>{% endif %}
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.medical_expiry_alert_days.id_for_label }}">Medical Certificate Expiry Alert Days</label>
+            <div class="input-icon-wrapper">
+              <i class="bi bi-heart-pulse"></i>
+              {{ form.medical_expiry_alert_days }}
+            </div>
+            <span class="field-hint">Days before medical certificate expires.</span>
+            {% if form.medical_expiry_alert_days.errors %}<div class="text-danger small mt-1">{{ form.medical_expiry_alert_days.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — Compliance Rules -->
+  <div class="form-card mb-3" data-section="3">
+    <div class="form-card-header">
+      <div class="form-card-icon green">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Compliance Rules</h2>
+        <p class="form-card-desc">
+          Operational rules enforced across the tenant workspace.
+        </p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="field-group mb-0">
+        <h3 class="field-group-title">
+          <i class="bi bi-sliders"></i>
+          Rules
+        </h3>
+        <div class="setting-row">
+          <div class="setting-row-info">
+            <span class="form-label d-block">Driver Assignment Required for Truck</span>
+            <span class="field-hint">If ON trucks cannot be dispatched without driver.</span>
+          </div>
+          <label class="setting-toggle">
+            {{ form.driver_assignment_required }}
+            <span class="toggle-track"></span>
+            <span class="toggle-label js-ds-compliance-toggle">OFF</span>
+          </label>
+        </div>
+        {% if form.driver_assignment_required.errors %}<div class="text-danger small">{{ form.driver_assignment_required.errors }}</div>{% endif %}
+
+        <div class="setting-row">
+          <div class="setting-row-info">
+            <span class="form-label d-block">Driver Document Upload Mandatory</span>
+            <span class="field-hint">If ON drivers cannot be activated without documents.</span>
+          </div>
+          <label class="setting-toggle">
+            {{ form.document_upload_mandatory }}
+            <span class="toggle-track"></span>
+            <span class="toggle-label js-ds-compliance-toggle">OFF</span>
+          </label>
+        </div>
+        {% if form.document_upload_mandatory.errors %}<div class="text-danger small">{{ form.document_upload_mandatory.errors }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions-bar mb-3">
+    <div class="form-actions-left">
+      <a href="{% url 'iroad_tenants:driver_settings' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Reset
+      </a>
+    </div>
+    <div class="form-actions-right">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle"></i>
+        Save Settings
+      </button>
+    </div>
+  </div>
+</form>
+
+<div class="alert alert-info small">
+  <i class="bi bi-info-circle me-1"></i>
+  These settings apply to the entire tenant workspace.
+  Changes take effect immediately for new driver records.
+  Existing drivers are not affected retroactively.
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var root = document.getElementById("driverSettingsForm");
+  if (!root) return;
+
+  root.querySelectorAll(".setting-toggle").forEach(function (wrap) {
+    var input = wrap.querySelector('input[type="checkbox"]');
+    var label = wrap.querySelector(".toggle-label");
+    function updateLabel() {
+      if (!label || !input) return;
+      label.textContent = input.checked ? "ON" : "OFF";
+    }
+    if (input) {
+      updateLabel();
+      input.addEventListener("change", updateLabel);
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,300 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit Attachment{% else %}Add Attachment{% endif %}{% if driver %} — {{ driver.driver_code }}{% endif %} | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:driver_master' %}">Driver Master</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:driver_attachment_all_list' %}">Driver Attachments</a></li>
+      <li class="breadcrumb-item active">{{ page_title }}</li>
+    </ol>
+  </nav>
+  <div class="page-header-row align-items-start">
+    <div class="page-header-left">
+      {% if is_edit %}
+      <h1 class="page-title">Edit Attachment</h1>
+      <p class="page-subtitle">{% if driver %}Update attachment for {{ driver.driver_code }}{% endif %}</p>
+      {% else %}
+      <h1 class="page-title">Add Attachment</h1>
+      <p class="page-subtitle">{% if driver %}New attachment for {{ driver.driver_code }}{% else %}Select a driver and upload a document{% endif %}</p>
+      {% endif %}
+    </div>
+    <div class="page-header-right ms-auto">
+      <a href="{% url 'iroad_tenants:driver_attachment_all_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Back to all attachments
+      </a>
+    </div>
+  </div>
+</div>
+
+{# When opening from a preselected driver, avoid showing the extra Driver summary card (matches Fleet UX). #}
+{% if driver and is_edit %}
+<div class="form-card mb-3" data-section="driver-info">
+  <div class="form-card-body py-3">
+    <div class="fields-grid cols-3 mb-0">
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Driver code</span>
+        <span class="fw-semibold eal-entity-id">{{ driver.driver_code }}</span>
+      </div>
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Arabic name</span>
+        <span class="fw-semibold" dir="rtl" lang="ar">{{ driver.arabic_name }}</span>
+      </div>
+      <div class="field mb-0">
+        <span class="field-hint d-block mb-1">Status</span>
+        {% if driver.driver_status == 'Active' %}
+        <span class="status-badge da-driver-active"><i class="bi bi-check2-circle"></i> Active</span>
+        {% else %}
+        <span class="status-badge da-driver-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<form id="driverAttachmentsForm" method="post" enctype="multipart/form-data"
+  {% if is_edit %}
+  action="{% url 'iroad_tenants:driver_attachment_edit' driver_id=driver.driver_id attachment_id=attachment.attachment_id %}"
+  {% elif driver %}
+  action="{% url 'iroad_tenants:driver_attachment_create' driver_id=driver.driver_id %}"
+  {% else %}
+  action="{% url 'iroad_tenants:driver_attachment_create_any' %}"
+  {% endif %}
+  class="needs-validation" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-card mb-3" data-section="1">
+    <div class="form-card-header">
+      <div class="form-card-icon blue">
+        <i class="bi bi-paperclip"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Attachment Details</h2>
+        <p class="form-card-desc">Document date and whether an expiry applies.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="field-group">
+        <h3 class="field-group-title">
+          <i class="bi bi-card-heading"></i>
+          Attachment identity
+        </h3>
+        <div class="fields-grid cols-2">
+          <div class="field">
+            <label class="form-label">Attachment No</label>
+            <input
+              type="text"
+              class="form-control"
+              readonly
+              value="{% if is_edit and attachment.attachment_no %}{{ attachment.attachment_no }}{% else %}{{ attachment_no_preview|default:'Auto-generated' }}{% endif %}"
+              aria-readonly="true"
+            />
+            <span class="field-hint">Auto-generated reference number</span>
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.doc_ref_number.id_for_label }}">Doc Ref Number</label>
+            {{ form.doc_ref_number }}
+            {% if form.doc_ref_number.errors %}<div class="text-danger small">{{ form.doc_ref_number.errors }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="fields-grid cols-2">
+          <div class="field">
+            <label class="form-label" for="{{ form.arabic_label.id_for_label }}">Arabic Label</label>
+            {{ form.arabic_label }}
+            {% if form.arabic_label.errors %}<div class="text-danger small">{{ form.arabic_label.errors }}</div>{% endif %}
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.english_label.id_for_label }}">English Label</label>
+            {{ form.english_label }}
+            {% if form.english_label.errors %}<div class="text-danger small">{{ form.english_label.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <h3 class="field-group-title">
+          <i class="bi bi-person-badge"></i>
+          Driver &amp; date
+        </h3>
+        <div class="fields-grid cols-2">
+          <div class="field">
+            <label class="form-label">Driver <span class="required">*</span></label>
+            {% if show_driver_selector %}
+            <select class="form-select" name="driver_id" required>
+              <option value="">— Select driver —</option>
+              {% for d in drivers_for_select %}
+              <option value="{{ d.driver_id }}" {% if selected_driver_id == d.driver_id|stringformat:'s' %}selected{% endif %}>
+                {{ d.driver_code }} — {{ d.arabic_name }}
+              </option>
+              {% endfor %}
+            </select>
+            {% if driver_error %}<div class="text-danger small">{{ driver_error }}</div>{% endif %}
+            <span class="field-hint">Only active drivers are listed.</span>
+            {% else %}
+            <p class="form-control-plaintext mb-0 fw-semibold">
+              <span class="eal-entity-id">{{ driver.driver_code }}</span>
+              <span class="text-muted">—</span>
+              <span dir="rtl" lang="ar">{{ driver.arabic_name }}</span>
+            </p>
+            <span class="field-hint">Attachment is linked to this driver.</span>
+            {% endif %}
+          </div>
+          <div class="field">
+            <label class="form-label" for="{{ form.attachment_date.id_for_label }}">
+              {{ form.attachment_date.label }} <span class="required">*</span>
+            </label>
+            {{ form.attachment_date }}
+            {% if form.attachment_date.errors %}<div class="text-danger small">{{ form.attachment_date.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <h3 class="field-group-title">
+          <i class="bi bi-clock-history"></i>
+          Expiry settings
+        </h3>
+        <div class="setting-row">
+          <div class="setting-row-info">
+            <span class="form-label d-block">{{ form.is_expiry_applicable.label }}</span>
+            <span class="field-hint">Turn on if this document expires on a fixed date.</span>
+          </div>
+          <label class="setting-toggle">
+            {{ form.is_expiry_applicable }}
+            <span class="toggle-track"></span>
+            <span class="toggle-label js-da-expiry-label">Disabled</span>
+          </label>
+        </div>
+        {% if form.is_expiry_applicable.errors %}<div class="text-danger small">{{ form.is_expiry_applicable.errors }}</div>{% endif %}
+
+        <div class="fields-grid cols-2 mt-3 {% if not form.is_expiry_applicable.value %}d-none{% endif %}" id="daExpiryDateWrapper">
+          <div class="field">
+            <label class="form-label" for="{{ form.expiry_date.id_for_label }}">{{ form.expiry_date.label }}</label>
+            {{ form.expiry_date }}
+            {% if form.expiry_date.errors %}<div class="text-danger small">{{ form.expiry_date.errors }}</div>{% endif %}
+            <span class="field-hint">Required when expiry is applicable.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card mb-3" data-section="2">
+    <div class="form-card-header">
+      <div class="form-card-icon green">
+        <i class="bi bi-file-earmark-arrow-up"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">File &amp; Notes</h2>
+        <p class="form-card-desc">Upload the file and describe it.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="field-group">
+        <h3 class="field-group-title"><i class="bi bi-upload"></i> Attachment file</h3>
+        <div class="fields-grid cols-1">
+          <div class="field">
+            {% if is_edit and attachment.attachment_file %}
+            <div class="mb-3">
+              <label class="form-label small text-muted">Current file</label>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <i class="bi bi-paperclip"></i>
+                <span>{{ attachment.attachment_file.name|default:'' }}</span>
+                <a href="{{ attachment.attachment_file.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                  <i class="bi bi-box-arrow-up-right"></i> View current
+                </a>
+              </div>
+              <small class="text-muted d-block mt-1">Upload a new file below to replace the current file, or leave empty to keep it.</small>
+            </div>
+            {% endif %}
+            <label class="form-label" for="{{ form.attachment_file.id_for_label }}">
+              {{ form.attachment_file.label }}
+              {% if not is_edit %}<span class="required">*</span>{% endif %}
+            </label>
+            {{ form.attachment_file }}
+            {% if form.attachment_file.errors %}<div class="text-danger small">{{ form.attachment_file.errors }}</div>{% endif %}
+            <small class="text-muted d-block mt-1">Allowed: PDF, JPG, PNG, DOC, DOCX. Maximum size: 10MB.</small>
+          </div>
+        </div>
+      </div>
+      <div class="field-group">
+        <h3 class="field-group-title"><i class="bi bi-journal-text"></i> File notes</h3>
+        <div class="fields-grid cols-1">
+          <div class="field">
+            <label class="form-label" for="{{ form.file_notes.id_for_label }}">{{ form.file_notes.label }} <span class="text-danger">*</span></label>
+            {{ form.file_notes }}
+            {% if form.file_notes.errors %}<div class="text-danger small">{{ form.file_notes.errors }}</div>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions-bar">
+    <div class="form-actions-left">
+      {% if driver %}
+      <a href="{% url 'iroad_tenants:driver_master_detail' driver.driver_id %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg"></i>
+        Cancel
+      </a>
+      {% else %}
+      <a href="{% url 'iroad_tenants:driver_attachment_all_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-lg"></i>
+        Cancel
+      </a>
+      {% endif %}
+    </div>
+    <div class="form-actions-right">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle"></i>
+        {% if is_edit %}Save Changes{% else %}Save Attachment{% endif %}
+      </button>
+    </div>
+  </div>
+</form>
+<style>
+  .status-badge.da-driver-active { background: #198754; color: #fff; border: 0; }
+  .status-badge.da-driver-inactive { background: #94a3b8; color: #fff; border: 0; }
+  /* Prevent status badge from stretching full-width */
+  .status-badge.da-driver-active,
+  .status-badge.da-driver-inactive {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    max-width: max-content;
+    white-space: nowrap;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var toggle = document.getElementById("{{ form.is_expiry_applicable.id_for_label }}");
+  var wrapper = document.getElementById("daExpiryDateWrapper");
+  var expiryInput = document.getElementById("{{ form.expiry_date.id_for_label }}");
+  var labelEl = document.querySelector(".js-da-expiry-label");
+
+  function refresh() {
+    var on = !!(toggle && toggle.checked);
+    if (labelEl) labelEl.textContent = on ? "Enabled" : "Disabled";
+    if (wrapper) wrapper.classList.toggle("d-none", !on);
+    if (!on && expiryInput) expiryInput.value = "";
+  }
+
+  if (toggle) toggle.addEventListener("change", refresh);
+  refresh();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,542 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}{{ driver.driver_code }} | Driver Details | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Drivers Management</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:driver_master' %}">Driver Master</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Driver Details</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title"><span class="text-body-secondary fw-normal">{{ driver.driver_code }}</span> — <span dir="rtl" lang="ar">{{ driver.arabic_name }}</span></h1>
+      <p class="page-subtitle">View driver profile, documents, and attachments.</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions">
+        <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}" class="eal-btn eal-btn-primary">
+          <i class="bi bi-pencil-square"></i><span>Edit</span>
+        </a>
+        <a href="{% url 'iroad_tenants:driver_master' %}" class="eal-btn eal-btn-outline">
+          <i class="bi bi-arrow-left"></i><span>Back to List</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ch-header-card">
+  <div class="ch-left">
+    <div class="ch-title-row">
+      <div class="ch-logo"><i class="bi bi-person-badge"></i></div>
+      <div>
+        <h2 class="ch-title mb-0" dir="rtl" lang="ar">{{ driver.arabic_name }}</h2>
+        {% if driver.english_name %}<div class="text-muted small mt-1">{{ driver.english_name }}</div>{% endif %}
+      </div>
+    </div>
+    <div class="ch-badges">
+      <div class="ch-badge"><i class="bi bi-hash"></i><span>{{ driver.driver_code }}</span></div>
+      {% if driver.driver_status == 'Active' %}
+      <div class="ch-badge"><i class="bi bi-check2-circle"></i><span class="status-badge dm-driver-active d-inline border-0">Active</span></div>
+      {% else %}
+      <div class="ch-badge"><i class="bi bi-dash-circle"></i><span class="status-badge dm-driver-inactive d-inline border-0">Inactive</span></div>
+      {% endif %}
+      {% if driver.driver_source == 'In-Source' %}
+      <div class="ch-badge"><i class="bi bi-box-arrow-in-right"></i><span class="status-badge dm-source-in d-inline border-0">In-Source</span></div>
+      {% elif driver.driver_source == 'Out-Source' %}
+      <div class="ch-badge"><i class="bi bi-box-arrow-up-right"></i><span class="status-badge dm-source-out d-inline border-0">Out-Source</span></div>
+      {% else %}
+      <div class="ch-badge"><i class="bi bi-diagram-3"></i><span>{{ driver.driver_source }}</span></div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="ch-right">
+    <div class="ch-contact-item">
+      <div class="ch-contact-icon"><i class="bi bi-telephone"></i></div>
+      <div class="ch-contact-text">{{ driver.mobile_number }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="ch-actions">
+  <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-pencil-square"></i> Edit</a>
+  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
+    <i class="bi bi-card-heading"></i> Update Licenses
+  </button>
+  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
+    <i class="bi bi-wallet2"></i> Add Wallet Transaction
+  </button>
+  <a href="{% url 'iroad_tenants:driver_attachment_create' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-paperclip"></i> Upload Attachment</a>
+  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
+    <i class="bi bi-slash-circle"></i> Suspend Driver
+  </button>
+  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
+    <i class="bi bi-shield-lock"></i> Suspend App Access
+  </button>
+  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
+    <i class="bi bi-key"></i> Reset Password
+  </button>
+  {% if driver.driver_status == 'Active' %}
+  <button type="button" class="ch-action-btn text-danger border-danger dm-detail-status-trigger" data-driver-id="{{ driver.driver_id }}" data-new-status="Inactive">
+    <i class="bi bi-pause-circle"></i> Deactivate
+  </button>
+  {% else %}
+  <button type="button" class="ch-action-btn text-success border-success dm-detail-status-trigger" data-driver-id="{{ driver.driver_id }}" data-new-status="Active">
+    <i class="bi bi-arrow-counterclockwise"></i> Activate
+  </button>
+  {% endif %}
+</div>
+
+<div class="cd-main-card">
+  <div class="cd-tabs-container">
+    <ul class="nav cd-tabs-list" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button" role="tab" aria-controls="pane-overview" aria-selected="true">Overview</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab" id="tab-documents" data-bs-toggle="tab" data-bs-target="#pane-documents" type="button" role="tab" aria-controls="pane-documents" aria-selected="false">Licenses &amp; Documents</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab" id="tab-assigned-trucks" data-bs-toggle="tab" data-bs-target="#pane-assigned-trucks" type="button" role="tab" aria-controls="pane-assigned-trucks" aria-selected="false">Assigned Trucks</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab" id="tab-shipments" data-bs-toggle="tab" data-bs-target="#pane-shipments" type="button" role="tab" aria-controls="pane-shipments" aria-selected="false">Shipments</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab" id="tab-movements" data-bs-toggle="tab" data-bs-target="#pane-movements" type="button" role="tab" aria-controls="pane-movements" aria-selected="false">Movements Log</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab" id="tab-wallet" data-bs-toggle="tab" data-bs-target="#pane-wallet" type="button" role="tab" aria-controls="pane-wallet" aria-selected="false">Wallet Statement</button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="tab-content">
+    <!-- TAB 1 — Overview -->
+    <div class="tab-pane fade show active" id="pane-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <div class="cd-details-section mb-4">
+        <div class="cd-details-header">Core Driver Information</div>
+        <div class="cd-details-body">
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Driver Code</span>
+              <span class="cd-field-value">{{ driver.driver_code }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Status</span>
+              <span class="cd-field-value">
+                {% if driver.driver_status == 'Active' %}
+                <span class="status-badge dm-driver-active"><i class="bi bi-check2-circle"></i> Active</span>
+                {% else %}
+                <span class="status-badge dm-driver-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
+                {% endif %}
+              </span>
+            </div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Driver Name (English)</span>
+              <span class="cd-field-value">{{ driver.english_name|default:"—" }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Driver Name (Arabic)</span>
+              <span class="cd-field-value" dir="rtl" lang="ar">{{ driver.arabic_name }}</span>
+            </div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Date of Birth</span>
+              <span class="cd-field-value">{{ driver.birth_date|default:"—" }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Nationality</span>
+              <span class="cd-field-value">{% if driver.nationality_country %}{{ driver.nationality_country.name_en }}{% else %}—{% endif %}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cd-details-section mb-0">
+        <div class="cd-details-header">Contact Details</div>
+        <div class="cd-details-body">
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Mobile Number</span>
+              <span class="cd-field-value">{{ driver.mobile_number }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">WhatsApp Number</span>
+              <span class="cd-field-value">
+                {% if driver.whatsapp_number %}{{ driver.whatsapp_number }}{% else %}<span class="cd-pending">Under development</span>{% endif %}
+              </span>
+            </div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">WhatsApp Same as Mobile</span>
+              <span class="cd-field-value">
+                {% if driver.whatsapp_same_as_mobile %}
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">Yes</span>
+                {% else %}
+                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">No</span>
+                {% endif %}
+              </span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Secondary Mobile / Email / Emergency Contact</span>
+              <span class="cd-field-value"><span class="cd-pending">Under development</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2 — Licenses & Documents -->
+    <div class="tab-pane fade" id="pane-documents" role="tabpanel" aria-labelledby="tab-documents">
+      <div class="row row-cols-1 row-cols-md-2 g-3">
+        <div class="col">
+          <div class="cd-details-section mb-0 h-100">
+            <div class="cd-details-header">ID / IQAMA</div>
+            <div class="cd-details-body">
+              <div class="cd-grid-row">
+                <div class="cd-field"><span class="cd-field-label">ID Number</span><span class="cd-field-value">{{ driver.id_number|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{{ driver.id_expiry_date|default:"—" }}</span></div>
+              </div>
+              <div class="cd-grid-row">
+                <div class="cd-field">
+                  <span class="cd-field-label">Status</span>
+                  <span class="cd-field-value">{% include 'iroad_tenants/drivers/driver_master/partials/driver_doc_status_badge.html' with status=id_document_status only %}</span>
+                </div>
+                <div class="cd-field">
+                  {% if driver.id_image %}
+                  <span class="cd-field-label d-block mb-2">ID Image</span>
+                  <a href="{{ driver.id_image.url }}" target="_blank" rel="noopener" class="d-inline-block"><img src="{{ driver.id_image.url }}" alt="" class="dm-doc-thumb rounded border" /></a>
+                  {% else %}
+                  <span class="cd-field-label">ID Image</span><span class="cd-field-value">—</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="cd-details-section mb-0 h-100">
+            <div class="cd-details-header">Passport</div>
+            <div class="cd-details-body">
+              <div class="cd-grid-row">
+                <div class="cd-field"><span class="cd-field-label">Passport Number</span><span class="cd-field-value">{{ driver.passport_number|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{{ driver.passport_expiry_date|default:"—" }}</span></div>
+              </div>
+              <div class="cd-grid-row">
+                <div class="cd-field">
+                  <span class="cd-field-label">Status</span>
+                  <span class="cd-field-value">{% include 'iroad_tenants/drivers/driver_master/partials/driver_doc_status_badge.html' with status=passport_document_status only %}</span>
+                </div>
+                <div class="cd-field">
+                  {% if driver.passport_image %}
+                  <span class="cd-field-label d-block mb-2">Passport Image</span>
+                  <a href="{{ driver.passport_image.url }}" target="_blank" rel="noopener"><img src="{{ driver.passport_image.url }}" alt="" class="dm-doc-thumb rounded border" /></a>
+                  {% else %}
+                  <span class="cd-field-label">Passport Image</span><span class="cd-field-value">—</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="cd-details-section mb-0 h-100">
+            <div class="cd-details-header">Driving License</div>
+            <div class="cd-details-body">
+              <div class="cd-grid-row">
+                <div class="cd-field"><span class="cd-field-label">DL Number</span><span class="cd-field-value">{{ driver.dl_number|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{{ driver.dl_expiry_date|default:"—" }}</span></div>
+              </div>
+              <div class="cd-grid-row">
+                <div class="cd-field">
+                  <span class="cd-field-label">Status</span>
+                  <span class="cd-field-value">{% include 'iroad_tenants/drivers/driver_master/partials/driver_doc_status_badge.html' with status=dl_document_status only %}</span>
+                </div>
+                <div class="cd-field">
+                  {% if driver.dl_image %}
+                  <span class="cd-field-label d-block mb-2">DL Image</span>
+                  <a href="{{ driver.dl_image.url }}" target="_blank" rel="noopener"><img src="{{ driver.dl_image.url }}" alt="" class="dm-doc-thumb rounded border" /></a>
+                  {% else %}
+                  <span class="cd-field-label">DL Image</span><span class="cd-field-value">—</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="cd-details-section mb-0 h-100">
+            <div class="cd-details-header">Driver Card</div>
+            <div class="cd-details-body">
+              <div class="cd-grid-row">
+                <div class="cd-field"><span class="cd-field-label">Card Number</span><span class="cd-field-value">{{ driver.card_number|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{{ driver.card_expiry_date|default:"—" }}</span></div>
+              </div>
+              <div class="cd-grid-row">
+                <div class="cd-field">
+                  <span class="cd-field-label">Status</span>
+                  <span class="cd-field-value">{% include 'iroad_tenants/drivers/driver_master/partials/driver_doc_status_badge.html' with status=card_document_status only %}</span>
+                </div>
+                <div class="cd-field">
+                  {% if driver.card_image %}
+                  <span class="cd-field-label d-block mb-2">Card Image</span>
+                  <a href="{{ driver.card_image.url }}" target="_blank" rel="noopener"><img src="{{ driver.card_image.url }}" alt="" class="dm-doc-thumb rounded border" /></a>
+                  {% else %}
+                  <span class="cd-field-label">Card Image</span><span class="cd-field-value">—</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cd-details-section mt-3 mb-0">
+        <div class="cd-details-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <span>Uploaded Documents <span class="badge bg-secondary ms-1">{{ attachments_count }} files</span></span>
+          <a href="{% url 'iroad_tenants:driver_attachment_create' driver.driver_id %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-upload"></i> Upload File
+          </a>
+        </div>
+        <div class="cd-details-body p-0">
+          {% if attachments_preview %}
+          <div class="eal-table-wrap" style="box-shadow: none; border-radius: 0">
+            <table class="eal-table mb-0">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Date</th>
+                  <th>Expiry Applicable</th>
+                  <th>Expiry Date</th>
+                  <th>Status</th>
+                  <th>File</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in attachments_preview %}
+                <tr>
+                  <td><span class="eal-entity-id">{{ a.attachment_no|default:forloop.counter }}</span></td>
+                  <td>{{ a.attachment_date }}</td>
+                  <td>
+                    {% if a.is_expiry_applicable %}
+                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success">Yes</span>
+                    {% else %}
+                    <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">No</span>
+                    {% endif %}
+                  </td>
+                  <td>{% if a.is_expiry_applicable and a.expiry_date %}{{ a.expiry_date }}{% else %}—{% endif %}</td>
+                  <td>
+                    {% if a.status == 'Valid' %}
+                    <span class="status-badge dm-doc-valid">Valid</span>
+                    {% elif a.status == 'Expired' %}
+                    <span class="status-badge dm-doc-expired">Expired</span>
+                    {% else %}
+                    <span class="status-badge dm-doc-none">{{ a.status|default:"—" }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if a.attachment_file %}
+                    <a href="{{ a.attachment_file.url }}" target="_blank" rel="noopener">{{ a.attachment_file.name|truncatechars:44 }}</a>
+                    {% else %}—{% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="p-4 text-muted cd-empty border-0">No uploaded documents yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="pane-assigned-trucks" role="tabpanel" aria-labelledby="tab-assigned-trucks">
+      <div class="cd-empty">
+        <strong>Under development:</strong> Driver ↔ truck assignment history is pending backend connection.
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="pane-shipments" role="tabpanel" aria-labelledby="tab-shipments">
+      <div class="cd-empty">
+        <strong>Under development:</strong> Shipment linkage for driver history is pending backend connection.
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="pane-movements" role="tabpanel" aria-labelledby="tab-movements">
+      <div class="cd-empty">
+        <strong>Under development:</strong> Movements log module linkage is pending backend connection.
+      </div>
+    </div>
+
+    <div class="tab-pane fade" id="pane-wallet" role="tabpanel" aria-labelledby="tab-wallet">
+      <div class="cd-empty">
+        <strong>Under development:</strong> Wallet statement and transactions are pending backend connection.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- POST: set driver status (same as list) -->
+<div class="modal fade" id="driverDetailStatusModal" tabindex="-1" aria-labelledby="driverDetailStatusTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'iroad_tenants:driver_master' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="set_status" />
+        <input type="hidden" name="driver_id" id="dmDetailConfirmId" value="" />
+        <input type="hidden" name="new_status" id="dmDetailConfirmStatus" value="" />
+        <input type="hidden" name="redirect_query" value="" />
+        <div class="modal-header">
+          <h5 class="modal-title" id="driverDetailStatusTitle">Confirm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0 d-none" id="dmDetailMsgDeact">Deactivate this driver?</p>
+          <p class="mb-0 d-none" id="dmDetailMsgAct">Activate this driver?</p>
+        </div>
+        <div class="modal-footer gap-2">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger px-4" id="dmDetailConfirmSubmit">Deactivate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .ch-header-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+  }
+  .ch-left { display: flex; flex-direction: column; gap: 16px; }
+  .ch-title-row { display: flex; align-items: center; gap: 16px; }
+  .ch-logo {
+    width: 48px; height: 48px; background: #ebecfa; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.25rem;
+  }
+  .ch-title { font-size: 1.4rem; font-weight: 700; margin: 0; color: #1a1a1a; }
+  .ch-badges { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ch-badge {
+    display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.08); font-size: 0.85rem; font-weight: 500; color: #4a4a4a; background: #fff;
+  }
+  .ch-badge i { color: #6b6b6b; }
+  .ch-right { display: flex; flex-direction: column; gap: 10px; min-width: 250px; }
+  .ch-contact-item {
+    display: flex; align-items: stretch; background: #f4f5f9; border-radius: 6px; overflow: hidden;
+    font-size: 0.85rem; border: 1px solid rgba(0, 0, 0, 0.04);
+  }
+  .ch-contact-icon { padding: 8px 12px; background: #e4e6fb; color: #3b82f6; display: flex; align-items: center; justify-content: center; }
+  .ch-contact-text { padding: 8px 16px; flex: 1; display: flex; align-items: center; color: #1a1a1a; font-weight: 500; }
+  .ch-actions { display: flex; align-items: center; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+  .ch-action-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+    border: 1px solid #c2c4fa; border-radius: 8px; background: #fff; color: #3b82f6;
+    font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; border-width: 1px;
+  }
+  .ch-action-btn:hover { background: #f4f5fc; color: #3b82f6; }
+  .ch-action-btn--disabled,
+  .ch-action-btn--disabled:hover {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: #fff;
+    color: #64748b;
+    border-color: #e2e8f0;
+  }
+  .cd-main-card {
+    background: #fff; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.08); padding: 20px;
+  }
+  .cd-tabs-container { background: #f4f5fc; border-radius: 8px; padding: 6px; margin-bottom: 24px; }
+  .cd-tabs-list { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; padding: 0; margin: 0; list-style: none; }
+  .cd-tabs-list::-webkit-scrollbar { display: none; }
+  .cd-tab {
+    border: none; background: transparent; padding: 8px 20px; font-size: 0.85rem; color: #6b6b6b;
+    cursor: pointer; border-radius: 6px; font-weight: 500; white-space: nowrap; transition: all 0.2s;
+  }
+  .cd-tab.active { background: #3b82f6; color: #fff; box-shadow: 0 2px 4px rgba(80, 81, 249, 0.2); }
+  .cd-tab:hover:not(.active) { color: #1a1a1a; }
+  .cd-details-section { border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
+  .cd-details-header {
+    background: #f4f5fc; padding: 16px 20px; font-weight: 600; font-size: 0.9rem;
+    color: #1a1a1a; border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .cd-details-body { background: #fff; padding: 20px; }
+  .cd-grid-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+  }
+  .cd-grid-row:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
+  .cd-field { display: flex; flex-direction: column; gap: 6px; }
+  .cd-field-label { font-size: 0.8rem; color: #6b6b6b; }
+  .cd-field-value { font-size: 1rem; font-weight: 700; color: #1a1a1a; }
+  .cd-empty {
+    border: 1px dashed rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 18px; background: rgba(0, 0, 0, 0.02);
+  }
+  .cd-pending { color: #b45309; font-weight: 600; }
+  .dm-doc-thumb { max-width: 120px; max-height: 120px; object-fit: contain; display: block; }
+  .status-badge.dm-source-in { background: #0d6efd; color: #fff; border: 0; }
+  .status-badge.dm-source-out { background: #fd7e14; color: #fff; border: 0; }
+  .status-badge.dm-driver-active { background: #198754; color: #fff; border: 0; }
+  .status-badge.dm-driver-inactive { background: #94a3b8; color: #fff; border: 0; }
+  .status-badge.dm-doc-valid { background: #198754; color: #fff; border: 0; }
+  .status-badge.dm-doc-expired { background: #dc3545; color: #fff; border: 0; }
+  .status-badge.dm-doc-none { background: #64748b; color: #fff; border: 0; }
+  @media (max-width: 768px) {
+    .ch-header-card { flex-direction: column; }
+    .cd-grid-row { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var modalEl = document.getElementById("driverDetailStatusModal");
+  var modal =
+    modalEl && typeof bootstrap !== "undefined"
+      ? bootstrap.Modal.getOrCreateInstance(modalEl)
+      : null;
+  if (!modal) return;
+
+  document.querySelectorAll(".dm-detail-status-trigger").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var newStatus = btn.getAttribute("data-new-status") || "";
+      var id = btn.getAttribute("data-driver-id") || "";
+      document.getElementById("dmDetailConfirmId").value = id;
+      document.getElementById("dmDetailConfirmStatus").value = newStatus;
+      var deact = newStatus === "Inactive";
+      document.getElementById("dmDetailMsgDeact").classList.toggle("d-none", !deact);
+      document.getElementById("dmDetailMsgAct").classList.toggle("d-none", deact);
+      document.getElementById("driverDetailStatusTitle").textContent = deact ? "Deactivate driver" : "Activate driver";
+      var sub = document.getElementById("dmDetailConfirmSubmit");
+      sub.textContent = deact ? "Deactivate" : "Activate";
+      sub.className = "btn px-4 " + (deact ? "btn-danger" : "btn-success");
+      modal.show();
+    });
+  });
+})();
+</script>
+{% endblock %}
