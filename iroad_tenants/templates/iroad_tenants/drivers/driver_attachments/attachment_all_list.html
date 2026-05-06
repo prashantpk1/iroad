@@ -109,53 +109,64 @@
     <table class="eal-table">
       <thead>
         <tr>
+          <th class="eal-col-check">
+            <input type="checkbox" class="eal-custom-check" id="daListSelectAll" aria-label="Select all rows" />
+          </th>
           <th>#</th>
-          <th>Attachment No</th>
           <th>
-            <a href="{{ sort_urls.driver }}" class="eal-sort-link">
-              <span>Driver Code</span>
-              <span class="sort-indicator" role="presentation">
-                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'driver' and sort_dir == 'asc' %} is-active{% endif %}"></i>
-                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'driver' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+            <a href="{{ sort_urls.attachment_no }}" class="tm-sort-link{% if sort_field == 'attachment_no' %} is-active{% endif %}">
+              Attachment No
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_field == 'attachment_no' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_field == 'attachment_no' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_urls.driver }}" class="tm-sort-link{% if sort_field == 'driver' %} is-active{% endif %}">
+              Driver Code
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_field == 'driver' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_field == 'driver' and sort_dir == 'desc' %} active{% endif %}"></i>
               </span>
             </a>
           </th>
           <th>Driver Name</th>
           <th>
-            <a href="{{ sort_urls.attachment_date }}" class="eal-sort-link">
-              <span>Date</span>
-              <span class="sort-indicator" role="presentation">
-                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'attachment_date' and sort_dir == 'asc' %} is-active{% endif %}"></i>
-                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'attachment_date' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+            <a href="{{ sort_urls.attachment_date }}" class="tm-sort-link{% if sort_field == 'attachment_date' %} is-active{% endif %}">
+              Date
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_field == 'attachment_date' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_field == 'attachment_date' and sort_dir == 'desc' %} active{% endif %}"></i>
               </span>
             </a>
           </th>
           <th>Expiry Applicable</th>
           <th>
-            <a href="{{ sort_urls.expiry_date }}" class="eal-sort-link">
-              <span>Expiry Date</span>
-              <span class="sort-indicator" role="presentation">
-                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'expiry_date' and sort_dir == 'asc' %} is-active{% endif %}"></i>
-                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'expiry_date' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+            <a href="{{ sort_urls.expiry_date }}" class="tm-sort-link{% if sort_field == 'expiry_date' %} is-active{% endif %}">
+              Expiry Date
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_field == 'expiry_date' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_field == 'expiry_date' and sort_dir == 'desc' %} active{% endif %}"></i>
               </span>
             </a>
           </th>
           <th>
-            <a href="{{ sort_urls.status }}" class="eal-sort-link">
-              <span>Status</span>
-              <span class="sort-indicator" role="presentation">
-                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'status' and sort_dir == 'asc' %} is-active{% endif %}"></i>
-                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'status' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+            <a href="{{ sort_urls.status }}" class="tm-sort-link{% if sort_field == 'status' %} is-active{% endif %}">
+              Status
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_field == 'status' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_field == 'status' and sort_dir == 'desc' %} active{% endif %}"></i>
               </span>
             </a>
           </th>
           <th>Notes</th>
           <th>
-            <a href="{{ sort_urls.file }}" class="eal-sort-link">
-              <span>File</span>
-              <span class="sort-indicator" role="presentation">
-                <i class="bi bi-caret-up-fill eal-sort-caret eal-sort-caret--up{% if sort_field == 'file' and sort_dir == 'asc' %} is-active{% endif %}"></i>
-                <i class="bi bi-caret-down-fill eal-sort-caret eal-sort-caret--down{% if sort_field == 'file' and sort_dir == 'desc' %} is-active{% endif %}"></i>
+            <a href="{{ sort_urls.file }}" class="tm-sort-link{% if sort_field == 'file' %} is-active{% endif %}">
+              File
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_field == 'file' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_field == 'file' and sort_dir == 'desc' %} active{% endif %}"></i>
               </span>
             </a>
           </th>
@@ -165,6 +176,9 @@
       <tbody>
         {% for row in attachments_page %}
         <tr>
+          <td class="eal-col-check">
+            <input type="checkbox" class="eal-custom-check da-row-check" aria-label="Select row" />
+          </td>
           <td class="text-muted small">{{ attachments_page.start_index|add:forloop.counter0 }}</td>
           <td><span class="eal-entity-id">{{ row.attachment_no|default:"—" }}</span></td>
           <td><span class="eal-entity-id">{{ row.driver.driver_code }}</span></td>
@@ -256,7 +270,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="10" class="text-center text-muted py-5">
+          <td colspan="11" class="text-center text-muted py-5">
             {% if search_q or filter_status %}
             No attachments match your search or filters.
             {% else %}
@@ -329,23 +343,33 @@
   }
   .eal-table td { vertical-align: middle; }
   .eal-table .eal-row-btn { min-width: 42px; }
-  .eal-sort-link {
+  .tm-sort-link {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
     color: inherit;
     text-decoration: none;
-    font-weight: inherit;
   }
-  .eal-sort-link:hover { color: #5051f9; }
-  .eal-sort-caret {
+  .tm-sort-link:hover {
+    color: inherit;
+    text-decoration: none;
+  }
+  .tm-sort-link.is-active .tm-sort-indicator {
+    opacity: 0.9;
+  }
+  .tm-sort-indicator {
+    display: inline-flex;
+    flex-direction: column;
+    margin-left: 6px;
+    vertical-align: middle;
+    opacity: 0.45;
+    line-height: 0.75;
+  }
+  .tm-sort-indicator i {
+    font-size: 9px;
     opacity: 0.35;
-    font-size: 0.65em;
-    line-height: 1;
   }
-  .eal-sort-caret.is-active {
+  .tm-sort-indicator i.active {
     opacity: 1;
-    color: #5051f9;
   }
   .status-badge.da-att-valid { background: #198754; color: #fff; border: 0; }
   .status-badge.da-att-expired { background: #dc3545; color: #fff; border: 0; }
@@ -373,6 +397,16 @@
       modal.show();
     });
   });
+
+  var selectAll = document.getElementById("daListSelectAll");
+  if (selectAll) {
+    selectAll.addEventListener("change", function () {
+      var on = selectAll.checked;
+      document.querySelectorAll(".da-row-check").forEach(function (cb) {
+        cb.checked = on;
+      });
+    });
+  }
 })();
 </script>
 {% endblock %}

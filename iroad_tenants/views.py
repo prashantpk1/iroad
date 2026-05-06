@@ -8181,7 +8181,21 @@ class DriverMasterListView(View):
                 | Q(mobile_number__icontains=sq)
             )
 
-        qs_ordered = qs.order_by('-created_at')
+        sort_key_raw = (request.GET.get('sort') or 'driver_code').strip().lower()
+        sort_dir_raw = (request.GET.get('dir') or 'asc').strip().lower()
+        sort_map = {
+            'driver_code': 'driver_code',
+            'arabic_name': 'arabic_name',
+            'english_name': 'english_name',
+            'mobile_number': 'mobile_number',
+            'driver_source': 'driver_source',
+            'driver_status': 'driver_status',
+        }
+        sort_key = sort_map.get(sort_key_raw, 'driver_code')
+        sort_dir = 'desc' if sort_dir_raw == 'desc' else 'asc'
+        order_expr = f'-{sort_key}' if sort_dir == 'desc' else sort_key
+
+        qs_ordered = qs.order_by(order_expr, '-created_at')
         stats = {
             'total_count': dm.objects.count(),
             'active_count': dm.objects.filter(
@@ -8225,6 +8239,20 @@ class DriverMasterListView(View):
                 q.pop('page', None)
             return '?' + q.urlencode()
 
+        def _sort_url(col_key):
+            q = request.GET.copy()
+            q.pop('stype', None)
+            current_key = sort_key_raw if sort_key_raw in sort_map else 'driver_code'
+            current_dir = sort_dir
+            if col_key == current_key:
+                next_dir = 'desc' if current_dir == 'asc' else 'asc'
+            else:
+                next_dir = 'asc'
+            q['sort'] = col_key
+            q['dir'] = next_dir
+            q.pop('page', None)
+            return '?' + q.urlencode()
+
         pagination_page_links = [(n, _page_url(n)) for n in page.paginator.page_range]
         prev_url = _page_url(page.previous_page_number()) if page.has_previous() else None
         next_url = _page_url(page.next_page_number()) if page.has_next() else None
@@ -8242,6 +8270,14 @@ class DriverMasterListView(View):
                 'pagination_start': ps,
                 'pagination_end': pe,
                 'pagination_total': total_count,
+                'sort_key': sort_key_raw if sort_key_raw in sort_map else 'driver_code',
+                'sort_dir': sort_dir,
+                'sort_url_driver_code': _sort_url('driver_code'),
+                'sort_url_arabic_name': _sort_url('arabic_name'),
+                'sort_url_english_name': _sort_url('english_name'),
+                'sort_url_mobile_number': _sort_url('mobile_number'),
+                'sort_url_driver_source': _sort_url('driver_source'),
+                'sort_url_driver_status': _sort_url('driver_status'),
                 'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
             }
         )
@@ -8732,7 +8768,7 @@ class DriverAttachmentAllListView(View):
         sq = (request.GET.get('q') or '').strip()
 
         allowed_sort = frozenset(
-            {'driver', 'attachment_date', 'expiry_date', 'file', 'status'},
+            {'attachment_no', 'driver', 'attachment_date', 'expiry_date', 'file', 'status'},
         )
         raw_sort = (request.GET.get('sort') or '').strip()
         raw_dir = (request.GET.get('dir') or '').strip().lower()
@@ -8812,7 +8848,13 @@ class DriverAttachmentAllListView(View):
                 if not (a.is_expiry_applicable and a.expiry_date)
             ]
 
-            if sort_field == 'driver':
+            if sort_field == 'attachment_no':
+                filtered = sorted(
+                    filtered,
+                    key=lambda a: (a.attachment_no or '').lower(),
+                    reverse=sort_reverse,
+                )
+            elif sort_field == 'driver':
                 filtered = sorted(
                     filtered,
                     key=lambda a: (a.driver.driver_code or '').lower(),

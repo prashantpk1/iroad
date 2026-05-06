@@ -118,15 +118,63 @@
       <thead>
         <tr>
           <th class="eal-col-check">
-            <input type="checkbox" class="eal-custom-check" aria-label="Select all" disabled />
+            <input type="checkbox" class="eal-custom-check" id="dmListSelectAll" aria-label="Select all" />
           </th>
           <th>#</th>
-          <th>Driver Code</th>
-          <th>Arabic Name</th>
-          <th>English Name</th>
-          <th>Mobile</th>
-          <th>Source</th>
-          <th>Status</th>
+          <th>
+            <a href="{{ sort_url_driver_code }}" class="tm-sort-link{% if sort_key == 'driver_code' %} is-active{% endif %}">
+              Driver Code
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'driver_code' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'driver_code' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_arabic_name }}" class="tm-sort-link{% if sort_key == 'arabic_name' %} is-active{% endif %}">
+              Arabic Name
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'arabic_name' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'arabic_name' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_english_name }}" class="tm-sort-link{% if sort_key == 'english_name' %} is-active{% endif %}">
+              English Name
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'english_name' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'english_name' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_mobile_number }}" class="tm-sort-link{% if sort_key == 'mobile_number' %} is-active{% endif %}">
+              Mobile
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'mobile_number' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'mobile_number' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_driver_source }}" class="tm-sort-link{% if sort_key == 'driver_source' %} is-active{% endif %}">
+              Source
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'driver_source' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'driver_source' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_driver_status }}" class="tm-sort-link{% if sort_key == 'driver_status' %} is-active{% endif %}">
+              Status
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'driver_status' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'driver_status' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
           <th>ID Status</th>
           <th>DL Status</th>
           <th>Actions</th>
@@ -135,7 +183,7 @@
       <tbody>
         {% for row in drivers_page %}
         <tr>
-          <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" disabled /></td>
+          <td class="eal-col-check"><input type="checkbox" class="eal-custom-check dm-row-check" /></td>
           <td>{{ drivers_page.start_index|add:forloop.counter0 }}</td>
           <td><span class="eal-entity-id">{{ row.driver_code }}</span></td>
           <td><span dir="rtl">{{ row.arabic_name }}</span></td>
@@ -326,6 +374,34 @@
     color: #fff;
     border: 0;
   }
+  .tm-sort-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .tm-sort-link:hover {
+    color: inherit;
+    text-decoration: none;
+  }
+  .tm-sort-link.is-active .tm-sort-indicator {
+    opacity: 0.9;
+  }
+  .tm-sort-indicator {
+    display: inline-flex;
+    flex-direction: column;
+    margin-left: 6px;
+    vertical-align: middle;
+    opacity: 0.45;
+    line-height: 0.75;
+  }
+  .tm-sort-indicator i {
+    font-size: 9px;
+    opacity: 0.35;
+  }
+  .tm-sort-indicator i.active {
+    opacity: 1;
+  }
 </style>
 {% endblock %}
 
@@ -357,6 +433,18 @@
       sub.textContent = deact ? "Deactivate" : "Activate";
       sub.className = "btn px-4 " + (deact ? "btn-danger" : "btn-success");
       modal.show();
+    });
+  });
+})();
+</script>
+<script>
+(function () {
+  var selectAll = document.getElementById("dmListSelectAll");
+  if (!selectAll) return;
+  selectAll.addEventListener("change", function () {
+    var on = selectAll.checked;
+    document.querySelectorAll(".dm-row-check").forEach(function (cb) {
+      cb.checked = on;
     });
   });
 })();
