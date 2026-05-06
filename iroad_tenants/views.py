@@ -8464,7 +8464,7 @@ class DriverMasterCreateView(View):
 
             messages.success(
                 request,
-                f'Driver {obj.driver_code} created successfully.',
+                f'Driver profile {obj.driver_code} created successfully.',
                 extra_tags='tenant',
             )
             redirect_resp = _tenant_redirect(request, 'iroad_tenants:driver_master')
@@ -8628,7 +8628,7 @@ class DriverMasterEditView(View):
                 messages.error(request, 'Could not save changes.', extra_tags='tenant')
                 return render(request, self.template_name, context)
 
-            messages.success(request, 'Driver updated successfully.', extra_tags='tenant')
+            messages.success(request, 'Driver profile updated successfully.', extra_tags='tenant')
             redirect_resp = _tenant_redirect(request, 'iroad_tenants:driver_master')
         finally:
             connection.set_schema_to_public()
