@@ -498,6 +498,17 @@
   wireDocPreview("{{ form.passport_number.id_for_label }}", "{{ form.passport_expiry_date.id_for_label }}", "dmBadgePassport");
   wireDocPreview("{{ form.dl_number.id_for_label }}", "{{ form.dl_expiry_date.id_for_label }}", "dmBadgeDl");
   wireDocPreview("{{ form.card_number.id_for_label }}", "{{ form.card_expiry_date.id_for_label }}", "dmBadgeCard");
+
+  var qs = new URLSearchParams(window.location.search || "");
+  var targetSection = (qs.get("section") || "").toLowerCase();
+  if (targetSection === "licenses" || targetSection === "driving-license") {
+    var licenseCard = document.querySelector('.form-card[data-section="e"]');
+    var firstLicenseInput = document.getElementById("{{ form.dl_number.id_for_label }}");
+    if (licenseCard) licenseCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (firstLicenseInput && typeof firstLicenseInput.focus === "function") {
+      setTimeout(function () { firstLicenseInput.focus(); }, 250);
+    }
+  }
 })();
 </script>
 {% endblock %}

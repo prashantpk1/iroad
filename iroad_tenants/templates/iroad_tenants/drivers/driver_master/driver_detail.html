@@ -79,9 +79,9 @@
 
 <div class="ch-actions">
   <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-pencil-square"></i> Edit</a>
-  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
+  <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}?section=driving-license" class="ch-action-btn">
     <i class="bi bi-card-heading"></i> Update Licenses
-  </button>
+  </a>
   <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
     <i class="bi bi-wallet2"></i> Add Wallet Transaction
   </button>
