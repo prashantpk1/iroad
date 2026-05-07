@@ -1089,3 +1089,41 @@
 - driver_assignment_required: boolean default False
 - document_upload_mandatory: boolean default False
 
+## Driver Treasury Module Rules
+
+### Driver Treasury Rules
+- treasury_code: auto-number prefix DT, never editable
+- driver: FK to DriverMaster, required
+- status: Active/Inactive, default Active
+- current_balance: Decimal, default 0.00, read-only
+  (auto-calculated from transactions — never manually edited)
+- No hard delete — status toggle only
+
+### Driver Treasury Transaction Rules
+- transaction_no: auto-number prefix DTT, never editable
+- transaction_date: DateTimeField, default now, required
+- driver_treasury: FK to DriverTreasury, required
+- transaction_type: Credit or Debit only
+- transaction_category: Client Collection or Custody Collection
+- amount: Decimal >= 0, required
+- related_shipment: optional text placeholder
+  (TODO: FK to Shipment when module built)
+- description: optional text
+- Balance update rule:
+  Credit: adds to treasury current_balance
+  Debit: subtracts from treasury current_balance
+  Balance updated automatically on save and delete
+- No hard delete of transactions —
+  if deleted reverse the balance impact
+
+### General Rules
+- Follow EXACT same pattern as DriverMaster module
+- Auto-number via _next_auto_number_for_form
+- Access check: _tenant_driver_treasury_access
+- Schema: _activate_tenant_workspace_schema
+- Finally: connection.set_schema_to_public()
+- Messages: extra_tags='tenant'
+- Pagination: 10 per page
+- Namespace: iroad_tenants
+- URL prefix: fleet/driver-treasury/
+

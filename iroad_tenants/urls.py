@@ -6,6 +6,14 @@ from .views import (
     DriverMasterCreateView,
     DriverMasterEditView,
     DriverMasterDetailView,
+    DriverTreasuryListView,
+    DriverTreasuryCreateView,
+    DriverTreasuryEditView,
+    DriverTreasuryDetailView,
+    DriverTreasuryTransactionListView,
+    DriverTreasuryTransactionCreateView,
+    DriverTreasuryTransactionEditView,
+    DriverTreasuryTransactionDetailView,
     DriverAttachmentAllListView,
     DriverAttachmentListView,
     DriverAttachmentCreateView,
@@ -520,6 +528,48 @@ urlpatterns = [
         'fleet/drivers/<uuid:driver_id>/',
         DriverMasterDetailView.as_view(),
         name='driver_master_detail',
+    ),
+    # ── Driver Treasury ────────────────────────────────
+    path(
+        'fleet/driver-treasury/',
+        DriverTreasuryListView.as_view(),
+        name='driver_treasury_list',
+    ),
+    path(
+        'fleet/driver-treasury/create/',
+        DriverTreasuryCreateView.as_view(),
+        name='driver_treasury_create',
+    ),
+    path(
+        'fleet/driver-treasury/<uuid:treasury_id>/',
+        DriverTreasuryDetailView.as_view(),
+        name='driver_treasury_detail',
+    ),
+    path(
+        'fleet/driver-treasury/<uuid:treasury_id>/edit/',
+        DriverTreasuryEditView.as_view(),
+        name='driver_treasury_edit',
+    ),
+    # ── Driver Treasury Transactions ───────────────────
+    path(
+        'fleet/driver-treasury/transactions/',
+        DriverTreasuryTransactionListView.as_view(),
+        name='driver_transaction_list',
+    ),
+    path(
+        'fleet/driver-treasury/transactions/create/',
+        DriverTreasuryTransactionCreateView.as_view(),
+        name='driver_transaction_create',
+    ),
+    path(
+        'fleet/driver-treasury/transactions/<uuid:transaction_id>/',
+        DriverTreasuryTransactionDetailView.as_view(),
+        name='driver_transaction_detail',
+    ),
+    path(
+        'fleet/driver-treasury/transactions/<uuid:transaction_id>/edit/',
+        DriverTreasuryTransactionEditView.as_view(),
+        name='driver_transaction_edit',
     ),
     # ── Driver Attachments ─────────────────────────────
     path(

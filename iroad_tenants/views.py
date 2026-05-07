@@ -89,6 +89,8 @@ from tenant_workspace.models import (
     DriverAttachment,
     DriverMaster,
     DriverSettings,
+    DriverTreasury,
+    DriverTreasuryTransaction,
     TruckAttachment,
     TruckImage,
     TruckDriverAssignmentHistory,
@@ -111,6 +113,10 @@ from iroad_tenants.forms_tenant_route import TenantRouteMasterForm
 from iroad_tenants.forms_truck_type import TruckTypeMasterForm
 from iroad_tenants.forms_driver import DriverAttachmentForm, DriverSettingsForm
 from iroad_tenants.forms_driver_master import DriverMasterForm
+from iroad_tenants.forms_driver_treasury import (
+    DriverTreasuryForm,
+    DriverTreasuryTransactionForm,
+)
 from iroad_tenants.forms_truck_master import TruckMasterForm
 from iroad_tenants.forms_truck import TruckSettingsForm
 from iroad_tenants.forms_truck_attachment import TruckAttachmentForm
@@ -9484,6 +9490,870 @@ class DriverMasterDetailView(View):
                     'dl_document_status': driver.dl_status,
                     'card_document_status': driver.card_status,
                     'page_title': driver.driver_code,
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+DRIVER_TREASURY_AUTO_FORM_CODE = 'driver-treasury'
+DRIVER_TREASURY_AUTO_FORM_LABEL = 'Treasury Code'
+DRIVER_TREASURY_REF_PREFIX = 'DT'
+
+DRIVER_TXN_AUTO_FORM_CODE = 'driver-treasury-transaction'
+DRIVER_TXN_AUTO_FORM_LABEL = 'Transaction No'
+DRIVER_TXN_REF_PREFIX = 'DTT'
+
+
+def _tenant_driver_treasury_access(request, context):
+    if context is None:
+        response = redirect('login')
+        clear_tenant_portal_cookie(
+            response, request=request
+        )
+        return response
+    if not context.get('is_tenant_admin'):
+        messages.error(
+            request,
+            'You do not have access to '
+            'Driver Treasury.',
+            extra_tags='tenant',
+        )
+        return _tenant_redirect(
+            request,
+            'iroad_tenants:tenant_dashboard',
+        )
+    return None
+
+
+def _preview_next_driver_treasury_code():
+    return _preview_next_auto_number_for_form(
+        form_code=DRIVER_TREASURY_AUTO_FORM_CODE,
+        form_label=DRIVER_TREASURY_AUTO_FORM_LABEL,
+        prefix=DRIVER_TREASURY_REF_PREFIX,
+    )
+
+
+def _preview_next_driver_txn_code():
+    return _preview_next_auto_number_for_form(
+        form_code=DRIVER_TXN_AUTO_FORM_CODE,
+        form_label=DRIVER_TXN_AUTO_FORM_LABEL,
+        prefix=DRIVER_TXN_REF_PREFIX,
+    )
+
+
+class DriverTreasuryListView(View):
+    template_name = 'iroad_tenants/drivers/driver_treasury/treasury_list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            qs = DriverTreasury.objects.select_related('driver')
+            search_q = (request.GET.get('q') or '').strip()
+            if search_q:
+                qs = qs.filter(
+                    Q(treasury_code__icontains=search_q)
+                    | Q(driver__arabic_name__icontains=search_q)
+                    | Q(driver__driver_code__icontains=search_q)
+                )
+
+            status_raw = (request.GET.get('status') or '').strip().lower()
+            if 'status' not in request.GET:
+                qs = qs.filter(status=DriverTreasury.Status.ACTIVE)
+                filter_status = ''
+            elif not status_raw:
+                qs = qs.filter(status=DriverTreasury.Status.ACTIVE)
+                filter_status = 'active'
+            elif status_raw == 'all':
+                filter_status = 'all'
+            elif status_raw == 'inactive':
+                qs = qs.filter(status=DriverTreasury.Status.INACTIVE)
+                filter_status = 'inactive'
+            elif status_raw == 'active':
+                qs = qs.filter(status=DriverTreasury.Status.ACTIVE)
+                filter_status = 'active'
+            else:
+                qs = qs.filter(status=DriverTreasury.Status.ACTIVE)
+                filter_status = 'active'
+
+            sort_key_raw = (request.GET.get('sort') or 'created_at').strip().lower()
+            sort_dir_raw = (request.GET.get('dir') or 'desc').strip().lower()
+            sort_map = {
+                'treasury_code': 'treasury_code',
+                'driver_name': 'driver__arabic_name',
+                'status': 'status',
+                'current_balance': 'current_balance',
+                'created_at': 'created_at',
+            }
+            sort_key = sort_map.get(sort_key_raw, 'created_at')
+            sort_dir = 'desc' if sort_dir_raw == 'desc' else 'asc'
+            order_expr = f'-{sort_key}' if sort_dir == 'desc' else sort_key
+            qs = qs.order_by(order_expr, '-created_at')
+
+            stats = {
+                'total_count': DriverTreasury.objects.count(),
+                'active_count': DriverTreasury.objects.filter(
+                    status=DriverTreasury.Status.ACTIVE
+                ).count(),
+                'inactive_count': DriverTreasury.objects.filter(
+                    status=DriverTreasury.Status.INACTIVE
+                ).count(),
+                'total_balance': (
+                    DriverTreasury.objects.filter(
+                        status=DriverTreasury.Status.ACTIVE
+                    ).aggregate(total=Sum('current_balance')).get('total')
+                    or Decimal('0.00')
+                ),
+            }
+
+            paginator = Paginator(qs, 10)
+            try:
+                page_no = max(1, int(request.GET.get('page') or 1))
+            except ValueError:
+                page_no = 1
+            treasuries_page = paginator.get_page(page_no)
+
+            total_count = paginator.count
+            if total_count == 0:
+                ps, pe = 0, 0
+            else:
+                ps = (treasuries_page.number - 1) * paginator.per_page + 1
+                pe = ps + len(treasuries_page.object_list) - 1
+
+            def _page_url(page_num):
+                q = request.GET.copy()
+                try:
+                    pn = int(page_num)
+                except (TypeError, ValueError):
+                    pn = 1
+                if pn > 1:
+                    q['page'] = str(pn)
+                else:
+                    q.pop('page', None)
+                return '?' + q.urlencode()
+
+            def _sort_url(col_key):
+                q = request.GET.copy()
+                current_key = sort_key_raw if sort_key_raw in sort_map else 'created_at'
+                current_dir = sort_dir
+                if col_key == current_key:
+                    next_dir = 'desc' if current_dir == 'asc' else 'asc'
+                else:
+                    next_dir = 'asc'
+                q['sort'] = col_key
+                q['dir'] = next_dir
+                q.pop('page', None)
+                return '?' + q.urlencode()
+
+            pagination_page_links = [
+                (n, _page_url(n)) for n in treasuries_page.paginator.page_range
+            ]
+            prev_url = (
+                _page_url(treasuries_page.previous_page_number())
+                if treasuries_page.has_previous()
+                else None
+            )
+            next_url = (
+                _page_url(treasuries_page.next_page_number())
+                if treasuries_page.has_next()
+                else None
+            )
+
+            context.update(
+                {
+                    'treasuries_page': treasuries_page,
+                    'stats': stats,
+                    'filter_status': filter_status,
+                    'search_q': search_q,
+                    'pagination_page_links': pagination_page_links,
+                    'pagination_prev_url': prev_url,
+                    'pagination_next_url': next_url,
+                    'pagination_start': ps,
+                    'pagination_end': pe,
+                    'pagination_total': total_count,
+                    'sort_key': sort_key_raw if sort_key_raw in sort_map else 'created_at',
+                    'sort_dir': sort_dir,
+                    'sort_url_treasury_code': _sort_url('treasury_code'),
+                    'sort_url_driver_name': _sort_url('driver_name'),
+                    'sort_url_status': _sort_url('status'),
+                    'sort_url_current_balance': _sort_url('current_balance'),
+                    'sort_url_created_at': _sort_url('created_at'),
+                    'page_title': 'Driver Treasury',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        if request.POST.get('action') != 'set_status':
+            return self.get(request)
+
+        treasury_id = (request.POST.get('treasury_id') or '').strip()
+        new_status = (request.POST.get('new_status') or '').strip()
+        if new_status not in (
+            DriverTreasury.Status.ACTIVE,
+            DriverTreasury.Status.INACTIVE,
+        ):
+            messages.error(request, 'Invalid status.', extra_tags='tenant')
+            rq = (request.POST.get('redirect_query') or '').strip()
+            base = reverse('iroad_tenants:driver_treasury_list')
+            if rq:
+                return redirect(f'{base}?{rq}')
+            return _tenant_redirect(request, 'iroad_tenants:driver_treasury_list')
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            treasury = DriverTreasury.objects.filter(pk=treasury_id).first()
+            if not treasury:
+                messages.error(request, 'Treasury not found.', extra_tags='tenant')
+            else:
+                treasury.status = new_status
+                treasury.save(update_fields=['status', 'updated_at'])
+                messages.success(
+                    request,
+                    f'Treasury set to {new_status.lower()}.',
+                    extra_tags='tenant',
+                )
+        finally:
+            connection.set_schema_to_public()
+
+        rq = (request.POST.get('redirect_query') or '').strip()
+        base = reverse('iroad_tenants:driver_treasury_list')
+        if rq:
+            return redirect(f'{base}?{rq}')
+        return _tenant_redirect(request, 'iroad_tenants:driver_treasury_list')
+
+
+class DriverTreasuryCreateView(View):
+    template_name = 'iroad_tenants/drivers/driver_treasury/treasury_form.html'
+
+    @staticmethod
+    def _driver_balance_map():
+        balances = (
+            DriverTreasury.objects.values('driver_id')
+            .annotate(total=Sum('current_balance'))
+            .order_by()
+        )
+        return {
+            str(row['driver_id']): f"{(row['total'] or Decimal('0.00')):.2f}"
+            for row in balances
+        }
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            form = DriverTreasuryForm()
+            context.update(
+                {
+                    'form': form,
+                    'code_preview': _preview_next_driver_treasury_code(),
+                    'driver_balance_map': self._driver_balance_map(),
+                    'page_title': 'Add Driver Treasury',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            form = DriverTreasuryForm(request.POST)
+            if not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'code_preview': _preview_next_driver_treasury_code(),
+                        'driver_balance_map': self._driver_balance_map(),
+                        'page_title': 'Add Driver Treasury',
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            with db_transaction.atomic():
+                code, seq = _next_auto_number_for_form(
+                    form_code='driver-treasury',
+                    form_label='Driver Treasury',
+                    prefix='DT',
+                )
+                obj = form.save(commit=False)
+                obj.treasury_code = code
+                obj.treasury_sequence = seq
+                obj.current_balance = Decimal('0.00')
+                obj.save()
+
+            messages.success(
+                request,
+                f'Treasury {obj.treasury_code} created.',
+                extra_tags='tenant',
+            )
+            return _tenant_redirect(request, 'iroad_tenants:driver_treasury_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverTreasuryEditView(View):
+    template_name = 'iroad_tenants/drivers/driver_treasury/treasury_form.html'
+
+    def _load(self, treasury_id):
+        return DriverTreasury.objects.select_related('driver').filter(
+            pk=treasury_id
+        ).first()
+
+    def get(self, request, treasury_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            treasury = self._load(treasury_id)
+            if not treasury:
+                messages.error(request, 'Treasury not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_treasury_list')
+
+            form = DriverTreasuryForm(instance=treasury)
+            context.update(
+                {
+                    'form': form,
+                    'treasury': treasury,
+                    'is_edit': True,
+                    'page_title': 'Edit Driver Treasury',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, treasury_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            treasury = self._load(treasury_id)
+            if not treasury:
+                messages.error(request, 'Treasury not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_treasury_list')
+
+            immutable_code = treasury.treasury_code
+            immutable_balance = treasury.current_balance
+            form = DriverTreasuryForm(request.POST, instance=treasury)
+            if not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'treasury': treasury,
+                        'is_edit': True,
+                        'page_title': 'Edit Driver Treasury',
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            obj = form.save(commit=False)
+            obj.treasury_code = immutable_code
+            obj.current_balance = immutable_balance
+            obj.save()
+            messages.success(request, 'Driver Treasury updated.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:driver_treasury_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverTreasuryDetailView(View):
+    template_name = 'iroad_tenants/drivers/driver_treasury/treasury_detail.html'
+
+    def get(self, request, treasury_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            treasury = DriverTreasury.objects.select_related('driver').filter(
+                pk=treasury_id
+            ).first()
+            if not treasury:
+                messages.error(request, 'Treasury not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_treasury_list')
+
+            recent_transactions = list(
+                treasury.transactions.select_related('driver_treasury')
+                .order_by('-transaction_date', '-created_at')[:10]
+            )
+            context.update(
+                {
+                    'treasury': treasury,
+                    'recent_transactions': recent_transactions,
+                    'page_title': 'Treasury Detail',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverTreasuryTransactionListView(View):
+    template_name = 'iroad_tenants/drivers/driver_treasury/transaction_list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            qs = DriverTreasuryTransaction.objects.select_related(
+                'driver_treasury',
+                'driver_treasury__driver',
+            )
+            search_q = (request.GET.get('q') or '').strip()
+            if search_q:
+                qs = qs.filter(
+                    Q(transaction_no__icontains=search_q)
+                    | Q(driver_treasury__treasury_code__icontains=search_q)
+                    | Q(driver_treasury__driver__arabic_name__icontains=search_q)
+                )
+
+            type_filter = (request.GET.get('transaction_type') or 'all').strip()
+            if type_filter in (
+                DriverTreasuryTransaction.TransactionType.CREDIT,
+                DriverTreasuryTransaction.TransactionType.DEBIT,
+            ):
+                qs = qs.filter(transaction_type=type_filter)
+            else:
+                type_filter = 'all'
+
+            category_filter = (request.GET.get('transaction_category') or 'all').strip()
+            if category_filter in (
+                DriverTreasuryTransaction.TransactionCategory.CLIENT_COLLECTION,
+                DriverTreasuryTransaction.TransactionCategory.CUSTODY_COLLECTION,
+            ):
+                qs = qs.filter(transaction_category=category_filter)
+            else:
+                category_filter = 'all'
+
+            sort_key_raw = (request.GET.get('sort') or 'transaction_date').strip().lower()
+            sort_dir_raw = (request.GET.get('dir') or 'desc').strip().lower()
+            sort_map = {
+                'transaction_no': 'transaction_no',
+                'transaction_date': 'transaction_date',
+                'treasury_code': 'driver_treasury__treasury_code',
+                'driver_name': 'driver_treasury__driver__arabic_name',
+                'transaction_type': 'transaction_type',
+                'transaction_category': 'transaction_category',
+                'amount': 'amount',
+            }
+            sort_key = sort_map.get(sort_key_raw, 'transaction_date')
+            sort_dir = 'desc' if sort_dir_raw == 'desc' else 'asc'
+            order_expr = f'-{sort_key}' if sort_dir == 'desc' else sort_key
+            qs = qs.order_by(order_expr, '-created_at')
+            stats = {
+                'total_count': DriverTreasuryTransaction.objects.count(),
+                'credit_count': DriverTreasuryTransaction.objects.filter(
+                    transaction_type=DriverTreasuryTransaction.TransactionType.CREDIT
+                ).count(),
+                'debit_count': DriverTreasuryTransaction.objects.filter(
+                    transaction_type=DriverTreasuryTransaction.TransactionType.DEBIT
+                ).count(),
+                'total_credit_amount': (
+                    DriverTreasuryTransaction.objects.filter(
+                        transaction_type=DriverTreasuryTransaction.TransactionType.CREDIT
+                    ).aggregate(total=Sum('amount')).get('total')
+                    or Decimal('0.00')
+                ),
+                'total_debit_amount': (
+                    DriverTreasuryTransaction.objects.filter(
+                        transaction_type=DriverTreasuryTransaction.TransactionType.DEBIT
+                    ).aggregate(total=Sum('amount')).get('total')
+                    or Decimal('0.00')
+                ),
+            }
+
+            paginator = Paginator(qs, 10)
+            try:
+                page_no = max(1, int(request.GET.get('page') or 1))
+            except ValueError:
+                page_no = 1
+            transactions_page = paginator.get_page(page_no)
+
+            total_count = paginator.count
+            if total_count == 0:
+                ps, pe = 0, 0
+            else:
+                ps = (transactions_page.number - 1) * paginator.per_page + 1
+                pe = ps + len(transactions_page.object_list) - 1
+
+            def _page_url(page_num):
+                q = request.GET.copy()
+                try:
+                    pn = int(page_num)
+                except (TypeError, ValueError):
+                    pn = 1
+                if pn > 1:
+                    q['page'] = str(pn)
+                else:
+                    q.pop('page', None)
+                return '?' + q.urlencode()
+
+            def _sort_url(col_key):
+                q = request.GET.copy()
+                current_key = sort_key_raw if sort_key_raw in sort_map else 'transaction_date'
+                current_dir = sort_dir
+                if col_key == current_key:
+                    next_dir = 'desc' if current_dir == 'asc' else 'asc'
+                else:
+                    next_dir = 'asc'
+                q['sort'] = col_key
+                q['dir'] = next_dir
+                q.pop('page', None)
+                return '?' + q.urlencode()
+
+            pagination_page_links = [
+                (n, _page_url(n)) for n in transactions_page.paginator.page_range
+            ]
+            prev_url = (
+                _page_url(transactions_page.previous_page_number())
+                if transactions_page.has_previous()
+                else None
+            )
+            next_url = (
+                _page_url(transactions_page.next_page_number())
+                if transactions_page.has_next()
+                else None
+            )
+
+            context.update(
+                {
+                    'transactions_page': transactions_page,
+                    'stats': stats,
+                    'search_q': search_q,
+                    'filter_transaction_type': type_filter,
+                    'filter_transaction_category': category_filter,
+                    'pagination_page_links': pagination_page_links,
+                    'pagination_prev_url': prev_url,
+                    'pagination_next_url': next_url,
+                    'pagination_start': ps,
+                    'pagination_end': pe,
+                    'pagination_total': total_count,
+                    'sort_key': sort_key_raw if sort_key_raw in sort_map else 'transaction_date',
+                    'sort_dir': sort_dir,
+                    'sort_url_transaction_no': _sort_url('transaction_no'),
+                    'sort_url_transaction_date': _sort_url('transaction_date'),
+                    'sort_url_treasury_code': _sort_url('treasury_code'),
+                    'sort_url_driver_name': _sort_url('driver_name'),
+                    'sort_url_transaction_type': _sort_url('transaction_type'),
+                    'sort_url_transaction_category': _sort_url('transaction_category'),
+                    'sort_url_amount': _sort_url('amount'),
+                    'page_title': 'Driver Treasury Transactions',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        if request.POST.get('action') != 'delete':
+            return self.get(request)
+
+        transaction_id = (request.POST.get('transaction_id') or '').strip()
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            trx = DriverTreasuryTransaction.objects.filter(pk=transaction_id).first()
+            if not trx:
+                messages.error(request, 'Transaction not found.', extra_tags='tenant')
+            else:
+                trx.delete()
+                messages.success(request, 'Transaction deleted.', extra_tags='tenant')
+        finally:
+            connection.set_schema_to_public()
+
+        rq = (request.POST.get('redirect_query') or '').strip()
+        base = reverse('iroad_tenants:driver_transaction_list')
+        if rq:
+            return redirect(f'{base}?{rq}')
+        return _tenant_redirect(request, 'iroad_tenants:driver_transaction_list')
+
+
+class DriverTreasuryTransactionCreateView(View):
+    template_name = 'iroad_tenants/drivers/driver_treasury/transaction_form.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            initial = {}
+            treasury_id = (request.GET.get('treasury_id') or '').strip()
+            if treasury_id:
+                initial['driver_treasury'] = treasury_id
+            form = DriverTreasuryTransactionForm(initial=initial)
+            context.update(
+                {
+                    'form': form,
+                    'code_preview': _preview_next_driver_txn_code(),
+                    'page_title': 'Add Transaction',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            form = DriverTreasuryTransactionForm(request.POST)
+            if not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'code_preview': _preview_next_driver_txn_code(),
+                        'page_title': 'Add Transaction',
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            with db_transaction.atomic():
+                code, seq = _next_auto_number_for_form(
+                    form_code='driver-treasury-transaction',
+                    form_label='Driver Treasury Transaction',
+                    prefix='DTT',
+                )
+                obj = form.save(commit=False)
+                obj.transaction_no = code
+                obj.transaction_sequence = seq
+                obj.save()
+
+            messages.success(
+                request,
+                f'Transaction {obj.transaction_no} saved.',
+                extra_tags='tenant',
+            )
+            return _tenant_redirect(request, 'iroad_tenants:driver_transaction_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverTreasuryTransactionEditView(View):
+    template_name = 'iroad_tenants/drivers/driver_treasury/transaction_form.html'
+
+    def _load(self, transaction_id):
+        return DriverTreasuryTransaction.objects.select_related(
+            'driver_treasury',
+            'driver_treasury__driver',
+        ).filter(pk=transaction_id).first()
+
+    def get(self, request, transaction_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            transaction = self._load(transaction_id)
+            if not transaction:
+                messages.error(request, 'Transaction not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_transaction_list')
+
+            form = DriverTreasuryTransactionForm(instance=transaction)
+            context.update(
+                {
+                    'form': form,
+                    'transaction': transaction,
+                    'is_edit': True,
+                    'page_title': 'Edit Transaction',
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, transaction_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            transaction = self._load(transaction_id)
+            if not transaction:
+                messages.error(request, 'Transaction not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_transaction_list')
+
+            immutable_no = transaction.transaction_no
+            immutable_seq = transaction.transaction_sequence
+            form = DriverTreasuryTransactionForm(request.POST, instance=transaction)
+            if not form.is_valid():
+                context.update(
+                    {
+                        'form': form,
+                        'transaction': transaction,
+                        'is_edit': True,
+                        'page_title': 'Edit Transaction',
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            obj = form.save(commit=False)
+            obj.transaction_no = immutable_no
+            obj.transaction_sequence = immutable_seq
+            obj.save()
+            messages.success(request, 'Transaction updated.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:driver_transaction_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class DriverTreasuryTransactionDetailView(View):
+    template_name = 'iroad_tenants/drivers/driver_treasury/transaction_detail.html'
+
+    def get(self, request, transaction_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_driver_treasury_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+
+        try:
+            transaction = DriverTreasuryTransaction.objects.select_related(
+                'driver_treasury',
+                'driver_treasury__driver',
+            ).filter(pk=transaction_id).first()
+            if not transaction:
+                messages.error(request, 'Transaction not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:driver_transaction_list')
+            context.update(
+                {
+                    'transaction': transaction,
+                    'page_title': 'Transaction Detail',
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
                 }
             )

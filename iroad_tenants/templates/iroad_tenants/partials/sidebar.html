@@ -457,6 +457,34 @@
           </li>
           {% endif %}
 
+          <!-- Driver Treasury -->
+          {% if is_tenant_admin %}
+          <li class="nav-item has-submenu{% if request.resolver_match %}{% if request.resolver_match.url_name == 'driver_treasury_list' or request.resolver_match.url_name == 'driver_treasury_create' or request.resolver_match.url_name == 'driver_treasury_edit' or request.resolver_match.url_name == 'driver_treasury_detail' or request.resolver_match.url_name == 'driver_transaction_list' or request.resolver_match.url_name == 'driver_transaction_create' or request.resolver_match.url_name == 'driver_transaction_edit' or request.resolver_match.url_name == 'driver_transaction_detail' %} open{% endif %}{% endif %}">
+            <a href="#" class="nav-link"
+               data-tooltip="Driver Treasury">
+              <i class="bi bi-wallet2"></i>
+              <span class="nav-text">Driver Treasury</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:driver_treasury_list' %}"
+                   class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'driver_treasury_list' or request.resolver_match.url_name == 'driver_treasury_create' or request.resolver_match.url_name == 'driver_treasury_edit' or request.resolver_match.url_name == 'driver_treasury_detail' %} active{% endif %}{% endif %}">
+                  <i class="bi bi-wallet"></i>
+                  <span>Driver Treasuries</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:driver_transaction_list' %}"
+                   class="submenu-link{% if request.resolver_match %}{% if request.resolver_match.url_name == 'driver_transaction_list' or request.resolver_match.url_name == 'driver_transaction_create' or request.resolver_match.url_name == 'driver_transaction_edit' or request.resolver_match.url_name == 'driver_transaction_detail' %} active{% endif %}{% endif %}">
+                  <i class="bi bi-receipt"></i>
+                  <span>Transactions</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          {% endif %}
+
           <!-- --- FINANCE --- -->
           <li class="nav-section-title">
             <span>Finance</span>

@@ -1,0 +1,229 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}{{ transaction.transaction_no }} | Transaction Detail | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Drivers Management</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:driver_transaction_list' %}">Driver Treasury Transactions</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Transaction Detail</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ transaction.transaction_no }}
+        {% if transaction.transaction_type == 'Credit' %}
+        <span class="status-badge active ms-2">Credit</span>
+        {% else %}
+        <span class="status-badge danger ms-2">Debit</span>
+        {% endif %}
+      </h1>
+      <p class="page-subtitle">Detailed transaction information.</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions">
+        <a href="{% url 'iroad_tenants:driver_transaction_edit' transaction.transaction_id %}" class="eal-btn eal-btn-primary">
+          <i class="bi bi-pencil-square"></i><span>Edit</span>
+        </a>
+        <a href="{% url 'iroad_tenants:driver_transaction_list' %}" class="eal-btn eal-btn-outline">
+          <i class="bi bi-arrow-left"></i><span>Back</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ch-header-card">
+  <div class="ch-left">
+    <div class="ch-title-row">
+      <div class="ch-logo"><i class="bi bi-receipt"></i></div>
+      <div>
+        <h2 class="ch-title mb-0">{{ transaction.transaction_no }}</h2>
+        <div class="text-muted small mt-1">{{ transaction.transaction_date|date:'Y-m-d H:i' }}</div>
+      </div>
+    </div>
+    <div class="ch-badges">
+      {% if transaction.transaction_type == 'Credit' %}
+      <div class="ch-badge"><span class="status-badge active d-inline border-0">Credit</span></div>
+      {% else %}
+      <div class="ch-badge"><span class="status-badge danger d-inline border-0">Debit</span></div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="ch-right">
+    <div class="ch-contact-item">
+      <div class="ch-contact-icon"><i class="bi bi-currency-dollar"></i></div>
+      <div class="ch-contact-text {% if transaction.transaction_type == 'Credit' %}text-success{% else %}text-danger{% endif %}">
+        {{ transaction.amount|floatformat:2 }}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ch-actions">
+  <a href="{% url 'iroad_tenants:driver_transaction_edit' transaction.transaction_id %}" class="ch-action-btn">
+    <i class="bi bi-pencil-square"></i> Edit Transaction
+  </a>
+  <form method="post" action="{% url 'iroad_tenants:driver_transaction_list' %}" class="d-inline">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="delete" />
+    <input type="hidden" name="transaction_id" value="{{ transaction.transaction_id }}" />
+    <button type="submit" class="ch-action-btn text-danger border-danger">
+      <i class="bi bi-trash"></i> Delete
+    </button>
+  </form>
+</div>
+
+<div class="cd-main-card">
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-lg-6">
+      <div class="cd-details-section h-100 mb-0">
+        <div class="cd-details-header">Transaction Info</div>
+        <div class="cd-details-body">
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Transaction No</span>
+              <span class="cd-field-value">{{ transaction.transaction_no }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Date</span>
+              <span class="cd-field-value">{{ transaction.transaction_date|date:'Y-m-d H:i' }}</span>
+            </div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Type</span>
+              <span class="cd-field-value">
+                {% if transaction.transaction_type == 'Credit' %}
+                <span class="status-badge active">Credit</span>
+                {% else %}
+                <span class="status-badge danger">Debit</span>
+                {% endif %}
+              </span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Category</span>
+              <span class="cd-field-value">{{ transaction.transaction_category }}</span>
+            </div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Related Shipment</span>
+              <span class="cd-field-value">{{ transaction.related_shipment|default:"N/A" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="cd-details-section h-100 mb-0">
+        <div class="cd-details-header">Treasury Info</div>
+        <div class="cd-details-body">
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Treasury Code</span>
+              <span class="cd-field-value">
+                <a href="{% url 'iroad_tenants:driver_treasury_detail' transaction.driver_treasury.treasury_id %}" class="text-decoration-none">
+                  {{ transaction.driver_treasury.treasury_code }}
+                </a>
+              </span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Driver Arabic Name</span>
+              <span class="cd-field-value" dir="rtl">{{ transaction.driver_treasury.driver.arabic_name }}</span>
+            </div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Driver Code</span>
+              <span class="cd-field-value">{{ transaction.driver_treasury.driver.driver_code }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Treasury Current Balance</span>
+              <span class="cd-field-value {% if transaction.driver_treasury.current_balance < 0 %}text-danger{% else %}text-success{% endif %}">
+                {{ transaction.driver_treasury.current_balance|floatformat:2 }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cd-details-section mb-0">
+    <div class="cd-details-header">Description</div>
+    <div class="cd-details-body">
+      {{ transaction.description|default:"No description" }}
+    </div>
+  </div>
+</div>
+
+<style>
+  .ch-header-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+  }
+  .ch-left { display: flex; flex-direction: column; gap: 16px; }
+  .ch-title-row { display: flex; align-items: center; gap: 16px; }
+  .ch-logo {
+    width: 48px; height: 48px; background: #ebecfa; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.25rem;
+  }
+  .ch-title { font-size: 1.4rem; font-weight: 700; margin: 0; color: #1a1a1a; }
+  .ch-badges { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ch-badge {
+    display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.08); font-size: 0.85rem; font-weight: 500; color: #4a4a4a; background: #fff;
+  }
+  .ch-right { display: flex; flex-direction: column; gap: 10px; min-width: 250px; }
+  .ch-contact-item {
+    display: flex; align-items: stretch; background: #f4f5f9; border-radius: 6px; overflow: hidden;
+    font-size: 0.85rem; border: 1px solid rgba(0, 0, 0, 0.04);
+  }
+  .ch-contact-icon { padding: 8px 12px; background: #e4e6fb; color: #3b82f6; display: flex; align-items: center; justify-content: center; }
+  .ch-contact-text { padding: 8px 16px; flex: 1; display: flex; align-items: center; font-size: 1.3rem; font-weight: 700; }
+  .ch-actions { display: flex; align-items: center; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+  .ch-action-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+    border: 1px solid #c2c4fa; border-radius: 8px; background: #fff; color: #3b82f6;
+    font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; border-width: 1px;
+  }
+  .ch-action-btn:hover { background: #f4f5fc; color: #3b82f6; }
+  .cd-main-card {
+    background: #fff; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.08); padding: 20px;
+  }
+  .cd-details-section { border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
+  .cd-details-header {
+    background: #f4f5fc; padding: 16px 20px; font-weight: 600; font-size: 0.9rem;
+    color: #1a1a1a; border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .cd-details-body { background: #fff; padding: 20px; }
+  .cd-grid-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+  }
+  .cd-grid-row:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
+  .cd-field { display: flex; flex-direction: column; gap: 6px; }
+  .cd-field-label { font-size: 0.8rem; color: #6b6b6b; }
+  .cd-field-value { font-size: 1rem; font-weight: 700; color: #1a1a1a; }
+  .status-badge.danger { background: #dc3545; color: #fff; border: 0; }
+  @media (max-width: 768px) {
+    .ch-header-card { flex-direction: column; }
+    .cd-grid-row { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}

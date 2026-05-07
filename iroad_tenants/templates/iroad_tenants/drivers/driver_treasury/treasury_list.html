@@ -1,0 +1,419 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}Driver Treasury | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a>
+      </li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Drivers Management</li>
+      <li class="breadcrumb-item active" aria-current="page">Driver Treasury</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">Driver Treasury</h1>
+      <p class="page-subtitle">Manage driver treasury accounts</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions">
+        <a href="{% url 'iroad_tenants:driver_treasury_create' %}" class="eal-btn eal-btn-primary">
+          <i class="bi bi-plus-lg"></i>
+          <span>Add New Treasury</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="eal-stats-row eal-stats-row--dt">
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon blue">
+      <i class="bi bi-wallet2"></i>
+    </div>
+    <div>
+      <div class="eal-stat-value">{{ stats.total_count }}</div>
+      <div class="eal-stat-label">Total Treasuries</div>
+    </div>
+  </div>
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon green">
+      <i class="bi bi-check-circle"></i>
+    </div>
+    <div>
+      <div class="eal-stat-value">{{ stats.active_count }}</div>
+      <div class="eal-stat-label">Active</div>
+    </div>
+  </div>
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon slate">
+      <i class="bi bi-pause-circle"></i>
+    </div>
+    <div>
+      <div class="eal-stat-value">{{ stats.inactive_count }}</div>
+      <div class="eal-stat-label">Inactive</div>
+    </div>
+  </div>
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon purple">
+      <i class="bi bi-currency-dollar"></i>
+    </div>
+    <div>
+      <div class="eal-stat-value">{{ stats.total_balance|default:"0.00" }}</div>
+      <div class="eal-stat-label">Total Balance</div>
+    </div>
+  </div>
+</div>
+
+<div class="eal-table-card">
+  <form method="get" class="eal-toolbar eal-toolbar--inline-filters">
+    <div class="eal-toolbar-left w-100">
+      <div class="eal-toolbar-filters-row flex-wrap gap-2">
+        <div class="eal-search eal-search--toolbar-grow">
+          <i class="bi bi-search"></i>
+          <input type="text" name="q" value="{{ search_q }}" placeholder="Search treasury code or driver..." />
+        </div>
+        <div class="eal-toolbar-filter-pair">
+          <label class="form-label mb-0 small text-nowrap text-muted" for="dtListStatus">Status</label>
+          <select name="status" id="dtListStatus" class="form-select form-select-sm">
+            <option value="all" {% if filter_status == 'all' %}selected{% endif %}>All</option>
+            <option value="active" {% if filter_status == '' or filter_status == 'active' %}selected{% endif %}>Active</option>
+            <option value="inactive" {% if filter_status == 'inactive' %}selected{% endif %}>Inactive</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary eal-toolbar-apply">Apply</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="eal-table-wrap">
+    <table class="eal-table eal-table--compact">
+      <thead>
+        <tr>
+          <th class="eal-col-check">
+            <input type="checkbox" class="eal-custom-check" id="dtListSelectAll" aria-label="Select all" />
+          </th>
+          <th>#</th>
+          <th>
+            <a href="{{ sort_url_treasury_code }}" class="tm-sort-link{% if sort_key == 'treasury_code' %} is-active{% endif %}">
+              Treasury Code
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'treasury_code' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'treasury_code' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_driver_name }}" class="tm-sort-link{% if sort_key == 'driver_name' %} is-active{% endif %}">
+              Driver
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'driver_name' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'driver_name' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_status }}" class="tm-sort-link{% if sort_key == 'status' %} is-active{% endif %}">
+              Status
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'status' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'status' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th class="text-end">
+            <a href="{{ sort_url_current_balance }}" class="tm-sort-link{% if sort_key == 'current_balance' %} is-active{% endif %}">
+              Current Balance
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'current_balance' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'current_balance' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>
+            <a href="{{ sort_url_created_at }}" class="tm-sort-link{% if sort_key == 'created_at' %} is-active{% endif %}">
+              Created
+              <span class="tm-sort-indicator">
+                <i class="bi bi-caret-up-fill{% if sort_key == 'created_at' and sort_dir == 'asc' %} active{% endif %}"></i>
+                <i class="bi bi-caret-down-fill{% if sort_key == 'created_at' and sort_dir == 'desc' %} active{% endif %}"></i>
+              </span>
+            </a>
+          </th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in treasuries_page %}
+        <tr>
+          <td class="eal-col-check"><input type="checkbox" class="eal-custom-check dt-row-check" /></td>
+          <td>{{ treasuries_page.start_index|add:forloop.counter0 }}</td>
+          <td><span class="eal-entity-id">{{ row.treasury_code }}</span></td>
+          <td class="dt-driver-cell">
+            <span class="dt-driver-inline">
+              {{ row.driver.driver_code }} ({{ row.driver.arabic_name }})
+            </span>
+          </td>
+          <td>
+            {% if row.status == 'Active' %}
+            <span class="status-badge active">Active</span>
+            {% else %}
+            <span class="status-badge inactive">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="text-end {% if row.current_balance < 0 %}text-danger{% endif %}">
+            {{ row.current_balance|floatformat:2 }}
+          </td>
+          <td>{{ row.created_at|date:'Y-m-d H:i' }}</td>
+          <td>
+            <div class="dropdown eal-actions-cell" onclick="event.stopPropagation();">
+              <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
+                <li>
+                  <a href="{% url 'iroad_tenants:driver_treasury_detail' row.treasury_id %}" class="dropdown-item">
+                    <i class="bi bi-eye me-2 text-info"></i>View
+                  </a>
+                </li>
+                <li>
+                  <a href="{% url 'iroad_tenants:driver_treasury_edit' row.treasury_id %}" class="dropdown-item">
+                    <i class="bi bi-pencil me-2 text-primary"></i>Edit
+                  </a>
+                </li>
+                {% if row.status == 'Active' %}
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                  <button type="button" class="dropdown-item text-danger dt-status-trigger" data-treasury-id="{{ row.treasury_id }}" data-new-status="Inactive">
+                    <i class="bi bi-pause-circle me-2"></i>Deactivate
+                  </button>
+                </li>
+                {% else %}
+                <li>
+                  <button type="button" class="dropdown-item text-success dt-status-trigger" data-treasury-id="{{ row.treasury_id }}" data-new-status="Active">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Activate
+                  </button>
+                </li>
+                {% endif %}
+              </ul>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-5">
+            <div class="eal-empty py-4">
+              <p class="mb-1 fw-medium">No treasury accounts found.</p>
+              <p class="small mb-3">Adjust filters or create a new treasury account.</p>
+              <a href="{% url 'iroad_tenants:driver_treasury_create' %}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i>Add New Treasury
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pagination_total > 0 %}
+  <div class="eal-pagination">
+    <div class="eal-pagination-info">
+      Showing <strong>{{ pagination_start }}-{{ pagination_end }}</strong> of <strong>{{ pagination_total }}</strong> treasuries
+    </div>
+    <div class="eal-pagination-controls">
+      {% if pagination_prev_url %}
+      <a class="eal-page-btn" href="{{ pagination_prev_url }}" title="Previous"><i class="bi bi-chevron-left"></i></a>
+      {% else %}
+      <span class="eal-page-btn disabled opacity-50"><i class="bi bi-chevron-left"></i></span>
+      {% endif %}
+      {% for num, page_href in pagination_page_links %}
+      <a class="eal-page-btn{% if num == treasuries_page.number %} active{% endif %}" href="{{ page_href }}">{{ num }}</a>
+      {% endfor %}
+      {% if pagination_next_url %}
+      <a class="eal-page-btn" href="{{ pagination_next_url }}" title="Next"><i class="bi bi-chevron-right"></i></a>
+      {% else %}
+      <span class="eal-page-btn disabled opacity-50"><i class="bi bi-chevron-right"></i></span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="modal fade" id="driverTreasuryStatusModal" tabindex="-1" aria-labelledby="driverTreasuryStatusTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'iroad_tenants:driver_treasury_list' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="set_status" />
+        <input type="hidden" name="treasury_id" id="dtConfirmId" value="" />
+        <input type="hidden" name="new_status" id="dtConfirmStatus" value="" />
+        <input type="hidden" name="redirect_query" value="{{ request.GET.urlencode }}" />
+        <div class="modal-header">
+          <h5 class="modal-title" id="driverTreasuryStatusTitle">Confirm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0 d-none" id="dtMsgDeact">Deactivate this treasury?</p>
+          <p class="mb-0 d-none" id="dtMsgAct">Activate this treasury?</p>
+        </div>
+        <div class="modal-footer gap-2">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger px-4" id="dtConfirmSubmit">Deactivate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .eal-stats-row--dt {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .eal-stats-row--dt .eal-stat-card {
+    min-height: 92px;
+    padding: 14px 16px;
+  }
+  .eal-stats-row--dt .eal-stat-value { font-size: 1.6rem; line-height: 1.1; }
+  .eal-stats-row--dt .eal-stat-label { font-size: 0.92rem; }
+  .eal-stat-icon.slate { background: #64748b; color: #fff; }
+  .eal-table--compact th,
+  .eal-table--compact td {
+    padding-top: 0.52rem;
+    padding-bottom: 0.52rem;
+    vertical-align: middle;
+  }
+  .eal-table--compact th {
+    font-size: 0.74rem;
+    white-space: nowrap;
+  }
+  .eal-table--compact td {
+    font-size: 0.83rem;
+  }
+  .eal-table--compact .eal-entity-id {
+    font-size: 0.79rem;
+    padding: 0.12rem 0.42rem;
+  }
+  .eal-table--compact td:nth-child(4) {
+    min-width: 230px;
+  }
+  .eal-table--compact td:nth-child(8),
+  .eal-table--compact td:nth-child(9) {
+    white-space: nowrap;
+  }
+  .dt-driver-cell {
+    white-space: nowrap;
+  }
+  .dt-driver-inline {
+    display: inline-block;
+    line-height: 1.15;
+  }
+  .eal-table-wrap {
+    overflow-x: auto;
+  }
+  .eal-toolbar {
+    padding-top: 0.72rem;
+    padding-bottom: 0.72rem;
+  }
+  .tm-sort-link {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .tm-sort-link:hover {
+    color: inherit;
+    text-decoration: none;
+  }
+  .tm-sort-link.is-active .tm-sort-indicator {
+    opacity: 0.9;
+  }
+  .tm-sort-indicator {
+    display: inline-flex;
+    flex-direction: column;
+    margin-left: 6px;
+    vertical-align: middle;
+    opacity: 0.45;
+    line-height: 0.75;
+  }
+  .tm-sort-indicator i {
+    font-size: 9px;
+    opacity: 0.35;
+  }
+  .tm-sort-indicator i.active {
+    opacity: 1;
+  }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var modalEl = document.getElementById("driverTreasuryStatusModal");
+  var modal =
+    modalEl && typeof bootstrap !== "undefined"
+      ? bootstrap.Modal.getOrCreateInstance(modalEl)
+      : null;
+  if (!modal) return;
+
+  document.querySelectorAll(".dt-status-trigger").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var newStatus = btn.getAttribute("data-new-status") || "";
+      var id = btn.getAttribute("data-treasury-id") || "";
+      document.getElementById("dtConfirmId").value = id;
+      document.getElementById("dtConfirmStatus").value = newStatus;
+      var deact = newStatus === "Inactive";
+      document.getElementById("dtMsgDeact").classList.toggle("d-none", !deact);
+      document.getElementById("dtMsgAct").classList.toggle("d-none", deact);
+      document.getElementById("driverTreasuryStatusTitle").textContent = deact
+        ? "Deactivate treasury"
+        : "Activate treasury";
+      var sub = document.getElementById("dtConfirmSubmit");
+      sub.textContent = deact ? "Deactivate" : "Activate";
+      sub.className = "btn px-4 " + (deact ? "btn-danger" : "btn-success");
+      modal.show();
+    });
+  });
+})();
+</script>
+<script>
+(function () {
+  var selectAll = document.getElementById("dtListSelectAll");
+  if (!selectAll) return;
+
+  function syncSelectAll() {
+    var rows = document.querySelectorAll(".dt-row-check");
+    var total = rows.length;
+    var checked = 0;
+    rows.forEach(function (cb) {
+      if (cb.checked) checked++;
+    });
+    selectAll.checked = total > 0 && checked === total;
+    selectAll.indeterminate = checked > 0 && checked < total;
+  }
+
+  selectAll.addEventListener("change", function () {
+    var on = selectAll.checked;
+    document.querySelectorAll(".dt-row-check").forEach(function (cb) {
+      cb.checked = on;
+    });
+    syncSelectAll();
+  });
+
+  document.querySelectorAll(".dt-row-check").forEach(function (cb) {
+    cb.addEventListener("change", syncSelectAll);
+  });
+  syncSelectAll();
+})();
+</script>
+{% endblock %}

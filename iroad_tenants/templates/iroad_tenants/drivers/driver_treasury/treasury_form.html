@@ -1,0 +1,136 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit Treasury{% else %}Add Treasury{% endif %} | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a>
+      </li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Drivers Management</li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:driver_treasury_list' %}">Driver Treasury</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">{% if is_edit %}Edit Treasury{% else %}Add Treasury{% endif %}</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{% if is_edit %}Edit Treasury{% else %}Add Treasury{% endif %}</h1>
+      <p class="page-subtitle">Create or update a driver treasury account.</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions">
+        <a href="{% url 'iroad_tenants:driver_treasury_list' %}" class="eal-btn eal-btn-outline">
+          <i class="bi bi-arrow-left"></i><span>Back</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-icon blue">
+        <i class="bi bi-wallet2"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Driver Treasury</h2>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-2">
+        <div class="field">
+          <label class="form-label">Treasury Code <span class="required">*</span></label>
+          {% if is_edit %}
+          <input type="text" class="form-control" value="{{ treasury.treasury_code }}" readonly>
+          {% else %}
+          <input type="text" class="form-control" value="{{ code_preview }}" readonly placeholder="Auto-number">
+          {% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.driver.id_for_label }}">Driver <span class="required">*</span></label>
+          {{ form.driver }}
+          {% if form.driver.errors %}<div class="text-danger small">{{ form.driver.errors }}</div>{% endif %}
+          <small class="text-muted">Only Active drivers are shown.</small>
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.status.id_for_label }}">Status (list) <span class="required">*</span></label>
+          {{ form.status }}
+          {% if form.status.errors %}<div class="text-danger small">{{ form.status.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label">Current Balance</label>
+          <input
+            type="text"
+            id="driverCurrentBalancePreview"
+            class="form-control"
+            value="{% if is_edit %}{{ treasury.current_balance|floatformat:2 }}{% else %}0.00{% endif %}"
+            readonly
+          >
+        </div>
+      </div>
+      <p class="text-muted small mt-2 mb-0">
+        Note: Live Figma micro-interactions are <strong>Under Development</strong>.
+      </p>
+    </div>
+  </div>
+
+  <div class="form-actions-bar">
+    <div class="form-actions-left">
+      <button type="reset" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Reset Form
+      </button>
+    </div>
+    <div class="form-actions-right">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle"></i>
+        {% if is_edit %}Save Driver Treasury{% else %}Save Driver Treasury{% endif %}
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+{% if not is_edit %}
+{{ driver_balance_map|json_script:"driverBalanceMapData" }}
+<script>
+(function () {
+  var driverSelect = document.getElementById("{{ form.driver.id_for_label }}");
+  var balanceInput = document.getElementById("driverCurrentBalancePreview");
+  var dataEl = document.getElementById("driverBalanceMapData");
+  if (!driverSelect || !balanceInput || !dataEl) return;
+
+  var balanceMap = {};
+  try {
+    balanceMap = JSON.parse(dataEl.textContent || "{}");
+  } catch (e) {
+    balanceMap = {};
+  }
+
+  function updatePreview() {
+    var driverId = (driverSelect.value || "").trim();
+    balanceInput.value = driverId && balanceMap[driverId] ? balanceMap[driverId] : "0.00";
+  }
+
+  driverSelect.addEventListener("change", updatePreview);
+  updatePreview();
+})();
+</script>
+{% endif %}
+{% endblock %}

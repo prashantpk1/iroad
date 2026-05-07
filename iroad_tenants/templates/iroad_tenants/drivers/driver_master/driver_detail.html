@@ -445,6 +445,13 @@
       <div class="cd-empty">
         <strong>Under development:</strong> Wallet statement and transactions are pending backend connection.
       </div>
+      <div class="mt-3">
+        <a href="{% url 'iroad_tenants:driver_treasury_list' %}?q={{ driver.driver_code }}"
+           class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-wallet2 me-1"></i>
+          View Driver Treasuries
+        </a>
+      </div>
     </div>
   </div>
 </div>

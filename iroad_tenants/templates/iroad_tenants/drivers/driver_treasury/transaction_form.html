@@ -1,0 +1,156 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit Transaction{% else %}Add Transaction{% endif %} | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a>
+      </li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Drivers Management</li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'iroad_tenants:driver_transaction_list' %}">Driver Treasury Transactions</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">{% if is_edit %}Edit Transaction{% else %}Add Transaction{% endif %}</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{% if is_edit %}Edit Transaction{% else %}Add Transaction{% endif %}</h1>
+      <p class="page-subtitle">Create or update treasury transaction entries.</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions">
+        <a href="{% url 'iroad_tenants:driver_transaction_list' %}" class="eal-btn eal-btn-outline">
+          <i class="bi bi-arrow-left"></i><span>Back</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-icon blue">
+        <i class="bi bi-receipt"></i>
+      </div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Transaction Details</h2>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="fields-grid cols-2">
+        <div class="field">
+          <label class="form-label">Transaction No <span class="required">*</span></label>
+          {% if is_edit %}
+          <input type="text" class="form-control" value="{{ transaction.transaction_no }}" readonly>
+          {% else %}
+          <input type="text" class="form-control" value="{{ code_preview }}" readonly placeholder="Auto-generated">
+          {% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.transaction_date.id_for_label }}">Transaction Date (Date-Time) <span class="required">*</span></label>
+          {{ form.transaction_date }}
+          {% if form.transaction_date.errors %}<div class="text-danger small">{{ form.transaction_date.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.driver_treasury.id_for_label }}">Driver Treasury <span class="required">*</span></label>
+          {{ form.driver_treasury }}
+          {% if form.driver_treasury.errors %}<div class="text-danger small">{{ form.driver_treasury.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.transaction_type.id_for_label }}">Transaction Type <span class="required">*</span></label>
+          {{ form.transaction_type }}
+          {% if form.transaction_type.errors %}<div class="text-danger small">{{ form.transaction_type.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.transaction_category.id_for_label }}">Transaction Category <span class="required">*</span></label>
+          {{ form.transaction_category }}
+          {% if form.transaction_category.errors %}<div class="text-danger small">{{ form.transaction_category.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.amount.id_for_label }}">Amount (Number) <span class="required">*</span></label>
+          {{ form.amount }}
+          {% if form.amount.errors %}<div class="text-danger small">{{ form.amount.errors }}</div>{% endif %}
+        </div>
+        <div class="field">
+          <label class="form-label" for="{{ form.related_shipment.id_for_label }}">
+            Related Shipment
+            <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem;">Under Development</span>
+          </label>
+          {{ form.related_shipment }}
+          {% if form.related_shipment.errors %}<div class="text-danger small">{{ form.related_shipment.errors }}</div>{% endif %}
+        </div>
+        <div class="field" style="grid-column: 1 / -1;">
+          <label class="form-label" for="{{ form.description.id_for_label }}">Description</label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="text-danger small">{{ form.description.errors }}</div>{% endif %}
+          <small class="text-muted">Balance auto-update and advanced reference linking are <strong>Under Development</strong>.</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions-bar">
+    <div class="form-actions-left">
+      <button type="reset" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-counterclockwise"></i>
+        Reset Form
+      </button>
+    </div>
+    <div class="form-actions-right">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check-circle"></i>
+        {% if is_edit %}Save Driver Treasury Transaction{% else %}Save Driver Treasury Transaction{% endif %}
+      </button>
+    </div>
+  </div>
+</form>
+
+<style>
+  .form-card .form-label { margin-bottom: 0.35rem; }
+  #dttTypePreview.type-credit { background: #198754; color: #fff; border: 0; }
+  #dttTypePreview.type-debit { background: #dc3545; color: #fff; border: 0; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var typeEl = document.getElementById("{{ form.transaction_type.id_for_label }}");
+  var previewEl = document.getElementById("dttTypePreview");
+  if (!typeEl || !previewEl) return;
+
+  function applyTypeBadge() {
+    var val = (typeEl.value || "").toLowerCase();
+    previewEl.classList.remove("type-credit", "type-debit", "inactive");
+    if (val === "credit") {
+      previewEl.classList.add("type-credit");
+      previewEl.textContent = "CREDIT";
+    } else if (val === "debit") {
+      previewEl.classList.add("type-debit");
+      previewEl.textContent = "DEBIT";
+    } else {
+      previewEl.classList.add("inactive");
+      previewEl.textContent = "SELECT TYPE";
+    }
+  }
+
+  typeEl.addEventListener("change", applyTypeBadge);
+  applyTypeBadge();
+})();
+</script>
+{% endblock %}

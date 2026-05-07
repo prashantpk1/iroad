@@ -1669,6 +1669,199 @@ class DriverSettings(models.Model):
         return obj
 
 
+class DriverTreasury(models.Model):
+
+    class Status(models.TextChoices):
+        ACTIVE = 'Active', 'Active'
+        INACTIVE = 'Inactive', 'Inactive'
+
+    objects = models.Manager()
+
+    class ActiveManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(
+                status=DriverTreasury.Status.ACTIVE
+            )
+
+    active_objects = ActiveManager()
+
+    treasury_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    treasury_code = models.CharField(
+        max_length=64,
+        unique=True,
+    )
+    treasury_sequence = models.PositiveIntegerField(
+        default=0,
+    )
+    driver = models.ForeignKey(
+        DriverMaster,
+        on_delete=models.PROTECT,
+        related_name='treasuries',
+    )
+    status = models.CharField(
+        max_length=12,
+        choices=Status.choices,
+        default=Status.ACTIVE,
+    )
+    current_balance = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal('0.00'),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_driver_treasury'
+        ordering = ['-created_at']
+        verbose_name = 'Driver Treasury'
+        verbose_name_plural = 'Driver Treasuries'
+
+    def __str__(self):
+        return (
+            f'{self.treasury_code} — '
+            f'{self.driver.arabic_name}'
+        )
+
+    def recalculate_balance(self):
+        """
+        Recalculate current_balance from all transactions.
+        Credit adds, Debit subtracts.
+        Call after any transaction save or delete.
+        """
+        from django.db.models import Sum, Case, When, F
+        credits = self.transactions.filter(
+            transaction_type=
+            DriverTreasuryTransaction.TransactionType.CREDIT
+        ).aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+
+        debits = self.transactions.filter(
+            transaction_type=
+            DriverTreasuryTransaction.TransactionType.DEBIT
+        ).aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.00')
+
+        self.current_balance = credits - debits
+        self.save(update_fields=['current_balance'])
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        errors = {}
+        if not self.driver_id:
+            errors['driver'] = 'Driver is required'
+        if errors:
+            raise ValidationError(errors)
+
+
+class DriverTreasuryTransaction(models.Model):
+
+    class TransactionType(models.TextChoices):
+        CREDIT = 'Credit', 'Credit'
+        DEBIT = 'Debit', 'Debit'
+
+    class TransactionCategory(models.TextChoices):
+        CLIENT_COLLECTION = (
+            'Client Collection',
+            'Client Collection',
+        )
+        CUSTODY_COLLECTION = (
+            'Custody Collection',
+            'Custody Collection',
+        )
+
+    transaction_id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+    )
+    transaction_no = models.CharField(
+        max_length=64,
+        unique=True,
+    )
+    transaction_sequence = models.PositiveIntegerField(
+        default=0,
+    )
+    transaction_date = models.DateTimeField()
+    driver_treasury = models.ForeignKey(
+        DriverTreasury,
+        on_delete=models.PROTECT,
+        related_name='transactions',
+    )
+    transaction_type = models.CharField(
+        max_length=10,
+        choices=TransactionType.choices,
+    )
+    transaction_category = models.CharField(
+        max_length=30,
+        choices=TransactionCategory.choices,
+    )
+    amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+    related_shipment = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text=(
+            'TODO: FK to Shipment when module built'
+        ),
+    )
+    description = models.TextField(
+        blank=True,
+        default='',
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_driver_treasury_transactions'
+        ordering = ['-transaction_date', '-created_at']
+        verbose_name = 'Driver Treasury Transaction'
+        verbose_name_plural = 'Driver Treasury Transactions'
+
+    def __str__(self):
+        return (
+            f'{self.transaction_no} — '
+            f'{self.transaction_type} '
+            f'{self.amount}'
+        )
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        errors = {}
+        if self.amount is not None and self.amount < 0:
+            errors['amount'] = (
+                'Amount must be 0 or greater'
+            )
+        if not self.transaction_date:
+            errors['transaction_date'] = (
+                'Transaction date is required'
+            )
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Recalculate treasury balance after every save
+        if self.driver_treasury_id:
+            self.driver_treasury.recalculate_balance()
+
+    def delete(self, *args, **kwargs):
+        treasury = self.driver_treasury
+        super().delete(*args, **kwargs)
+        # Recalculate after delete to reverse impact
+        if treasury:
+            treasury.recalculate_balance()
+
+
 class TenantCargoCategory(models.Model):
     """Cargo category master (tenant schema). Referenced by TenantCargoMaster."""
 
