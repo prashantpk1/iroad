@@ -94,7 +94,7 @@
         <h3 style="margin:0 0 12px 0">Resource Limits</h3>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px; margin-bottom:16px">
           {% for f in form %}
-            {% if f.name == 'max_internal_users' or f.name == 'max_internal_trucks' or f.name == 'max_external_trucks' or f.name == 'max_active_drivers' or f.name == 'max_monthly_shipments' or f.name == 'max_storage_gb' %}
+            {% if f.name == 'max_internal_users' or f.name == 'max_internal_trucks' or f.name == 'max_active_drivers' or f.name == 'max_monthly_shipments' or f.name == 'max_storage_gb' %}
               <div>
                 <label class="form-label">{{ f.label }}</label>
                 {{ f }}

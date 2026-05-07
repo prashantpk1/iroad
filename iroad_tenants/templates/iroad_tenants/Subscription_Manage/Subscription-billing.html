@@ -119,6 +119,45 @@
         </div>
       </div>
 
+{% if pending_offline_payment and pending_offline_payment.bank_options %}
+<div class="alert alert-warning mt-3 mb-0">
+  <h6 class="mb-2">Pending Bank Transfer Payment</h6>
+  <p class="mb-2">
+    A pending order is awaiting bank transfer.
+    Invoice amount: <strong>{{ pending_offline_payment.order.currency_id }} {{ pending_offline_payment.order.grand_total }}</strong>
+  </p>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Bank</th>
+          <th>IBAN</th>
+          <th>Account Currency</th>
+          <th>Transfer Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for option in pending_offline_payment.bank_options %}
+        <tr>
+          <td>{{ option.bank_account.bank_name }}</td>
+          <td>{{ option.bank_account.iban_number }}</td>
+          <td>{{ option.bank_currency }}</td>
+          <td>
+            <strong>{{ option.bank_currency }} {{ option.payable_amount }}</strong>
+            {% if option.is_cross_currency %}
+            <div class="small text-muted">
+              Converted from {{ option.invoice_currency }} {{ option.invoice_amount }} using internal FX.
+            </div>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 <div class="bill-details-row">
         <!-- Billing History -->
         <div class="bill-section bill-section--history">
@@ -152,7 +191,14 @@
                   <td class="bill-invoice-id">#{{ invoice.invoice_number }}</td>
                   <td>{{ invoice.issue_date|date:"M j, Y" }}</td>
                   <td>{% if invoice.order.projected_plan %}{{ invoice.order.projected_plan.plan_name_en }}{% elif current_plan %}{{ current_plan.plan_name_en }}{% else %}--{% endif %}</td>
-                  <td class="bill-amount">{{ invoice.currency.currency_code }} {{ invoice.grand_total }}</td>
+                  <td class="bill-amount">
+                    {{ invoice.display_amount_currency|default:invoice.currency.currency_code }} {{ invoice.display_amount_value|default:invoice.grand_total }}
+                    {% if invoice.is_cross_currency_amount %}
+                    <div class="small text-muted">
+                      Converted from {{ invoice.display_source_currency }} {{ invoice.display_source_amount }} using internal FX.
+                    </div>
+                    {% endif %}
+                  </td>
                   <td>
                     <span class="bill-status {% if invoice.status == 'Paid' or invoice.status == 'Issued' %}bill-status--paid{% elif invoice.status == 'Void' %}bill-status--refunded{% else %}bill-status--paid{% endif %}">
                       {{ invoice.status }}

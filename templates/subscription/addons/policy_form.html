@@ -83,7 +83,7 @@
         <h3 style="margin: 18px 0 12px 0">Pricing Per Resource</h3>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px">
           {% for field in form %}
-            {% if field.name != 'policy_name' and field.name != 'is_active' %}
+            {% if field.name != 'policy_name' and field.name != 'is_active' and field.name != 'extra_external_truck_price' %}
               <div>
                 <label class="form-label">{{ field.label }}</label>
                 {{ field }}

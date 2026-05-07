@@ -3,88 +3,12 @@
 {% block title %}Truck Movement Log List | iRoad Admin{% endblock %}
 
 {% block content %}
-<header class="top-header">
-        <div class="header-left">
-          <button
-            class="header-toggle-btn"
-            id="sidebarCollapseBtn"
-            title="Toggle Sidebar"
-          >
-            <i class="bi bi-list"></i>
-          </button>
-          <div class="header-search">
-            <i class="bi bi-search"></i>
-            <input
-              type="text"
-              placeholder="Search movements, trucks, drivers..."
-            />
-          </div>
-        </div>
-        <div class="header-datetime">
-          <span class="header-date" id="headerDate"
-            >Tuesday, 28 January 2026</span
-          >
-          <span class="header-time" id="headerTime">3:52 PM</span>
-        </div>
-        <div class="header-right">
-          <button class="header-icon-btn" title="Switch Language">
-            <i class="bi bi-translate"></i>
-          </button>
-          <button class="header-icon-btn" title="Notifications">
-            <i class="bi bi-bell"></i>
-            <span class="badge">3</span>
-          </button>
-          <div class="header-divider"></div>
-          <div class="header-user-wrapper">
-            <div class="header-user" id="headerUserToggle">
-              <div class="header-user-avatar">
-                <img
-                  src="https://ui-avatars.com/api/?name=Mark&background=5051f9&color=fff&size=40"
-                  alt="User"
-                />
-              </div>
-              <div class="header-user-info">
-                <span class="header-user-name">Mark</span>
-                <span class="header-user-role">Administrator</span>
-              </div>
-              <i class="bi bi-chevron-down header-user-chevron"></i>
-            </div>
-            <div class="header-user-dropdown" id="headerUserDropdown">
-              <div class="header-dropdown-profile">
-                <div class="header-dropdown-avatar">
-                  <img
-                    src="https://ui-avatars.com/api/?name=Mark&background=e8e8e8&color=888&size=80"
-                    alt="User"
-                  />
-                </div>
-                <div class="header-dropdown-name">mark</div>
-                <div class="header-dropdown-email">mark@redsparkinfo.com</div>
-              </div>
-              <div class="header-dropdown-divider"></div>
-              <ul class="header-dropdown-menu">
-                <li>
-                  <a href="#" class="header-dropdown-item">
-                    <i class="bi bi-person"></i>
-                    <span>My Account</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="#" class="header-dropdown-item">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>Sign out</span>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </header>
 
       <div class="page-header">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item">
-              <a href="index.html">Dashboard</a>
+              <a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a>
             </li>
             <li class="breadcrumb-item">Operations</li>
             <li class="breadcrumb-item">Operations Management</li>
@@ -106,7 +30,7 @@
                 <i class="bi bi-download"></i>
                 <span>Export</span>
               </button>
-              <a href="Truck-movement-log.html" class="eal-btn eal-btn-primary">
+              <a href="{% url 'iroad_tenants:tenant_operation_truck_movement_log_create' %}" class="eal-btn eal-btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 <span>Add Movement Log</span>
               </a>
@@ -121,7 +45,7 @@
             <i class="bi bi-truck"></i>
           </div>
           <div>
-            <div class="eal-stat-value">10</div>
+            <div class="eal-stat-value">{{ movement_stats.total|default:0 }}</div>
             <div class="eal-stat-label">Total Movements</div>
           </div>
         </div>
@@ -130,7 +54,7 @@
             <i class="bi bi-check-circle"></i>
           </div>
           <div>
-            <div class="eal-stat-value">5</div>
+            <div class="eal-stat-value">{{ movement_stats.completed|default:0 }}</div>
             <div class="eal-stat-label">Completed</div>
           </div>
         </div>
@@ -139,7 +63,7 @@
             <i class="bi bi-hourglass-split"></i>
           </div>
           <div>
-            <div class="eal-stat-value">3</div>
+            <div class="eal-stat-value">{{ movement_stats.in_progress|default:0 }}</div>
             <div class="eal-stat-label">In Progress</div>
           </div>
         </div>
@@ -148,7 +72,7 @@
             <i class="bi bi-x-octagon"></i>
           </div>
           <div>
-            <div class="eal-stat-value">2</div>
+            <div class="eal-stat-value">{{ movement_stats.scheduled_cancelled|default:0 }}</div>
             <div class="eal-stat-label">Scheduled / Cancelled</div>
           </div>
         </div>
@@ -157,10 +81,10 @@
       <div class="eal-table-card">
         <div class="eal-toolbar">
           <div class="eal-toolbar-left">
-            <div class="eal-search">
+            <form method="get" class="eal-search">
               <i class="bi bi-search"></i>
-              <input type="text" placeholder="Search movement logs&hellip;" />
-            </div>
+              <input type="text" name="q" value="{{ movement_search_q|default:'' }}" placeholder="Search movement logs&hellip;" />
+            </form>
           </div>
         </div>
 
@@ -242,376 +166,23 @@
               </tr>
             </thead>
             <tbody>
+              {% for row in movement_rows %}
               <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00101</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1001 (Volvo FH16)</span>
-                  </div>
-                </td>
-                <td>Ahmed Ali</td>
-                <td>
-                  <span class="status-badge active">Loaded</span>
-                </td>
-                <td>Riyadh Warehouse</td>
-                <td>Jeddah Port</td>
-                <td>25 Feb 2026, 06:00</td>
-                <td>25 Feb 2026, 14:30</td>
-                <td>
-                  <span class="status-badge active">Completed</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
+                <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
+                <td><span class="eal-entity-id">{{ row.movement_no }}</span></td>
+                <td><div class="eal-name-cell"><span class="eal-name-text">{{ row.truck_ref|default:'-' }}</span></div></td>
+                <td>{{ row.driver_ref|default:'-' }}</td>
+                <td><span class="status-badge {% if row.empty_move_reason %}in-transit{% else %}active{% endif %}">{% if row.empty_move_reason %}Empty{% else %}Loaded{% endif %}</span></td>
+                <td>{{ row.from_location|default:'-' }}</td>
+                <td>{{ row.to_location|default:'-' }}</td>
+                <td>{% if row.start_time %}{{ row.start_time|date:"d M Y, H:i" }}{% else %}-{% endif %}</td>
+                <td>{% if row.end_time %}{{ row.end_time|date:"d M Y, H:i" }}{% else %}-{% endif %}</td>
+                <td><span class="status-badge {% if row.status == 'Completed' %}active{% elif row.status == 'In Progress' %}in-transit{% elif row.status == 'Cancelled' %}inactive{% else %}pending{% endif %}">{{ row.status }}</span></td>
+                <td><div class="eal-actions-cell"><a href="{% url 'iroad_tenants:tenant_operation_truck_movement_log_create' %}" class="eal-row-btn" title="Create New"><i class="bi bi-plus-lg"></i></a></div></td>
               </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00102</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1002 (MAN TGS)</span>
-                  </div>
-                </td>
-                <td>Mohammad Farooq</td>
-                <td>
-                  <span class="status-badge in-transit">Empty</span>
-                </td>
-                <td>Jeddah Port</td>
-                <td>Dammam Hub</td>
-                <td>25 Feb 2026, 08:00</td>
-                <td>—</td>
-                <td>
-                  <span class="status-badge in-transit">In Progress</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00103</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1003 (Scania R500)</span>
-                  </div>
-                </td>
-                <td>Hassan Syed</td>
-                <td>
-                  <span class="status-badge active">Loaded</span>
-                </td>
-                <td>Dammam Hub</td>
-                <td>Riyadh Warehouse</td>
-                <td>24 Feb 2026, 07:00</td>
-                <td>24 Feb 2026, 16:00</td>
-                <td>
-                  <span class="status-badge active">Completed</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00104</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1001 (Volvo FH16)</span>
-                  </div>
-                </td>
-                <td>Ahmed Ali</td>
-                <td>
-                  <span class="status-badge pending">Return</span>
-                </td>
-                <td>Jeddah Port</td>
-                <td>Riyadh Warehouse</td>
-                <td>24 Feb 2026, 15:00</td>
-                <td>25 Feb 2026, 01:00</td>
-                <td>
-                  <span class="status-badge active">Completed</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00105</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1002 (MAN TGS)</span>
-                  </div>
-                </td>
-                <td>Mohammad Farooq</td>
-                <td>
-                  <span class="status-badge active">Loaded</span>
-                </td>
-                <td>Riyadh Warehouse</td>
-                <td>Dammam Hub</td>
-                <td>26 Feb 2026, 05:30</td>
-                <td>—</td>
-                <td>
-                  <span class="status-badge in-transit">In Progress</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00106</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1003 (Scania R500)</span>
-                  </div>
-                </td>
-                <td>Hassan Syed</td>
-                <td>
-                  <span class="status-badge in-transit">Empty</span>
-                </td>
-                <td>Dammam Hub</td>
-                <td>Jeddah Port</td>
-                <td>27 Feb 2026, 09:00</td>
-                <td>—</td>
-                <td>
-                  <span class="status-badge pending">Scheduled</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00107</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1001 (Volvo FH16)</span>
-                  </div>
-                </td>
-                <td>Ahmed Ali</td>
-                <td>
-                  <span class="status-badge active">Loaded</span>
-                </td>
-                <td>Jeddah Port</td>
-                <td>Riyadh Warehouse</td>
-                <td>23 Feb 2026, 06:00</td>
-                <td>23 Feb 2026, 18:00</td>
-                <td>
-                  <span class="status-badge active">Completed</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00108</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1002 (MAN TGS)</span>
-                  </div>
-                </td>
-                <td>Mohammad Farooq</td>
-                <td>
-                  <span class="status-badge active">Loaded</span>
-                </td>
-                <td>Riyadh Warehouse</td>
-                <td>Jeddah Port</td>
-                <td>22 Feb 2026, 07:00</td>
-                <td>22 Feb 2026, 15:30</td>
-                <td>
-                  <span class="status-badge active">Completed</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00109</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1003 (Scania R500)</span>
-                  </div>
-                </td>
-                <td>Hassan Syed</td>
-                <td>
-                  <span class="status-badge inactive">Empty</span>
-                </td>
-                <td>Riyadh Warehouse</td>
-                <td>Dammam Hub</td>
-                <td>21 Feb 2026, 08:00</td>
-                <td>21 Feb 2026, 17:00</td>
-                <td>
-                  <span class="status-badge inactive">Cancelled</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TML-00110</span>
-                </td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">TRK-1001 (Volvo FH16)</span>
-                  </div>
-                </td>
-                <td>Ahmed Ali</td>
-                <td>
-                  <span class="status-badge active">Loaded</span>
-                </td>
-                <td>Dammam Hub</td>
-                <td>Jeddah Port</td>
-                <td>28 Feb 2026, 04:00</td>
-                <td>—</td>
-                <td>
-                  <span class="status-badge pending">Scheduled</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
+              {% empty %}
+              <tr><td colspan="11" class="text-center text-muted py-4">No truck movement logs found.</td></tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
@@ -619,287 +190,20 @@
         <div class="eal-pagination">
           <div class="eal-pagination-info">
             Showing
-            <strong>1&ndash;10</strong>
+            <strong>{{ pagination_start }}&ndash;{{ pagination_end }}</strong>
             of
-            <strong>10</strong>
+            <strong>{{ pagination_total }}</strong>
             movement logs
           </div>
           <div class="eal-pagination-controls">
-            <button class="eal-page-btn" title="Previous">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="eal-page-btn active">1</button>
-            <button class="eal-page-btn" title="Next">
-              <i class="bi bi-chevron-right"></i>
-            </button>
+            {% if movement_page.has_previous %}
+            <a class="eal-page-btn" title="Previous" href="?page={{ movement_page.previous_page_number }}{% if movement_search_q %}&q={{ movement_search_q }}{% endif %}"><i class="bi bi-chevron-left"></i></a>
+            {% else %}<button class="eal-page-btn" title="Previous" disabled><i class="bi bi-chevron-left"></i></button>{% endif %}
+            <button class="eal-page-btn active">{{ movement_page.number|default:1 }}</button>
+            {% if movement_page.has_next %}
+            <a class="eal-page-btn" title="Next" href="?page={{ movement_page.next_page_number }}{% if movement_search_q %}&q={{ movement_search_q }}{% endif %}"><i class="bi bi-chevron-right"></i></a>
+            {% else %}<button class="eal-page-btn" title="Next" disabled><i class="bi bi-chevron-right"></i></button>{% endif %}
           </div>
         </div>
       </div>
-
-<div class="detail-panel-overlay" id="detailPanelOverlay"></div>
-    <aside class="detail-panel" id="detailPanel">
-      <div class="detail-panel-header">
-        <div class="detail-panel-nav">
-          <button class="detail-nav-btn" id="detailPrevBtn" title="Previous">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button class="detail-nav-btn" id="detailNextBtn" title="Next">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
-        <div class="detail-panel-actions">
-          <button class="detail-action-btn edit" title="Edit">
-            <i class="bi bi-pencil-square"></i>
-            <span>Edit</span>
-          </button>
-          <button class="detail-action-btn duplicate" title="Duplicate">
-            <i class="bi bi-copy"></i>
-            <span>Duplicate</span>
-          </button>
-          <button class="detail-action-btn delete" title="Delete">
-            <i class="bi bi-trash3"></i>
-            <span>Delete</span>
-          </button>
-        </div>
-        <button class="detail-close-btn" id="detailCloseBtn" title="Close">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-
-      <div class="detail-panel-body">
-        <div class="detail-section">
-          <h3 class="detail-section-title">Movement Overview</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Movement No.</span>
-            <span class="detail-field-value" id="dpMovementNo">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Truck</span>
-            <span class="detail-field-value" id="dpTruck">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Driver</span>
-            <span class="detail-field-value" id="dpDriver">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Status</span>
-            <span class="detail-field-value" id="dpStatus">&mdash;</span>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h3 class="detail-section-title">Trip Type &amp; Shipment</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Type</span>
-            <span class="detail-field-value" id="dpType">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Empty Reason</span>
-            <span class="detail-field-value" id="dpEmptyReason">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Shipment Ref</span>
-            <span class="detail-field-value" id="dpShipmentRef">&mdash;</span>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h3 class="detail-section-title">Route Details</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">From Location</span>
-            <span class="detail-field-value" id="dpFromLocation">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">From Address</span>
-            <span class="detail-field-value" id="dpFromAddress">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">To Location</span>
-            <span class="detail-field-value" id="dpToLocation">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">To Address</span>
-            <span class="detail-field-value" id="dpToAddress">&mdash;</span>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h3 class="detail-section-title">Timing &amp; Distance</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Start Time</span>
-            <span class="detail-field-value" id="dpStartTime">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">End Time</span>
-            <span class="detail-field-value" id="dpEndTime">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Distance (KM)</span>
-            <span class="detail-field-value" id="dpDistance">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Note</span>
-            <span class="detail-field-value" id="dpNote">&mdash;</span>
-          </div>
-        </div>
-
-        <div class="detail-section detail-comments-section">
-          <h3 class="detail-section-title">
-            <i class="bi bi-chat-dots"></i>
-            <span class="detail-comment-count">0</span>
-            Comments
-          </h3>
-          <p class="detail-no-comments">
-            <em>No comments yet.</em>
-          </p>
-          <div class="detail-comment-box">
-            <div class="detail-comment-avatar">A</div>
-            <div class="detail-comment-input-wrap">
-              <input
-                type="text"
-                class="detail-comment-input"
-                placeholder="Write a comment..."
-              />
-              <button class="detail-comment-btn">Comment</button>
-            </div>
-          </div>
-          <p class="detail-comment-hint">Press Enter to send</p>
-        </div>
-      </div>
-    </aside>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-      (function () {
-        const panel = document.getElementById("detailPanel");
-        const overlay = document.getElementById("detailPanelOverlay");
-        const closeBtn = document.getElementById("detailCloseBtn");
-        const prevBtn = document.getElementById("detailPrevBtn");
-        const nextBtn = document.getElementById("detailNextBtn");
-        const rows = document.querySelectorAll(".eal-table tbody tr");
-        let currentIndex = -1;
-
-        function txt(el) {
-          return el ? el.textContent.trim() : "\u2014";
-        }
-
-        function openPanel() {
-          panel.classList.add("active");
-          overlay.classList.add("active");
-          document.body.style.overflow = "hidden";
-        }
-
-        function closePanel() {
-          panel.classList.remove("active");
-          overlay.classList.remove("active");
-          document.body.style.overflow = "";
-          rows.forEach(function (r) {
-            r.classList.remove("row-selected");
-          });
-          currentIndex = -1;
-        }
-
-        function populatePanel(row) {
-          const cells = row.querySelectorAll("td");
-          // 0=check, 1=MovementNo, 2=Truck, 3=Driver, 4=Type, 5=FromLocation, 6=ToLocation, 7=StartTime, 8=EndTime, 9=Status, 10=actions
-          document.getElementById("dpMovementNo").textContent = txt(cells[1]);
-          const truckCell = cells[2]
-            ? cells[2].querySelector(".eal-name-cell")
-            : null;
-          document.getElementById("dpTruck").textContent = truckCell
-            ? txt(truckCell.querySelector(".eal-name-text"))
-            : txt(cells[2]);
-          document.getElementById("dpDriver").textContent = txt(cells[3]);
-          document.getElementById("dpType").textContent = txt(cells[4]);
-          document.getElementById("dpFromLocation").textContent = txt(cells[5]);
-          document.getElementById("dpToLocation").textContent = txt(cells[6]);
-          document.getElementById("dpStartTime").textContent = txt(cells[7]);
-          document.getElementById("dpEndTime").textContent = txt(cells[8]);
-          document.getElementById("dpDistance").textContent = "\u2014";
-
-          const statusEl = document.getElementById("dpStatus");
-          const statusBadge = cells[9]
-            ? cells[9].querySelector(".status-badge")
-            : null;
-          if (statusBadge) {
-            statusEl.innerHTML = "";
-            statusEl.appendChild(statusBadge.cloneNode(true));
-          } else {
-            statusEl.textContent = txt(cells[9]);
-          }
-
-          document.getElementById("dpEmptyReason").textContent = "\u2014";
-          document.getElementById("dpShipmentRef").textContent = "\u2014";
-          document.getElementById("dpFromAddress").textContent = "\u2014";
-          document.getElementById("dpToAddress").textContent = "\u2014";
-          document.getElementById("dpNote").textContent = "\u2014";
-
-          rows.forEach(function (r) {
-            r.classList.remove("row-selected");
-          });
-          row.classList.add("row-selected");
-        }
-
-        function showRow(index) {
-          if (index < 0 || index >= rows.length) return;
-
-          currentIndex = index;
-          populatePanel(rows[currentIndex]);
-          prevBtn.disabled = currentIndex === 0;
-          nextBtn.disabled = currentIndex === rows.length - 1;
-        }
-
-        rows.forEach(function (row, idx) {
-          row.style.cursor = "pointer";
-          row.addEventListener("click", function (e) {
-            if (
-              e.target.closest(".eal-col-check") ||
-              e.target.closest(".eal-actions-cell") ||
-              e.target.closest('input[type="checkbox"]')
-            )
-              return;
-
-            currentIndex = idx;
-            showRow(currentIndex);
-            openPanel();
-          });
-        });
-
-        closeBtn.addEventListener("click", closePanel);
-        overlay.addEventListener("click", closePanel);
-        prevBtn.addEventListener("click", function () {
-          if (currentIndex > 0) showRow(currentIndex - 1);
-        });
-        nextBtn.addEventListener("click", function () {
-          if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
-        });
-
-        document.addEventListener("keydown", function (e) {
-          if (!panel.classList.contains("active")) return;
-
-          if (e.key === "Escape") closePanel();
-
-          if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-            e.preventDefault();
-            if (currentIndex > 0) showRow(currentIndex - 1);
-          }
-          if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-            e.preventDefault();
-            if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
-          }
-        });
-
-        document
-          .querySelectorAll('.eal-row-btn[title="View"]')
-          .forEach(function (btn, idx) {
-            btn.addEventListener("click", function (e) {
-              e.stopPropagation();
-              currentIndex = idx;
-              showRow(currentIndex);
-              openPanel();
-            });
-          });
-      })();
-    </script>
 {% endblock %}

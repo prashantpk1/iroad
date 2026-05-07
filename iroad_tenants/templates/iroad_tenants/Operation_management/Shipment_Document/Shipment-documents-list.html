@@ -30,7 +30,7 @@
                 <i class="bi bi-download"></i>
                 <span>Export</span>
               </button>
-              <a href="Shipment-documents.html" class="eal-btn eal-btn-primary">
+              <a href="{% url 'iroad_tenants:tenant_operation_shipment_documents_create' %}" class="eal-btn eal-btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 <span>Add Document</span>
               </a>
@@ -46,7 +46,7 @@
             <i class="bi bi-file-earmark-text"></i>
           </div>
           <div>
-            <div class="eal-stat-value">124</div>
+            <div class="eal-stat-value">{{ shipment_document_stats.total_documents|default:0 }}</div>
             <div class="eal-stat-label">Total Documents</div>
           </div>
         </div>
@@ -55,7 +55,7 @@
             <i class="bi bi-file-earmark"></i>
           </div>
           <div>
-            <div class="eal-stat-value">487</div>
+            <div class="eal-stat-value">{{ shipment_document_stats.total_pages|default:0 }}</div>
             <div class="eal-stat-label">Total Pages</div>
           </div>
         </div>
@@ -64,7 +64,7 @@
             <i class="bi bi-receipt"></i>
           </div>
           <div>
-            <div class="eal-stat-value">38</div>
+            <div class="eal-stat-value">{{ shipment_document_stats.dn_documents|default:0 }}</div>
             <div class="eal-stat-label">DN Documents</div>
           </div>
         </div>
@@ -73,7 +73,7 @@
             <i class="bi bi-building"></i>
           </div>
           <div>
-            <div class="eal-stat-value">45</div>
+            <div class="eal-stat-value">{{ shipment_document_stats.office_collected|default:0 }}</div>
             <div class="eal-stat-label">Office Collected</div>
           </div>
         </div>
@@ -82,7 +82,7 @@
             <i class="bi bi-car-front-fill"></i>
           </div>
           <div>
-            <div class="eal-stat-value">32</div>
+            <div class="eal-stat-value">{{ shipment_document_stats.driver_collected|default:0 }}</div>
             <div class="eal-stat-label">Driver Collected</div>
           </div>
         </div>
@@ -91,7 +91,7 @@
             <i class="bi bi-person-fill"></i>
           </div>
           <div>
-            <div class="eal-stat-value">28</div>
+            <div class="eal-stat-value">{{ shipment_document_stats.receiver_collected|default:0 }}</div>
             <div class="eal-stat-label">Receiver Collected</div>
           </div>
         </div>
@@ -100,7 +100,7 @@
             <i class="bi bi-person-badge"></i>
           </div>
           <div>
-            <div class="eal-stat-value">15</div>
+            <div class="eal-stat-value">{{ shipment_document_stats.client_collected|default:0 }}</div>
             <div class="eal-stat-label">Client Collected</div>
           </div>
         </div>
@@ -109,7 +109,7 @@
             <i class="bi bi-dash-circle"></i>
           </div>
           <div>
-            <div class="eal-stat-value">4</div>
+            <div class="eal-stat-value">{{ shipment_document_stats.not_collected|default:0 }}</div>
             <div class="eal-stat-label">Not Collected</div>
           </div>
         </div>
@@ -213,6 +213,51 @@
               </tr>
             </thead>
             <tbody>
+              {% for item in shipment_documents_page %}
+              <tr>
+                <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
+                <td><span class="eal-entity-id">{{ item.record_no }}</span></td>
+                <td>{{ item.record_date|date:"d M Y" }}</td>
+                <td>{{ item.shipment_ref }}</td>
+                <td>{{ item.booking_no }}</td>
+                <td>{{ item.document_type }}</td>
+                <td>{{ item.document_ref_no }}</td>
+                <td><span class="status-badge {% if item.is_delivery_note %}active{% else %}pending{% endif %}">{% if item.is_delivery_note %}Yes{% else %}No{% endif %}</span></td>
+                <td>{{ item.page_count }}</td>
+                <td><span class="status-badge {% if item.status == 'Verified' %}active{% elif item.status == 'Rejected' %}pending{% else %}in-transit{% endif %}">{{ item.status }}</span></td>
+                <td>{{ item.physical_location|default:"-" }}</td>
+                <td>
+                  <div class="dropdown eal-actions-cell">
+                    <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
+                      <li>
+                        <button
+                          type="button"
+                          class="dropdown-item js-shipment-doc-view"
+                          data-record-no="{{ item.record_no }}"
+                          data-shipment-ref="{{ item.shipment_ref }}"
+                          data-document-type="{{ item.document_type }}"
+                          data-status="{{ item.status }}"
+                          data-is-delivery-note="{% if item.is_delivery_note %}Yes{% else %}No{% endif %}"
+                          data-document-ref-no="{{ item.document_ref_no }}"
+                          data-document-date="{{ item.document_date|date:'d M Y' }}"
+                          data-page-count="{{ item.page_count }}"
+                          data-sequence="{{ item.record_sequence }}"
+                          data-notes="{{ item.notes|default:'-' }}"
+                        >
+                          <i class="bi bi-eye text-info me-2"></i> View
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="12" class="text-center py-4">No shipment documents found.</td></tr>
+              {% endfor %}
+              {% if 0 %}
               <!-- Row 1 -->
               <tr>
                 <td class="eal-col-check">
@@ -883,6 +928,7 @@
                   </div>
                 </td>
               </tr>
+              {% endif %}
             </tbody>
           </table>
         </div>
@@ -891,23 +937,23 @@
         <div class="eal-pagination">
           <div class="eal-pagination-info">
             Showing
-            <strong>1&ndash;10</strong>
+            <strong>{% if pagination_total %}{{ pagination_start }}&ndash;{{ pagination_end }}{% else %}0{% endif %}</strong>
             of
-            <strong>124</strong>
+            <strong>{{ pagination_total|default:0 }}</strong>
             documents
           </div>
           <div class="eal-pagination-controls">
-            <button class="eal-page-btn" title="Previous">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="eal-page-btn active">1</button>
-            <button class="eal-page-btn">2</button>
-            <button class="eal-page-btn">3</button>
-            <button class="eal-page-btn">...</button>
-            <button class="eal-page-btn">13</button>
-            <button class="eal-page-btn" title="Next">
-              <i class="bi bi-chevron-right"></i>
-            </button>
+            {% if shipment_documents_page.has_previous %}
+            <a class="eal-page-btn" href="?page={{ shipment_documents_page.previous_page_number }}" title="Previous"><i class="bi bi-chevron-left"></i></a>
+            {% else %}
+            <button class="eal-page-btn" title="Previous" disabled><i class="bi bi-chevron-left"></i></button>
+            {% endif %}
+            <button class="eal-page-btn active">{{ shipment_documents_page.number|default:1 }}</button>
+            {% if shipment_documents_page.has_next %}
+            <a class="eal-page-btn" href="?page={{ shipment_documents_page.next_page_number }}" title="Next"><i class="bi bi-chevron-right"></i></a>
+            {% else %}
+            <button class="eal-page-btn" title="Next" disabled><i class="bi bi-chevron-right"></i></button>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -1048,5 +1094,54 @@
       </div>
     </aside>
 
-    <!-- Bootstrap 5 JS -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const panel = document.getElementById("detailPanel");
+    const overlay = document.getElementById("detailPanelOverlay");
+    const closeBtn = document.getElementById("detailCloseBtn");
+    if (!panel || !overlay) return;
+
+    const setText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value && String(value).trim() ? value : "-";
+    };
+
+    const openPanel = () => {
+      panel.classList.add("open");
+      overlay.classList.add("open");
+      document.body.classList.add("detail-panel-open");
+    };
+
+    const closePanel = () => {
+      panel.classList.remove("open");
+      overlay.classList.remove("open");
+      document.body.classList.remove("detail-panel-open");
+    };
+
+    document.querySelectorAll(".js-shipment-doc-view").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        setText("dpRecordNo", this.dataset.recordNo);
+        setText("dpShipmentRef", this.dataset.shipmentRef);
+        setText("dpDocumentType", this.dataset.documentType);
+        setText("dpStatus", this.dataset.status);
+        setText("dpIsDeliveryNote", this.dataset.isDeliveryNote);
+        setText("dpDocumentRefNo", this.dataset.documentRefNo);
+        setText("dpDocumentDate", this.dataset.documentDate);
+        setText("dpPageCount", this.dataset.pageCount);
+        setText("dpSequence", this.dataset.sequence);
+        setText("dpNotes", this.dataset.notes);
+        openPanel();
+      });
+    });
+
+    if (closeBtn) closeBtn.addEventListener("click", closePanel);
+    overlay.addEventListener("click", closePanel);
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") closePanel();
+    });
+  })();
+</script>
 {% endblock %}

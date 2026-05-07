@@ -2853,3 +2853,385 @@ class TenantRolePermission(models.Model):
 
     def __str__(self):
         return f'{self.role.role_name_en} - {self.module_name}/{self.form_name}'
+
+
+
+class TenantShipment(models.Model):
+    """SH-001 Shipment execution record (Phase 1 foundation)."""
+
+    class ShipmentStatus(models.TextChoices):
+        CREATED = 'Created', 'Created'
+        IN_TRANSIT = 'In Transit', 'In Transit'
+        DELIVERED = 'Delivered', 'Delivered'
+        CLOSED = 'Closed', 'Closed'
+        CANCELLED = 'Cancelled', 'Cancelled'
+
+    class PodType(models.TextChoices):
+        DIGITAL = 'Digital', 'Digital'
+        SOFT = 'Soft', 'Soft'
+        HARD = 'Hard', 'Hard'
+
+    class PodStatus(models.TextChoices):
+        COMPLIANT = 'Compliant', 'Compliant'
+        NOT_COMPLIANT = 'Not Compliant', 'Not Compliant'
+
+    class SourcingMode(models.TextChoices):
+        IN_SOURCE = 'In-Source', 'In-Source'
+        OUT_SOURCE = 'Out-Source', 'Out-Source'
+
+    class CollectionStatus(models.TextChoices):
+        PENDING = 'Pending', 'Pending'
+        COLLECTED = 'Collected', 'Collected'
+
+    shipment_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    shipment_no = models.CharField(max_length=64, unique=True)
+    shipment_sequence = models.PositiveIntegerField(default=0)
+    shipment_date = models.DateField(default=date.today)
+    shipment_status = models.CharField(
+        max_length=20,
+        choices=ShipmentStatus.choices,
+        default=ShipmentStatus.CREATED,
+    )
+    booking_no = models.CharField(max_length=64)
+    booking_item_ref = models.CharField(max_length=64)
+    booking_item_type = models.CharField(max_length=20, blank=True, default='')
+    sourcing_mode = models.CharField(max_length=20, choices=SourcingMode.choices)
+    trip_type = models.CharField(max_length=20, blank=True, default='')
+    route_display = models.CharField(max_length=120, blank=True, default='')
+    order_type = models.CharField(max_length=20, blank=True, default='')
+    from_location = models.CharField(max_length=120, blank=True, default='')
+    to_location = models.CharField(max_length=120, blank=True, default='')
+
+    client_account_ref = models.CharField(max_length=64, blank=True, default='')
+    sales_order_ref = models.CharField(max_length=64, blank=True, default='')
+    sales_order_item_ref = models.CharField(max_length=64, blank=True, default='')
+    vendor_account_ref = models.CharField(max_length=64, blank=True, default='')
+    purchase_order_ref = models.CharField(max_length=64, blank=True, default='')
+    purchase_order_item_ref = models.CharField(max_length=64, blank=True, default='')
+
+    truck = models.ForeignKey(
+        TruckMaster,
+        on_delete=models.PROTECT,
+        related_name='shipments',
+        null=True,
+        blank=True,
+    )
+    driver_ref = models.CharField(max_length=64, blank=True, default='')
+    pod_type = models.CharField(max_length=12, choices=PodType.choices, default=PodType.DIGITAL)
+    pod_status = models.CharField(
+        max_length=20,
+        choices=PodStatus.choices,
+        default=PodStatus.NOT_COMPLIANT,
+    )
+    pod_doc_count = models.PositiveIntegerField(default=0)
+    cod_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    collection_status = models.CharField(
+        max_length=20,
+        choices=CollectionStatus.choices,
+        default=CollectionStatus.PENDING,
+    )
+
+    sales_invoice_ref = models.CharField(max_length=64, blank=True, default='')
+    sales_invoice_status = models.CharField(max_length=32, blank=True, default='')
+    purchase_invoice_ref = models.CharField(max_length=64, blank=True, default='')
+    purchase_invoice_status = models.CharField(max_length=32, blank=True, default='')
+
+    created_by_label = models.CharField(max_length=200, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_shipments'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['booking_no', 'booking_item_ref'], name='tenant_shipment_booking_idx'),
+            models.Index(fields=['shipment_status'], name='tenant_shipment_status_idx'),
+        ]
+
+    def __str__(self):
+        return self.shipment_no
+
+    def clean(self):
+        errors = {}
+
+        if not (self.booking_no or '').strip():
+            errors['booking_no'] = [_('Booking is required.')]
+        if not (self.booking_item_ref or '').strip():
+            errors['booking_item_ref'] = [_('Booking item is required.')]
+
+        if self.truck_id and self.truck and self.truck.status != TruckMaster.Status.ACTIVE:
+            errors['truck'] = [_('Truck must be Active.')]
+
+        if self.truck_id and self.sourcing_mode and self.truck:
+            if self.sourcing_mode == self.SourcingMode.IN_SOURCE and self.truck.sourcing_mode != TruckMaster.SourcingMode.IN_SOURCE:
+                errors['truck'] = [_('In-Source shipment requires an In-Source truck.')]
+            if self.sourcing_mode == self.SourcingMode.OUT_SOURCE and self.truck.sourcing_mode != TruckMaster.SourcingMode.OUT_SOURCE:
+                errors['truck'] = [_('Out-Source shipment requires an Out-Source truck.')]
+
+        if self.shipment_status == self.ShipmentStatus.CANCELLED:
+            if self.pk:
+                previous = TenantShipment.objects.filter(pk=self.pk).values_list(
+                    'shipment_status', flat=True
+                ).first()
+                if previous not in {self.ShipmentStatus.CREATED, self.ShipmentStatus.IN_TRANSIT}:
+                    errors['shipment_status'] = [
+                        _('Cancelled is allowed only from Created or In Transit.'),
+                    ]
+
+        if self.order_type.upper() == 'COD':
+            if self.shipment_status == self.ShipmentStatus.CLOSED and self.collection_status != self.CollectionStatus.COLLECTED:
+                errors['collection_status'] = [
+                    _('COD shipment cannot be closed until collection status is Collected.'),
+                ]
+
+        if errors:
+            raise ValidationError(errors)
+
+    @property
+    def total_additional_charges(self):
+        return self.surcharges.aggregate(total=models.Sum('subtotal')).get('total') or 0
+
+
+class TenantShipmentSurcharge(models.Model):
+    """Derived surcharge rows linked to shipment."""
+
+    surcharge_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    shipment = models.ForeignKey(
+        TenantShipment,
+        on_delete=models.CASCADE,
+        related_name='surcharges',
+    )
+    line_no = models.PositiveIntegerField(default=1)
+    item_label = models.CharField(max_length=120)
+    qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_shipment_surcharges'
+        ordering = ['line_no', 'created_at']
+
+    def __str__(self):
+        return f'{self.shipment.shipment_no} / {self.item_label}'
+
+
+class TenantShipmentDocument(models.Model):
+    """Shipment document header record."""
+
+    class Status(models.TextChoices):
+        DRAFT = 'Draft', 'Draft'
+        VERIFIED = 'Verified', 'Verified'
+        REJECTED = 'Rejected', 'Rejected'
+
+    document_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    record_no = models.CharField(max_length=64, unique=True)
+    record_sequence = models.PositiveIntegerField(default=0)
+    record_date = models.DateField(default=date.today)
+    booking_no = models.CharField(max_length=64)
+    booking_item = models.CharField(max_length=64)
+    shipment_ref = models.CharField(max_length=64)
+    document_type = models.CharField(max_length=64)
+    document_ref_no = models.CharField(max_length=120)
+    document_date = models.DateField(default=date.today)
+    is_delivery_note = models.BooleanField(default=False)
+    physical_location = models.CharField(max_length=255, blank=True, default='')
+    page_count = models.PositiveIntegerField(default=1)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.DRAFT)
+    notes = models.TextField(blank=True, default='')
+    created_by_label = models.CharField(max_length=200, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_shipment_documents'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['record_no'], name='tenant_shipdoc_record_idx'),
+            models.Index(fields=['shipment_ref'], name='tenant_shipdoc_shipref_idx'),
+            models.Index(fields=['status'], name='tenant_shipdoc_status_idx'),
+        ]
+
+    def __str__(self):
+        return self.record_no
+
+
+class TenantShipmentPodPage(models.Model):
+    """Line-level POD page tracking rows under a shipment POD document."""
+
+    page_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    document = models.ForeignKey(
+        TenantShipmentDocument,
+        on_delete=models.CASCADE,
+        related_name='pod_pages',
+    )
+    line_no = models.PositiveIntegerField(default=1)
+    doc_page = models.CharField(max_length=64, blank=True, default='')
+    source = models.CharField(max_length=64, blank=True, default='')
+    action_log = models.CharField(max_length=120, blank=True, default='')
+    physical_location = models.CharField(max_length=120, blank=True, default='')
+    soft_copy_status = models.CharField(max_length=64, blank=True, default='')
+    digital_evidence_status = models.CharField(max_length=64, blank=True, default='')
+    map_url = models.URLField(blank=True, default='')
+    attachment_label = models.CharField(max_length=255, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_shipment_pod_pages'
+        ordering = ['line_no', 'created_at']
+        indexes = [
+            models.Index(fields=['document', 'line_no'], name='tenant_podpage_doc_line_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.document.record_no} / Line {self.line_no}'
+
+
+class TenantDocumentHandover(models.Model):
+    """Document handover header transaction."""
+
+    class Status(models.TextChoices):
+        DRAFT = 'Draft', 'Draft'
+        POSTED = 'Posted', 'Posted'
+        CLIENT_RECEIVED = 'Client Received', 'Client Received'
+        REJECTED = 'Rejected', 'Rejected'
+        MISSING = 'Missing', 'Missing'
+
+    handover_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    handover_no = models.CharField(max_length=64, unique=True)
+    handover_sequence = models.PositiveIntegerField(default=0)
+    handover_date = models.DateField(default=date.today)
+    booking_no = models.CharField(max_length=64)
+    booking_item = models.CharField(max_length=64, blank=True, default='')
+    shipment_ref = models.CharField(max_length=64)
+    document_ref = models.CharField(max_length=120, blank=True, default='')
+    pod_record_ref = models.CharField(max_length=120, blank=True, default='')
+    physical_location = models.CharField(max_length=120, blank=True, default='')
+    received_user = models.CharField(max_length=120, blank=True, default='')
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    notes = models.TextField(blank=True, default='')
+    created_by_label = models.CharField(max_length=200, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_document_handovers'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['handover_no'], name='tenant_doc_ho_no_idx'),
+            models.Index(fields=['shipment_ref'], name='tenant_doc_ho_ship_idx'),
+            models.Index(fields=['status'], name='tenant_doc_ho_status_idx'),
+        ]
+
+    def __str__(self):
+        return self.handover_no
+
+
+class TenantDocumentHandoverLine(models.Model):
+    """Page verification lines under a handover transaction."""
+
+    line_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    handover = models.ForeignKey(
+        TenantDocumentHandover,
+        on_delete=models.CASCADE,
+        related_name='lines',
+    )
+    line_no = models.PositiveIntegerField(default=1)
+    doc_page = models.CharField(max_length=64, blank=True, default='')
+    page_status = models.CharField(max_length=64, blank=True, default='')
+    physical_location = models.CharField(max_length=120, blank=True, default='')
+    note = models.CharField(max_length=255, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_document_handover_lines'
+        ordering = ['line_no', 'created_at']
+        indexes = [
+            models.Index(fields=['handover', 'line_no'], name='tenant_doc_ho_line_idx'),
+        ]
+
+    def __str__(self):
+        return f'{self.handover.handover_no} / Line {self.line_no}'
+
+
+class TenantTruckMovementLog(models.Model):
+    """Truck movement log header transaction."""
+
+    class Status(models.TextChoices):
+        SCHEDULED = 'Scheduled', 'Scheduled'
+        IN_PROGRESS = 'In Progress', 'In Progress'
+        COMPLETED = 'Completed', 'Completed'
+        CANCELLED = 'Cancelled', 'Cancelled'
+
+    movement_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    movement_no = models.CharField(max_length=64, unique=True)
+    movement_sequence = models.PositiveIntegerField(default=0)
+    movement_date = models.DateField(default=date.today)
+    movement_source = models.CharField(max_length=32, blank=True, default='')
+    empty_move_reason = models.CharField(max_length=64, blank=True, default='')
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.SCHEDULED)
+    notes = models.TextField(blank=True, default='')
+    booking_ref = models.CharField(max_length=64, blank=True, default='')
+    shipment_ref = models.CharField(max_length=64, blank=True, default='')
+    truck_ref = models.CharField(max_length=120, blank=True, default='')
+    driver_ref = models.CharField(max_length=120, blank=True, default='')
+    from_location = models.CharField(max_length=120, blank=True, default='')
+    from_location_map_link = models.URLField(blank=True, default='')
+    to_location = models.CharField(max_length=120, blank=True, default='')
+    to_location_map_link = models.URLField(blank=True, default='')
+    start_time = models.DateTimeField(null=True, blank=True)
+    end_time = models.DateTimeField(null=True, blank=True)
+    distance_km = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_by_label = models.CharField(max_length=200, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_truck_movement_logs'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['movement_no'], name='tenant_tml_no_idx'),
+            models.Index(fields=['status'], name='tenant_tml_status_idx'),
+        ]
+
+    def __str__(self):
+        return self.movement_no
+
+
+class TenantOperationAction(models.Model):
+    class Status(models.TextChoices):
+        ACTIVE = 'Active', 'Active'
+        INACTIVE = 'Inactive', 'Inactive'
+
+    action_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    action_code = models.CharField(max_length=64, unique=True)
+    arabic_label = models.CharField(max_length=200, blank=True, default='')
+    english_label = models.CharField(max_length=200)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
+    action_scope = models.CharField(max_length=32, blank=True, default='')
+    sequence_category = models.CharField(max_length=64, blank=True, default='')
+    sequence_number = models.PositiveIntegerField(default=1)
+    auto_movement_post = models.BooleanField(default=False)
+    auto_shipment_post = models.BooleanField(default=False)
+    auto_pod_post = models.BooleanField(default=False)
+    hard_copy_collection = models.BooleanField(default=False)
+    booking_status_impact = models.CharField(max_length=64, blank=True, default='')
+    shipment_status_impact = models.CharField(max_length=64, blank=True, default='')
+    movement_status_impact = models.CharField(max_length=64, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_operation_actions'
+        ordering = ['action_code']
+        indexes = [
+            models.Index(fields=['action_code'], name='tenant_op_action_code_idx'),
+            models.Index(fields=['status'], name='tenant_op_action_status_idx'),
+        ]
+
+    def __str__(self):
+        return self.action_code
+
+

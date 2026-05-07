@@ -104,6 +104,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'superadmin.context_processors.internal_alert_notifications',
                 'iroad_tenants.context_processors.tenant_system_banners',
+                'iroad_tenants.context_processors.tenant_web_push_config',
             ],
         },
     },
@@ -125,6 +126,22 @@ DATABASES = {
         'PORT': config('DB_PORT', default='5432'),
     }
 }
+
+# PgBouncer notes (production):
+# - Keep this block disabled in local/dev by default.
+# - When enabled, point DB_HOST/DB_PORT to PgBouncer endpoint (not direct Postgres).
+# - Recommended pool mode for Django is usually "transaction" at PgBouncer level.
+# - If using PgBouncer transaction pooling, disable server-side cursors in Django.
+#
+# Example .env values for PgBouncer deployment:
+# DB_HOST=pgbouncer.internal
+# DB_PORT=6432
+#
+# Optional Django-side safety for PgBouncer transaction pooling:
+# DATABASES['default']['DISABLE_SERVER_SIDE_CURSORS'] = True
+#
+# Optional connection lifetime tuning (helps stale-connection recovery):
+# DATABASES['default']['CONN_MAX_AGE'] = config('DB_CONN_MAX_AGE', default=60, cast=int)
 
 
 # Password validation
@@ -214,6 +231,13 @@ CELERY_BEAT_SCHEDULE = {
 # Push notifications (FCM legacy HTTP)
 FCM_SERVER_KEY = config('FCM_SERVER_KEY', default='')
 FCM_SEND_URL = config('FCM_SEND_URL', default='https://fcm.googleapis.com/fcm/send')
+FCM_WEB_VAPID_KEY = config('FCM_WEB_VAPID_KEY', default='')
+FIREBASE_WEB_API_KEY = config('FIREBASE_WEB_API_KEY', default='')
+FIREBASE_WEB_AUTH_DOMAIN = config('FIREBASE_WEB_AUTH_DOMAIN', default='')
+FIREBASE_WEB_PROJECT_ID = config('FIREBASE_WEB_PROJECT_ID', default='')
+FIREBASE_WEB_STORAGE_BUCKET = config('FIREBASE_WEB_STORAGE_BUCKET', default='')
+FIREBASE_WEB_MESSAGING_SENDER_ID = config('FIREBASE_WEB_MESSAGING_SENDER_ID', default='')
+FIREBASE_WEB_APP_ID = config('FIREBASE_WEB_APP_ID', default='')
 
 # Tenant API bridge (CP Type B): require X-Tenant-API-Key by default.
 # Set TENANT_API_REQUIRE_KEY=False only for local/dev while migrating clients.

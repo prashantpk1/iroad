@@ -1,6 +1,6 @@
 {% extends 'iroad_tenants/base.html' %}
 
-{% block title %}Create Surcharge Sales Transaction | iRoad Admin{% endblock %}
+{% block title %}{% if surcharge_form_data.page_mode == 'edit' %}Edit Surcharge Sales Transaction{% elif surcharge_form_data.page_mode == 'view' %}View Surcharge Sales Transaction{% else %}Create Surcharge Sales Transaction{% endif %} | iRoad Admin{% endblock %}
 
 {% block content %}
 <!-- Page Header -->
@@ -8,22 +8,22 @@
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item">
-              <a href="index.html">Dashboard</a>
+              <a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a>
             </li>
-            <li class="breadcrumb-item">Operations</li>           <li class="breadcrumb-item">Operations Management</li>            <li class="breadcrumb-item active" aria-current="page">              Create Surcharge Sales Transaction            </li>
+            <li class="breadcrumb-item">Operations</li>           <li class="breadcrumb-item">Operations Management</li>            <li class="breadcrumb-item active" aria-current="page">              {% if surcharge_form_data.page_mode == 'edit' %}Edit Surcharge Sales Transaction{% elif surcharge_form_data.page_mode == 'view' %}View Surcharge Sales Transaction{% else %}Create Surcharge Sales Transaction{% endif %}            </li>
           </ol>
         </nav>
         <div class="page-header-row">
           <div class="page-header-left">
-            <h1 class="page-title">Create Surcharge Sales Transaction</h1>
+            <h1 class="page-title">{% if surcharge_form_data.page_mode == 'edit' %}Edit Surcharge Sales Transaction{% elif surcharge_form_data.page_mode == 'view' %}View Surcharge Sales Transaction{% else %}Create Surcharge Sales Transaction{% endif %}</h1>
             <p class="page-subtitle">
-              Fill in the details below to create a surcharge sales transaction.
+              {% if surcharge_form_data.page_mode == 'edit' %}Update the details below and save your surcharge sales transaction.{% elif surcharge_form_data.page_mode == 'view' %}Review surcharge sales transaction details in read-only mode.{% else %}Fill in the details below to create a surcharge sales transaction.{% endif %}
             </p>
           </div>
           <div class="page-header-right">
             <div class="eal-header-actions">
               <a
-                href="../Surcharge/Surcharge-sales-transaction.html"
+                href="{% url 'iroad_tenants:tenant_operation_surcharge_sales_list' %}"
                 class="eal-btn eal-btn-outline"
               >
                 <i class="bi bi-arrow-left"></i>
@@ -35,7 +35,10 @@
       </div>
 
             <!-- Surcharge Sales Transaction Form -->
-      <form id="surchargeSalesTransactionForm">
+      <form id="surchargeSalesTransactionForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="surcharge_id" value="{{ surcharge_form_data.surcharge_id|default:'' }}" />
+        <input type="hidden" name="page_mode" value="{{ surcharge_form_data.page_mode|default:'create' }}" />
         <div class="form-card" data-section="1">
           <div class="form-card-header">
             <div class="form-card-icon blue">
@@ -65,7 +68,8 @@
                       type="text"
                       class="form-control has-icon"
                       id="trxNo"
-                      value="SST-000001"
+                      value="{{ preview_surcharge_transaction_no|default:'SST-000001' }}"
+                      name="trx_no"
                       readonly
                     />
                   </div>
@@ -79,23 +83,27 @@
                     <i class="bi bi-calendar-date"></i>
                     <input
                       type="date"
-                      class="form-control has-icon"
+                      class="form-control has-icon {% if form_errors.trx_date %}is-invalid{% endif %}"
                       id="trxDate"
+                      name="trx_date"
+                      value="{{ surcharge_form_data.trx_date|default:'' }}"
                       required
                     />
                   </div>
+                  {% if form_errors.trx_date %}<div class="invalid-feedback d-block">{{ form_errors.trx_date }}</div>{% endif %}
                   <span class="field-hint">Default is today's date</span>
                 </div>
                 <div class="field">
                   <label for="status" class="form-label"
                     >Status <span class="required">*</span></label
                   >
-                  <select class="form-select" id="status" required>
-                    <option value="draft" selected>Draft</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="invoiced">Invoiced</option>
-                    <option value="cancelled">Cancelled</option>
+                  <select class="form-select {% if form_errors.status %}is-invalid{% endif %}" id="status" name="status" required>
+                    <option value="draft" {% if surcharge_form_data.status|default:'draft' == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="confirmed" {% if surcharge_form_data.status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="invoiced" {% if surcharge_form_data.status == 'invoiced' %}selected{% endif %}>Invoiced</option>
+                    <option value="cancelled" {% if surcharge_form_data.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
                   </select>
+                  {% if form_errors.status %}<div class="invalid-feedback d-block">{{ form_errors.status }}</div>{% endif %}
                 </div>
               </div>
             </div>
@@ -125,12 +133,13 @@
                   <label for="shipmentId" class="form-label"
                     >Shipment Ref <span class="required">*</span></label
                   >
-                  <select class="form-select" id="shipmentId" required>
-                    <option value="" selected disabled>-Select shipment-</option>
-                    <option value="SH-1001" data-booking="BK-5001" data-client="Al Safa Logistics" data-currency="SAR">SH-1001</option>
-                    <option value="SH-1002" data-booking="BK-5002" data-client="Blue Ocean Imports" data-currency="USD">SH-1002</option>
-                    <option value="SH-1003" data-booking="BK-5003" data-client="Riyadh Trading Co." data-currency="SAR">SH-1003</option>
+                  <select class="form-select {% if form_errors.shipment_id %}is-invalid{% endif %}" id="shipmentId" name="shipment_id" required>
+                    <option value="" {% if not surcharge_form_data.shipment_id %}selected{% endif %} disabled>-Select shipment-</option>
+                    {% for shipment in shipment_options %}
+                    <option value="{{ shipment.shipment_id }}" data-booking="{{ shipment.booking_no|default:'' }}" data-client="{{ shipment.client_account_ref|default:'' }}" data-currency="SAR" {% if surcharge_form_data.shipment_id == shipment.shipment_id|stringformat:'s' %}selected{% endif %}>{{ shipment.shipment_no }}</option>
+                    {% endfor %}
                   </select>
+                  {% if form_errors.shipment_id %}<div class="invalid-feedback d-block">{{ form_errors.shipment_id }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="bookingId" class="form-label">Booking Ref</label>
@@ -138,6 +147,8 @@
                     type="text"
                     class="form-control"
                     id="bookingId"
+                    name="booking_ref"
+                    value="{{ surcharge_form_data.booking_ref|default:'' }}"
                     placeholder="Auto-fetched from shipment"
                     readonly
                   />
@@ -150,6 +161,8 @@
                     type="text"
                     class="form-control"
                     id="clientId"
+                    name="client"
+                    value="{{ surcharge_form_data.client|default:'' }}"
                     placeholder="Auto-fetched from shipment"
                     readonly
                   />
@@ -160,6 +173,8 @@
                     type="text"
                     class="form-control"
                     id="currencyCode"
+                    name="currency"
+                    value="{{ surcharge_form_data.currency|default:'' }}"
                     placeholder="Auto-fetched and locked"
                     readonly
                   />
@@ -192,12 +207,13 @@
                   <label for="serviceItemId" class="form-label"
                     >Service <span class="required">*</span></label
                   >
-                  <select class="form-select" id="serviceItemId" required>
-                    <option value="" selected disabled>-Select service item-</option>
-                    <option value="svc1" data-unit-price="125.00">Detention Charge</option>
-                    <option value="svc2" data-unit-price="75.00">Urgent Unloading</option>
-                    <option value="svc3" data-unit-price="55.50">Extra Route Toll</option>
+                  <select class="form-select {% if form_errors.service_item_id %}is-invalid{% endif %}" id="serviceItemId" name="service_item_id" required>
+                    <option value="" {% if not surcharge_form_data.service_item_id %}selected{% endif %} disabled>-Select service item-</option>
+                    {% for service in service_options %}
+                    <option value="{{ service.service_item_id }}" data-unit-price="{{ service.sell_price|default:'0.00' }}" {% if surcharge_form_data.service_item_id == service.service_item_id|stringformat:'s' %}selected{% endif %}>{{ service.english_name }}</option>
+                    {% endfor %}
                   </select>
+                  {% if form_errors.service_item_id %}<div class="invalid-feedback d-block">{{ form_errors.service_item_id }}</div>{% endif %}
                   <span class="field-hint">Only service-type items are allowed</span>
                 </div>
                 <div class="field">
@@ -206,6 +222,8 @@
                     type="text"
                     class="form-control"
                     id="description"
+                    name="description"
+                    value="{{ surcharge_form_data.description|default:'' }}"
                     placeholder="Additional charge details"
                   />
                 </div>
@@ -219,14 +237,16 @@
                     <i class="bi bi-123"></i>
                     <input
                       type="number"
-                      class="form-control has-icon"
+                      class="form-control has-icon {% if form_errors.quantity %}is-invalid{% endif %}"
                       id="quantity"
+                      name="quantity"
                       min="0.01"
                       step="0.01"
-                      value="1"
+                      value="{{ surcharge_form_data.quantity|default:'1' }}"
                       required
                     />
                   </div>
+                  {% if form_errors.quantity %}<div class="invalid-feedback d-block">{{ form_errors.quantity }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="unitPrice" class="form-label"
@@ -236,14 +256,17 @@
                     <i class="bi bi-currency-dollar"></i>
                     <input
                       type="number"
-                      class="form-control has-icon"
+                      class="form-control has-icon {% if form_errors.unit_price %}is-invalid{% endif %}"
                       id="unitPrice"
+                      name="unit_price"
                       min="0"
                       step="0.01"
+                      value="{{ surcharge_form_data.unit_price|default:'0.00' }}"
                       placeholder="0.00"
                       required
                     />
                   </div>
+                  {% if form_errors.unit_price %}<div class="invalid-feedback d-block">{{ form_errors.unit_price }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="totalAmount" class="form-label"
@@ -255,6 +278,8 @@
                       type="number"
                       class="form-control has-icon"
                       id="totalAmount"
+                      name="total_amount"
+                      value="{{ surcharge_form_data.total_amount|default:'0.00' }}"
                       min="0"
                       step="0.01"
                       readonly
@@ -291,12 +316,14 @@
                     >Reason <span class="required">*</span></label
                   >
                   <textarea
-                    class="form-control"
+                    class="form-control {% if form_errors.notes %}is-invalid{% endif %}"
                     id="notes"
+                    name="notes"
                     rows="3"
                     placeholder="Explain why this surcharge was added"
                     required
-                  ></textarea>
+                  >{{ surcharge_form_data.notes|default:'' }}</textarea>
+                  {% if form_errors.notes %}<div class="invalid-feedback d-block">{{ form_errors.notes }}</div>{% endif %}
                   <span class="field-hint"
                     >Examples: Waiting at site 2 hours, urgent unloading request, extra toll</span
                   >
@@ -309,10 +336,11 @@
                   >
                   <input
                     type="file"
-                    class="form-control"
+                    class="form-control {% if form_errors.attachment_file %}is-invalid{% endif %}"
                     id="attachmentFile"
-                    required
+                    name="attachment_file"
                   />
+                  {% if form_errors.attachment_file %}<div class="invalid-feedback d-block">{{ form_errors.attachment_file }}</div>{% endif %}
                   <span class="field-hint">Upload receipt, invoice copy, toll slip, or evidence photo</span>
                 </div>
               </div>
@@ -328,10 +356,12 @@
             </button>
           </div>
           <div class="form-actions-right">
+            {% if surcharge_form_data.page_mode != 'view' %}
             <button type="submit" class="btn btn-primary">
               <i class="bi bi-check-circle"></i>
-              Save Surcharge Transaction
+              {% if surcharge_form_data.page_mode == 'edit' %}Update Surcharge Transaction{% else %}Save Surcharge Transaction{% endif %}
             </button>
+            {% endif %}
           </div>
         </div>
       </form>
@@ -352,9 +382,12 @@
         var totalAmountInput = document.getElementById("totalAmount");
         var trxDateInput = document.getElementById("trxDate");
         var form = document.getElementById("surchargeSalesTransactionForm");
+        var mode = "{{ surcharge_form_data.page_mode|default:'create' }}";
 
         var today = new Date().toISOString().split("T")[0];
-        trxDateInput.value = today;
+        if (!trxDateInput.value) {
+          trxDateInput.value = today;
+        }
 
         function updateTotal() {
           var qty = parseFloat(quantityInput.value) || 0;
@@ -368,6 +401,12 @@
           clientInput.value = option.getAttribute("data-client") || "";
           currencyInput.value = option.getAttribute("data-currency") || "";
         });
+        if (shipmentSelect.value) {
+          var selected = shipmentSelect.options[shipmentSelect.selectedIndex];
+          bookingInput.value = selected.getAttribute("data-booking") || "";
+          clientInput.value = selected.getAttribute("data-client") || "";
+          currencyInput.value = selected.getAttribute("data-currency") || "";
+        }
 
         serviceSelect.addEventListener("change", function () {
           var option = serviceSelect.options[serviceSelect.selectedIndex];
@@ -377,6 +416,13 @@
             updateTotal();
           }
         });
+        if (serviceSelect.value) {
+          var selectedService = serviceSelect.options[serviceSelect.selectedIndex];
+          var selectedPrice = selectedService.getAttribute("data-unit-price");
+          if (selectedPrice && !(parseFloat(unitPriceInput.value) > 0)) {
+            unitPriceInput.value = parseFloat(selectedPrice).toFixed(2);
+          }
+        }
 
         quantityInput.addEventListener("input", updateTotal);
         unitPriceInput.addEventListener("input", updateTotal);
@@ -399,6 +445,14 @@
         });
 
         updateTotal();
+
+        if (mode === "view") {
+          Array.prototype.forEach.call(form.elements, function (el) {
+            if (el.type !== "hidden") {
+              el.disabled = true;
+            }
+          });
+        }
       })();
     </script>
 {% endblock %}

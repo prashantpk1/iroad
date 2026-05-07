@@ -108,6 +108,22 @@
           </div>
 
           <div class="field">
+            <div class="form-label d-block mb-0">Cross-currency payments</div>
+            <div class="form-check form-switch mt-2">
+              {{ form.allow_cross_currency_payments }}
+              <label class="form-check-label ms-1" for="{{ form.allow_cross_currency_payments.id_for_label }}">
+                <span class="fw-medium">Allow cross-currency payments</span>
+              </label>
+            </div>
+            <small class="text-muted d-block mt-1">
+              When enabled, this account can receive transfers for invoices in other currencies using internal FX conversion.
+            </small>
+            {% for error in form.allow_cross_currency_payments.errors %}
+              <div class="text-danger mt-1 fw-semibold">{{ error }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="field">
             <div class="form-label d-block mb-0">Status</div>
             <div class="form-check form-switch mt-2">
               {{ form.is_active }}
@@ -143,8 +159,12 @@
   <script>
     (function () {
       const isActive = document.getElementById("{{ form.is_active.id_for_label }}");
+      const allowCrossCurrency = document.getElementById("{{ form.allow_cross_currency_payments.id_for_label }}");
       if (isActive) {
         isActive.classList.add("form-check-input");
+      }
+      if (allowCrossCurrency) {
+        allowCrossCurrency.classList.add("form-check-input");
       }
     })();
   </script>

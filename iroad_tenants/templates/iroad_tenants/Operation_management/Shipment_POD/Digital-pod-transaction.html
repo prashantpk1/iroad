@@ -29,7 +29,10 @@
       </div>
 
       <!-- Digital POD Form -->
-      <form id="digitalPodForm">
+      <form id="digitalPodForm" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="existing_record_no" value="{{ pod_form_data.existing_record_no }}" />
+        <input type="hidden" name="pod_pages_json" id="podPagesJson" />
         <!-- Section 1: POD Header Fields -->
         <div class="form-card" data-section="1">
           <div class="form-card-header">
@@ -52,17 +55,12 @@
               <div class="fields-grid cols-2">
                 <div class="field">
                   <label for="recordNo" class="form-label">Record No</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="recordNo"
-                    placeholder="Auto-generated"
-                    readonly
-                  />
+                  <input type="text" class="form-control" id="recordNo" value="{{ preview_pod_record_no }}" placeholder="Auto-generated" readonly />
                 </div>
                 <div class="field">
                   <label for="recordDate" class="form-label">Record Date</label>
-                  <input type="date" class="form-control" id="recordDate" />
+                  <input type="date" class="form-control {% if form_errors.record_date %}is-invalid{% endif %}" id="recordDate" name="record_date" value="{{ pod_form_data.record_date }}" />
+                  {% if form_errors.record_date %}<div class="invalid-feedback d-block">{{ form_errors.record_date }}</div>{% endif %}
                 </div>
               </div>
             </div>
@@ -74,13 +72,7 @@
               <div class="fields-grid cols-3">
                 <div class="field">
                   <label for="docNo" class="form-label">Doc No (list)</label>
-                  <select class="form-select" id="docNo">
-                    <option value="" selected disabled>
-                      - Select Doc No -
-                    </option>
-                    <option value="DOC-001">DOC-001</option>
-                    <option value="DOC-002">DOC-002</option>
-                  </select>
+                  <input type="text" class="form-control" id="docNo" name="doc_no" value="{{ pod_form_data.doc_no }}" placeholder="Auto from shipment" readonly />
                 </div>
                 <div class="field">
                   <label for="documentDate" class="form-label"
@@ -88,10 +80,12 @@
                   >
                   <input
                     type="date"
-                    class="form-control"
+                    class="form-control {% if form_errors.document_date %}is-invalid{% endif %}"
                     id="documentDate"
-                    readonly
+                    name="document_date"
+                    value="{{ pod_form_data.document_date }}"
                   />
+                  {% if form_errors.document_date %}<div class="invalid-feedback d-block">{{ form_errors.document_date }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="documentType" class="form-label"
@@ -112,25 +106,15 @@
                   <label for="documentRefNo" class="form-label"
                     >Doc Ref (list)</label
                   >
-                  <select class="form-select" id="documentRefNo">
-                    <option value="" selected disabled>
-                      - Select Doc Ref -
-                    </option>
-                    <option value="DREF-001">DREF-001</option>
-                    <option value="DREF-002">DREF-002</option>
-                  </select>
+                  <input type="text" class="form-control {% if form_errors.document_ref_no %}is-invalid{% endif %}" id="documentRefNo" name="document_ref_no" value="{{ pod_form_data.document_ref_no }}" placeholder="Enter document reference" />
+                  {% if form_errors.document_ref_no %}<div class="invalid-feedback d-block">{{ form_errors.document_ref_no }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="pageCount" class="form-label"
                     >Page Count (fetch)</label
                   >
-                  <input
-                    type="number"
-                    class="form-control"
-                    id="pageCount"
-                    min="1"
-                    readonly
-                  />
+                  <input type="number" class="form-control {% if form_errors.page_count %}is-invalid{% endif %}" id="pageCount" name="page_count" min="1" value="{{ pod_form_data.page_count|default:'1' }}" />
+                  {% if form_errors.page_count %}<div class="invalid-feedback d-block">{{ form_errors.page_count }}</div>{% endif %}
                 </div>
               </div>
             </div>
@@ -144,37 +128,27 @@
                   <label for="bookingNo" class="form-label"
                     >Booking No (list)</label
                   >
-                  <select class="form-select" id="bookingNo">
-                    <option value="" selected disabled>
-                      - Select Booking No -
-                    </option>
-                    <option value="BK-2026-001">BK-2026-001</option>
-                    <option value="BK-2026-002">BK-2026-002</option>
-                  </select>
+                  <input type="text" class="form-control" id="bookingNo" name="booking_no" value="{{ pod_form_data.booking_no }}" placeholder="Auto from shipment" readonly />
                 </div>
                 <div class="field">
                   <label for="bookingItem" class="form-label"
                     >Booking Item (list)</label
                   >
-                  <select class="form-select" id="bookingItem">
-                    <option value="" selected disabled>
-                      - Select Booking Item -
-                    </option>
-                    <option value="BI-001">BI-001</option>
-                    <option value="BI-002">BI-002</option>
-                  </select>
+                  <input type="text" class="form-control" id="bookingItem" name="booking_item" value="{{ pod_form_data.booking_item }}" placeholder="Auto from shipment" readonly />
                 </div>
                 <div class="field">
                   <label for="shipmentRef" class="form-label"
                     >Shipment (list)</label
                   >
-                  <select class="form-select" id="shipmentRef">
-                    <option value="" selected disabled>
+                  <select class="form-select {% if form_errors.shipment_ref %}is-invalid{% endif %}" id="shipmentRef" name="shipment_ref">
+                    <option value="" {% if not pod_form_data.shipment_ref %}selected{% endif %} disabled>
                       - Select Shipment -
                     </option>
-                    <option value="SHP-2026-00142">SHP-2026-00142</option>
-                    <option value="SHP-2026-00143">SHP-2026-00143</option>
+                    {% for shipment in shipment_options %}
+                    <option value="{{ shipment.shipment_no }}" data-doc-no="{{ shipment.shipment_no }}" data-booking-no="{{ shipment.booking_no }}" data-booking-item="{{ shipment.booking_item_ref }}" {% if pod_form_data.shipment_ref == shipment.shipment_no %}selected{% endif %}>{{ shipment.shipment_no }}</option>
+                    {% endfor %}
                   </select>
+                  {% if form_errors.shipment_ref %}<div class="invalid-feedback d-block">{{ form_errors.shipment_ref }}</div>{% endif %}
                 </div>
               </div>
             </div>
@@ -188,13 +162,15 @@
                   <label for="podType" class="form-label"
                     >POD Type (list)</label
                   >
-                  <select class="form-select" id="podType">
-                    <option value="" selected disabled>
+                  <select class="form-select {% if form_errors.pod_type %}is-invalid{% endif %}" id="podType" name="pod_type">
+                    <option value="" {% if not pod_form_data.pod_type %}selected{% endif %} disabled>
                       - Select POD Type -
                     </option>
-                    <option value="soft">Soft Copy</option>
-                    <option value="hard">Hard Copy</option>
+                    <option value="soft" {% if pod_form_data.pod_type == 'soft' %}selected{% endif %}>Soft Copy</option>
+                    <option value="hard" {% if pod_form_data.pod_type == 'hard' %}selected{% endif %}>Hard Copy</option>
+                    <option value="digital" {% if pod_form_data.pod_type == 'digital' %}selected{% endif %}>Digital Evidence</option>
                   </select>
+                  {% if form_errors.pod_type %}<div class="invalid-feedback d-block">{{ form_errors.pod_type }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="podStatus" class="form-label"
@@ -212,13 +188,13 @@
                   <label for="documentLocation" class="form-label"
                     >Physical Location (list)</label
                   >
-                  <select class="form-select" id="documentLocation">
-                    <option value="" selected disabled>
+                  <select class="form-select" id="documentLocation" name="document_location">
+                    <option value="" {% if not pod_form_data.physical_location %}selected{% endif %} disabled>
                       - Select Location -
                     </option>
-                    <option value="with_driver">With Driver</option>
-                    <option value="with_admin">With Admin</option>
-                    <option value="out_of_company">Out of Company</option>
+                    <option value="with_driver" {% if pod_form_data.physical_location == 'with_driver' %}selected{% endif %}>With Driver</option>
+                    <option value="with_admin" {% if pod_form_data.physical_location == 'with_admin' %}selected{% endif %}>With Admin</option>
+                    <option value="out_of_company" {% if pod_form_data.physical_location == 'out_of_company' %}selected{% endif %}>Out of Company</option>
                   </select>
                 </div>
               </div>
@@ -412,140 +388,99 @@
                   </tr>
                 </thead>
                 <tbody id="podLinesBody">
-                  <!-- Row 1 -->
+                  {% for row in pod_page_rows %}
+                  <tr>
+                    <td class="pod-td-sn">{{ forloop.counter }}</td>
+                    <td>
+                      <select class="form-select form-select-sm pod-line-doc-page">
+                        <option value="" disabled {% if not row.doc_page %}selected{% endif %}>DOC Page</option>
+                        <option value="Page-1" {% if row.doc_page == 'Page-1' %}selected{% endif %}>Page-1</option>
+                        <option value="Page-2" {% if row.doc_page == 'Page-2' %}selected{% endif %}>Page-2</option>
+                        <option value="Page-3" {% if row.doc_page == 'Page-3' %}selected{% endif %}>Page-3</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm pod-line-source">
+                        <option value="Action Log" {% if row.source == 'Action Log' %}selected{% endif %}>Action Log</option>
+                        <option value="Manual" {% if row.source == 'Manual' %}selected{% endif %}>Manual</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input type="text" class="form-control form-control-sm pod-line-action-log" value="{{ row.action_log }}" placeholder="Action Log" />
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm pod-line-location">
+                        <option value="" disabled {% if not row.physical_location %}selected{% endif %}>Location</option>
+                        <option value="With Driver" {% if row.physical_location == 'With Driver' %}selected{% endif %}>With Driver</option>
+                        <option value="With Admin" {% if row.physical_location == 'With Admin' %}selected{% endif %}>With Admin</option>
+                        <option value="Out of Company" {% if row.physical_location == 'Out of Company' %}selected{% endif %}>Out of Company</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm pod-line-soft-status">
+                        <option value="Not Collected" {% if row.soft_copy_status == 'Not Collected' %}selected{% endif %}>Not Collected</option>
+                        <option value="Collected" {% if row.soft_copy_status == 'Collected' %}selected{% endif %}>Collected</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm pod-line-digital-status">
+                        <option value="Not Collected" {% if row.digital_evidence_status == 'Not Collected' %}selected{% endif %}>Not Collected</option>
+                        <option value="Collected" {% if row.digital_evidence_status == 'Collected' %}selected{% endif %}>Collected</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input type="url" class="form-control form-control-sm pod-line-map-url" value="{{ row.map_url }}" placeholder="Map URL" />
+                    </td>
+                    <td>
+                      <input type="file" class="form-control form-control-sm pod-line-attachment" />
+                    </td>
+                    <td class="pod-td-actions">
+                      <button type="button" class="pod-action-btn delete" title="Remove line"><i class="bi bi-trash3"></i></button>
+                    </td>
+                  </tr>
+                  {% empty %}
                   <tr>
                     <td class="pod-td-sn">1</td>
                     <td>
-                      <select class="form-select form-select-sm">
+                      <select class="form-select form-select-sm pod-line-doc-page">
                         <option value="" selected disabled>DOC Page</option>
                         <option value="Page-1">Page-1</option>
                         <option value="Page-2">Page-2</option>
+                        <option value="Page-3">Page-3</option>
                       </select>
                     </td>
                     <td>
-                      <select class="form-select form-select-sm">
+                      <select class="form-select form-select-sm pod-line-source">
                         <option value="Action Log" selected>Action Log</option>
                         <option value="Manual">Manual</option>
                       </select>
                     </td>
+                    <td><input type="text" class="form-control form-control-sm pod-line-action-log" placeholder="Action Log" /></td>
                     <td>
-                      <select class="form-select form-select-sm">
-                        <option value="" selected disabled>Action Log</option>
-                        <option value="ALOG-001">ALOG-001</option>
-                        <option value="ALOG-002">ALOG-002</option>
-                      </select>
-                    </td>
-                    <td>
-                      <select class="form-select form-select-sm">
+                      <select class="form-select form-select-sm pod-line-location">
                         <option value="" selected disabled>Location</option>
-                        <option value="with_driver">With Driver</option>
-                        <option value="with_admin">With Admin</option>
-                        <option value="out_of_company">Out of Company</option>
+                        <option value="With Driver">With Driver</option>
+                        <option value="With Admin">With Admin</option>
+                        <option value="Out of Company">Out of Company</option>
                       </select>
                     </td>
                     <td>
-                      <select class="form-select form-select-sm">
-                        <option value="Not Collected" selected>
-                          Not Collected
-                        </option>
+                      <select class="form-select form-select-sm pod-line-soft-status">
+                        <option value="Not Collected" selected>Not Collected</option>
                         <option value="Collected">Collected</option>
                       </select>
                     </td>
                     <td>
-                      <select class="form-select form-select-sm">
-                        <option value="Not Collected" selected>
-                          Not Collected
-                        </option>
+                      <select class="form-select form-select-sm pod-line-digital-status">
+                        <option value="Not Collected" selected>Not Collected</option>
                         <option value="Collected">Collected</option>
                       </select>
                     </td>
-                    <td>
-                      <input
-                        type="url"
-                        class="form-control form-control-sm"
-                        placeholder="Map URL"
-                      />
-                    </td>
-                    <td>
-                      <input type="file" class="form-control form-control-sm" />
-                    </td>
-                    <td class="pod-td-actions">
-                      <button
-                        type="button"
-                        class="pod-action-btn delete"
-                        title="Remove line"
-                      >
-                        <i class="bi bi-trash3"></i>
-                      </button>
-                    </td>
+                    <td><input type="url" class="form-control form-control-sm pod-line-map-url" placeholder="Map URL" /></td>
+                    <td><input type="file" class="form-control form-control-sm pod-line-attachment" /></td>
+                    <td class="pod-td-actions"><button type="button" class="pod-action-btn delete" title="Remove line"><i class="bi bi-trash3"></i></button></td>
                   </tr>
-                  <!-- Row 2 -->
-                  <tr>
-                    <td class="pod-td-sn">2</td>
-                    <td>
-                      <select class="form-select form-select-sm">
-                        <option value="" selected disabled>DOC Page</option>
-                        <option value="Page-1">Page-1</option>
-                        <option value="Page-2">Page-2</option>
-                      </select>
-                    </td>
-                    <td>
-                      <select class="form-select form-select-sm">
-                        <option value="Action Log" selected>Action Log</option>
-                        <option value="Manual">Manual</option>
-                      </select>
-                    </td>
-                    <td>
-                      <select class="form-select form-select-sm">
-                        <option value="" selected disabled>Action Log</option>
-                        <option value="ALOG-001">ALOG-001</option>
-                        <option value="ALOG-002">ALOG-002</option>
-                      </select>
-                    </td>
-                    <td>
-                      <select class="form-select form-select-sm">
-                        <option value="" selected disabled>Location</option>
-                        <option value="with_driver">With Driver</option>
-                        <option value="with_admin">With Admin</option>
-                        <option value="out_of_company">Out of Company</option>
-                      </select>
-                    </td>
-                    <td>
-                      <select class="form-select form-select-sm">
-                        <option value="Not Collected" selected>
-                          Not Collected
-                        </option>
-                        <option value="Collected">Collected</option>
-                      </select>
-                    </td>
-                    <td>
-                      <select class="form-select form-select-sm">
-                        <option value="Not Collected" selected>
-                          Not Collected
-                        </option>
-                        <option value="Collected">Collected</option>
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="url"
-                        class="form-control form-control-sm"
-                        placeholder="Map URL"
-                      />
-                    </td>
-                    <td>
-                      <input type="file" class="form-control form-control-sm" />
-                    </td>
-                    <td class="pod-td-actions">
-                      <button
-                        type="button"
-                        class="pod-action-btn delete"
-                        title="Remove line"
-                      >
-                        <i class="bi bi-trash3"></i>
-                      </button>
-                    </td>
-                  </tr>
+                  {% endfor %}
                 </tbody>
               </table>
             </div>
@@ -598,17 +533,36 @@
           podTypeSelect.addEventListener("change", function () {
             const value = this.value;
             if (value === "soft") {
-              softSection.style.display = "";
-              hardSection.style.display = "none";
-              modeIndicator.className = "pod-mode-indicator";
+              if (softSection) softSection.style.display = "";
+              if (hardSection) hardSection.style.display = "none";
+              if (modeIndicator) modeIndicator.className = "pod-mode-indicator";
             } else if (value === "hard") {
-              softSection.style.display = "none";
-              hardSection.style.display = "";
-              modeIndicator.className = "pod-mode-indicator hard-mode";
-              modeIndicator.innerHTML =
-                '<i class="bi bi-file-earmark-ruled"></i><span>Hard Copy Mode</span>';
+              if (softSection) softSection.style.display = "none";
+              if (hardSection) hardSection.style.display = "";
+              if (modeIndicator) {
+                modeIndicator.className = "pod-mode-indicator hard-mode";
+                modeIndicator.innerHTML =
+                  '<i class="bi bi-file-earmark-ruled"></i><span>Hard Copy Mode</span>';
+              }
               podForm.classList.add("pod-mode-hard");
             }
+          });
+        }
+
+        const shipmentRefSelect = document.getElementById("shipmentRef");
+        const docNoInput = document.getElementById("docNo");
+        const bookingNoInput = document.getElementById("bookingNo");
+        const bookingItemInput = document.getElementById("bookingItem");
+        if (shipmentRefSelect && docNoInput && bookingNoInput && bookingItemInput) {
+          shipmentRefSelect.addEventListener("change", function () {
+            const option = this.options[this.selectedIndex];
+            if (!option) return;
+            const docNo = option.getAttribute("data-doc-no") || "";
+            const bookingNo = option.getAttribute("data-booking-no") || "";
+            const bookingItem = option.getAttribute("data-booking-item") || "";
+            docNoInput.value = docNo;
+            bookingNoInput.value = bookingNo;
+            bookingItemInput.value = bookingItem;
           });
         }
 
@@ -725,9 +679,11 @@
         // ── Add / Remove POD Lines ─────────────────────
         const addLineBtn = document.getElementById("addPodLineBtn");
         const podLinesBody = document.getElementById("podLinesBody");
+        const podPagesJsonInput = document.getElementById("podPagesJson");
         let lineCounter = 2;
 
         if (addLineBtn && podLinesBody) {
+          lineCounter = podLinesBody.querySelectorAll("tr").length || 1;
           addLineBtn.addEventListener("click", function () {
             lineCounter++;
             const newRow = document.createElement("tr");
@@ -736,18 +692,19 @@
               lineCounter +
               "</td>" +
               "<td>" +
-              '<select class="form-select form-select-sm">' +
+              '<select class="form-select form-select-sm pod-line-doc-page">' +
               '<option value="" selected disabled>DOC Page</option>' +
               '<option value="Page-1">Page-1</option>' +
               '<option value="Page-2">Page-2</option>' +
+              '<option value="Page-3">Page-3</option>' +
               "</select></td>" +
-              '<td><select class="form-select form-select-sm"><option value="Action Log" selected>Action Log</option><option value="Manual">Manual</option></select></td>' +
-              '<td><select class="form-select form-select-sm"><option value="" selected disabled>Action Log</option><option value="ALOG-001">ALOG-001</option><option value="ALOG-002">ALOG-002</option></select></td>' +
-              '<td><select class="form-select form-select-sm"><option value="" selected disabled>Location</option><option value="with_driver">With Driver</option><option value="with_admin">With Admin</option><option value="out_of_company">Out of Company</option></select></td>' +
-              '<td><select class="form-select form-select-sm"><option value="Not Collected" selected>Not Collected</option><option value="Collected">Collected</option></select></td>' +
-              '<td><select class="form-select form-select-sm"><option value="Not Collected" selected>Not Collected</option><option value="Collected">Collected</option></select></td>' +
-              '<td><input type="url" class="form-control form-control-sm" placeholder="Map URL" /></td>' +
-              '<td><input type="file" class="form-control form-control-sm" /></td>' +
+              '<td><select class="form-select form-select-sm pod-line-source"><option value="Action Log" selected>Action Log</option><option value="Manual">Manual</option></select></td>' +
+              '<td><input type="text" class="form-control form-control-sm pod-line-action-log" placeholder="Action Log" /></td>' +
+              '<td><select class="form-select form-select-sm pod-line-location"><option value="" selected disabled>Location</option><option value="With Driver">With Driver</option><option value="With Admin">With Admin</option><option value="Out of Company">Out of Company</option></select></td>' +
+              '<td><select class="form-select form-select-sm pod-line-soft-status"><option value="Not Collected" selected>Not Collected</option><option value="Collected">Collected</option></select></td>' +
+              '<td><select class="form-select form-select-sm pod-line-digital-status"><option value="Not Collected" selected>Not Collected</option><option value="Collected">Collected</option></select></td>' +
+              '<td><input type="url" class="form-control form-control-sm pod-line-map-url" placeholder="Map URL" /></td>' +
+              '<td><input type="file" class="form-control form-control-sm pod-line-attachment" /></td>' +
               '<td class="pod-td-actions"><button type="button" class="pod-action-btn delete" title="Remove line"><i class="bi bi-trash3"></i></button></td>';
 
             podLinesBody.appendChild(newRow);
@@ -778,6 +735,26 @@
             });
             lineCounter = rows.length;
           }
+        }
+
+        if (podForm && podLinesBody && podPagesJsonInput) {
+          podForm.addEventListener("submit", function () {
+            const rows = podLinesBody.querySelectorAll("tr");
+            const payload = [];
+            rows.forEach(function (row) {
+              payload.push({
+                doc_page: (row.querySelector(".pod-line-doc-page") || {}).value || "",
+                source: (row.querySelector(".pod-line-source") || {}).value || "",
+                action_log: (row.querySelector(".pod-line-action-log") || {}).value || "",
+                physical_location: (row.querySelector(".pod-line-location") || {}).value || "",
+                soft_copy_status: (row.querySelector(".pod-line-soft-status") || {}).value || "",
+                digital_evidence_status: (row.querySelector(".pod-line-digital-status") || {}).value || "",
+                map_url: (row.querySelector(".pod-line-map-url") || {}).value || "",
+                attachment_label: ((row.querySelector(".pod-line-attachment") || {}).files || [])[0]?.name || "",
+              });
+            });
+            podPagesJsonInput.value = JSON.stringify(payload);
+          });
         }
       });
     </script>

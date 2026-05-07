@@ -1120,7 +1120,9 @@ def send_invoice_paid_notification(
             )
         )
 
-        # Generate Attachment
+        # Attachments:
+        # - Default behavior (CR): do NOT attach system-generated invoice PDF.
+        # - Attach only the user-uploaded "Official Tax Invoice" when provided.
         attachments = []
         if uploaded_attachment:
             file_name = getattr(uploaded_attachment, 'name', '') or (
@@ -1135,15 +1137,7 @@ def send_invoice_paid_notification(
                 uploaded_attachment.read(),
                 content_type,
             ))
-        else:
-            # Legacy behavior (auto-generated PDF attachment).
-            pdf_bytes = generate_invoice_pdf_bytes(invoice)
-            if pdf_bytes:
-                attachments.append((
-                    f'Invoice-{invoice.invoice_number}.pdf',
-                    pdf_bytes,
-                    'application/pdf'
-                ))
+        # else: no attachment
 
         # Ensure default invoice template exists before direct named dispatch.
         ensure_default_notification_templates()

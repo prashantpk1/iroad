@@ -1,62 +1,29 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block page_title %}{% translate "Support Inbox" %}{% endblock %}
+{% block page_title %}{% translate "Support Ticket Master" %}{% endblock %}
 
 {% block breadcrumb_items %}
-  <li class="breadcrumb-item active" aria-current="page">{% translate "Support Inbox" %}</li>
-{% endblock %}
-
-{% block extra_css %}
-<style>
-  .db-table-filters {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .filter-chip {
-    text-decoration: none !important;
-  }
-  .eal-table th.sortable {
-    padding: 0 !important;
-  }
-  .eal-table th.sortable a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    color: inherit;
-    text-decoration: none;
-    width: 100%;
-    transition: background 0.2s;
-    gap: 10px;
-  }
-  .eal-table th.sortable a:hover {
-    background: rgba(0, 0, 0, 0.02);
-  }
-  .eal-table th.sortable i {
-    font-size: 10px;
-    margin-left: 5px;
-    color: var(--primary-color);
-    opacity: 0.8;
-    flex-shrink: 0;
-  }
-</style>
+  <li class="breadcrumb-item active" aria-current="page">{% translate "Support Ticket Master" %}</li>
 {% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div class="page-header-row">
     <div class="page-header-left">
-      <h1 class="page-title">{% translate "Support Inbox" %}</h1>
-      <p class="page-subtitle">{% translate "Track and manage tenant support requests." %}</p>
+      <h1 class="page-title">{% translate "Support Ticket Master" %}</h1>
+      <p class="page-subtitle">{% translate "Manage and view all support tickets." %}</p>
     </div>
     <div class="page-header-right">
       <div class="eal-header-actions">
+        <button class="eal-btn eal-btn-outline" type="button">
+          <i class="bi bi-download"></i>
+          <span>{% translate "Export" %}</span>
+        </button>
         {% if request.user.is_root %}
           <a href="{% url 'ticket_create' %}" class="eal-btn eal-btn-primary">
             <i class="bi bi-plus-lg"></i>
-            <span>{% translate "Create Ticket" %}</span>
+            <span>{% translate "Add Support Ticket" %}</span>
           </a>
         {% endif %}
       </div>
@@ -64,159 +31,71 @@
   </div>
 </div>
 
+<div class="eal-stats-row">
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon purple"><i class="bi bi-ticket-detailed"></i></div>
+    <div>
+      <div class="eal-stat-value">{{ total_tickets_count }}</div>
+      <div class="eal-stat-label">{% translate "Total Tickets" %}</div>
+    </div>
+  </div>
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon green"><i class="bi bi-circle"></i></div>
+    <div>
+      <div class="eal-stat-value">{{ open_tickets_count }}</div>
+      <div class="eal-stat-label">{% translate "Open" %}</div>
+    </div>
+  </div>
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon amber"><i class="bi bi-hourglass-split"></i></div>
+    <div>
+      <div class="eal-stat-value">{{ in_progress_tickets_count }}</div>
+      <div class="eal-stat-label">{% translate "In Progress" %}</div>
+    </div>
+  </div>
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon blue"><i class="bi bi-check-circle"></i></div>
+    <div>
+      <div class="eal-stat-value">{{ closed_tickets_count }}</div>
+      <div class="eal-stat-label">{% translate "Resolved / Closed" %}</div>
+    </div>
+  </div>
+</div>
+
 <div class="eal-table-card">
   <form method="get" class="eal-toolbar">
-    <div class="eal-toolbar-left" style="width: 100%; display: flex; gap: 12px; align-items: center; flex-wrap: wrap">
-      <div class="eal-search" style="flex: 1; min-width: 260px; margin-bottom: 0">
-          <i class="bi bi-search"></i>
-          <input type="text" name="q" value="{{ search_query }}" placeholder="{% translate 'Ticket #, subject, or tenant' %}">
-          <input type="hidden" name="sort" value="{{ current_sort }}">
-          <input type="hidden" name="dir" value="{{ current_dir }}">
+    <div class="eal-toolbar-left">
+      <div class="eal-search">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="{% translate 'Search support tickets…' %}">
+        <input type="hidden" name="sort" value="{{ current_sort }}">
+        <input type="hidden" name="dir" value="{{ current_dir }}">
       </div>
-
-      <div class="db-table-filters">
-        <a href="?q={{ search_query|urlencode }}&status=&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort={{ current_sort }}&dir={{ current_dir }}" class="filter-chip {% if not status_filter %}active{% endif %}">
-          {% translate "All" %}
-        </a>
-        <a href="?q={{ search_query|urlencode }}&status=New&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort={{ current_sort }}&dir={{ current_dir }}" class="filter-chip {% if status_filter == 'New' %}active{% endif %}">
-          {% translate "New" %}
-        </a>
-        <a href="?q={{ search_query|urlencode }}&status=In_Progress&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort={{ current_sort }}&dir={{ current_dir }}" class="filter-chip {% if status_filter == 'In_Progress' %}active{% endif %}">
-          {% translate "In Progress" %}
-        </a>
-        <a href="?q={{ search_query|urlencode }}&status=Closed&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort={{ current_sort }}&dir={{ current_dir }}" class="filter-chip {% if status_filter == 'Closed' %}active{% endif %}">
-          {% translate "Closed" %}
-        </a>
-      </div>
-
-      <div style="width: 180px">
-        <select name="priority" class="form-select form-select-sm" onchange="this.form.submit()">
-          <option value="">{% translate "All Priorities" %}</option>
-          {% for value, label in priority_choices %}
-            <option value="{{ value }}" {% if priority_filter == value %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div style="width: 200px">
-        <select name="assigned_to" class="form-select form-select-sm" onchange="this.form.submit()">
-          <option value="">{% translate "All Assignees" %}</option>
-          <option value="unassigned" {% if assigned_filter == 'unassigned' %}selected{% endif %}>{% translate "Unassigned" %}</option>
-          {% for admin in admins %}
-            <option value="{{ admin.pk }}" {% if assigned_filter == admin.pk|stringformat:"s" %}selected{% endif %}>{{ admin.first_name }} {{ admin.last_name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-
-      {% if search_query or status_filter or priority_filter or assigned_filter %}
-        <a href="{% url 'ticket_list' %}" class="eal-btn eal-btn-outline" style="border-style: dashed; color: var(--text-muted); height: 32px; padding: 0 12px; font-size: 11px">
-          <i class="bi bi-x-circle"></i>
-          <span>{% translate "Clear Filters" %}</span>
-        </a>
-      {% endif %}
-      </div>
+    </div>
   </form>
 
   <div class="eal-table-wrap">
     <table class="eal-table">
       <thead>
         <tr>
-          <th class="sortable" style="width: 60px">
-            <a href="?q={{ search_query|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort=rank&dir={% if current_sort == 'rank' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-              <span>#</span>
-              {% if current_sort == 'rank' %}
-                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
-              {% else %}
-                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
-              {% endif %}
-            </a>
-          </th>
-          <th class="sortable" style="width: 100px">
-            <a href="?q={{ search_query|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort=ticket_no&dir={% if current_sort == 'ticket_no' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-              <span>{% translate "Ticket #" %}</span>
-              {% if current_sort == 'ticket_no' %}
-                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
-              {% else %}
-                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
-              {% endif %}
-            </a>
-          </th>
-          <th class="sortable">
-            <a href="?q={{ search_query|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort=subject&dir={% if current_sort == 'subject' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-              <span>{% translate "Tenant & Subject" %}</span>
-              {% if current_sort == 'subject' %}
-                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
-              {% else %}
-                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
-              {% endif %}
-            </a>
-          </th>
-          <th class="sortable" style="width: 140px">
-            <a href="?q={{ search_query|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort=category&dir={% if current_sort == 'category' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-              <span>{% translate "Category" %}</span>
-              {% if current_sort == 'category' %}
-                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
-              {% else %}
-                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
-              {% endif %}
-            </a>
-          </th>
-          <th class="sortable" style="width: 120px">
-            <a href="?q={{ search_query|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort=priority&dir={% if current_sort == 'priority' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-              <span>{% translate "Priority" %}</span>
-              {% if current_sort == 'priority' %}
-                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
-              {% else %}
-                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
-              {% endif %}
-            </a>
-          </th>
-          <th class="sortable" style="width: 150px">
-            <a href="?q={{ search_query|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-              <span>{% translate "Status" %}</span>
-              {% if current_sort == 'status' %}
-                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
-              {% else %}
-                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
-              {% endif %}
-            </a>
-          </th>
-          <th class="sortable" style="width: 150px">
-            <a href="?q={{ search_query|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort=assignee&dir={% if current_sort == 'assignee' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-              <span>{% translate "Assignee" %}</span>
-              {% if current_sort == 'assignee' %}
-                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
-              {% else %}
-                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
-              {% endif %}
-            </a>
-          </th>
-          <th class="sortable" style="width: 160px">
-            <a href="?q={{ search_query|urlencode }}&status={{ status_filter }}&priority={{ priority_filter }}&assigned_to={{ assigned_filter }}&sort=created&dir={% if current_sort == 'created' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
-              <span>{% translate "Created" %}</span>
-              {% if current_sort == 'created' %}
-                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
-              {% else %}
-                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
-              {% endif %}
-            </a>
-          </th>
-          <th style="width: 80px">{% translate "View" %}</th>
+          <th style="width: 110px">{% translate "Ticket No." %}</th>
+          <th>{% translate "Tenant" %}</th>
+          <th>{% translate "Subject" %}</th>
+          <th>{% translate "Category" %}</th>
+          <th>{% translate "Priority" %}</th>
+          <th>{% translate "Assigned To" %}</th>
+          <th>{% translate "Created By" %}</th>
+          <th>{% translate "Status" %}</th>
+          <th>{% translate "Actions" %}</th>
         </tr>
       </thead>
       <tbody>
         {% for ticket in tickets %}
           <tr>
-            <td>{{ ticket.list_rank }}</td>
-            <td class="fw-bold text-primary">{{ ticket.ticket_no }}</td>
-            <td>
-              <div class="d-flex flex-column">
-                <span class="fw-semibold text-dark">{{ ticket.subject }}</span>
-                <span class="text-muted small">{{ ticket.tenant.company_name }}</span>
-              </div>
-            </td>
-            <td>
-              <span class="badge bg-light text-dark border">{{ ticket.category.name_en }}</span>
-            </td>
+            <td><span class="eal-entity-id">{{ ticket.ticket_no }}</span></td>
+            <td>{{ ticket.tenant.company_name }}</td>
+            <td>{{ ticket.subject }}</td>
+            <td>{{ ticket.category.name_en }}</td>
             <td>
               {% if ticket.priority == 'Critical' %}
                 <span class="status-badge suspended">{% translate "Critical" %}</span>
@@ -229,49 +108,51 @@
               {% endif %}
             </td>
             <td>
+              {% if ticket.assigned_to %}
+                {{ ticket.assigned_to.first_name }} {{ ticket.assigned_to.last_name }}
+              {% else %}
+                &mdash;
+              {% endif %}
+            </td>
+            <td>{{ ticket.created_by|default:"-" }}</td>
+            <td>
               {% if ticket.status == 'New' %}
-                <span class="status-badge active">{% translate "New" %}</span>
+                <span class="status-badge active">{% translate "Open" %}</span>
               {% elif ticket.status == 'In_Progress' %}
                 <span class="status-badge pending">{% translate "In Progress" %}</span>
               {% elif ticket.status == 'Closed' %}
                 <span class="status-badge inactive">{% translate "Closed" %}</span>
               {% else %}
-                <span class="status-badge active" style="background: var(--primary-light); color: var(--primary-color);">{{ ticket.get_status_display }}</span>
+                <span class="status-badge active">{{ ticket.get_status_display }}</span>
               {% endif %}
             </td>
             <td>
-              {% if ticket.assigned_to %}
-                <div class="d-flex align-items-center gap-2">
-                  <div class="avatar-xs bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 24px; height: 24px; font-size: 10px;">
-                    {{ ticket.assigned_to.first_name|slice:":1" }}{{ ticket.assigned_to.last_name|slice:":1" }}
-                  </div>
-                  <span class="small">{{ ticket.assigned_to.first_name }}</span>
-                </div>
-              {% else %}
-                <span class="text-muted small italic">{% translate "Unassigned" %}</span>
-              {% endif %}
-            </td>
-            <td>
-              <div class="text-muted small">
-                {{ ticket.created_at|date:"d M Y" }}<br>
-                {{ ticket.created_at|date:"H:i" }}
+              <div class="dropdown eal-actions-cell">
+                <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{% translate 'Actions' %}">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
+                  <li>
+                    <a class="dropdown-item" href="{% url 'ticket_detail' ticket.ticket_no %}">
+                      <i class="bi bi-eye text-info me-2"></i> {% translate "View" %}
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'ticket_detail' ticket.ticket_no %}#reply-section">
+                      <i class="bi bi-reply text-success me-2"></i> {% translate "Reply" %}
+                    </a>
+                  </li>
+                </ul>
               </div>
-            </td>
-            <td>
-              <a href="{% url 'ticket_detail' ticket.pk %}" class="eal-row-btn" title="{% translate 'View Detail' %}">
-                <i class="bi bi-eye"></i>
-              </a>
             </td>
           </tr>
         {% empty %}
           <tr>
-            <td colspan="8">
+            <td colspan="9">
               <div class="notification-empty py-5">
-                <div class="empty-icon">
-                  <i class="bi bi-ticket-detailed"></i>
-                </div>
+                <div class="empty-icon"><i class="bi bi-ticket-detailed"></i></div>
                 <h4 class="empty-title">{% translate "No Tickets Found" %}</h4>
-                <p class="empty-text">{% translate "There are no support tickets matching your criteria." %}</p>
+                <p class="empty-text">{% translate "There are no support tickets yet." %}</p>
               </div>
             </td>
           </tr>
@@ -279,6 +160,7 @@
       </tbody>
     </table>
   </div>
+
   {% include 'partials/pagination.html' with page_obj=tickets %}
 </div>
 {% endblock %}

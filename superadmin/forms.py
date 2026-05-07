@@ -661,7 +661,7 @@ class SubscriptionPlanForm(forms.ModelForm):
     MAX_FIELDS = [
         'max_internal_users',
         'max_internal_trucks',
-        'max_external_trucks',
+        # 'max_external_trucks',  # MVP scope: External Trucks hidden from UI
         'max_active_drivers',
         'max_monthly_shipments',
         'max_storage_gb',
@@ -676,7 +676,7 @@ class SubscriptionPlanForm(forms.ModelForm):
             'is_active',
             'max_internal_users',
             'max_internal_trucks',
-            'max_external_trucks',
+            # 'max_external_trucks',  # MVP scope: External Trucks hidden from UI
             'max_active_drivers',
             'max_monthly_shipments',
             'max_storage_gb',
@@ -756,7 +756,7 @@ class AddOnsPricingPolicyForm(forms.ModelForm):
     PRICE_FIELDS = [
         'extra_internal_user_price',
         'extra_internal_truck_price',
-        'extra_external_truck_price',
+        # 'extra_external_truck_price',  # MVP scope: External Trucks hidden from UI
         'extra_driver_price',
         'extra_shipment_price',
         'extra_storage_gb_price',
@@ -769,7 +769,7 @@ class AddOnsPricingPolicyForm(forms.ModelForm):
             'is_active',
             'extra_internal_user_price',
             'extra_internal_truck_price',
-            'extra_external_truck_price',
+            # 'extra_external_truck_price',  # MVP scope: External Trucks hidden from UI
             'extra_driver_price',
             'extra_shipment_price',
             'extra_storage_gb_price',
@@ -900,6 +900,7 @@ class BankAccountForm(forms.ModelForm):
             'account_number',
             'swift_code',
             'currency',
+            'allow_cross_currency_payments',
             'is_active',
         ]
 

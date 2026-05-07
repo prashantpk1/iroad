@@ -145,7 +145,8 @@
       </div>
 
       <!-- Shipment Documents Form -->
-      <form id="shipmentDocumentForm">
+      <form id="shipmentDocumentForm" method="post">
+        {% csrf_token %}
         <!-- Section A: Header Fields -->
         <div class="form-card" data-section="1">
           <div class="form-card-header">
@@ -178,7 +179,8 @@
                       type="text"
                       class="form-control has-icon"
                       id="recordNo"
-                      value="REC-000124"
+                      name="record_no"
+                      value="{{ preview_shipment_document_record_no|default:'REC-0001' }}"
                       readonly
                     />
                   </div>
@@ -195,6 +197,8 @@
                       type="date"
                       class="form-control has-icon"
                       id="recordDate"
+                      name="record_date"
+                      value="{{ shipment_document_form_data.record_date|default:'' }}"
                     />
                   </div>
                 </div>
@@ -209,6 +213,8 @@
                       type="text"
                       class="form-control has-icon"
                       id="bookingNo"
+                      name="booking_no"
+                      value="{{ shipment_document_form_data.booking_no|default:'' }}"
                       placeholder="booking no..."
                     />
                   </div>
@@ -226,6 +232,8 @@
                       type="text"
                       class="form-control has-icon"
                       id="bookingItem"
+                      name="booking_item"
+                      value="{{ shipment_document_form_data.booking_item|default:'' }}"
                       placeholder="booking item..."
                     />
                   </div>
@@ -241,6 +249,8 @@
                       type="text"
                       class="form-control has-icon"
                       id="shipmentRef"
+                      name="shipment_ref"
+                      value="{{ shipment_document_form_data.shipment_ref|default:'' }}"
                       placeholder="Search or enter shipment ref..."
                     />
                   </div>
@@ -250,15 +260,15 @@
                     >Document Type
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="documentType">
-                    <option value="" selected disabled>
+                  <select class="form-select" id="documentType" name="document_type">
+                    <option value="" {% if not shipment_document_form_data.document_type %}selected{% endif %} disabled>
                       -Select Document Type-
                     </option>
-                    <option value="bol">Bill of Lading (BOL)</option>
-                    <option value="invoice">Commercial Invoice</option>
-                    <option value="packing_list">Packing List</option>
-                    <option value="coo">Certificate of Origin</option>
-                    <option value="other">Other</option>
+                    <option value="Bill of Lading" {% if shipment_document_form_data.document_type == 'Bill of Lading' %}selected{% endif %}>Bill of Lading (BOL)</option>
+                    <option value="Commercial Invoice" {% if shipment_document_form_data.document_type == 'Commercial Invoice' %}selected{% endif %}>Commercial Invoice</option>
+                    <option value="Packing List" {% if shipment_document_form_data.document_type == 'Packing List' %}selected{% endif %}>Packing List</option>
+                    <option value="Certificate of Origin" {% if shipment_document_form_data.document_type == 'Certificate of Origin' %}selected{% endif %}>Certificate of Origin</option>
+                    <option value="Other" {% if shipment_document_form_data.document_type == 'Other' %}selected{% endif %}>Other</option>
                   </select>
                 </div>
               </div>
@@ -280,6 +290,8 @@
                     type="text"
                     class="form-control"
                     id="documentRefNo"
+                    name="document_ref_no"
+                    value="{{ shipment_document_form_data.document_ref_no|default:'' }}"
                     placeholder="Enter reference number"
                   />
                 </div>
@@ -294,6 +306,8 @@
                       type="date"
                       class="form-control has-icon"
                       id="documentDate"
+                      name="document_date"
+                      value="{{ shipment_document_form_data.document_date|default:'' }}"
                     />
                   </div>
                 </div>
@@ -303,7 +317,7 @@
                       <label class="form-label mb-0">Is Delivery Note?</label>
                     </div>
                     <label class="setting-toggle">
-                      <input type="checkbox" id="isDeliveryNote" />
+                      <input type="checkbox" id="isDeliveryNote" name="is_delivery_note" {% if shipment_document_form_data.is_delivery_note %}checked{% endif %} />
                       <span class="toggle-track"></span>
                       <span class="toggle-label">No</span>
                     </label>
@@ -319,6 +333,8 @@
                     type="text"
                     class="form-control"
                     id="physicalLocation"
+                    name="physical_location"
+                    value="{{ shipment_document_form_data.physical_location|default:'' }}"
                     placeholder="Enter physical location"
                   />
                 </div>
@@ -340,6 +356,8 @@
                       type="number"
                       class="form-control has-icon"
                       id="pageCount"
+                      name="page_count"
+                      value="{{ shipment_document_form_data.page_count|default:'' }}"
                       placeholder="e.g. 1"
                       min="1"
                     />
@@ -347,10 +365,10 @@
                 </div>
                 <div class="field">
                   <label for="status" class="form-label">Status</label>
-                  <select class="form-select" id="status">
-                    <option value="draft" selected>Draft</option>
-                    <option value="verified">Verified</option>
-                    <option value="rejected">Rejected</option>
+                  <select class="form-select" id="status" name="status">
+                    <option value="Draft" {% if shipment_document_form_data.status|default:'Draft' == 'Draft' %}selected{% endif %}>Draft</option>
+                    <option value="Verified" {% if shipment_document_form_data.status == 'Verified' %}selected{% endif %}>Verified</option>
+                    <option value="Rejected" {% if shipment_document_form_data.status == 'Rejected' %}selected{% endif %}>Rejected</option>
                   </select>
                 </div>
               </div>
@@ -360,9 +378,10 @@
                   <textarea
                     class="form-control"
                     id="notes"
+                    name="notes"
                     rows="3"
                     placeholder="Enter any additional notes..."
-                  ></textarea>
+                  >{{ shipment_document_form_data.notes|default:'' }}</textarea>
                 </div>
               </div>
             </div>

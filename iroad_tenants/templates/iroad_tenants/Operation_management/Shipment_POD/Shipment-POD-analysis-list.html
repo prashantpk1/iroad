@@ -30,10 +30,7 @@
                 <i class="bi bi-download"></i>
                 <span>Export</span>
               </button>
-              <a
-                href="Digital-pod-transaction.html"
-                class="eal-btn eal-btn-primary"
-              >
+              <a href="{% url 'iroad_tenants:tenant_operation_shipment_pod_create' %}" class="eal-btn eal-btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 <span>New POD Record</span>
               </a>
@@ -49,7 +46,7 @@
             <i class="bi bi-file-earmark-check"></i>
           </div>
           <div>
-            <div class="eal-stat-value">10</div>
+            <div class="eal-stat-value">{{ pod_stats.total|default:0 }}</div>
             <div class="eal-stat-label">Total</div>
           </div>
         </div>
@@ -58,7 +55,7 @@
             <i class="bi bi-file-earmark-ruled"></i>
           </div>
           <div>
-            <div class="eal-stat-value">5</div>
+            <div class="eal-stat-value">{{ pod_stats.hard_copy|default:0 }}</div>
             <div class="eal-stat-label">Hard Copy</div>
           </div>
         </div>
@@ -67,7 +64,7 @@
             <i class="bi bi-cloud-arrow-up"></i>
           </div>
           <div>
-            <div class="eal-stat-value">5</div>
+            <div class="eal-stat-value">{{ pod_stats.soft_copy|default:0 }}</div>
             <div class="eal-stat-label">Soft Copy</div>
           </div>
         </div>
@@ -76,7 +73,7 @@
             <i class="bi bi-camera-video"></i>
           </div>
           <div>
-            <div class="eal-stat-value">6</div>
+            <div class="eal-stat-value">{{ pod_stats.digital_evidence|default:0 }}</div>
             <div class="eal-stat-label">Digital Evidence</div>
           </div>
         </div>
@@ -85,7 +82,7 @@
             <i class="bi bi-check-circle-fill"></i>
           </div>
           <div>
-            <div class="eal-stat-value">7</div>
+            <div class="eal-stat-value">{{ pod_stats.completed|default:0 }}</div>
             <div class="eal-stat-label">Completed POD</div>
           </div>
         </div>
@@ -94,7 +91,7 @@
             <i class="bi bi-hourglass-split"></i>
           </div>
           <div>
-            <div class="eal-stat-value">3</div>
+            <div class="eal-stat-value">{{ pod_stats.pending|default:0 }}</div>
             <div class="eal-stat-label">Pending POD</div>
           </div>
         </div>
@@ -105,10 +102,10 @@
         <!-- Toolbar -->
         <div class="eal-toolbar">
           <div class="eal-toolbar-left">
-            <div class="eal-search">
+            <form method="get" class="eal-search">
               <i class="bi bi-search"></i>
-              <input type="text" placeholder="Search POD records&hellip;" />
-            </div>
+              <input type="text" name="q" value="{{ pod_search_q }}" placeholder="Search POD records&hellip;" />
+            </form>
           </div>
         </div>
 
@@ -132,206 +129,38 @@
               </tr>
             </thead>
             <tbody>
+              {% for row in pod_rows %}
               <tr>
-                <td><span class="eal-entity-id">POD-2026-0001</span></td>
-                <td>01 Mar 2026</td>
-                <td>BK-2026-001</td>
-                <td>BI-001</td>
-                <td>SHP-2026-00142</td>
-                <td>DOC-001</td>
-                <td>01 Mar 2026</td>
-                <td>3</td>
-                <td>Ahmed Al-Rashid</td>
-                <td><span class="status-badge in-transit"><i class="bi bi-cloud-arrow-up"></i> Soft Copy</span></td>
-                <td><span class="status-badge active">Finalized</span></td>
+                <td><span class="eal-entity-id">{{ row.record_no }}</span></td>
+                <td>{{ row.record_date|date:"d M Y" }}</td>
+                <td>{{ row.booking_no }}</td>
+                <td>{{ row.booking_item }}</td>
+                <td>{{ row.shipment_ref }}</td>
+                <td>{{ row.document_ref_no }}</td>
+                <td>{{ row.document_date|date:"d M Y" }}</td>
+                <td>{{ row.page_count }}</td>
+                <td>{{ row.user_label }}</td>
+                <td><span class="status-badge in-transit">{{ row.pod_type|title }} Copy</span></td>
+                <td><span class="status-badge {% if row.pod_status == 'Compliant' %}active{% else %}pending{% endif %}">{{ row.pod_status }}</span></td>
                 <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
+                  <div class="dropdown eal-actions-cell">
+                    <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
+                      <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_shipment_pod_detail' %}?record_no={{ row.record_no|urlencode }}"><i class="bi bi-eye text-info me-2"></i> View</a></li>
+                      <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_shipment_pod_create' %}?record_no={{ row.record_no|urlencode }}"><i class="bi bi-pencil text-primary me-2"></i> Edit</a></li>
+                      <li><hr class="dropdown-divider" /></li>
+                      <li><a class="dropdown-item text-danger" href="{% url 'iroad_tenants:tenant_operation_shipment_pod_delete' %}?record_no={{ row.record_no|urlencode }}" onclick="return confirm('Delete POD record {{ row.record_no }}?');"><i class="bi bi-trash3 me-2"></i> Delete</a></li>
+                    </ul>
                   </div>
                 </td>
               </tr>
+              {% empty %}
               <tr>
-                <td><span class="eal-entity-id">POD-2026-0002</span></td>
-                <td>05 Mar 2026</td>
-                <td>BK-2026-002</td>
-                <td>BI-002</td>
-                <td>SHP-2026-00143</td>
-                <td>DOC-002</td>
-                <td>05 Mar 2026</td>
-                <td>5</td>
-                <td>Sara Mohammed</td>
-                <td><span class="status-badge pending"><i class="bi bi-file-earmark-ruled"></i> Hard Copy</span></td>
-                <td><span class="status-badge pending">Pending</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
-                  </div>
-                </td>
+                <td colspan="12" class="text-center text-muted py-4">No POD records found.</td>
               </tr>
-              <tr>
-                <td><span class="eal-entity-id">POD-2026-0003</span></td>
-                <td>08 Mar 2026</td>
-                <td>BK-2026-003</td>
-                <td>BI-001</td>
-                <td>SHP-2026-00144</td>
-                <td>DOC-003</td>
-                <td>08 Mar 2026</td>
-                <td>2</td>
-                <td>Khalid Ibrahim</td>
-                <td><span class="status-badge in-transit"><i class="bi bi-cloud-arrow-up"></i> Soft Copy</span></td>
-                <td><span class="status-badge active">Verified</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="eal-entity-id">POD-2026-0004</span></td>
-                <td>10 Mar 2026</td>
-                <td>BK-2026-004</td>
-                <td>BI-002</td>
-                <td>SHP-2026-00145</td>
-                <td>DOC-004</td>
-                <td>10 Mar 2026</td>
-                <td>4</td>
-                <td>Faisal Nasser</td>
-                <td><span class="status-badge pending"><i class="bi bi-file-earmark-ruled"></i> Hard Copy</span></td>
-                <td><span class="status-badge active">Verified</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="eal-entity-id">POD-2026-0005</span></td>
-                <td>12 Mar 2026</td>
-                <td>BK-2026-005</td>
-                <td>BI-001</td>
-                <td>SHP-2026-00146</td>
-                <td>DOC-005</td>
-                <td>12 Mar 2026</td>
-                <td>1</td>
-                <td>Ahmed Al-Rashid</td>
-                <td><span class="status-badge in-transit"><i class="bi bi-cloud-arrow-up"></i> Soft Copy</span></td>
-                <td><span class="status-badge active">Finalized</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="eal-entity-id">POD-2026-0006</span></td>
-                <td>15 Mar 2026</td>
-                <td>BK-2026-006</td>
-                <td>BI-002</td>
-                <td>SHP-2026-00147</td>
-                <td>DOC-006</td>
-                <td>15 Mar 2026</td>
-                <td>6</td>
-                <td>Omar Yusuf</td>
-                <td><span class="status-badge pending"><i class="bi bi-file-earmark-ruled"></i> Hard Copy</span></td>
-                <td><span class="status-badge pending">Collected</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="eal-entity-id">POD-2026-0007</span></td>
-                <td>18 Mar 2026</td>
-                <td>BK-2026-007</td>
-                <td>BI-001</td>
-                <td>SHP-2026-00148</td>
-                <td>DOC-007</td>
-                <td>18 Mar 2026</td>
-                <td>2</td>
-                <td>Sara Mohammed</td>
-                <td><span class="status-badge in-transit"><i class="bi bi-cloud-arrow-up"></i> Soft Copy</span></td>
-                <td><span class="status-badge active">Verified</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="eal-entity-id">POD-2026-0008</span></td>
-                <td>20 Mar 2026</td>
-                <td>BK-2026-008</td>
-                <td>BI-002</td>
-                <td>SHP-2026-00149</td>
-                <td>DOC-008</td>
-                <td>20 Mar 2026</td>
-                <td>3</td>
-                <td>Khalid Ibrahim</td>
-                <td><span class="status-badge pending"><i class="bi bi-file-earmark-ruled"></i> Hard Copy</span></td>
-                <td><span class="status-badge active">Finalized</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="eal-entity-id">POD-2026-0009</span></td>
-                <td>22 Mar 2026</td>
-                <td>BK-2026-009</td>
-                <td>BI-001</td>
-                <td>SHP-2026-00150</td>
-                <td>DOC-009</td>
-                <td>22 Mar 2026</td>
-                <td>2</td>
-                <td>&mdash;</td>
-                <td><span class="status-badge in-transit"><i class="bi bi-cloud-arrow-up"></i> Soft Copy</span></td>
-                <td><span class="status-badge pending">Pending</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td><span class="eal-entity-id">POD-2026-0010</span></td>
-                <td>25 Mar 2026</td>
-                <td>BK-2026-010</td>
-                <td>BI-002</td>
-                <td>SHP-2026-00151</td>
-                <td>DOC-010</td>
-                <td>25 Mar 2026</td>
-                <td>4</td>
-                <td>&mdash;</td>
-                <td><span class="status-badge pending"><i class="bi bi-file-earmark-ruled"></i> Hard Copy</span></td>
-                <td><span class="status-badge active">Verified</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a href="Shipment-POD-analysis-details.html" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-                    <button class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></button>
-                    <button class="eal-row-btn danger" title="Delete"><i class="bi bi-trash3"></i></button>
-                  </div>
-                </td>
-              </tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
@@ -339,17 +168,25 @@
         <!-- Pagination -->
         <div class="eal-pagination">
           <div class="eal-pagination-info">
-            Showing <strong>1&ndash;10</strong> of
-            <strong>10</strong> POD records
+            Showing <strong>{{ pagination_start }}&ndash;{{ pagination_end }}</strong> of
+            <strong>{{ pagination_total }}</strong> POD records
           </div>
           <div class="eal-pagination-controls">
-            <button class="eal-page-btn" title="Previous">
+            {% if pod_page.has_previous %}
+            <a class="eal-page-btn" href="?page={{ pod_page.previous_page_number }}{% if pod_search_q %}&q={{ pod_search_q|urlencode }}{% endif %}" title="Previous">
               <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="eal-page-btn active">1</button>
-            <button class="eal-page-btn" title="Next">
+            </a>
+            {% else %}
+            <button class="eal-page-btn" title="Previous" disabled><i class="bi bi-chevron-left"></i></button>
+            {% endif %}
+            <button class="eal-page-btn active">{{ pod_page.number }}</button>
+            {% if pod_page.has_next %}
+            <a class="eal-page-btn" href="?page={{ pod_page.next_page_number }}{% if pod_search_q %}&q={{ pod_search_q|urlencode }}{% endif %}" title="Next">
               <i class="bi bi-chevron-right"></i>
-            </button>
+            </a>
+            {% else %}
+            <button class="eal-page-btn" title="Next" disabled><i class="bi bi-chevron-right"></i></button>
+            {% endif %}
           </div>
         </div>
       </div>

@@ -13,7 +13,7 @@
             <li class="breadcrumb-item">Operations</li>
             <li class="breadcrumb-item">Operations Management</li>
             <li class="breadcrumb-item">
-              <a href="Shipment-POD-analysis-list.html"
+              <a href="{% url 'iroad_tenants:tenant_operation_shipment_pod_list' %}"
                 >Shipment POD Analysis List</a
               >
             </li>
@@ -26,7 +26,7 @@
           <div class="page-header-left">
             <h1 class="page-title">
               POD Record &mdash;
-              <span style="color: var(--primary-color)">POD-2026-0001</span>
+              <span style="color: var(--primary-color)">{{ pod_detail.record_no }}</span>
             </h1>
             <p class="page-subtitle">
               Full details for this proof of delivery record.
@@ -35,16 +35,16 @@
           <div class="page-header-right">
             <div class="eal-header-actions">
               <a
-                href="Shipment-POD-analysis-list.html"
+                href="{% url 'iroad_tenants:tenant_operation_shipment_pod_list' %}"
                 class="eal-btn eal-btn-outline"
               >
                 <i class="bi bi-arrow-left"></i>
                 <span>Back to List</span>
               </a>
-              <button class="eal-btn eal-btn-primary">
+              <a class="eal-btn eal-btn-primary" href="{% url 'iroad_tenants:tenant_operation_shipment_pod_create' %}?record_no={{ pod_detail.record_no|urlencode }}">
                 <i class="bi bi-pencil-square"></i>
                 <span>Edit Record</span>
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -71,11 +71,11 @@
               <div class="fields-grid cols-2">
                 <div class="field">
                   <label class="form-label">Record No</label>
-                  <p class="detail-view-value">POD-2026-0001</p>
+                  <p class="detail-view-value">{{ pod_detail.record_no }}</p>
                 </div>
                 <div class="field">
                   <label class="form-label">Record Date</label>
-                  <p class="detail-view-value">01 Mar 2026</p>
+                  <p class="detail-view-value">{{ pod_detail.record_date|date:"d M Y" }}</p>
                 </div>
               </div>
             </div>
@@ -98,25 +98,25 @@
               <div class="fields-grid cols-3">
                 <div class="field">
                   <label class="form-label">Doc No (list)</label>
-                  <p class="detail-view-value">DOC-001</p>
+                  <p class="detail-view-value">{{ pod_detail.doc_no }}</p>
                 </div>
                 <div class="field">
                   <label class="form-label">Doc Date (fetch)</label>
-                  <p class="detail-view-value">01 Mar 2026</p>
+                  <p class="detail-view-value">{{ pod_detail.document_date|date:"d M Y" }}</p>
                 </div>
                 <div class="field">
                   <label class="form-label">Doc Type (list)</label>
-                  <p class="detail-view-value">Delivery Note</p>
+                  <p class="detail-view-value">{{ pod_detail.document_type }}</p>
                 </div>
               </div>
               <div class="fields-grid cols-2" style="margin-top: 20px">
                 <div class="field">
                   <label class="form-label">Doc Ref (list)</label>
-                  <p class="detail-view-value">DOC-001</p>
+                  <p class="detail-view-value">{{ pod_detail.document_ref_no }}</p>
                 </div>
                 <div class="field">
                   <label class="form-label">Page Count (fetch)</label>
-                  <p class="detail-view-value">3</p>
+                  <p class="detail-view-value">{{ pod_detail.page_count }}</p>
                 </div>
               </div>
             </div>
@@ -141,15 +141,15 @@
               <div class="fields-grid cols-3">
                 <div class="field">
                   <label class="form-label">Booking No (list)</label>
-                  <p class="detail-view-value">BK-2026-001</p>
+                  <p class="detail-view-value">{{ pod_detail.booking_no }}</p>
                 </div>
                 <div class="field">
                   <label class="form-label">Booking Item (list)</label>
-                  <p class="detail-view-value">BI-001</p>
+                  <p class="detail-view-value">{{ pod_detail.booking_item }}</p>
                 </div>
                 <div class="field">
                   <label class="form-label">Shipment (list)</label>
-                  <p class="detail-view-value">SHP-2026-00142</p>
+                  <p class="detail-view-value">{{ pod_detail.shipment_ref }}</p>
                 </div>
               </div>
             </div>
@@ -174,27 +174,27 @@
                   <label class="form-label">POD Type (list)</label>
                   <p class="detail-view-value">
                     <span class="status-badge in-transit"
-                      ><i class="bi bi-cloud-arrow-up"></i> Soft Copy</span
+                      ><i class="bi bi-cloud-arrow-up"></i> {{ pod_detail.pod_type }} Copy</span
                     >
                   </p>
                 </div>
                 <div class="pod-status-tile">
                   <label class="form-label">POD Status (auto update)</label>
                   <p class="detail-view-value">
-                    <span class="status-badge active">Finalized</span>
+                    <span class="status-badge {% if pod_detail.pod_status == 'Compliant' %}active{% else %}pending{% endif %}">{{ pod_detail.pod_status }}</span>
                   </p>
                 </div>
                 <div class="pod-status-tile">
                   <label class="form-label">Physical Location (list)</label>
                   <p class="detail-view-value">
                     <span class="status-badge active"
-                      ><i class="bi bi-building-check"></i> With Admin</span
+                      ><i class="bi bi-building-check"></i> {{ pod_detail.physical_location|default:'-' }}</span
                     >
                   </p>
                 </div>
                 <div class="pod-status-tile">
                   <label class="form-label">User (list)</label>
-                  <p class="detail-view-value">Ahmed Al-Rashid</p>
+                  <p class="detail-view-value">{{ pod_detail.user_label }}</p>
                 </div>
                 <div class="pod-status-tile">
                   <label class="form-label">Location Status</label>
@@ -250,7 +250,7 @@
                 <span
                   class="detail-field-value"
                   style="font-weight: 600; color: var(--primary-color)"
-                  >POD-2026-0001</span
+                  >{{ pod_detail.record_no }}</span
                 >
               </div>
               <div
@@ -258,7 +258,7 @@
                 style="padding: 10px 0; border-bottom: 1px solid #eee"
               >
                 <span class="detail-field-label">Shipment</span>
-                <span class="detail-field-value">SHP-2026-00142</span>
+                <span class="detail-field-value">{{ pod_detail.shipment_ref }}</span>
               </div>
               <div
                 class="detail-field"
@@ -267,7 +267,7 @@
                 <span class="detail-field-label">POD Type</span>
                 <span class="detail-field-value">
                   <span class="status-badge in-transit"
-                    ><i class="bi bi-cloud-arrow-up"></i> Soft Copy</span
+                    ><i class="bi bi-cloud-arrow-up"></i> {{ pod_detail.pod_type }} Copy</span
                   >
                 </span>
               </div>
@@ -277,7 +277,7 @@
               >
                 <span class="detail-field-label">Status</span>
                 <span class="detail-field-value">
-                  <span class="status-badge active">Finalized</span>
+                  <span class="status-badge {% if pod_detail.pod_status == 'Compliant' %}active{% else %}pending{% endif %}">{{ pod_detail.pod_status }}</span>
                 </span>
               </div>
               <div
@@ -287,7 +287,7 @@
                 <span class="detail-field-label">Location</span>
                 <span class="detail-field-value">
                   <span class="status-badge active"
-                    ><i class="bi bi-building-check"></i> With Admin</span
+                    ><i class="bi bi-building-check"></i> {{ pod_detail.physical_location|default:'-' }}</span
                   >
                 </span>
               </div>
@@ -296,11 +296,11 @@
                 style="padding: 10px 0; border-bottom: 1px solid #eee"
               >
                 <span class="detail-field-label">Pages</span>
-                <span class="detail-field-value">3</span>
+                <span class="detail-field-value">{{ pod_detail.page_count }}</span>
               </div>
               <div class="detail-field" style="padding: 10px 0">
                 <span class="detail-field-label">Holder</span>
-                <span class="detail-field-value">Ahmed Al-Rashid</span>
+                <span class="detail-field-value">{{ pod_detail.user_label }}</span>
               </div>
             </div>
           </div>
@@ -431,72 +431,37 @@
                 </tr>
               </thead>
               <tbody>
+                {% for row in pod_page_rows %}
                 <tr>
-                  <td>1</td>
-                  <td>Page-1</td>
-                  <td>Action Log</td>
-                  <td>ALOG-001</td>
-                  <td>With Admin</td>
-                  <td>Collected</td>
-                  <td>Collected</td>
+                  <td>{{ row.line_no }}</td>
+                  <td>{{ row.doc_page|default:"-" }}</td>
+                  <td>{{ row.source|default:"-" }}</td>
+                  <td>{{ row.action_log|default:"-" }}</td>
+                  <td>{{ row.physical_location|default:"-" }}</td>
+                  <td>{{ row.soft_copy_status|default:"-" }}</td>
+                  <td>{{ row.digital_evidence_status|default:"-" }}</td>
                   <td>
-                    <a
-                      href="https://maps.google.com/?q=24.7136,46.6753"
-                      style="color: var(--primary-color)"
-                      title="Open Map"
-                      ><i class="bi bi-geo-alt"></i
-                    ></a>
+                    {% if row.map_url %}
+                    <a href="{{ row.map_url }}" style="color: var(--primary-color)" title="Open Map" target="_blank" rel="noopener">
+                      <i class="bi bi-geo-alt"></i>
+                    </a>
+                    {% else %}
+                    -
+                    {% endif %}
                   </td>
                   <td>
-                    <span class="status-badge in-transit"
-                      ><i class="bi bi-paperclip"></i> page1.pdf</span
-                    >
+                    {% if row.attachment_label %}
+                    <span class="status-badge in-transit"><i class="bi bi-paperclip"></i> {{ row.attachment_label }}</span>
+                    {% else %}
+                    -
+                    {% endif %}
                   </td>
                 </tr>
+                {% empty %}
                 <tr>
-                  <td>2</td>
-                  <td>Page-2</td>
-                  <td>Manual</td>
-                  <td>ALOG-002</td>
-                  <td>With Driver</td>
-                  <td>Not Collected</td>
-                  <td>Collected</td>
-                  <td>
-                    <a
-                      href="https://maps.google.com/?q=24.7138,46.6755"
-                      style="color: var(--primary-color)"
-                      title="Open Map"
-                      ><i class="bi bi-geo-alt"></i
-                    ></a>
-                  </td>
-                  <td>
-                    <span class="status-badge in-transit"
-                      ><i class="bi bi-paperclip"></i> page2.pdf</span
-                    >
-                  </td>
+                  <td colspan="9" class="text-center text-muted py-4">No POD page rows available.</td>
                 </tr>
-                <tr>
-                  <td>3</td>
-                  <td>Page-3</td>
-                  <td>Action Log</td>
-                  <td>ALOG-003</td>
-                  <td>Out of Company</td>
-                  <td>Not Collected</td>
-                  <td>Not Collected</td>
-                  <td>
-                    <a
-                      href="https://maps.google.com/?q=24.7140,46.6757"
-                      style="color: var(--primary-color)"
-                      title="Open Map"
-                      ><i class="bi bi-geo-alt"></i
-                    ></a>
-                  </td>
-                  <td>
-                    <span class="status-badge in-transit"
-                      ><i class="bi bi-paperclip"></i> page3.pdf</span
-                    >
-                  </td>
-                </tr>
+                {% endfor %}
               </tbody>
             </table>
           </div>

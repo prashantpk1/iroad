@@ -3,751 +3,94 @@
 {% block title %}Operation Actions List | iRoad Admin{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-      <div class="page-header">
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-              <a href="index.html">Dashboard</a>
-            </li>
-            <li class="breadcrumb-item">Operations</li>
-            <li class="breadcrumb-item">Operations Management</li>
-            <li class="breadcrumb-item active" aria-current="page">
-              Operation Actions List
-            </li>
-          </ol>
-        </nav>
-        <div class="page-header-row">
-          <div class="page-header-left">
-            <h1 class="page-title">Operation Actions List</h1>
-            <p class="page-subtitle">
-              View and manage all operation action types and their settings.
-            </p>
-          </div>
-          <div class="page-header-right">
-            <div class="eal-header-actions">
-              <button class="eal-btn eal-btn-outline">
-                <i class="bi bi-download"></i>
-                <span>Export</span>
-              </button>
-              <a href="Operation-actions.html" class="eal-btn eal-btn-primary">
-                <i class="bi bi-plus-lg"></i>
-                <span>Add Operation Action</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Operations</li>
+      <li class="breadcrumb-item">Operations Management</li>
+      <li class="breadcrumb-item active" aria-current="page">Operation Actions List</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">Operation Actions List</h1>
+      <p class="page-subtitle">View and manage all operation action types and their settings.</p>
+    </div>
+    <div class="page-header-right">
+      <a href="{% url 'iroad_tenants:tenant_operation_actions_create' %}" class="eal-btn eal-btn-primary">
+        <i class="bi bi-plus-lg"></i>
+        <span>Add Operation Action</span>
+      </a>
+    </div>
+  </div>
+</div>
 
-      <!-- Stats Row -->
-      <div class="eal-stats-row">
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon purple">
-            <i class="bi bi-grid-1x2"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">10</div>
-            <div class="eal-stat-label">Total Actions</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon green">
-            <i class="bi bi-briefcase"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">5</div>
-            <div class="eal-stat-label">Job Actions</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon amber">
-            <i class="bi bi-telephone"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">2</div>
-            <div class="eal-stat-label">On Call Actions</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon blue">
-            <i class="bi bi-slash-circle"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">2</div>
-            <div class="eal-stat-label">Without Scope Actions</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon teal">
-            <i class="bi bi-check-circle"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">8</div>
-            <div class="eal-stat-label">Active Actions</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon red">
-            <i class="bi bi-x-octagon"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">2</div>
-            <div class="eal-stat-label">Inactive Actions</div>
-          </div>
-        </div>
-      </div>
+<div class="eal-stats-row">
+  <div class="eal-stat-card"><div class="eal-stat-icon purple"><i class="bi bi-grid-1x2"></i></div><div><div class="eal-stat-value">{{ action_stats.total|default:0 }}</div><div class="eal-stat-label">Total Actions</div></div></div>
+  <div class="eal-stat-card"><div class="eal-stat-icon green"><i class="bi bi-briefcase"></i></div><div><div class="eal-stat-value">{{ action_stats.job|default:0 }}</div><div class="eal-stat-label">Job Actions</div></div></div>
+  <div class="eal-stat-card"><div class="eal-stat-icon amber"><i class="bi bi-telephone"></i></div><div><div class="eal-stat-value">{{ action_stats.on_call|default:0 }}</div><div class="eal-stat-label">On Call Actions</div></div></div>
+  <div class="eal-stat-card"><div class="eal-stat-icon blue"><i class="bi bi-slash-circle"></i></div><div><div class="eal-stat-value">{{ action_stats.without_scope|default:0 }}</div><div class="eal-stat-label">Without Scope</div></div></div>
+  <div class="eal-stat-card"><div class="eal-stat-icon teal"><i class="bi bi-check-circle"></i></div><div><div class="eal-stat-value">{{ action_stats.active|default:0 }}</div><div class="eal-stat-label">Active</div></div></div>
+  <div class="eal-stat-card"><div class="eal-stat-icon red"><i class="bi bi-x-octagon"></i></div><div><div class="eal-stat-value">{{ action_stats.inactive|default:0 }}</div><div class="eal-stat-label">Inactive</div></div></div>
+</div>
 
-      <!-- Table Card -->
-      <div class="eal-table-card">
-        <div class="eal-toolbar">
-          <div class="eal-toolbar-left">
-            <div class="eal-search">
-              <i class="bi bi-search"></i>
-              <input
-                type="text"
-                placeholder="Search operation actions&hellip;"
-              />
-            </div>
-          </div>
-        </div>
+<div class="eal-table-card">
+  <div class="eal-toolbar">
+    <div class="eal-toolbar-left">
+      <form method="get" class="eal-search">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" value="{{ action_search_q|default:'' }}" placeholder="Search operation actions&hellip;" />
+      </form>
+    </div>
+  </div>
 
-        <div class="eal-table-wrap">
-          <table class="eal-table">
-            <thead>
-              <tr>
-                <th class="eal-col-check">
-                  <input
-                    type="checkbox"
-                    class="eal-custom-check"
-                    id="ealSelectAll"
-                  />
-                </th>
-                <th>
-                  Action Code
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Arabic Label
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  English Label
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Scope
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Sequence Category
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Status
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-001</span>
-                </td>
-                <td>تأكيد التسليم</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Delivery Confirmation</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Shipment</span>
-                </td>
-                <td>Proof of delivery</td>
-                <td>
-                  <span class="status-badge active">Active</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-002</span>
-                </td>
-                <td>اكتمال الاستلام</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Pickup Completed</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Shipment</span>
-                </td>
-                <td>Pickup</td>
-                <td>
-                  <span class="status-badge active">Active</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-003</span>
-                </td>
-                <td>الوصول إلى نقطة التفتيش</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Checkpoint Reached</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge in-transit">Trip</span>
-                </td>
-                <td>Transit checkpoint</td>
-                <td>
-                  <span class="status-badge active">Active</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-004</span>
-                </td>
-                <td>بدء التحميل</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Loading Started</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Shipment</span>
-                </td>
-                <td>Loading</td>
-                <td>
-                  <span class="status-badge active">Active</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-005</span>
-                </td>
-                <td>اكتمال التفريغ</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Unloading Completed</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Shipment</span>
-                </td>
-                <td>Unloading</td>
-                <td>
-                  <span class="status-badge active">Active</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-006</span>
-                </td>
-                <td>توقيع إثبات التسليم</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">POD Signed</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Shipment</span>
-                </td>
-                <td>Documentation</td>
-                <td>
-                  <span class="status-badge active">Active</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-007</span>
-                </td>
-                <td>تأكيد الحجز</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Booking Confirmed</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge in-transit">Booking</span>
-                </td>
-                <td>Booking</td>
-                <td>
-                  <span class="status-badge active">Active</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-008</span>
-                </td>
-                <td>الإبلاغ عن التلف</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Damage Reported</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Shipment</span>
-                </td>
-                <td>Exception handling</td>
-                <td>
-                  <span class="status-badge inactive">Inactive</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-009</span>
-                </td>
-                <td>فحص المركبة</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Vehicle Check</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge in-transit">Trip</span>
-                </td>
-                <td>Vehicle safety</td>
-                <td>
-                  <span class="status-badge active">Active</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">ACT-010</span>
-                </td>
-                <td>التخليص الجمركي</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Customs Clearance</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Global</span>
-                </td>
-                <td>Customs clearance</td>
-                <td>
-                  <span class="status-badge inactive">Inactive</span>
-                </td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <a
-                      class="eal-row-btn"
-                      title="View"
-                      href="Operation-actions-details.html"
-                    >
-                      <i class="bi bi-eye"></i>
-                    </a>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+  <div class="eal-table-wrap">
+    <table class="eal-table">
+      <thead>
+        <tr>
+          <th>Action Code</th>
+          <th>Arabic Label</th>
+          <th>English Label</th>
+          <th>Scope</th>
+          <th>Sequence Category</th>
+          <th>Seq #</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in action_rows %}
+        <tr>
+          <td><span class="eal-entity-id">{{ row.action_code }}</span></td>
+          <td>{{ row.arabic_label|default:'-' }}</td>
+          <td>{{ row.english_label }}</td>
+          <td><span class="status-badge {% if row.action_scope == 'on_call' %}in-transit{% elif row.action_scope == 'without' %}pending{% else %}active{% endif %}">{{ row.action_scope|default:'-' }}</span></td>
+          <td>{{ row.sequence_category|default:'-' }}</td>
+          <td>{{ row.sequence_number }}</td>
+          <td><span class="status-badge {% if row.status == 'Active' %}active{% else %}inactive{% endif %}">{{ row.status }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No operation actions found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
-        <div class="eal-pagination">
-          <div class="eal-pagination-info">
-            Showing
-            <strong>1&ndash;10</strong>
-            of
-            <strong>10</strong>
-            operation actions
-          </div>
-          <div class="eal-pagination-controls">
-            <button class="eal-page-btn" title="Previous">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="eal-page-btn active">1</button>
-            <button class="eal-page-btn" title="Next">
-              <i class="bi bi-chevron-right"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-<!-- Detail Panel -->
-    <div class="detail-panel-overlay" id="detailPanelOverlay"></div>
-    <aside class="detail-panel" id="detailPanel">
-      <div class="detail-panel-header">
-        <div class="detail-panel-nav">
-          <button class="detail-nav-btn" id="detailPrevBtn" title="Previous">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button class="detail-nav-btn" id="detailNextBtn" title="Next">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
-        <div class="detail-panel-actions">
-          <button class="detail-action-btn edit" title="Edit">
-            <i class="bi bi-pencil-square"></i>
-            <span>Edit</span>
-          </button>
-          <button class="detail-action-btn duplicate" title="Duplicate">
-            <i class="bi bi-copy"></i>
-            <span>Duplicate</span>
-          </button>
-          <button class="detail-action-btn delete" title="Delete">
-            <i class="bi bi-trash3"></i>
-            <span>Delete</span>
-          </button>
-        </div>
-        <button class="detail-close-btn" id="detailCloseBtn" title="Close">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-
-      
-    </aside>
-
-    <!-- Bootstrap 5 JS -->
-{% endblock %}
-
-{% block extra_js %}
-<script>
-      (function () {
-        const panel = document.getElementById("detailPanel");
-        const overlay = document.getElementById("detailPanelOverlay");
-        const closeBtn = document.getElementById("detailCloseBtn");
-        const prevBtn = document.getElementById("detailPrevBtn");
-        const nextBtn = document.getElementById("detailNextBtn");
-        const rows = document.querySelectorAll(".eal-table tbody tr");
-        let currentIndex = -1;
-
-        function txt(el) {
-          return el ? el.textContent.trim() : "\u2014";
-        }
-
-        function openPanel() {
-          panel.classList.add("active");
-          overlay.classList.add("active");
-          document.body.style.overflow = "hidden";
-        }
-
-        function closePanel() {
-          panel.classList.remove("active");
-          overlay.classList.remove("active");
-          document.body.style.overflow = "";
-          rows.forEach(function (r) {
-            r.classList.remove("row-selected");
-          });
-          currentIndex = -1;
-        }
-
-        function populatePanel(row) {
-          const cells = row.querySelectorAll("td");
-          document.getElementById("dpActionCode").textContent = txt(cells[1]);
-          document.getElementById("dpNameArabic").textContent = txt(cells[2]);
-          const nameCell = cells[3]
-            ? cells[3].querySelector(".eal-name-cell")
-            : null;
-          document.getElementById("dpNameEnglish").textContent = nameCell
-            ? txt(nameCell.querySelector(".eal-name-text"))
-            : txt(cells[3]);
-          document.getElementById("dpScope").textContent = txt(cells[4]);
-          document.getElementById("dpSequence").textContent = txt(cells[5]);
-          document.getElementById("dpRequireGps").textContent = "\u2014";
-          document.getElementById("dpRequirePhoto").textContent = "\u2014";
-          document.getElementById("dpRequireNote").textContent = "\u2014";
-          const activeEl = document.getElementById("dpActive");
-          const activeBadge = cells[6]
-            ? cells[6].querySelector(".status-badge")
-            : null;
-          if (activeBadge) {
-            activeEl.innerHTML = "";
-            activeEl.appendChild(activeBadge.cloneNode(true));
-          } else {
-            activeEl.textContent = txt(cells[6]);
-          }
-          document.getElementById("dpLogId").textContent = "\u2014";
-          document.getElementById("dpActionName").textContent = "\u2014";
-          document.getElementById("dpShipmentRef").textContent = "\u2014";
-          document.getElementById("dpBookingRef").textContent = "\u2014";
-          document.getElementById("dpDriver").textContent = "\u2014";
-          document.getElementById("dpTime").textContent = "\u2014";
-          document.getElementById("dpLatitude").textContent = "\u2014";
-          document.getElementById("dpLongitude").textContent = "\u2014";
-          document.getElementById("dpLocationMap").textContent = "\u2014";
-          document.getElementById("dpNotes").textContent = "\u2014";
-          document.getElementById("dpCreatedBy").textContent = "\u2014";
-          document.getElementById("dpId").textContent = "\u2014";
-          document.getElementById("dpActionLogRef").textContent = "\u2014";
-          document.getElementById("dpMediaType").textContent = "\u2014";
-          document.getElementById("dpFile").textContent = "\u2014";
-          document.getElementById("dpTimestamp").textContent = "\u2014";
-          document.getElementById("dpDescription").textContent = "\u2014";
-          document.getElementById("dpRequireVideo").textContent = "\u2014";
-          rows.forEach(function (r) {
-            r.classList.remove("row-selected");
-          });
-          row.classList.add("row-selected");
-        }
-
-        function showRow(index) {
-          if (index < 0 || index >= rows.length) return;
-
-          currentIndex = index;
-          populatePanel(rows[currentIndex]);
-          prevBtn.disabled = currentIndex === 0;
-          nextBtn.disabled = currentIndex === rows.length - 1;
-        }
-
-        rows.forEach(function (row, idx) {
-          
-          row.addEventListener("click", function (e) {
-            if (
-              e.target.closest(".eal-col-check") ||
-              e.target.closest(".eal-actions-cell") ||
-              e.target.closest('input[type="checkbox"]')
-            )
-              return;
-
-            currentIndex = idx;
-            showRow(currentIndex);
-            openPanel();
-          });
-        });
-
-        closeBtn.addEventListener("click", closePanel);
-        overlay.addEventListener("click", closePanel);
-        prevBtn.addEventListener("click", function () {
-          if (currentIndex > 0) showRow(currentIndex - 1);
-        });
-        nextBtn.addEventListener("click", function () {
-          if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
-        });
-
-        document.addEventListener("keydown", function (e) {
-          if (!panel.classList.contains("active")) return;
-
-          if (e.key === "Escape") closePanel();
-
-          if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-            e.preventDefault();
-            if (currentIndex > 0) showRow(currentIndex - 1);
-          }
-          if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-            e.preventDefault();
-            if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
-          }
-        });
-
-        document
-          .querySelectorAll('button.eal-row-btn[title="View"]')
-          .forEach(function (btn, idx) {
-            btn.addEventListener("click", function (e) {
-              e.stopPropagation();
-              currentIndex = idx;
-              showRow(currentIndex);
-              openPanel();
-            });
-          });
-      })();
-    </script>
+  <div class="eal-pagination">
+    <div class="eal-pagination-info">Showing <strong>{{ pagination_start }}&ndash;{{ pagination_end }}</strong> of <strong>{{ pagination_total }}</strong> operation actions</div>
+    <div class="eal-pagination-controls">
+      {% if action_page.has_previous %}
+      <a class="eal-page-btn" href="?page={{ action_page.previous_page_number }}{% if action_search_q %}&q={{ action_search_q }}{% endif %}"><i class="bi bi-chevron-left"></i></a>
+      {% else %}
+      <button class="eal-page-btn" disabled><i class="bi bi-chevron-left"></i></button>
+      {% endif %}
+      <button class="eal-page-btn active">{{ action_page.number|default:1 }}</button>
+      {% if action_page.has_next %}
+      <a class="eal-page-btn" href="?page={{ action_page.next_page_number }}{% if action_search_q %}&q={{ action_search_q }}{% endif %}"><i class="bi bi-chevron-right"></i></a>
+      {% else %}
+      <button class="eal-page-btn" disabled><i class="bi bi-chevron-right"></i></button>
+      {% endif %}
+    </div>
+  </div>
+</div>
 {% endblock %}

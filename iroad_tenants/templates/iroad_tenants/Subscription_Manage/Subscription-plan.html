@@ -35,6 +35,18 @@
       </div>
 
 <div class="sub-plans-grid">
+  {% if show_plan_debug %}
+  <div class="alert alert-info" style="grid-column: 1 / -1;">
+    <strong>Debug:</strong> plan_cards={{ plan_cards|length }}; selected_currency={{ selected_currency }}
+    <div class="small mt-2">
+      {% for d in plan_debug_cards %}
+        <div>- {{ d.name }} ({{ d.currency }}) monthly={{ d.has_monthly }} yearly={{ d.has_yearly }}</div>
+      {% empty %}
+        <div>- no plan cards generated</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
   {% for card in plan_cards %}
   <div class="sub-plan-card{% if card.is_current %} sub-plan-card--active{% endif %}">
     {% if card.is_current %}
@@ -46,7 +58,7 @@
     </div>
     <div class="sub-plan-price-section">
       <div class="sub-plan-price">
-        <span class="sub-price-currency">{{ selected_currency }}</span>
+        <span class="sub-price-currency">{{ card.currency_code }}</span>
         <span
           class="sub-price-amount"
           data-monthly="{% if card.monthly_row %}{{ card.monthly_row.price }}{% else %}{{ card.default_price }}{% endif %}"
@@ -65,9 +77,11 @@
       {% if card.plan.max_internal_trucks != 0 %}
       <li class="sub-feature-item"><i class="bi bi-check-circle-fill"></i><span>Internal Trucks: {% if card.plan.max_internal_trucks == -1 %}Unlimited{% else %}{{ card.plan.max_internal_trucks }}{% endif %}</span></li>
       {% endif %}
+      {% comment %}MVP scope: External Trucks hidden from UI
       {% if card.plan.max_external_trucks != 0 %}
       <li class="sub-feature-item"><i class="bi bi-check-circle-fill"></i><span>External Trucks: {% if card.plan.max_external_trucks == -1 %}Unlimited{% else %}{{ card.plan.max_external_trucks }}{% endif %}</span></li>
       {% endif %}
+      {% endcomment %}
       {% if card.plan.max_active_drivers != 0 %}
       <li class="sub-feature-item"><i class="bi bi-check-circle-fill"></i><span>Drivers: {% if card.plan.max_active_drivers == -1 %}Unlimited{% else %}{{ card.plan.max_active_drivers }}{% endif %}</span></li>
       {% endif %}
@@ -79,7 +93,7 @@
       {% csrf_token %}
       <input type="hidden" name="plan_id" value="{{ card.plan.plan_id }}">
       <input type="hidden" name="action_type" value="{{ card.action_type }}">
-      <input type="hidden" name="currency_code" value="{{ selected_currency }}">
+      <input type="hidden" name="currency_code" value="{{ card.currency_code }}">
       <input type="hidden" class="selected-cycle-input" name="selected_cycle" value="{{ card.default_cycle }}">
       <button class="sub-plan-btn{% if card.is_current %} sub-plan-btn--active{% endif %}" type="submit">
         {{ card.action_label }}

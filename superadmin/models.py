@@ -961,6 +961,14 @@ class BankAccount(models.Model):
         on_delete=models.PROTECT,
         related_name='bank_accounts',
     )
+    allow_cross_currency_payments = models.BooleanField(
+        default=False,
+        help_text=(
+            'If enabled, this bank account may be shown for invoices in '
+            'other currencies and the payable amount is converted using '
+            'internal FX.'
+        ),
+    )
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(
         'AdminUser',

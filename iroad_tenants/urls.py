@@ -127,7 +127,24 @@ from .views import (
     TenantPriceListMasterDetailView,
     TenantPriceListMasterEditView,
     TenantOperationBookingCreateView,
-    TenantOperationBookingListView, 
+    TenantOperationBookingListView,
+    TenantWebPushTokenUpsertView,
+    TenantOperationShipmentListView,
+    TenantOperationShipmentCreateView,
+    TenantOperationShipmentDocumentsListView,
+    TenantOperationShipmentDocumentsCreateView,
+    TenantOperationShipmentPodListView,
+    TenantOperationShipmentPodCreateView,
+    TenantOperationShipmentPodDetailView,
+    TenantOperationShipmentPodDeleteView,
+    TenantOperationDocumentHandoverListView,
+    TenantOperationDocumentHandoverCreateView,
+    TenantOperationTruckMovementLogListView,
+    TenantOperationTruckMovementLogCreateView,
+    TenantOperationActionsListView,
+    TenantOperationActionsCreateView,
+    TenantOperationSurchargeSalesListView,
+    TenantOperationSurchargeSalesCreateView,
     TenantSalesInvoiceReportListView,
     TenantSalesInvoiceReportCreateView,
     TenantSalesInvoiceReportDetailView,
@@ -806,52 +823,100 @@ urlpatterns = [
     ),
     path(
         'operations/shipment/list/',
-        TemplateView.as_view(
-            template_name='iroad_tenants/Operation_management/Shipment/Shipment-list.html'
-        ),
+        TenantOperationShipmentListView.as_view(),
         name='tenant_operation_shipment_list',
     ),
     path(
+        'operations/shipment/create/',
+        TenantOperationShipmentCreateView.as_view(),
+        name='tenant_operation_shipment_create',
+    ),
+    path(
         'operations/shipment-documents/list/',
-        TemplateView.as_view(
-            template_name='iroad_tenants/Operation_management/Shipment_Document/Shipment-documents-list.html'
-        ),
+        TenantOperationShipmentDocumentsListView.as_view(),
         name='tenant_operation_shipment_documents_list',
     ),
     path(
+        'operations/shipment-documents/create/',
+        TenantOperationShipmentDocumentsCreateView.as_view(),
+        name='tenant_operation_shipment_documents_create',
+    ),
+    path(
         'operations/surcharge-sales/list/',
-        TemplateView.as_view(
-            template_name='iroad_tenants/Operation_management/Surcharge/Surcharge-sales-transaction.html'
-        ),
+        TenantOperationSurchargeSalesListView.as_view(),
         name='tenant_operation_surcharge_sales_list',
     ),
     path(
+        'operations/surcharge-sales/create/',
+        TenantOperationSurchargeSalesCreateView.as_view(),
+        name='tenant_operation_surcharge_sales_create',
+    ),
+    path(
+        'operations/surcharge-sales/edit/',
+        TenantOperationSurchargeSalesCreateView.as_view(),
+        {'mode': 'edit'},
+        name='tenant_operation_surcharge_sales_edit',
+    ),
+    path(
+        'operations/surcharge-sales/view/',
+        TenantOperationSurchargeSalesCreateView.as_view(),
+        {'mode': 'view'},
+        name='tenant_operation_surcharge_sales_view',
+    ),
+    path(
         'operations/shipment-pod/list/',
-        TemplateView.as_view(
-            template_name='iroad_tenants/Operation_management/Shipment_POD/Shipment-POD-analysis-list.html'
-        ),
+        TenantOperationShipmentPodListView.as_view(),
         name='tenant_operation_shipment_pod_list',
     ),
     path(
+        'operations/shipment-pod/create/',
+        TenantOperationShipmentPodCreateView.as_view(),
+        name='tenant_operation_shipment_pod_create',
+    ),
+    path(
+        'operations/shipment-pod/details/',
+        TenantOperationShipmentPodDetailView.as_view(),
+        name='tenant_operation_shipment_pod_detail',
+    ),
+    path(
+        'operations/shipment-pod/delete/',
+        TenantOperationShipmentPodDeleteView.as_view(),
+        name='tenant_operation_shipment_pod_delete',
+    ),
+    path(
         'operations/document-handover/list/',
-        TemplateView.as_view(
-            template_name='iroad_tenants/Operation_management/Document_handover/Document-handover-list.html'
-        ),
+        TenantOperationDocumentHandoverListView.as_view(),
         name='tenant_operation_document_handover_list',
     ),
     path(
+        'operations/document-handover/create/',
+        TenantOperationDocumentHandoverCreateView.as_view(),
+        name='tenant_operation_document_handover_create',
+    ),
+    path(
         'operations/truck-movement-log/list/',
-        TemplateView.as_view(
-            template_name='iroad_tenants/Operation_management/Truck_movement_log/Truck-movement-log-list.html'
-        ),
+        TenantOperationTruckMovementLogListView.as_view(),
         name='tenant_operation_truck_movement_log_list',
     ),
     path(
+        'operations/truck-movement-log/create/',
+        TenantOperationTruckMovementLogCreateView.as_view(),
+        name='tenant_operation_truck_movement_log_create',
+    ),
+    path(
         'operations/operation-actions/list/',
-        TemplateView.as_view(
-            template_name='iroad_tenants/Operation_management/Operation_Action/Operation-actions-list.html'
-        ),
+        TenantOperationActionsListView.as_view(),
         name='tenant_operation_actions_list',
+    ),
+    path(
+        'operations/operation-actions/create/',
+        TenantOperationActionsCreateView.as_view(),
+        name='tenant_operation_actions_create',
+    ),
+    path(
+        'push/tokens/upsert/',
+        TenantWebPushTokenUpsertView.as_view(),
+        name='tenant_push_token_upsert',
     ),
     path('my-account/', TenantMyAccountView.as_view(), name='tenant_my_account'),
     path('logout/', TenantLogoutView.as_view(), name='tenant_logout'),

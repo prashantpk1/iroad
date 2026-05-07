@@ -1509,7 +1509,7 @@ def send_named_notification_email(
     Send an Email NotificationTemplate selected by ``template_name``.
     Returns True when sent, False when no active template is found.
     """
-    from superadmin.models import NotificationTemplate
+    from superadmin.models import EventMapping, NotificationTemplate
 
     template_obj = (
         NotificationTemplate.objects.filter(
@@ -1533,7 +1533,7 @@ def send_named_notification_email(
     source = trigger_source or f'TemplateName: {template_name}'
 
     if force_django_smtp:
-        return send_email_via_django_smtp(
+        sent = send_email_via_django_smtp(
             recipient_email,
             subject,
             text_body,
@@ -1541,14 +1541,54 @@ def send_named_notification_email(
             trigger_source=source,
             attachments=attachments,
         )
-    return send_transactional_email(
-        recipient_email,
-        subject,
-        text_body,
-        body,
-        trigger_source=source,
-        attachments=attachments,
-    )
+    else:
+        sent = send_transactional_email(
+            recipient_email,
+            subject,
+            text_body,
+            body,
+            trigger_source=source,
+            attachments=attachments,
+        )
+
+    # Ensure Push/System-Event rules and Internal Alerts also run when callers
+    # use direct template dispatch instead of dispatch_event_notification().
+    if sent:
+        mapped_events = list(
+            EventMapping.objects.filter(
+                is_active=True,
+                primary_template=template_obj,
+            ).values_list('system_event', flat=True)
+        )
+        for event_code in mapped_events:
+            try:
+                _dispatch_event_side_effects(event_code, context_dict=context_dict)
+            except Exception:
+                logger.exception(
+                    'Event side-effects failed for %s via template %s',
+                    event_code,
+                    template_name,
+                )
+    return sent
+
+
+def _dispatch_event_side_effects(event_code, context_dict=None):
+    """
+    Run non-email side effects for an event code:
+    - System-event push dispatch
+    - Internal alert routing
+    """
+    try:
+        from superadmin.push_helpers import dispatch_system_event_pushes
+
+        dispatch_system_event_pushes(event_code, context_dict=context_dict)
+    except Exception:
+        logger.exception('System-event push dispatch failed for %s', event_code)
+
+    try:
+        dispatch_internal_alerts(event_code, context_dict=context_dict)
+    except Exception:
+        logger.exception('Internal alert routing failed for %s', event_code)
 
 
 def dispatch_event_notification(
@@ -1636,19 +1676,7 @@ def dispatch_event_notification(
         else:
             raise
 
-    # Keep Push manager linked to the same event-code trigger engine.
-    try:
-        from superadmin.push_helpers import dispatch_system_event_pushes
-
-        dispatch_system_event_pushes(event_code, context_dict=context_dict)
-    except Exception:
-        logger.exception('System-event push dispatch failed for %s', event_code)
-
-    # Route internal alerts for this event to configured role/email targets.
-    try:
-        dispatch_internal_alerts(event_code, context_dict=context_dict)
-    except Exception:
-        logger.exception('Internal alert routing failed for %s', event_code)
+    _dispatch_event_side_effects(event_code, context_dict=context_dict)
     return result
 
 
@@ -1658,33 +1686,6 @@ def dispatch_internal_alerts(event_code, context_dict=None):
         InternalAlertNotification,
         InternalAlertRoute,
     )
-    from superadmin.tasks import send_email_task
-    def _send_internal_alert_email(recipient_email):
-        """Prefer async queue; fallback to direct SMTP if queue is unavailable."""
-        try:
-            send_email_task.delay(recipient_email, subject, body, None)
-            return True
-        except Exception:
-            logger.exception(
-                'Internal alert queue dispatch failed for %s; falling back to direct SMTP.',
-                recipient_email,
-            )
-            try:
-                send_email_via_django_smtp(
-                    recipient_email,
-                    subject,
-                    body,
-                    None,
-                    trigger_source=f'InternalAlert: {event_code}',
-                )
-                return True
-            except Exception:
-                logger.exception(
-                    'Internal alert direct SMTP failed for %s',
-                    recipient_email,
-                )
-                return False
-
 
     routes = InternalAlertRoute.objects.filter(trigger_event=event_code, is_active=True)
     if not routes.exists():
@@ -1699,7 +1700,6 @@ def dispatch_internal_alerts(event_code, context_dict=None):
         f'Event "{event_code}" triggered.\n\n'
         f'Context:\n{json.dumps(safe_ctx, default=str, ensure_ascii=True)}'
     )
-    sent_to = set()
     notified_admin_ids = set()
     title = f'Internal Alert - {event_code.replace("_", " ")}'
     message = safe_ctx.get('message') or body[:1000]
@@ -1707,9 +1707,6 @@ def dispatch_internal_alerts(event_code, context_dict=None):
         email = ''
         if route.notify_custom_email:
             email = route.notify_custom_email.strip().lower()
-            if email and email not in sent_to:
-                if _send_internal_alert_email(email):
-                    sent_to.add(email)
 
         if email:
             admin = AdminUser.objects.filter(
@@ -1728,16 +1725,6 @@ def dispatch_internal_alerts(event_code, context_dict=None):
                 )
                 notified_admin_ids.add(admin.pk)
         if route.notify_role_id:
-            admins = AdminUser.objects.filter(
-                role_id=route.notify_role_id,
-                status='Active',
-                is_deleted=False,
-            ).values_list('email', flat=True)
-            for email in admins:
-                norm = (email or '').strip().lower()
-                if norm and norm not in sent_to:
-                    if _send_internal_alert_email(norm):
-                        sent_to.add(norm)
             for admin in AdminUser.objects.filter(
                 role_id=route.notify_role_id,
                 status='Active',
@@ -1754,7 +1741,7 @@ def dispatch_internal_alerts(event_code, context_dict=None):
                     context_payload=safe_ctx,
                 )
                 notified_admin_ids.add(admin.pk)
-    return len(sent_to)
+    return len(notified_admin_ids)
 
 
 def archive_comm_logs_older_than(days=90):

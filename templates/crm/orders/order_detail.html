@@ -223,10 +223,12 @@
         <label class="form-label">{% translate "Max int. trucks" %}</label>
         <input class="form-control" value="{% if order.projected_max_internal_trucks == -1 %}Unlimited{% elif order.projected_max_internal_trucks == 0 %}{% if order.projected_plan %}-{% else %}0{% endif %}{% elif order.projected_max_internal_trucks is None %}{% else %}{{ order.projected_max_internal_trucks }}{% endif %}" readonly>
       </div>
+      {% comment %}MVP scope: External Trucks hidden from CRM order projected UI
       <div class="col-12 col-md-4">
         <label class="form-label">{% translate "Max ext. trucks" %}</label>
         <input class="form-control" value="{% if order.projected_max_external_trucks == -1 %}Unlimited{% elif order.projected_max_external_trucks == 0 %}{% if order.projected_plan %}-{% else %}0{% endif %}{% elif order.projected_max_external_trucks is None %}{% else %}{{ order.projected_max_external_trucks }}{% endif %}" readonly>
       </div>
+      {% endcomment %}
       <div class="col-12 col-md-4">
         <label class="form-label">{% translate "Max drivers" %}</label>
         <input class="form-control" value="{% if order.projected_max_drivers == -1 %}Unlimited{% elif order.projected_max_drivers == 0 %}{% if order.projected_plan %}-{% else %}0{% endif %}{% elif order.projected_max_drivers is None %}{% else %}{{ order.projected_max_drivers }}{% endif %}" readonly>

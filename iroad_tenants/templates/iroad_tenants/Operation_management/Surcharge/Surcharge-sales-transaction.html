@@ -2,13 +2,30 @@
 
 {% block title %}Surcharge Sales Transaction | iRoad Admin{% endblock %}
 
+{% block extra_css %}
+<style>
+  .eal-table th:last-child,
+  .eal-table td:last-child {
+    position: sticky;
+    right: 0;
+    background: #fff;
+    z-index: 2;
+    min-width: 96px;
+  }
+
+  .eal-table th:last-child {
+    z-index: 3;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Page Header -->
       <div class="page-header">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item">
-              <a href="index.html">Dashboard</a>
+              <a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a>
             </li>
             <li class="breadcrumb-item">Operations</li>
             <li class="breadcrumb-item">Operations Management</li>
@@ -29,7 +46,7 @@
                 <i class="bi bi-download"></i>
                 <span>Export</span>
               </button>
-              <a href="Surcharge-sales-transaction-create.html" class="eal-btn eal-btn-primary">
+              <a href="{% url 'iroad_tenants:tenant_operation_surcharge_sales_create' %}" class="eal-btn eal-btn-primary">
                 <i class="bi bi-plus-lg"></i>
                 <span>Create Surcharge Transaction</span>
               </a>
@@ -45,7 +62,7 @@
             <i class="bi bi-receipt"></i>
           </div>
           <div>
-            <div class="eal-stat-value">26</div>
+            <div class="eal-stat-value">{{ surcharge_stats.total|default:0 }}</div>
             <div class="eal-stat-label">Total Transactions</div>
           </div>
         </div>
@@ -54,7 +71,7 @@
             <i class="bi bi-pencil-square"></i>
           </div>
           <div>
-            <div class="eal-stat-value">8</div>
+            <div class="eal-stat-value">{{ surcharge_stats.draft|default:0 }}</div>
             <div class="eal-stat-label">Draft</div>
           </div>
         </div>
@@ -63,7 +80,7 @@
             <i class="bi bi-check-circle"></i>
           </div>
           <div>
-            <div class="eal-stat-value">11</div>
+            <div class="eal-stat-value">{{ surcharge_stats.confirmed|default:0 }}</div>
             <div class="eal-stat-label">Confirmed</div>
           </div>
         </div>
@@ -72,7 +89,7 @@
             <i class="bi bi-receipt-cutoff"></i>
           </div>
           <div>
-            <div class="eal-stat-value">6</div>
+            <div class="eal-stat-value">{{ surcharge_stats.invoiced|default:0 }}</div>
             <div class="eal-stat-label">Invoiced</div>
           </div>
         </div>
@@ -81,7 +98,7 @@
             <i class="bi bi-x-octagon"></i>
           </div>
           <div>
-            <div class="eal-stat-value">1</div>
+            <div class="eal-stat-value">{{ surcharge_stats.cancelled|default:0 }}</div>
             <div class="eal-stat-label">Cancelled</div>
           </div>
         </div>
@@ -91,13 +108,15 @@
         <!-- Toolbar -->
         <div class="eal-toolbar">
           <div class="eal-toolbar-left">
-            <div class="eal-search">
+            <form method="get" class="eal-search">
               <i class="bi bi-search"></i>
               <input
                 type="text"
+                name="q"
+                value="{{ surcharge_search_q|default:'' }}"
                 placeholder="Search surcharge transactions&hellip;"
               />
-            </div>
+            </form>
           </div>
         </div>
 
@@ -122,55 +141,39 @@
               </tr>
             </thead>
             <tbody>
-              <tr data-trx-no="SST-000001" data-shipment="SH-1001" data-booking="BK-5001" data-client="Al Safa Logistics" data-date="15 Apr 2026" data-currency="SAR" data-service="Detention Charge" data-description="Waiting at site 2 hours" data-qty="1.00" data-unit-price="125.00" data-total="125.00" data-status="Draft" data-reason="Waiting at site 2 hours" data-attachment="toll-slip-001.pdf">
+              {% for row in surcharge_rows %}
+              <tr data-trx-no="{{ row.transaction_no }}" data-shipment="{{ row.shipment_ref }}" data-booking="{{ row.booking_ref }}" data-client="{{ row.client }}" data-date="{{ row.date|date:'d M Y' }}" data-currency="SAR" data-service="{{ row.service }}" data-description="{{ row.service }}" data-qty="1.00" data-unit-price="{{ row.total_amount }}" data-total="{{ row.total_amount }}" data-status="{{ row.status }}" data-reason="{{ row.service }}" data-attachment="-">
                 <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
-                <td><span class="eal-entity-id">SST-000001</span></td>
-                <td>SH-1001</td>
-                <td>BK-5001</td>
-                <td><div class="eal-name-cell"><span class="eal-name-text">Al Safa Logistics</span></div></td>
-                <td>15 Apr 2026</td>
-                <td>Detention Charge</td>
-                <td>SAR 125.00</td>
-                <td><span class="status-badge pending">Draft</span></td>
-                <td><span class="status-badge in-transit"><i class="bi bi-paperclip"></i> Yes</span></td>
+                <td><span class="eal-entity-id">{{ row.transaction_no }}</span></td>
+                <td>{{ row.shipment_ref }}</td>
+                <td>{{ row.booking_ref }}</td>
+                <td><div class="eal-name-cell"><span class="eal-name-text">{{ row.client }}</span></div></td>
+                <td>{{ row.date|date:"d M Y" }}</td>
+                <td>{{ row.service }}</td>
+                <td>SAR {{ row.total_amount|floatformat:2 }}</td>
+                <td>
+                  <span class="status-badge {% if row.status == 'Confirmed' %}active{% elif row.status == 'Invoiced' %}in-transit{% elif row.status == 'Cancelled' %}inactive{% else %}pending{% endif %}">
+                    {{ row.status }}
+                  </span>
+                </td>
+                <td><span class="status-badge pending"><i class="bi bi-paperclip"></i> No</span></td>
                 <td>
                   <div class="dropdown eal-actions-cell">
                     <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions"><i class="bi bi-three-dots-vertical"></i></button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
-                      <li><a class="dropdown-item" href="Surcharge-sales-transaction-create.html"><i class="bi bi-pencil text-primary me-2"></i>Edit</a></li>
-                      <li><a class="dropdown-item js-view-detail" href="#"><i class="bi bi-eye text-info me-2"></i> View</a></li>
+                      <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_surcharge_sales_edit' %}?surcharge_id={{ row.surcharge_id }}"><i class="bi bi-pencil text-primary me-2"></i>Edit</a></li>
+                      <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_surcharge_sales_view' %}?surcharge_id={{ row.surcharge_id }}"><i class="bi bi-eye text-info me-2"></i> View</a></li>
                       <li><hr class="dropdown-divider" /></li>
                       <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash3 me-2"></i> Delete</a></li>
                     </ul>
                   </div>
                 </td>
               </tr>
-              <tr data-trx-no="SST-000002" data-shipment="SH-1002" data-booking="BK-5002" data-client="Blue Ocean Imports" data-date="14 Apr 2026" data-currency="USD" data-service="Urgent Unloading" data-description="Customer requested urgent unloading" data-qty="2.00" data-unit-price="75.00" data-total="150.00" data-status="Confirmed" data-reason="Customer requested urgent unloading" data-attachment="invoice-copy-1032.pdf">
-                <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
-                <td><span class="eal-entity-id">SST-000002</span></td>
-                <td>SH-1002</td>
-                <td>BK-5002</td>
-                <td><div class="eal-name-cell"><span class="eal-name-text">Blue Ocean Imports</span></div></td>
-                <td>14 Apr 2026</td>
-                <td>Urgent Unloading</td>
-                <td>USD 150.00</td>
-                <td><span class="status-badge active">Confirmed</span></td>
-                <td><span class="status-badge in-transit"><i class="bi bi-paperclip"></i> Yes</span></td>
-                <td><div class="dropdown eal-actions-cell"><button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0"><li><a class="dropdown-item" href="Surcharge-sales-transaction-create.html"><i class="bi bi-pencil text-primary me-2"></i>Edit</a></li><li><a class="dropdown-item js-view-detail" href="#"><i class="bi bi-eye text-info me-2"></i> View</a></li><li><hr class="dropdown-divider" /></li><li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash3 me-2"></i> Delete</a></li></ul></div></td>
+              {% empty %}
+              <tr>
+                <td colspan="11" class="text-center py-4">No surcharge transactions found.</td>
               </tr>
-              <tr data-trx-no="SST-000003" data-shipment="SH-1003" data-booking="BK-5003" data-client="Riyadh Trading Co." data-date="12 Apr 2026" data-currency="SAR" data-service="Extra Route Toll" data-description="Extra route toll" data-qty="1.00" data-unit-price="55.50" data-total="55.50" data-status="Invoiced" data-reason="Extra route toll" data-attachment="receipt-4451.jpg">
-                <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
-                <td><span class="eal-entity-id">SST-000003</span></td>
-                <td>SH-1003</td>
-                <td>BK-5003</td>
-                <td><div class="eal-name-cell"><span class="eal-name-text">Riyadh Trading Co.</span></div></td>
-                <td>12 Apr 2026</td>
-                <td>Extra Route Toll</td>
-                <td>SAR 55.50</td>
-                <td><span class="status-badge in-transit">Invoiced</span></td>
-                <td><span class="status-badge in-transit"><i class="bi bi-paperclip"></i> Yes</span></td>
-                <td><div class="dropdown eal-actions-cell"><button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions"><i class="bi bi-three-dots-vertical"></i></button><ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0"><li><a class="dropdown-item js-view-detail" href="#"><i class="bi bi-eye text-info me-2"></i> View</a></li></ul></div></td>
-              </tr>
+              {% endfor %}
             </tbody>
           </table>
         </div>
@@ -178,19 +181,23 @@
         <div class="eal-pagination">
           <div class="eal-pagination-info">
             Showing
-            <strong>1&ndash;10</strong>
+            <strong>{% if pagination_total %}{{ pagination_start }}&ndash;{{ pagination_end }}{% else %}0{% endif %}</strong>
             of
-            <strong>10</strong>
+            <strong>{{ pagination_total|default:0 }}</strong>
             surcharge transactions
           </div>
           <div class="eal-pagination-controls">
-            <button class="eal-page-btn" title="Previous">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="eal-page-btn active">1</button>
-            <button class="eal-page-btn" title="Next">
-              <i class="bi bi-chevron-right"></i>
-            </button>
+            {% if surcharge_page.has_previous %}
+            <a class="eal-page-btn" href="?{% if surcharge_search_q %}q={{ surcharge_search_q|urlencode }}&{% endif %}page={{ surcharge_page.previous_page_number }}" title="Previous"><i class="bi bi-chevron-left"></i></a>
+            {% else %}
+            <button class="eal-page-btn" title="Previous" disabled><i class="bi bi-chevron-left"></i></button>
+            {% endif %}
+            <button class="eal-page-btn active">{{ surcharge_page.number|default:1 }}</button>
+            {% if surcharge_page.has_next %}
+            <a class="eal-page-btn" href="?{% if surcharge_search_q %}q={{ surcharge_search_q|urlencode }}&{% endif %}page={{ surcharge_page.next_page_number }}" title="Next"><i class="bi bi-chevron-right"></i></a>
+            {% else %}
+            <button class="eal-page-btn" title="Next" disabled><i class="bi bi-chevron-right"></i></button>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -208,6 +215,9 @@
         const prevBtn = document.getElementById("detailPrevBtn");
         const nextBtn = document.getElementById("detailNextBtn");
         const rows = Array.from(document.querySelectorAll(".eal-table tbody tr"));
+        if (!panel || !overlay || !closeBtn || !prevBtn || !nextBtn || !rows.length) {
+          return;
+        }
         let currentIndex = -1;
 
         function openPanel() { panel.classList.add("active"); overlay.classList.add("active"); document.body.style.overflow = "hidden"; }

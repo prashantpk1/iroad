@@ -8942,6 +8942,7 @@ class OrderPreviewAjaxView(RootRequiredMixin, View):
         proj_expiry = tenant.subscription_expiry_date
         proj_u = tenant.active_max_users
         proj_it = tenant.active_max_internal_trucks
+        # MVP scope: keep backend value for compatibility, but hide UI wiring
         proj_et = tenant.active_max_external_trucks
         proj_d = tenant.active_max_drivers
 
@@ -9012,7 +9013,7 @@ class OrderPreviewAjaxView(RootRequiredMixin, View):
                 'expiry_date': proj_expiry.isoformat() if proj_expiry else '',
                 'max_users': proj_u,
                 'max_internal_trucks': proj_it,
-                'max_external_trucks': proj_et,
+                # 'max_external_trucks': proj_et,  # MVP scope: disable UI connection
                 'max_drivers': proj_d,
             },
             'addon_rows': addon_preview_rows,
@@ -10580,6 +10581,10 @@ class TicketListView(LoginRequiredMixin, View):
             'priority_filter': priority_filter,
             'category_filter': category_filter,
             'assigned_filter': assigned_filter,
+            'total_tickets_count': SupportTicket.objects.count(),
+            'open_tickets_count': SupportTicket.objects.filter(status='New').count(),
+            'in_progress_tickets_count': SupportTicket.objects.filter(status='In_Progress').count(),
+            'closed_tickets_count': SupportTicket.objects.filter(status='Closed').count(),
             'categories': SupportCategory.objects.order_by('name_en'),
             'admins': AdminUser.objects.filter(status='Active').order_by(
                 'first_name', 'last_name'
@@ -10639,21 +10644,30 @@ class TicketCreateView(LoginRequiredMixin, View):
             ticket.save(update_fields=['status'])
 
         messages.success(request, 'Support ticket created successfully.')
-        return redirect('ticket_detail', pk=ticket.pk)
+        return redirect('ticket_detail', ticket_no=ticket.ticket_no)
+
+
+def _resolve_support_ticket(identifier):
+    """
+    Resolve support ticket by ticket_no first, then fallback to UUID primary key
+    for legacy links/forms that may still carry the old URL format.
+    """
+    ticket = SupportTicket.objects.filter(ticket_no=identifier).first()
+    if ticket:
+        return ticket
+    return get_object_or_404(SupportTicket, pk=identifier)
 
 
 class TicketDetailView(LoginRequiredMixin, View):
     template_name = 'support/tickets/ticket_detail.html'
 
-    def get(self, request, pk):
-        ticket = get_object_or_404(
-            SupportTicket.objects.select_related(
-                'tenant',
-                'category',
-                'assigned_to',
-            ),
-            pk=pk,
-        )
+    def get(self, request, ticket_no):
+        ticket = _resolve_support_ticket(ticket_no)
+        ticket = SupportTicket.objects.select_related(
+            'tenant',
+            'category',
+            'assigned_to',
+        ).get(pk=ticket.pk)
         replies = ticket.replies.select_related('ticket').all()
 
         context = {
@@ -10670,19 +10684,30 @@ class TicketDetailView(LoginRequiredMixin, View):
 
 
 class TicketAdminReplyView(LoginRequiredMixin, View):
-    def post(self, request, pk):
-        ticket = get_object_or_404(SupportTicket, pk=pk)
+    def post(self, request, ticket_no):
+        ticket = _resolve_support_ticket(ticket_no)
         if ticket.status == 'Closed':
             messages.error(
                 request,
                 'Cannot reply to a closed ticket. Reopen workflow is required.',
             )
-            return redirect('ticket_detail', pk=ticket.pk)
+            return redirect('ticket_detail', ticket_no=ticket.ticket_no)
         form = AdminReplyForm(request.POST, request.FILES)
 
         if not form.is_valid():
             messages.error(request, 'Please correct the reply form errors.')
-            return redirect('ticket_detail', pk=ticket.pk)
+            replies = ticket.replies.select_related('ticket').all()
+            context = {
+                'ticket': ticket,
+                'replies': replies,
+                'reply_form': form,
+                'assign_form': TicketAssignForm(instance=ticket),
+                'priority_form': TicketPriorityForm(instance=ticket),
+                'canned_responses': CannedResponse.objects.filter(
+                    is_active=True
+                ).order_by('title'),
+            }
+            return render(request, 'support/tickets/ticket_detail.html', context)
 
         reply = form.save(commit=False)
         reply.ticket = ticket
@@ -10690,6 +10715,8 @@ class TicketAdminReplyView(LoginRequiredMixin, View):
         reply.sender_id = str(
             getattr(request.user, 'admin_id', getattr(request.user, 'id', ''))
         )
+        if (request.POST.get('submit_mode') or '').strip().lower() == 'internal':
+            reply.is_internal = True
         reply.save()
 
         if not reply.is_internal:
@@ -10697,23 +10724,23 @@ class TicketAdminReplyView(LoginRequiredMixin, View):
             ticket.save(update_fields=['status'])
 
         messages.success(request, 'Reply submitted successfully.')
-        return redirect('ticket_detail', pk=ticket.pk)
+        return redirect('ticket_detail', ticket_no=ticket.ticket_no)
 
-    def get(self, request, pk):
-        return redirect('ticket_detail', pk=pk)
+    def get(self, request, ticket_no):
+        return redirect('ticket_detail', ticket_no=ticket_no)
 
 
 class TicketAssignView(LoginRequiredMixin, View):
-    def post(self, request, pk):
+    def post(self, request, ticket_no):
         redirect_resp = _require_root_or_redirect(request)
         if redirect_resp:
             return redirect_resp
 
-        ticket = get_object_or_404(SupportTicket, pk=pk)
+        ticket = _resolve_support_ticket(ticket_no)
         form = TicketAssignForm(request.POST, instance=ticket)
         if not form.is_valid():
             messages.error(request, 'Please select a valid assignee.')
-            return redirect('ticket_detail', pk=ticket.pk)
+            return redirect('ticket_detail', ticket_no=ticket.ticket_no)
 
         ticket = form.save(commit=False)
         if ticket.assigned_to and ticket.status != 'Closed':
@@ -10733,24 +10760,24 @@ class TicketAssignView(LoginRequiredMixin, View):
             is_internal=True,
         )
         messages.success(request, 'Ticket assignment updated.')
-        return redirect('ticket_detail', pk=ticket.pk)
+        return redirect('ticket_detail', ticket_no=ticket.ticket_no)
 
-    def get(self, request, pk):
-        return redirect('ticket_detail', pk=pk)
+    def get(self, request, ticket_no):
+        return redirect('ticket_detail', ticket_no=ticket_no)
 
 
 
 class TicketPriorityOverrideView(LoginRequiredMixin, View):
-    def post(self, request, pk):
+    def post(self, request, ticket_no):
         redirect_resp = _require_root_or_redirect(request)
         if redirect_resp:
             return redirect_resp
 
-        ticket = get_object_or_404(SupportTicket, pk=pk)
+        ticket = _resolve_support_ticket(ticket_no)
         form = TicketPriorityForm(request.POST, instance=ticket)
         if not form.is_valid():
             messages.error(request, 'Please select a valid priority.')
-            return redirect('ticket_detail', pk=ticket.pk)
+            return redirect('ticket_detail', ticket_no=ticket.ticket_no)
 
         ticket = form.save()
         if ticket.priority in ['High', 'Critical']:
@@ -10781,19 +10808,19 @@ class TicketPriorityOverrideView(LoginRequiredMixin, View):
             is_internal=True,
         )
         messages.success(request, 'Ticket priority updated.')
-        return redirect('ticket_detail', pk=ticket.pk)
+        return redirect('ticket_detail', ticket_no=ticket.ticket_no)
 
-    def get(self, request, pk):
-        return redirect('ticket_detail', pk=pk)
+    def get(self, request, ticket_no):
+        return redirect('ticket_detail', ticket_no=ticket_no)
 
 
 class TicketForceCloseView(LoginRequiredMixin, View):
-    def post(self, request, pk):
+    def post(self, request, ticket_no):
         redirect_resp = _require_root_or_redirect(request)
         if redirect_resp:
             return redirect_resp
 
-        ticket = get_object_or_404(SupportTicket, pk=pk)
+        ticket = _resolve_support_ticket(ticket_no)
         ticket.status = 'Closed'
         ticket.closed_at = timezone.now()
         ticket.save(update_fields=['status', 'closed_at'])
@@ -10809,10 +10836,10 @@ class TicketForceCloseView(LoginRequiredMixin, View):
             is_internal=False,
         )
         messages.success(request, 'Ticket has been force closed.')
-        return redirect('ticket_detail', pk=ticket.pk)
+        return redirect('ticket_detail', ticket_no=ticket.ticket_no)
 
-    def get(self, request, pk):
-        return redirect('ticket_detail', pk=pk)
+    def get(self, request, ticket_no):
+        return redirect('ticket_detail', ticket_no=ticket_no)
 
 
 class GlobalSearchView(LoginRequiredMixin, TemplateView):

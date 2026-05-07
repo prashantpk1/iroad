@@ -8,7 +8,7 @@
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item">
-              <a href="index.html">Dashboard</a>
+              <a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a>
             </li>
             <li class="breadcrumb-item">Operations</li>
             <li class="breadcrumb-item">Operations Management</li>
@@ -28,7 +28,8 @@
       </div>
 
       <!-- Truck Movement Log Form -->
-      <form id="truckMovementLogForm">
+      <form id="truckMovementLogForm" method="post">
+        {% csrf_token %}
         <!-- Section 1: Header -->
         <div class="form-card" data-section="1">
           <div class="form-card-header">
@@ -58,6 +59,8 @@
                     type="text"
                     class="form-control"
                     id="movementNo"
+                    name="movement_no_preview"
+                    value="{{ preview_movement_no }}"
                     placeholder="Auto-generated"
                     readonly
                   />
@@ -69,21 +72,25 @@
                   </label>
                   <input
                     type="date"
-                    class="form-control"
+                    class="form-control{% if movement_form_errors.movement_date %} is-invalid{% endif %}"
                     id="movementDate"
+                    name="movement_date"
+                    value="{{ movement_form_data.movement_date|default:'' }}"
                   />
+                  {% if movement_form_errors.movement_date %}<div class="invalid-feedback d-block">{{ movement_form_errors.movement_date }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="movementSource" class="form-label"
                     >Movement Source
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="movementSource">
-                    <option value="" selected disabled>-Select source-</option>
-                    <option value="booking">Booking</option>
-                    <option value="shipment">Shipment</option>
-                    <option value="manual">Manual</option>
+                  <select class="form-select{% if movement_form_errors.movement_source %} is-invalid{% endif %}" id="movementSource" name="movement_source">
+                    <option value="">-Select source-</option>
+                    <option value="booking" {% if movement_form_data.movement_source == 'booking' %}selected{% endif %}>Booking</option>
+                    <option value="shipment" {% if movement_form_data.movement_source == 'shipment' %}selected{% endif %}>Shipment</option>
+                    <option value="manual" {% if movement_form_data.movement_source == 'manual' %}selected{% endif %}>Manual</option>
                   </select>
+                  {% if movement_form_errors.movement_source %}<div class="invalid-feedback d-block">{{ movement_form_errors.movement_source }}</div>{% endif %}
                 </div>
               </div>
             </div>
@@ -98,11 +105,11 @@
                   <label for="emptyMoveReason" class="form-label"
                     >Empty Move Reason</label
                   >
-                  <select class="form-select" id="emptyMoveReason">
-                    <option value="" selected disabled>-Select reason-</option>
-                    <option value="reposition">Repositioning</option>
-                    <option value="maintenance">Maintenance</option>
-                    <option value="noLoad">No Load Available</option>
+                  <select class="form-select" id="emptyMoveReason" name="empty_move_reason">
+                    <option value="">-Select reason-</option>
+                    <option value="reposition" {% if movement_form_data.empty_move_reason == 'reposition' %}selected{% endif %}>Repositioning</option>
+                    <option value="maintenance" {% if movement_form_data.empty_move_reason == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                    <option value="noLoad" {% if movement_form_data.empty_move_reason == 'noLoad' %}selected{% endif %}>No Load Available</option>
                   </select>
                 </div>
                 <div class="field">
@@ -110,22 +117,24 @@
                     >Status
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="status">
-                    <option value="" selected disabled>-Select status-</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="inProgress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                  <select class="form-select{% if movement_form_errors.status %} is-invalid{% endif %}" id="status" name="status">
+                    <option value="">-Select status-</option>
+                    <option value="Scheduled" {% if movement_form_data.status == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+                    <option value="In Progress" {% if movement_form_data.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Completed" {% if movement_form_data.status == 'Completed' %}selected{% endif %}>Completed</option>
+                    <option value="Cancelled" {% if movement_form_data.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
                   </select>
+                  {% if movement_form_errors.status %}<div class="invalid-feedback d-block">{{ movement_form_errors.status }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="notes" class="form-label">Notes</label>
                   <textarea
                     class="form-control"
                     id="notes"
+                    name="notes"
                     rows="2"
                     placeholder="Enter notes"
-                  ></textarea>
+                  >{{ movement_form_data.notes|default:'' }}</textarea>
                 </div>
               </div>
             </div>
@@ -157,11 +166,7 @@
                     >Booking
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="booking">
-                    <option value="" selected disabled>-Select booking-</option>
-                    <option value="b1">BK-1001</option>
-                    <option value="b2">BK-1002</option>
-                    <option value="b3">BK-1003</option>
+                  <input class="form-control" id="booking" name="booking_ref" value="{{ movement_form_data.booking_ref|default:'' }}" placeholder="Booking reference (optional)" />
                   </select>
                 </div>
                 <div class="field">
@@ -169,36 +174,39 @@
                     >Shipment
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="shipment">
-                    <option value="" selected disabled>-Select shipment-</option>
-                    <option value="s1">SHP-10045</option>
-                    <option value="s2">SHP-10044</option>
-                    <option value="s3">SHP-10042</option>
+                  <select class="form-select{% if movement_form_errors.shipment_ref %} is-invalid{% endif %}" id="shipment" name="shipment_ref">
+                    <option value="">-Select shipment-</option>
+                    {% for shipment in shipment_options %}
+                    <option value="{{ shipment.shipment_ref_no }}" {% if movement_form_data.shipment_ref == shipment.shipment_ref_no %}selected{% endif %}>{{ shipment.shipment_ref_no }}</option>
+                    {% endfor %}
                   </select>
+                  {% if movement_form_errors.shipment_ref %}<div class="invalid-feedback d-block">{{ movement_form_errors.shipment_ref }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="truck" class="form-label"
                     >Truck
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="truck">
-                    <option value="" selected disabled>-Select truck-</option>
-                    <option value="t1">TRK-1001 (Volvo FH16)</option>
-                    <option value="t2">TRK-1002 (MAN TGS)</option>
-                    <option value="t3">TRK-1003 (Scania R500)</option>
+                  <select class="form-select{% if movement_form_errors.truck_ref %} is-invalid{% endif %}" id="truck" name="truck_ref">
+                    <option value="">-Select truck-</option>
+                    {% for truck in truck_options %}
+                    <option value="{{ truck.truck_number }}" {% if movement_form_data.truck_ref == truck.truck_number %}selected{% endif %}>{{ truck.truck_number }}</option>
+                    {% endfor %}
                   </select>
+                  {% if movement_form_errors.truck_ref %}<div class="invalid-feedback d-block">{{ movement_form_errors.truck_ref }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="driver" class="form-label"
                     >Driver
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="driver">
-                    <option value="" selected disabled>-Select driver-</option>
-                    <option value="d1">Ahmed Ali</option>
-                    <option value="d2">Mohammad Farooq</option>
-                    <option value="d3">Hassan Syed</option>
+                  <select class="form-select{% if movement_form_errors.driver_ref %} is-invalid{% endif %}" id="driver" name="driver_ref">
+                    <option value="">-Select driver-</option>
+                    {% for driver in driver_options %}
+                    <option value="{{ driver.username }}" {% if movement_form_data.driver_ref == driver.username %}selected{% endif %}>{{ driver.username }}</option>
+                    {% endfor %}
                   </select>
+                  {% if movement_form_errors.driver_ref %}<div class="invalid-feedback d-block">{{ movement_form_errors.driver_ref }}</div>{% endif %}
                 </div>
               </div>
             </div>
@@ -230,12 +238,13 @@
                     >From Location
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="fromLocation">
-                    <option value="" selected disabled>-Select location-</option>
-                    <option value="loc1">Riyadh Warehouse</option>
-                    <option value="loc2">Jeddah Port</option>
-                    <option value="loc3">Dammam Hub</option>
+                  <select class="form-select{% if movement_form_errors.from_location %} is-invalid{% endif %}" id="fromLocation" name="from_location">
+                    <option value="">-Select location-</option>
+                    {% for location in location_options %}
+                    <option value="{{ location.location_name }}" {% if movement_form_data.from_location == location.location_name %}selected{% endif %}>{{ location.location_name }}</option>
+                    {% endfor %}
                   </select>
+                  {% if movement_form_errors.from_location %}<div class="invalid-feedback d-block">{{ movement_form_errors.from_location }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="fromLocationMapLink" class="form-label"
@@ -245,6 +254,8 @@
                     type="url"
                     class="form-control"
                     id="fromLocationMapLink"
+                    name="from_location_map_link"
+                    value="{{ movement_form_data.from_location_map_link|default:'' }}"
                     placeholder="https://maps.google.com/..."
                   />
                 </div>
@@ -253,11 +264,11 @@
                     >To Location
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="toLocation">
-                    <option value="" selected disabled>-Select location-</option>
-                    <option value="loc1">Riyadh Warehouse</option>
-                    <option value="loc2">Jeddah Port</option>
-                    <option value="loc3">Dammam Hub</option>
+                  <select class="form-select{% if movement_form_errors.from_location %} is-invalid{% endif %}" id="toLocation" name="to_location">
+                    <option value="">-Select location-</option>
+                    {% for location in location_options %}
+                    <option value="{{ location.location_name }}" {% if movement_form_data.to_location == location.location_name %}selected{% endif %}>{{ location.location_name }}</option>
+                    {% endfor %}
                   </select>
                 </div>
               </div>
@@ -277,6 +288,8 @@
                     type="url"
                     class="form-control"
                     id="toLocationMapLink"
+                    name="to_location_map_link"
+                    value="{{ movement_form_data.to_location_map_link|default:'' }}"
                     placeholder="https://maps.google.com/..."
                   />
                 </div>
@@ -289,6 +302,8 @@
                     type="datetime-local"
                     class="form-control"
                     id="startTime"
+                    name="start_time"
+                    value="{{ movement_form_data.start_time|default:'' }}"
                   />
                 </div>
                 <div class="field">
@@ -297,6 +312,8 @@
                     type="datetime-local"
                     class="form-control"
                     id="endTime"
+                    name="end_time"
+                    value="{{ movement_form_data.end_time|default:'' }}"
                   />
                 </div>
                 <div class="field">
@@ -305,6 +322,8 @@
                     type="number"
                     class="form-control"
                     id="distance"
+                    name="distance_km"
+                    value="{{ movement_form_data.distance_km|default:'' }}"
                     placeholder="e.g. 450"
                     step="0.1"
                     min="0"

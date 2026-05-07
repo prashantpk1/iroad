@@ -846,27 +846,27 @@ urlpatterns = [
         name='ticket_create',
     ),
     path(
-        'support/tickets/<uuid:pk>/',
+        'support/tickets/<str:ticket_no>/',
         TicketDetailView.as_view(),
         name='ticket_detail',
     ),
     path(
-        'support/tickets/<uuid:pk>/reply/',
+        'support/tickets/<str:ticket_no>/reply/',
         TicketAdminReplyView.as_view(),
         name='ticket_reply',
     ),
     path(
-        'support/tickets/<uuid:pk>/assign/',
+        'support/tickets/<str:ticket_no>/assign/',
         TicketAssignView.as_view(),
         name='ticket_assign',
     ),
     path(
-        'support/tickets/<uuid:pk>/priority/',
+        'support/tickets/<str:ticket_no>/priority/',
         TicketPriorityOverrideView.as_view(),
         name='ticket_priority',
     ),
     path(
-        'support/tickets/<uuid:pk>/close/',
+        'support/tickets/<str:ticket_no>/close/',
         TicketForceCloseView.as_view(),
         name='ticket_close',
     ),

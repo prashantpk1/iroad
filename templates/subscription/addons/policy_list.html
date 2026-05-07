@@ -162,6 +162,7 @@
                 {% endif %}
               </a>
             </th>
+            {% comment %}MVP scope: External Trucks hidden from UI
             <th class="sortable">
               <a href="?q={{ search_query }}&status={{ status_filter }}&sort=ext_truck_price&dir={% if current_sort == 'ext_truck_price' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                 <span>Ext.Truck</span>
@@ -172,6 +173,7 @@
                 {% endif %}
               </a>
             </th>
+            {% endcomment %}
             <th class="sortable">
               <a href="?q={{ search_query }}&status={{ status_filter }}&sort=driver_price&dir={% if current_sort == 'driver_price' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
                 <span>Driver</span>
@@ -222,7 +224,9 @@
               <td><span class="fw-bold">{{ p.policy_name }}</span></td>
               <td>{{ p.extra_internal_user_price }}</td>
               <td>{{ p.extra_internal_truck_price }}</td>
+              {% comment %}MVP scope: External Trucks hidden from UI
               <td>{{ p.extra_external_truck_price }}</td>
+              {% endcomment %}
               <td>{{ p.extra_driver_price }}</td>
               <td>{{ p.extra_shipment_price }}</td>
               <td>{{ p.extra_storage_gb_price }}</td>

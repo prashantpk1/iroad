@@ -27,7 +27,8 @@
       </div>
 
       <!-- Shipment Form -->
-      <form id="shipmentForm">
+      <form id="shipmentForm" method="post">
+        {% csrf_token %}
         <!-- Section 1: Shipment Info -->
         <div class="form-card" data-section="1">
           <div class="form-card-header">
@@ -49,18 +50,19 @@
                   type="text"
                   class="form-control"
                   id="shipmentNo"
+                  value="{{ preview_shipment_no|default:'' }}"
                   readonly
                 />
               </div>
               <div class="field">
                 <label for="orderType" class="form-label">Order Type</label>
                 <select class="form-select" id="orderType" name="order_type">
-                  <option value="" selected disabled>
+                  <option value="" {% if not shipment_form_data.order_type %}selected{% endif %} disabled>
                     -Select order type-
                   </option>
-                  <option value="Delivery">Delivery</option>
-                  <option value="Pickup">Pickup</option>
-                  <option value="Return">Return</option>
+                  <option value="Delivery" {% if shipment_form_data.order_type == 'Delivery' %}selected{% endif %}>Delivery</option>
+                  <option value="Pickup" {% if shipment_form_data.order_type == 'Pickup' %}selected{% endif %}>Pickup</option>
+                  <option value="Return" {% if shipment_form_data.order_type == 'Return' %}selected{% endif %}>Return</option>
                 </select>
               </div>
               <div class="field">
@@ -72,6 +74,7 @@
                   class="form-control"
                   id="shipmentDate"
                   name="shipment_date"
+                  value="{{ shipment_form_data.shipment_date|default:shipment_creation_date|date:'Y-m-d' }}"
                 />
               </div>
             </div>
@@ -80,8 +83,8 @@
                 <label for="salesReportLookup" class="form-label"
                   >Sales Report (lookup)</label
                 >
-                <select class="form-select" id="salesReportLookup">
-                  <option value="" selected disabled>-Select sales report-</option>
+                <select class="form-select" id="salesReportLookup" name="sales_order_ref">
+                  <option value="" {% if not shipment_form_data.sales_order_ref %}selected{% endif %} disabled>-Select sales report-</option>
                   <option value="SR-1001">SR-1001</option>
                   <option value="SR-1002">SR-1002</option>
                   <option value="SR-1003">SR-1003</option>
@@ -91,12 +94,12 @@
                 <label for="salesReportStatus" class="form-label"
                   >Sales Report Status</label
                 >
-                <select class="form-select" id="salesReportStatus">
-                  <option value="" selected disabled>
+                <select class="form-select" id="salesReportStatus" name="sales_order_status">
+                  <option value="" {% if not shipment_form_data.sales_order_status %}selected{% endif %} disabled>
                     -Select sales report status-
                   </option>
-                  <option value="issued">Issued</option>
-                  <option value="not_issued">Not Issued</option>
+                  <option value="issued" {% if shipment_form_data.sales_order_status == 'issued' %}selected{% endif %}>Issued</option>
+                  <option value="not_issued" {% if shipment_form_data.sales_order_status == 'not_issued' %}selected{% endif %}>Not Issued</option>
                 </select>
               </div>
             </div>
@@ -121,11 +124,11 @@
               <div class="field">
                 <label for="bookingNo" class="form-label">Booking No </label>
                 <select class="form-select" id="bookingNo" name="booking_no">
-                  <option value="" selected disabled>
+                  <option value="" {% if not shipment_form_data.booking_no %}selected{% endif %} disabled>
                     -Select booking no-
                   </option>
-                  <option value="BK-2026-001">BK-2026-001</option>
-                  <option value="BK-2026-002">BK-2026-002</option>
+                  <option value="BK-2026-001" {% if shipment_form_data.booking_no == 'BK-2026-001' %}selected{% endif %}>BK-2026-001</option>
+                  <option value="BK-2026-002" {% if shipment_form_data.booking_no == 'BK-2026-002' %}selected{% endif %}>BK-2026-002</option>
                 </select>
               </div>
               <div class="field">
@@ -137,11 +140,11 @@
                   id="sourcingMode"
                   name="sourcing_mode"
                 >
-                  <option value="" selected disabled>
+                  <option value="" {% if not shipment_form_data.sourcing_mode %}selected{% endif %} disabled>
                     -Select sourcing mode-
                   </option>
-                  <option value="Internal">Internal</option>
-                  <option value="External">External</option>
+                  <option value="In-Source" {% if shipment_form_data.sourcing_mode == 'In-Source' %}selected{% endif %}>In-Source</option>
+                  <option value="Out-Source" {% if shipment_form_data.sourcing_mode == 'Out-Source' %}selected{% endif %}>Out-Source</option>
                 </select>
               </div>
               <div class="field">
@@ -166,11 +169,11 @@
                   id="bookingItem"
                   name="booking_item"
                 >
-                  <option value="" selected disabled>
+                  <option value="" {% if not shipment_form_data.booking_item %}selected{% endif %} disabled>
                     -Select booking item-
                   </option>
-                  <option value="BI-001">BI-001</option>
-                  <option value="BI-002">BI-002</option>
+                  <option value="BI-001" {% if shipment_form_data.booking_item == 'BI-001' %}selected{% endif %}>BI-001</option>
+                  <option value="BI-002" {% if shipment_form_data.booking_item == 'BI-002' %}selected{% endif %}>BI-002</option>
                 </select>
               </div>
               <div class="field">
@@ -182,8 +185,8 @@
                   id="bookingItemType"
                   name="booking_item_type"
                 >
-                  <option value="Outbound" selected>Outbound</option>
-                  <option value="Inbound">Inbound</option>
+                  <option value="Outbound" {% if shipment_form_data.booking_item_type|default:'Outbound' == 'Outbound' %}selected{% endif %}>Outbound</option>
+                  <option value="Inbound" {% if shipment_form_data.booking_item_type == 'Inbound' %}selected{% endif %}>Inbound</option>
                 </select>
               </div>
               <div class="field">
@@ -195,9 +198,9 @@
                   id="bookingItemRoute"
                   name="booking_item_route"
                 >
-                  <option value="" selected disabled>-Select route-</option>
-                  <option value="A-B">A-B</option>
-                  <option value="B-A">B-A</option>
+                  <option value="" {% if not shipment_form_data.booking_item_route %}selected{% endif %} disabled>-Select route-</option>
+                  <option value="A-B" {% if shipment_form_data.booking_item_route == 'A-B' %}selected{% endif %}>A-B</option>
+                  <option value="B-A" {% if shipment_form_data.booking_item_route == 'B-A' %}selected{% endif %}>B-A</option>
                 </select>
               </div>
             </div>
@@ -205,10 +208,10 @@
               <div class="field">
                 <label for="podType" class="form-label">POD Type (list)</label>
                 <select class="form-select" id="podType" name="pod_type">
-                  <option value="" selected disabled>-Select POD type-</option>
-                  <option value="Signature">Signature</option>
-                  <option value="Photo">Photo</option>
-                  <option value="Digital">Digital</option>
+                  <option value="" {% if not shipment_form_data.pod_type %}selected{% endif %} disabled>-Select POD type-</option>
+                  <option value="Soft" {% if shipment_form_data.pod_type == 'Soft' %}selected{% endif %}>Soft</option>
+                  <option value="Hard" {% if shipment_form_data.pod_type == 'Hard' %}selected{% endif %}>Hard</option>
+                  <option value="Digital" {% if shipment_form_data.pod_type == 'Digital' %}selected{% endif %}>Digital</option>
                 </select>
               </div>
               <div class="field">
@@ -240,7 +243,9 @@
                   type="number"
                   class="form-control"
                   id="codAmount"
+                  name="cod_amount"
                   step="0.01"
+                  value="{{ shipment_form_data.cod_amount|default:'' }}"
                 />
               </div>
               <div class="field">

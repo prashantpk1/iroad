@@ -178,7 +178,9 @@
         <div class="col-12 col-md-4"><label class="form-label">{% translate "Projected expiry date" %}</label><input class="form-control" id="pv_projected_expiry" readonly value=""></div>
         <div class="col-12 col-md-4"><label class="form-label">{% translate "Projected max users" %}</label><input class="form-control" id="pv_projected_users" readonly value=""></div>
         <div class="col-12 col-md-4"><label class="form-label">{% translate "Projected max trucks (internal)" %}</label><input class="form-control" id="pv_projected_it" readonly value=""></div>
+        {% comment %}MVP scope: External Trucks hidden from checkout projected UI
         <div class="col-12 col-md-4"><label class="form-label">{% translate "Projected max trucks (external)" %}</label><input class="form-control" id="pv_projected_et" readonly value=""></div>
+        {% endcomment %}
         <div class="col-12 col-md-4"><label class="form-label">{% translate "Projected max drivers" %}</label><input class="form-control" id="pv_projected_drivers" readonly value=""></div>
         <div class="col-12 mt-2">
           <label class="form-label">{% translate "Projected state preview" %}</label>
@@ -565,7 +567,8 @@
     var pExp = document.getElementById('pv_projected_expiry');
     var pUsers = document.getElementById('pv_projected_users');
     var pIt = document.getElementById('pv_projected_it');
-    var pEt = document.getElementById('pv_projected_et');
+    // MVP scope: External Trucks UI connection disabled
+    // var pEt = document.getElementById('pv_projected_et');
     var pDr = document.getElementById('pv_projected_drivers');
     function formatProjectedLimit(v, hasProjectedPlan) {
       if (v == null || v === '') return '';
@@ -579,7 +582,7 @@
     if (pExp) pExp.value = projected.expiry_date || '';
     if (pUsers) pUsers.value = formatProjectedLimit(projected.max_users, hasProjectedPlan);
     if (pIt) pIt.value = formatProjectedLimit(projected.max_internal_trucks, hasProjectedPlan);
-    if (pEt) pEt.value = formatProjectedLimit(projected.max_external_trucks, hasProjectedPlan);
+    // if (pEt) pEt.value = formatProjectedLimit(projected.max_external_trucks, hasProjectedPlan);
     if (pDr) pDr.value = formatProjectedLimit(projected.max_drivers, hasProjectedPlan);
   }
 

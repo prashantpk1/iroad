@@ -54,6 +54,7 @@ from superadmin.models import (
     SupportCategory,
     SupportTicket,
     TicketReply,
+    PushDeviceToken,
 )
 from superadmin.redis_helpers import (
     get_all_active_tenant_sessions,
@@ -101,6 +102,13 @@ from tenant_workspace.models import (
     SalesInvoiceReportBooking,
     SalesInvoiceReportSurcharge,
     SalesInvoiceReportShipment,
+    TenantShipment,
+    TenantShipmentDocument,
+    TenantShipmentPodPage,
+    TenantDocumentHandover,
+    TenantDocumentHandoverLine,
+    TenantTruckMovementLog,
+    TenantOperationAction,
     TenantRole,
     TenantRolePermission,
     TenantUser,
@@ -178,6 +186,20 @@ PRICE_LIST_MASTER_REF_PREFIX = 'PL'
 SALES_INVOICE_REPORT_AUTO_FORM_CODE = 'sales-invoice-report'
 SALES_INVOICE_REPORT_AUTO_FORM_LABEL = 'Sales Invoice Report'
 SALES_INVOICE_REPORT_REF_PREFIX = 'SIR'
+SHIPMENT_AUTO_FORM_CODE = 'shipment'
+SHIPMENT_AUTO_FORM_LABEL = 'Shipment'
+SHIPMENT_DOCUMENTS_AUTO_FORM_CODE = 'shipment-documents'
+SHIPMENT_DOCUMENTS_AUTO_FORM_LABEL = 'Shipment Documents'
+SHIPMENT_POD_AUTO_FORM_CODE = 'shipment-pod-analysis'
+SHIPMENT_POD_AUTO_FORM_LABEL = 'Shipment POD'
+DOCUMENT_HANDOVER_AUTO_FORM_CODE = 'document-handover'
+DOCUMENT_HANDOVER_AUTO_FORM_LABEL = 'Document Handover'
+TRUCK_MOVEMENT_LOG_AUTO_FORM_CODE = 'truck-movement-log'
+TRUCK_MOVEMENT_LOG_AUTO_FORM_LABEL = 'Truck Movement Log'
+OPERATION_ACTION_AUTO_FORM_CODE = 'operation-actions'
+OPERATION_ACTION_AUTO_FORM_LABEL = 'Operation Actions'
+SURCHARGE_SALES_AUTO_FORM_CODE = 'surcharge-sales-transaction'
+SURCHARGE_SALES_AUTO_FORM_LABEL = 'Surcharge Sales Transaction'
 SERVICE_ITEM_CATEGORY_OPTIONS = (
     'Service Category 1',
     'Service Category 2',
@@ -4245,6 +4267,392 @@ class TenantOperationBookingListView(TenantSimplePageView):
             messages.error(request, 'You do not have permission to view Booking.', extra_tags='tenant')
             return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
         return render(request, self.template_name, context)
+
+
+class TenantOperationShipmentListView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Shipment/Shipment-list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        if not context.get('is_tenant_admin') and not context.get('can_view_shipment'):
+            messages.error(request, 'You do not have permission to view Shipment.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            context.update(
+                {
+                    'shipment_records': list(TenantShipment.objects.order_by('-created_at')[:100]),
+                    'tenant_schema_name': tenant_registry.schema_name,
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantOperationShipmentCreateView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Shipment/Shipment.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        if not context.get('is_tenant_admin') and not context.get('can_view_shipment'):
+            messages.error(request, 'You do not have permission to view Shipment.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        messages.info(request, 'Shipment create/save is available in the latest flow.', extra_tags='tenant')
+        return _tenant_redirect(request, 'iroad_tenants:tenant_operation_shipment_list')
+
+
+class TenantOperationShipmentDocumentsListView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Shipment_Document/Shipment-documents-list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            context.update(
+                {
+                    'shipment_documents_page': Paginator(
+                        list(TenantShipmentDocument.objects.order_by('-created_at')),
+                        10,
+                    ).get_page(request.GET.get('page') or 1),
+                    'tenant_schema_name': tenant_registry.schema_name,
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantOperationShipmentDocumentsCreateView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Shipment_Document/Shipment-documents.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        messages.info(request, 'Shipment document save is available in the latest flow.', extra_tags='tenant')
+        return _tenant_redirect(request, 'iroad_tenants:tenant_operation_shipment_documents_list')
+
+
+class TenantOperationShipmentPodListView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Shipment_POD/Shipment-POD-analysis-list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            context.update(
+                {
+                    'pod_rows': list(TenantShipmentDocument.objects.order_by('-created_at')[:200]),
+                    'tenant_schema_name': tenant_registry.schema_name,
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantOperationShipmentPodCreateView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Shipment_POD/Digital-pod-transaction.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        messages.info(request, 'POD save is available in the latest flow.', extra_tags='tenant')
+        return _tenant_redirect(request, 'iroad_tenants:tenant_operation_shipment_pod_list')
+
+
+class TenantOperationShipmentPodDetailView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Shipment_POD/Shipment-POD-analysis-details.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        record_no = (request.GET.get('record_no') or '').strip()
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            context.update(
+                {
+                    'pod_record': TenantShipmentDocument.objects.filter(record_no=record_no).first(),
+                    'tenant_schema_name': tenant_registry.schema_name,
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantOperationShipmentPodDeleteView(TenantSimplePageView):
+    def post(self, request):
+        record_no = (request.POST.get('record_no') or '').strip()
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            if record_no:
+                doc = TenantShipmentDocument.objects.filter(record_no=record_no).first()
+                if doc:
+                    TenantShipmentPodPage.objects.filter(document=doc).delete()
+            messages.success(request, 'POD record deleted.', extra_tags='tenant')
+            return _tenant_redirect(request, 'iroad_tenants:tenant_operation_shipment_pod_list')
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantOperationDocumentHandoverListView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Document_handover/Document-handover-list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            context.update(
+                {
+                    'document_handover_rows': list(TenantDocumentHandover.objects.order_by('-created_at')[:100]),
+                    'tenant_schema_name': tenant_registry.schema_name,
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantOperationDocumentHandoverCreateView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Document_handover/Document-handover.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        messages.info(request, 'Document handover save is available in the latest flow.', extra_tags='tenant')
+        return _tenant_redirect(request, 'iroad_tenants:tenant_operation_document_handover_list')
+
+
+class TenantOperationTruckMovementLogListView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Truck_movement_log/Truck-movement-log-list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            context.update(
+                {
+                    'truck_movement_rows': list(TenantTruckMovementLog.objects.order_by('-created_at')[:100]),
+                    'tenant_schema_name': tenant_registry.schema_name,
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantOperationTruckMovementLogCreateView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Truck_movement_log/Truck-movement-log.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        messages.info(request, 'Truck movement log save is available in the latest flow.', extra_tags='tenant')
+        return _tenant_redirect(request, 'iroad_tenants:tenant_operation_truck_movement_log_list')
+
+
+class TenantOperationActionsListView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Operation_Action/Operation-actions-list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            context.update(
+                {
+                    'operation_action_rows': list(TenantOperationAction.objects.order_by('action_code')[:200]),
+                    'tenant_schema_name': tenant_registry.schema_name,
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantOperationActionsCreateView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Operation_Action/Operation-actions.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        return render(request, self.template_name, context)
+
+    def post(self, request):
+        messages.info(request, 'Operation action save is available in the latest flow.', extra_tags='tenant')
+        return _tenant_redirect(request, 'iroad_tenants:tenant_operation_actions_list')
+
+
+class TenantOperationSurchargeSalesListView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Surcharge/Surcharge-sales-transaction.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        return render(request, self.template_name, context)
+
+
+class TenantOperationSurchargeSalesCreateView(TenantSimplePageView):
+    template_name = 'iroad_tenants/Operation_management/Surcharge/Surcharge-sales-transaction-create.html'
+
+    def get(self, request, mode=None):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        context['surcharge_mode'] = (mode or 'create').strip().lower()
+        return render(request, self.template_name, context)
+
+    def post(self, request, mode=None):
+        messages.info(request, 'Surcharge transaction save is available in the latest flow.', extra_tags='tenant')
+        return _tenant_redirect(request, 'iroad_tenants:tenant_operation_surcharge_sales_list')
+
+
+class TenantWebPushTokenUpsertView(View):
+    """Register/update browser push token for the logged-in tenant portal user."""
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            return JsonResponse({'ok': False, 'error': 'unauthorized'}, status=401)
+        try:
+            payload = json.loads(request.body or '{}')
+        except json.JSONDecodeError:
+            return JsonResponse({'ok': False, 'error': 'invalid_json'}, status=400)
+
+        token = str(payload.get('device_token') or '').strip()
+        if not token:
+            return JsonResponse({'ok': False, 'error': 'device_token_required'}, status=400)
+
+        auth_payload = get_tenant_portal_cookie_payload(request) or {}
+        tenant_id = str(auth_payload.get('tenant_id') or '').strip()
+        tenant_jti = str(auth_payload.get('jti') or '').strip()
+        session_data = get_tenant_session(tenant_id, tenant_jti) if (tenant_id and tenant_jti) else {}
+        session_data = session_data or {}
+
+        reference_id = str(
+            session_data.get('reference_id') or getattr(context.get('tenant'), 'tenant_id', '')
+        ).strip()
+        user_domain = str(session_data.get('user_domain') or 'Tenant_User').strip()
+        if user_domain not in ('Tenant_User', 'Driver', 'Admin'):
+            user_domain = 'Tenant_User'
+
+        obj, _created = PushDeviceToken.objects.update_or_create(
+            device_token=token,
+            defaults={
+                'tenant': context['tenant'],
+                'user_domain': user_domain,
+                'reference_id': reference_id,
+                'is_active': True,
+            },
+        )
+        return JsonResponse(
+            {
+                'ok': True,
+                'token_id': str(obj.token_id),
+                'user_domain': obj.user_domain,
+                'reference_id': obj.reference_id,
+                'is_active': obj.is_active,
+            },
+            status=200,
+        )
 
 
 def _get_singleton_client_account_settings():
