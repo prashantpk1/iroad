@@ -58,6 +58,7 @@
           <input type="text" class="form-control" value="{{ transaction.transaction_no }}" readonly>
           {% else %}
           <input type="text" class="form-control" value="{{ code_preview }}" readonly placeholder="Auto-generated">
+          <small class="text-muted">Preview from Auto Number Configuration (no sequence consumption).</small>
           {% endif %}
         </div>
         <div class="field">

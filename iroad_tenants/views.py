@@ -9499,11 +9499,11 @@ class DriverMasterDetailView(View):
 
 
 DRIVER_TREASURY_AUTO_FORM_CODE = 'driver-treasury'
-DRIVER_TREASURY_AUTO_FORM_LABEL = 'Treasury Code'
-DRIVER_TREASURY_REF_PREFIX = 'DT'
+DRIVER_TREASURY_AUTO_FORM_LABEL = 'Driver Treasury'
+DRIVER_TREASURY_REF_PREFIX = 'DTR'
 
 DRIVER_TXN_AUTO_FORM_CODE = 'driver-treasury-transaction'
-DRIVER_TXN_AUTO_FORM_LABEL = 'Transaction No'
+DRIVER_TXN_AUTO_FORM_LABEL = 'Driver Treasury Transactions'
 DRIVER_TXN_REF_PREFIX = 'DTT'
 
 
@@ -9526,22 +9526,6 @@ def _tenant_driver_treasury_access(request, context):
             'iroad_tenants:tenant_dashboard',
         )
     return None
-
-
-def _preview_next_driver_treasury_code():
-    return _preview_next_auto_number_for_form(
-        form_code=DRIVER_TREASURY_AUTO_FORM_CODE,
-        form_label=DRIVER_TREASURY_AUTO_FORM_LABEL,
-        prefix=DRIVER_TREASURY_REF_PREFIX,
-    )
-
-
-def _preview_next_driver_txn_code():
-    return _preview_next_auto_number_for_form(
-        form_code=DRIVER_TXN_AUTO_FORM_CODE,
-        form_label=DRIVER_TXN_AUTO_FORM_LABEL,
-        prefix=DRIVER_TXN_REF_PREFIX,
-    )
 
 
 class DriverTreasuryListView(View):
@@ -9780,7 +9764,11 @@ class DriverTreasuryCreateView(View):
             context.update(
                 {
                     'form': form,
-                    'code_preview': _preview_next_driver_treasury_code(),
+                    'code_preview': _preview_next_auto_number_for_form(
+                        form_code=DRIVER_TREASURY_AUTO_FORM_CODE,
+                        form_label=DRIVER_TREASURY_AUTO_FORM_LABEL,
+                        prefix=DRIVER_TREASURY_REF_PREFIX,
+                    ),
                     'driver_balance_map': self._driver_balance_map(),
                     'page_title': 'Add Driver Treasury',
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -9808,7 +9796,11 @@ class DriverTreasuryCreateView(View):
                 context.update(
                     {
                         'form': form,
-                        'code_preview': _preview_next_driver_treasury_code(),
+                        'code_preview': _preview_next_auto_number_for_form(
+                            form_code=DRIVER_TREASURY_AUTO_FORM_CODE,
+                            form_label=DRIVER_TREASURY_AUTO_FORM_LABEL,
+                            prefix=DRIVER_TREASURY_REF_PREFIX,
+                        ),
                         'driver_balance_map': self._driver_balance_map(),
                         'page_title': 'Add Driver Treasury',
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
@@ -9819,9 +9811,9 @@ class DriverTreasuryCreateView(View):
 
             with db_transaction.atomic():
                 code, seq = _next_auto_number_for_form(
-                    form_code='driver-treasury',
-                    form_label='Driver Treasury',
-                    prefix='DT',
+                    form_code=DRIVER_TREASURY_AUTO_FORM_CODE,
+                    form_label=DRIVER_TREASURY_AUTO_FORM_LABEL,
+                    prefix=DRIVER_TREASURY_REF_PREFIX,
                 )
                 obj = form.save(commit=False)
                 obj.treasury_code = code
@@ -10186,7 +10178,11 @@ class DriverTreasuryTransactionCreateView(View):
             context.update(
                 {
                     'form': form,
-                    'code_preview': _preview_next_driver_txn_code(),
+                    'code_preview': _preview_next_auto_number_for_form(
+                        form_code=DRIVER_TXN_AUTO_FORM_CODE,
+                        form_label=DRIVER_TXN_AUTO_FORM_LABEL,
+                        prefix=DRIVER_TXN_REF_PREFIX,
+                    ),
                     'page_title': 'Add Transaction',
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
                 }
@@ -10213,7 +10209,11 @@ class DriverTreasuryTransactionCreateView(View):
                 context.update(
                     {
                         'form': form,
-                        'code_preview': _preview_next_driver_txn_code(),
+                        'code_preview': _preview_next_auto_number_for_form(
+                            form_code=DRIVER_TXN_AUTO_FORM_CODE,
+                            form_label=DRIVER_TXN_AUTO_FORM_LABEL,
+                            prefix=DRIVER_TXN_REF_PREFIX,
+                        ),
                         'page_title': 'Add Transaction',
                         'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
                     }
@@ -10223,9 +10223,9 @@ class DriverTreasuryTransactionCreateView(View):
 
             with db_transaction.atomic():
                 code, seq = _next_auto_number_for_form(
-                    form_code='driver-treasury-transaction',
-                    form_label='Driver Treasury Transaction',
-                    prefix='DTT',
+                    form_code=DRIVER_TXN_AUTO_FORM_CODE,
+                    form_label=DRIVER_TXN_AUTO_FORM_LABEL,
+                    prefix=DRIVER_TXN_REF_PREFIX,
                 )
                 obj = form.save(commit=False)
                 obj.transaction_no = code
@@ -11877,6 +11877,8 @@ class TenantAutoNumberConfigurationView(View):
         TRUCK_ATTACHMENT_AUTO_FORM_CODE: 'Truck Attachments',
         DRIVER_MASTER_AUTO_FORM_CODE: 'Driver Master',
         DRIVER_ATTACHMENT_AUTO_FORM_CODE: 'Driver Attachments',
+        DRIVER_TREASURY_AUTO_FORM_CODE: 'Driver Treasury',
+        DRIVER_TXN_AUTO_FORM_CODE: 'Driver Treasury Transactions',
         CARGO_MASTER_AUTO_FORM_CODE: CARGO_MASTER_AUTO_FORM_LABEL,
         CARGO_CATEGORY_AUTO_FORM_CODE: CARGO_CATEGORY_AUTO_FORM_LABEL,
         LOCATION_MASTER_AUTO_FORM_CODE: LOCATION_MASTER_AUTO_FORM_LABEL,
@@ -11897,6 +11899,8 @@ class TenantAutoNumberConfigurationView(View):
         TRUCK_ATTACHMENT_AUTO_FORM_CODE: TRUCK_ATTACHMENT_REF_PREFIX,
         DRIVER_MASTER_AUTO_FORM_CODE: DRIVER_MASTER_REF_PREFIX,
         DRIVER_ATTACHMENT_AUTO_FORM_CODE: DRIVER_ATTACHMENT_REF_PREFIX,
+        DRIVER_TREASURY_AUTO_FORM_CODE: 'DTR',
+        DRIVER_TXN_AUTO_FORM_CODE: DRIVER_TXN_REF_PREFIX,
         CARGO_MASTER_AUTO_FORM_CODE: CARGO_MASTER_REF_PREFIX,
         CARGO_CATEGORY_AUTO_FORM_CODE: CARGO_CATEGORY_REF_PREFIX,
         LOCATION_MASTER_AUTO_FORM_CODE: LOCATION_MASTER_REF_PREFIX,
