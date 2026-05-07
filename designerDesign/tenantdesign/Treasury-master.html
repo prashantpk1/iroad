@@ -54,7 +54,11 @@
         <ul class="nav-menu">
           <!-- Dashboard -->
           <li class="nav-item">
-            <a href="index.html" class="nav-link" data-tooltip="Dashboard">
+            <a
+              href="index.html"
+              class="nav-link active"
+              data-tooltip="Dashboard"
+            >
               <i class="bi bi-speedometer2"></i>
               <span class="nav-text">Dashboard</span>
             </a>
@@ -66,7 +70,7 @@
           </li>
 
           <!-- Account Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Account Management">
               <i class="bi bi-building"></i>
               <span class="nav-text">Account Management</span>
@@ -83,7 +87,7 @@
           </li>
 
           <!-- User Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="User Management">
               <i class="bi bi-people"></i>
               <span class="nav-text">User Management</span>
@@ -106,7 +110,7 @@
           </li>
 
           <!-- Subscriptions Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a
               href="#"
               class="nav-link"
@@ -132,8 +136,35 @@
             </ul>
           </li>
 
+          <!-- Security & Login Settings -->
+          <!-- <li class="nav-item has-submenu">
+                                                    <a
+                                                      href="#"
+                                                      class="nav-link"
+                                                      data-tooltip="Security & Login Settings"
+                                                    >
+                                                      <i class="bi bi-shield-lock"></i>
+                                                      <span class="nav-text">Security & Login Settings</span>
+                                                      <i class="bi bi-chevron-right arrow"></i>
+                                                    </a>
+                                                    <ul class="submenu">
+                                                      <li class="submenu-item">
+                                                        <a href="Sessions--devices.html" class="submenu-link">
+                                                          <i class="bi bi-shield-lock"></i>
+                                                          <span>Sessions & Devices</span>
+                                                        </a>
+                                                      </li>
+                                                      <li class="submenu-item">
+                                                        <a href="Email--password-settings.html" class="submenu-link">
+                                                          <i class="bi bi-shield-lock"></i>
+                                                          <span>Email & Password Settings</span>
+                                                        </a>
+                                                      </li>
+                                                    </ul>
+                                                  </li> -->
+
           <!-- Audit & Security Logs -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Audit & Security Logs">
               <i class="bi bi-shield-lock"></i>
               <span class="nav-text">Audit & Security Logs</span>
@@ -162,7 +193,7 @@
           </li>
 
           <!-- Support Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Support Management">
               <i class="bi bi-headset"></i>
               <span class="nav-text">Support Management</span>
@@ -175,6 +206,12 @@
                   <span>Support Ticket Master</span>
                 </a>
               </li>
+              <li class="submenu-item">
+                <a href="Ticket-replies.html" class="submenu-link">
+                  <i class="bi bi-ticket-detailed"></i>
+                  <span>Ticket Replies</span>
+                </a>
+              </li>
             </ul>
           </li>
 
@@ -184,7 +221,7 @@
           </li>
 
           <!-- Clients Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Clients Management">
               <i class="bi bi-person-badge"></i>
               <span class="nav-text">Clients Management</span>
@@ -233,13 +270,63 @@
             </ul>
           </li>
 
+          <!-- Vendors Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Vendors Management">
+              <i class="bi bi-shop-window"></i>
+              <span class="nav-text">Vendors Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Vendor-account.html" class="submenu-link">
+                  <i class="bi bi-person-vcard"></i>
+                  <span>Vendor Account</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Vendor-account-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Vendor Account Settings</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Vendor-attachments.html" class="submenu-link">
+                  <i class="bi bi-paperclip"></i>
+                  <span>Vendor Attachments</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Vendor-contacts.html" class="submenu-link">
+                  <i class="bi bi-person-rolodex"></i>
+                  <span>Vendor Contacts</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Vendor-contract.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Vendor Contract</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Vendor-contract-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Vendor Contract Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
           <!-- --- MASTER DATA --- -->
           <li class="nav-section-title">
             <span>Master Data</span>
           </li>
 
           <!-- Address Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Address Management">
               <i class="bi bi-map"></i>
               <span class="nav-text">Address Management</span>
@@ -256,7 +343,7 @@
           </li>
 
           <!-- Cargo Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Cargo Management">
               <i class="bi bi-box-seam"></i>
               <span class="nav-text">Cargo Management</span>
@@ -280,7 +367,7 @@
           </li>
 
           <!-- Route Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Route Management">
               <i class="bi bi-signpost-split"></i>
               <span class="nav-text">Route Management</span>
@@ -303,8 +390,43 @@
             </ul>
           </li>
 
+          <!-- Currency & FX Management -->
+          <li class="nav-item has-submenu">
+            <a
+              href="#"
+              class="nav-link"
+              data-tooltip="Currency & FX Management"
+            >
+              <i class="bi bi-currency-exchange"></i>
+              <span class="nav-text">Currency & FX </span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Currency-master.html" class="submenu-link">
+                  <i class="bi bi-currency-exchange"></i>
+                  <span>Currency Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Tenant-currency-settings.html" class="submenu-link">
+                  <i class="bi bi-currency-exchange"></i>
+                  <span>Tenant Currency Settings</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="FX-rate-change-log.html" class="submenu-link">
+                  <i class="bi bi-currency-exchange"></i>
+                  <span>FX Rate Change Log</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
           <!-- Services Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Services Management">
               <i class="bi bi-gear"></i>
               <span class="nav-text">Services Management</span>
@@ -317,11 +439,67 @@
                   <span>Service Item Master</span>
                 </a>
               </li>
-
+              <li class="submenu-item">
+                <a href="Service-item-settings.html" class="submenu-link">
+                  <i class="bi bi-tools"></i>
+                  <span>Service Item Settings</span>
+                </a>
+              </li>
               <li class="submenu-item">
                 <a href="Price-list.html" class="submenu-link">
                   <i class="bi bi-tags"></i>
                   <span>Price List Master</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- --- COMMERCIAL --- -->
+          <li class="nav-section-title">
+            <span>Commercial</span>
+          </li>
+
+          <!-- Sales Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Sales Management">
+              <i class="bi bi-graph-up-arrow"></i>
+              <span class="nav-text">Sales Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Sales-order.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Sales Order</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Sales-order-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Sales Order Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Purchases Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Purchases Management">
+              <i class="bi bi-cart-check"></i>
+              <span class="nav-text">Purchases Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Purchase-order.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Purchase Order</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Purchase-order-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Purchase Order Settings</span>
                 </a>
               </li>
             </ul>
@@ -333,7 +511,7 @@
           </li>
 
           <!-- Operations Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Operations Management">
               <i class="bi bi-activity"></i>
               <span class="nav-text">Operations Management</span>
@@ -358,14 +536,6 @@
                   <span>Shipment Documents</span>
                 </a>
               </li>
-              <li class="submenu-item">
-                <a href="Surcharge-sales-transaction.html" class="submenu-link">
-                  <i class="bi bi-receipt"></i>
-
-                  <span>Surcharge Sales Transaction</span>
-                </a>
-              </li>
-
               <li class="submenu-item">
                 <a href="Digital-pod-transaction.html" class="submenu-link">
                   <i class="bi bi-file-earmark-check"></i>
@@ -394,7 +564,7 @@
           </li>
 
           <!-- Fleet Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Fleet Management">
               <i class="bi bi-truck-front"></i>
               <span class="nav-text">Fleet Management</span>
@@ -431,7 +601,7 @@
           </li>
 
           <!-- Drivers Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Drivers Management">
               <i class="bi bi-person-vcard"></i>
               <span class="nav-text">Drivers Management</span>
@@ -442,12 +612,6 @@
                 <a href="Driver-master.html" class="submenu-link">
                   <i class="bi bi-person-badge"></i>
                   <span>Driver Master</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a href="Driver-attachments.html" class="submenu-link">
-                  <i class="bi bi-person-badge"></i>
-                  <span>Driver Attachments</span>
                 </a>
               </li>
               <li class="submenu-item">
@@ -464,8 +628,39 @@
             <span>Finance</span>
           </li>
 
+          <!-- Finance Management (Lite) -->
+          <li class="nav-item has-submenu">
+            <a
+              href="#"
+              class="nav-link"
+              data-tooltip="Finance Management (Lite)"
+            >
+              <i class="bi bi-bank2"></i>
+              <span class="nav-text">Finance Management (Lite)</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Financial-account-master.html" class="submenu-link">
+                  <i class="bi bi-person-vcard"></i>
+                  <span>Financial Account Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a
+                  href="Financial-transaction-log-new.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-clock-history"></i>
+                  <span>Financial Transaction Log</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
           <!-- Sales Invoicing -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Sales Invoicing">
               <i class="bi bi-receipt"></i>
               <span class="nav-text">Sales Invoicing</span>
@@ -473,16 +668,185 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
+                <a href="Job-order-report.html" class="submenu-link">
+                  <i class="bi bi-receipt"></i>
+                  <span>Job Order Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
                 <a href="Sales-invoice-create.html" class="submenu-link">
                   <i class="bi bi-receipt"></i>
-                  <span>Sales Invoice Reports</span>
+                  <span>Sales Invoice</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Sales-invoice-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Sales Invoice Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Purchase Invoicing -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Purchase Invoicing">
+              <i class="bi bi-receipt-cutoff"></i>
+              <span class="nav-text">Purchase Invoicing</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Purchase-report.html" class="submenu-link">
+                  <i class="bi bi-receipt"></i>
+                  <span>Purchase Order Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Purchase-invoice-list.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Purchase Invoice</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Purchase-invoice-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Purchase Invoice Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Invoice Acknowledgement -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Invoice Acknowledgement">
+              <i class="bi bi-patch-check"></i>
+              <span class="nav-text">Invoice Acknowledgement</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a
+                  href="Sales-invoice-acknowledgement.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-receipt"></i>
+                  <span>Sales Invoice Acknowledgement</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a
+                  href="Purchase-invoice-acknowledgement.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-receipt"></i>
+                  <span>Purchase Invoice Acknowledgement</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Acknowledgement Proofs -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Acknowledgement Proofs">
+              <i class="bi bi-file-earmark-check"></i>
+              <span class="nav-text">Acknowledgement Proofs</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Sales-ack-proof.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-check"></i>
+                  <span>Sales Ack Proof</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Purchase-ack-proof.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-check"></i>
+                  <span>Purchase Ack Proof</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Invoice Attachments -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Invoice Attachments">
+              <i class="bi bi-paperclip"></i>
+              <span class="nav-text">Invoice Attachments</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Sales-invoice.html" class="submenu-link">
+                  <i class="bi bi-paperclip"></i>
+                  <span>Sales Invoice</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a
+                  href="Purchase-invoice-attachments.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-paperclip"></i>
+                  <span>Purchase Invoice</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Adjustments Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Adjustments Management">
+              <i class="bi bi-sliders"></i>
+              <span class="nav-text">Adjustments Management</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Adjustment-types-master.html" class="submenu-link">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>Adjustment Types Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Sales-adjustment.html" class="submenu-link">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>Sales Adjustment</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="Purchase-adjustment.html" class="submenu-link">
+                  <i class="bi bi-arrow-left-right"></i>
+                  <span>Purchase Adjustment</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Vendor Bank Accounts -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Vendor Bank Accounts">
+              <i class="bi bi-building"></i>
+              <span class="nav-text">Vendor Bank Accounts</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Vendor-bank-accounts.html" class="submenu-link">
+                  <i class="bi bi-person-vcard"></i>
+                  <span>Vendor Bank Accounts</span>
                 </a>
               </li>
             </ul>
           </li>
 
           <!-- Treasury Management -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Treasury Management">
               <i class="bi bi-cash-coin"></i>
               <span class="nav-text">Treasury Management</span>
@@ -502,6 +866,162 @@
                   <span>Treasury Transaction Log</span>
                 </a>
               </li>
+
+              <li class="submenu-item">
+                <a href="Treasury-internal-transfer.html" class="submenu-link">
+                  <i class="bi bi-record-circle"></i>
+                  <span>Treasury Internal Transfer</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Client Payments -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Client Payments">
+              <i class="bi bi-person-badge"></i>
+              <span class="nav-text">Client Payments</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Client-payment.html" class="submenu-link">
+                  <i class="bi bi-cash-coin"></i>
+                  <span>Client Payment</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Client-payments-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Client Payments Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- Vendor Payments -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Vendor Payments">
+              <i class="bi bi-wallet"></i>
+              <span class="nav-text">Vendor Payments</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Vendor-payment.html" class="submenu-link">
+                  <i class="bi bi-cash-coin"></i>
+                  <span>Vendor Payment</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Vendor-payments-settings.html" class="submenu-link">
+                  <i class="bi bi-gear"></i>
+                  <span>Vendor Payments Settings</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <!-- --- REPORTS --- -->
+          <li class="nav-section-title">
+            <span>Reports</span>
+          </li>
+
+          <!-- Reports Management -->
+          <li class="nav-item has-submenu">
+            <a href="#" class="nav-link" data-tooltip="Reports">
+              <i class="bi bi-file-earmark-bar-graph"></i>
+              <span class="nav-text">Reports</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a
+                  href="Report-shipment-documentation.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Shipment Documentation Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a
+                  href="Report-digital-pod-transaction.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Shipment POD Analysis Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-pod-management.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>POD Management Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-movements-management.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Movements Management Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-operation-actions.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Operation Actions Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-finance-management.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Finance Management Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-sales-invoicing.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Sales Invoicing Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-purchase-invoicing.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Purchase Invoicing Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a
+                  href="Report-invoice-acknowledgement.html"
+                  class="submenu-link"
+                >
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Invoice Acknowledgement Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-vendor-bank-accounts.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Vendor Bank Accounts Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-client-payments.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Client Payments Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-vendor-payments.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Vendor Payments Report</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="Report-support-management.html" class="submenu-link">
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>Support Management Report</span>
+                </a>
+              </li>
             </ul>
           </li>
 
@@ -511,13 +1031,27 @@
           </li>
 
           <!-- Configurations -->
-          <li class="nav-item has-submenu open">
+          <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Configurations">
               <i class="bi bi-gear-wide-connected"></i>
               <span class="nav-text">Configurations</span>
               <i class="bi bi-chevron-right arrow"></i>
             </a>
             <ul class="submenu">
+              <li class="submenu-item">
+                <a href="Tax-codes-master.html" class="submenu-link">
+                  <i class="bi bi-percent"></i>
+                  <span>Tax Codes Master</span>
+                </a>
+              </li>
+
+              <li class="submenu-item">
+                <a href="General-tax-settings.html" class="submenu-link">
+                  <i class="bi bi-percent"></i>
+                  <span>General Tax Settings</span>
+                </a>
+              </li>
+
               <li class="submenu-item">
                 <a href="Auto-number-configuration.html" class="submenu-link">
                   <i class="bi bi-gear"></i>

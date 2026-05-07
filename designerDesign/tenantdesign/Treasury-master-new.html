@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Treasury Transaction Log | iRoad Admin</title>
+    <title>Treasury Master List | iRoad Admin</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1238,887 +1238,308 @@
             <li class="breadcrumb-item">Finance</li>
             <li class="breadcrumb-item">Treasury Management</li>
             <li class="breadcrumb-item active" aria-current="page">
-              Treasury Transaction Log
+              New Treasury Master
             </li>
           </ol>
         </nav>
         <div class="page-header-row">
           <div class="page-header-left">
-            <h1 class="page-title">Treasury Transaction Log</h1>
+            <h1 class="page-title">New Treasury Master</h1>
             <p class="page-subtitle">
-              View and manage all treasury cash and bank movements.
+              Configure a treasury as a bank account or cash box with its
+              currency and control rules.
             </p>
           </div>
           <div class="page-header-right">
             <div class="eal-header-actions">
-              <button class="eal-btn eal-btn-outline">
-                <i class="bi bi-download"></i>
-                <span>Export</span>
-              </button>
-              <a
-                href="Treasury-transaction-log-new.html"
-                class="eal-btn eal-btn-primary"
-              >
-                <i class="bi bi-plus-lg"></i>
-                <span>Add Treasury Transaction</span>
+              <a href="Treasury-master.html" class="eal-btn eal-btn-outline">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back</span>
               </a>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Stats Row -->
-      <div class="eal-stats-row">
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon purple">
-            <i class="bi bi-clock-history"></i>
+      <!-- Treasury Master Form -->
+      <form id="treasuryMasterForm">
+        <!-- Section 1: Identity & Names -->
+        <div class="form-card" data-section="1">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-safe2"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Treasury Identity</h2>
+              <p class="form-card-desc">
+                Define the core identification and display names for this
+                treasury.
+              </p>
+            </div>
           </div>
-          <div>
-            <div class="eal-stat-value">10</div>
-            <div class="eal-stat-label">Total Transactions</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon green">
-            <i class="bi bi-arrow-down-left-circle"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">SAR 145k</div>
-            <div class="eal-stat-label">Total Debits</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon amber">
-            <i class="bi bi-arrow-up-right-circle"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">SAR 92k</div>
-            <div class="eal-stat-label">Total Credits</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon blue">
-            <i class="bi bi-arrow-left-right"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">4</div>
-            <div class="eal-stat-label">Internal Transfers</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Table Card -->
-      <div class="eal-table-card">
-        <!-- Toolbar -->
-        <div class="eal-toolbar">
-          <div class="eal-toolbar-left">
-            <div class="eal-search">
-              <i class="bi bi-search"></i>
-              <input
-                type="text"
-                placeholder="Search treasury transactions&hellip;"
-              />
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-fingerprint"></i>
+                Basics
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="treasuryCode" class="form-label"
+                    >Treasury Code
+                    <span class="required">*</span>
+                  </label>
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-hash"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="treasuryCode"
+                      placeholder="Auto-number"
+                      readonly
+                    />
+                  </div>
+                  <span class="field-hint">Auto-number</span>
+                </div>
+                <div class="field">
+                  <label for="treasuryType" class="form-label"
+                    >Type
+                    <span class="required">*</span>
+                  </label>
+                  <select class="form-select" id="treasuryType">
+                    <option value="" selected disabled>-Select type-</option>
+                    <option value="bank">Bank Account</option>
+                    <option value="cash">Cash Box</option>
+                  </select>
+                  <span class="field-hint">Enum: Bank Account / Cash Box</span>
+                </div>
+                <div class="field">
+                  <label for="status" class="form-label">Status</label>
+                  <select class="form-select" id="status">
+                    <option value="active" selected>Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <span class="field-hint">Active / Inactive</span>
+                </div>
+              </div>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="nameEnglish" class="form-label"
+                    >Name (English)
+                    <span class="required">*</span>
+                  </label>
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-card-text"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="nameEnglish"
+                      placeholder="e.g. Main Operating Bank"
+                    />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="nameArabic" class="form-label"
+                    >Name (Arabic)</label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-translate"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="nameArabic"
+                      placeholder="الاسم العربي"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Table -->
-        <div class="eal-table-wrap">
-          <table class="eal-table">
-            <thead>
-              <tr>
-                <th class="eal-col-check">
-                  <input
-                    type="checkbox"
-                    class="eal-custom-check"
-                    id="ealSelectAll"
-                  />
-                </th>
-                <th>
-                  Transaction No.
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Date
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Treasury
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Entry Type
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Classification
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Amount
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Currency
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Linked Source
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- 10 sample rows (static demo data) -->
-              <tr
-                data-created-at="28 Jan 2026, 10:15 AM"
-                data-description="Opening balance transfer into main cash treasury."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000101</span>
-                </td>
-                <td>28 Jan 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text"
-                      >Main Cash Treasury (TR-001)</span
+        <!-- Section 2: Currency & Balance -->
+        <div class="form-card" data-section="2">
+          <div class="form-card-header">
+            <div class="form-card-icon green">
+              <i class="bi bi-currency-exchange"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Currency &amp; Balance</h2>
+              <p class="form-card-desc">
+                Set the operating currency and view the current balance.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-cash-stack"></i>
+                Financials
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="currency" class="form-label"
+                    >Currency
+                    <span class="required">*</span>
+                  </label>
+                  <select class="form-select" id="currency">
+                    <option value="" selected disabled>
+                      -Select currency-
+                    </option>
+                    <option value="SAR">SAR</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                  <span class="field-hint">Single currency per treasury</span>
+                </div>
+                <div class="field">
+                  <label for="currentBalance" class="form-label"
+                    >Current Balance</label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-wallet2"></i>
+                    <input
+                      type="number"
+                      class="form-control has-icon"
+                      id="currentBalance"
+                      placeholder="0.00"
+                      step="0.01"
+                      readonly
+                    />
+                  </div>
+                  <span class="field-hint"
+                    >Derived from Financial Treasury Transactions</span
+                  >
+                </div>
+                <div class="field">
+                  <label class="form-label">Allow Negative?</label>
+                  <div class="toggle-switch-group">
+                    <label class="toggle-switch toggle-switch-classic">
+                      <input type="checkbox" id="allowNegative" />
+                      <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label-off"
+                      >Allow balance below zero</span
+                    >
+                    <span class="toggle-label-on"
+                      >Allow balance below zero</span
                     >
                   </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Debit</span>
-                </td>
-                <td>Transfer In</td>
-                <td>
-                  <strong>50,000.00</strong>
-                </td>
-                <td>SAR</td>
-                <td>Transfer TRN-0001</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr
-                data-created-at="28 Jan 2026, 11:05 AM"
-                data-description="Client payment received for sales invoice batch."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000102</span>
-                </td>
-                <td>28 Jan 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Bank Treasury (TR-002)</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Debit</span>
-                </td>
-                <td>Client Pay</td>
-                <td>
-                  <strong>25,000.00</strong>
-                </td>
-                <td>SAR</td>
-                <td>Client Payment CP-0001</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr
-                data-created-at="29 Jan 2026, 09:20 AM"
-                data-description="Vendor payment for fuel and toll expenses."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000103</span>
-                </td>
-                <td>29 Jan 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Bank Treasury (TR-002)</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge expired">Credit</span>
-                </td>
-                <td>Vendor Pay</td>
-                <td>
-                  <strong>18,750.00</strong>
-                </td>
-                <td>SAR</td>
-                <td>Vendor Payment VP-0003</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr
-                data-created-at="30 Jan 2026, 04:05 PM"
-                data-description="Internal transfer from bank to petty cash."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000104</span>
-                </td>
-                <td>30 Jan 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Petty Cash (TR-003)</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Debit</span>
-                </td>
-                <td>Transfer In</td>
-                <td>
-                  <strong>5,000.00</strong>
-                </td>
-                <td>SAR</td>
-                <td>Transfer TRN-0002</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr
-                data-created-at="31 Jan 2026, 12:30 PM"
-                data-description="Manual reversal of duplicate vendor payment."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000105</span>
-                </td>
-                <td>31 Jan 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Bank Treasury (TR-002)</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Debit</span>
-                </td>
-                <td>Reversal</td>
-                <td>
-                  <strong>18,750.00</strong>
-                </td>
-                <td>SAR</td>
-                <td>Vendor Payment VP-0003</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr
-                data-created-at="01 Feb 2026, 09:10 AM"
-                data-description="Client advance payment for upcoming shipments."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000106</span>
-                </td>
-                <td>01 Feb 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text"
-                      >Main Cash Treasury (TR-001)</span
-                    >
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Debit</span>
-                </td>
-                <td>Client Pay</td>
-                <td>
-                  <strong>12,000.00</strong>
-                </td>
-                <td>SAR</td>
-                <td>Client Payment CP-0004</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr
-                data-created-at="02 Feb 2026, 03:40 PM"
-                data-description="Settlement of client refund from bank treasury."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000107</span>
-                </td>
-                <td>02 Feb 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Bank Treasury (TR-002)</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge expired">Credit</span>
-                </td>
-                <td>Client Pay</td>
-                <td>
-                  <strong>3,200.00</strong>
-                </td>
-                <td>SAR</td>
-                <td>Client Payment CP-0005</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr
-                data-created-at="03 Feb 2026, 08:55 AM"
-                data-description="Internal transfer out from petty cash for top-up."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000108</span>
-                </td>
-                <td>03 Feb 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Petty Cash (TR-003)</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge expired">Credit</span>
-                </td>
-                <td>Transfer Out</td>
-                <td>
-                  <strong>2,000.00</strong>
-                </td>
-                <td>SAR</td>
-                <td>Transfer TRN-0003</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr
-                data-created-at="04 Feb 2026, 02:10 PM"
-                data-description="USD client receipt from export shipment."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000109</span>
-                </td>
-                <td>04 Feb 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text"
-                      >Bank Treasury (TR-004 - USD)</span
-                    >
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge active">Debit</span>
-                </td>
-                <td>Client Pay</td>
-                <td>
-                  <strong>8,500.00</strong>
-                </td>
-                <td>USD</td>
-                <td>Client Payment CP-0006</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr
-                data-created-at="05 Feb 2026, 05:25 PM"
-                data-description="EUR vendor settlement for overseas handling."
-              >
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td>
-                  <span class="eal-entity-id">TT-000110</span>
-                </td>
-                <td>05 Feb 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text"
-                      >Bank Treasury (TR-005 - EUR)</span
-                    >
-                  </div>
-                </td>
-                <td>
-                  <span class="status-badge expired">Credit</span>
-                </td>
-                <td>Vendor Pay</td>
-                <td>
-                  <strong>6,300.00</strong>
-                </td>
-                <td>EUR</td>
-                <td>Vendor Payment VP-0007</td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  <span class="field-hint">Default false</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Pagination -->
-        <div class="eal-pagination">
-          <div class="eal-pagination-info">
-            Showing
-            <strong>1&ndash;10</strong>
-            of
-            <strong>10</strong>
-            transactions
+        <!-- Section 3: Custodian & Bank Details -->
+        <div class="form-card" data-section="3">
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-building"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Custodian &amp; Bank Details</h2>
+              <p class="form-card-desc">
+                Define responsible custodian and, if applicable, bank account
+                routing details.
+              </p>
+            </div>
           </div>
-          <div class="eal-pagination-controls">
-            <button class="eal-page-btn" title="Previous">
-              <i class="bi bi-chevron-left"></i>
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-person-badge"></i>
+                Ownership &amp; Routing
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="custodian" class="form-label">Custodian</label>
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-person"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="custodian"
+                      placeholder="Required if Type is Cash Box"
+                    />
+                  </div>
+                  <span class="field-hint">Required if Type = Cash Box</span>
+                </div>
+                <div class="field">
+                  <label for="bankName" class="form-label">Bank Name</label>
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-bank"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="bankName"
+                      placeholder="Required if Type is Bank Account"
+                    />
+                  </div>
+                  <span class="field-hint"
+                    >Required if Type = Bank Account</span
+                  >
+                </div>
+                <div class="field">
+                  <label for="iban" class="form-label">IBAN</label>
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-credit-card-2-front"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="iban"
+                      placeholder="e.g. SA00 0000 0000 0000 0000 0000"
+                    />
+                  </div>
+                  <span class="field-hint"
+                    >Required if Type = Bank Account</span
+                  >
+                </div>
+              </div>
+              <div class="fields-grid cols-2">
+                <div class="field">
+                  <label for="accountNumber" class="form-label"
+                    >Account Number</label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-123"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="accountNumber"
+                      placeholder="Optional (Bank only)"
+                    />
+                  </div>
+                  <span class="field-hint">Optional, Bank Account only</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions-bar">
+          <div class="form-actions-left">
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              Reset Form
             </button>
-            <button class="eal-page-btn active">1</button>
-            <button class="eal-page-btn" title="Next">
-              <i class="bi bi-chevron-right"></i>
+          </div>
+          <div class="form-actions-right">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle"></i>
+              Save Treasury
             </button>
           </div>
         </div>
-      </div>
-      <!-- ========== END TABLE UI DESIGN ========== -->
+      </form>
     </main>
-
-    <!-- ========== TREASURY TRANSACTION DETAIL SLIDE PANEL ========== -->
-    <div class="detail-panel-overlay" id="detailPanelOverlay"></div>
-    <aside class="detail-panel" id="detailPanel">
-      <!-- Panel Header -->
-      <div class="detail-panel-header">
-        <div class="detail-panel-nav">
-          <button class="detail-nav-btn" id="detailPrevBtn" title="Previous">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button class="detail-nav-btn" id="detailNextBtn" title="Next">
-            <i class="bi bi-chevron-right"></i>
-          </button>
-        </div>
-        <div class="detail-panel-actions">
-          <button class="detail-action-btn edit" title="Edit">
-            <i class="bi bi-pencil-square"></i>
-            <span>Edit</span>
-          </button>
-          <button class="detail-action-btn duplicate" title="Duplicate">
-            <i class="bi bi-copy"></i>
-            <span>Duplicate</span>
-          </button>
-          <button class="detail-action-btn delete" title="Delete">
-            <i class="bi bi-trash3"></i>
-            <span>Delete</span>
-          </button>
-        </div>
-        <button class="detail-close-btn" id="detailCloseBtn" title="Close">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-
-      <!-- Panel Body -->
-      <div class="detail-panel-body">
-        <!-- Section: Transaction Overview -->
-        <div class="detail-section">
-          <h3 class="detail-section-title">Transaction Overview</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Transaction No.</span>
-            <span class="detail-field-value" id="dpTxnNo">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Date</span>
-            <span class="detail-field-value" id="dpDate">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Treasury</span>
-            <span class="detail-field-value" id="dpTreasury">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Entry Type</span>
-            <span class="detail-field-value" id="dpEntryType">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Classification</span>
-            <span class="detail-field-value" id="dpClassification"
-              >&mdash;</span
-            >
-          </div>
-        </div>
-
-        <!-- Section: Amount Details -->
-        <div class="detail-section">
-          <h3 class="detail-section-title">Amount Details</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Currency</span>
-            <span class="detail-field-value" id="dpCurrency">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Amount</span>
-            <span class="detail-field-value" id="dpAmount">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Created At</span>
-            <span class="detail-field-value" id="dpCreatedAt">&mdash;</span>
-          </div>
-        </div>
-
-        <!-- Section: Links & Description -->
-        <div class="detail-section">
-          <h3 class="detail-section-title">Links &amp; Description</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Description</span>
-            <span class="detail-field-value" id="dpDescription"
-              >Regular treasury transaction.</span
-            >
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Transfer Ref</span>
-            <span class="detail-field-value" id="dpTransferRef">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Client Payment</span>
-            <span class="detail-field-value" id="dpClientPayment">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Vendor Payment</span>
-            <span class="detail-field-value" id="dpVendorPayment">&mdash;</span>
-          </div>
-        </div>
-
-        <!-- Comments Section -->
-        <div class="detail-section detail-comments-section">
-          <h3 class="detail-section-title">
-            <i class="bi bi-chat-dots"></i>
-            <span class="detail-comment-count">0</span>
-            Comments
-          </h3>
-          <p class="detail-no-comments">
-            <em>No comments yet.</em>
-          </p>
-          <div class="detail-comment-box">
-            <div class="detail-comment-avatar">A</div>
-            <div class="detail-comment-input-wrap">
-              <input
-                type="text"
-                class="detail-comment-input"
-                placeholder="Write a comment..."
-              />
-              <button class="detail-comment-btn">Comment</button>
-            </div>
-          </div>
-          <p class="detail-comment-hint">Press Enter to send</p>
-        </div>
-      </div>
-    </aside>
-    <!-- ========== END TREASURY TRANSACTION DETAIL SLIDE PANEL ========== -->
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Custom JS -->
     <script src="Javascript/main.js"></script>
-
-    <!-- Detail Panel JS -->
-    <script>
-      (function () {
-        const panel = document.getElementById("detailPanel");
-        const overlay = document.getElementById("detailPanelOverlay");
-        const closeBtn = document.getElementById("detailCloseBtn");
-        const prevBtn = document.getElementById("detailPrevBtn");
-        const nextBtn = document.getElementById("detailNextBtn");
-        const rows = document.querySelectorAll(".eal-table tbody tr");
-        let currentIndex = -1;
-
-        function txt(el) {
-          return el ? el.textContent.trim() : "\u2014";
-        }
-
-        function openPanel() {
-          panel.classList.add("active");
-          overlay.classList.add("active");
-          document.body.style.overflow = "hidden";
-        }
-
-        function closePanel() {
-          panel.classList.remove("active");
-          overlay.classList.remove("active");
-          document.body.style.overflow = "";
-          rows.forEach(function (r) {
-            r.classList.remove("row-selected");
-          });
-          currentIndex = -1;
-        }
-
-        function populatePanel(row) {
-          const cells = row.querySelectorAll("td");
-          // cells index: 0=check, 1=TxnNo, 2=Date, 3=Treasury,
-          // 4=EntryType, 5=Classification, 6=Amount, 7=Currency,
-          // 8=Linked Source, 9=Actions
-
-          document.getElementById("dpTxnNo").textContent = txt(cells[1]);
-          document.getElementById("dpDate").textContent = txt(cells[2]);
-
-          const treasuryCell = cells[3]
-            ? cells[3].querySelector(".eal-name-cell")
-            : null;
-          if (treasuryCell) {
-            const main = treasuryCell.querySelector(".eal-name-text");
-            document.getElementById("dpTreasury").textContent = main
-              ? main.textContent.trim()
-              : txt(cells[3]);
-          } else {
-            document.getElementById("dpTreasury").textContent = txt(cells[3]);
-          }
-
-          const entryBadge = cells[4]
-            ? cells[4].querySelector(".status-badge")
-            : null;
-          const entryEl = document.getElementById("dpEntryType");
-          if (entryBadge) {
-            entryEl.innerHTML = "";
-            const clone = entryBadge.cloneNode(true);
-            entryEl.appendChild(clone);
-          } else {
-            entryEl.textContent = txt(cells[4]);
-          }
-
-          document.getElementById("dpClassification").textContent = txt(
-            cells[5],
-          );
-          document.getElementById("dpAmount").textContent = txt(cells[6]);
-          document.getElementById("dpCurrency").textContent = txt(cells[7]);
-
-          const createdAt = row.getAttribute("data-created-at") || "\u2014";
-          document.getElementById("dpCreatedAt").textContent = createdAt;
-
-          const description =
-            row.getAttribute("data-description") ||
-            "Regular treasury transaction.";
-          document.getElementById("dpDescription").textContent = description;
-
-          const linkedSource = txt(cells[8]);
-          let transferRef = "\u2014";
-          let clientPayment = "\u2014";
-          let vendorPayment = "\u2014";
-
-          if (/^Transfer/i.test(linkedSource)) {
-            transferRef = linkedSource;
-          } else if (/^Client Payment/i.test(linkedSource)) {
-            clientPayment = linkedSource;
-          } else if (/^Vendor Payment/i.test(linkedSource)) {
-            vendorPayment = linkedSource;
-          }
-
-          document.getElementById("dpTransferRef").textContent = transferRef;
-          document.getElementById("dpClientPayment").textContent =
-            clientPayment;
-          document.getElementById("dpVendorPayment").textContent =
-            vendorPayment;
-
-          rows.forEach(function (r) {
-            r.classList.remove("row-selected");
-          });
-          row.classList.add("row-selected");
-        }
-
-        function showRow(index) {
-          if (index < 0 || index >= rows.length) return;
-
-          currentIndex = index;
-          populatePanel(rows[currentIndex]);
-          prevBtn.disabled = currentIndex === 0;
-          nextBtn.disabled = currentIndex === rows.length - 1;
-        }
-
-        rows.forEach(function (row, idx) {
-          row.style.cursor = "pointer";
-          row.addEventListener("click", function (e) {
-            if (
-              e.target.closest(".eal-col-check") ||
-              e.target.closest(".eal-actions-cell") ||
-              e.target.closest('input[type="checkbox"]')
-            ) {
-              return;
-            }
-            currentIndex = idx;
-            showRow(currentIndex);
-            openPanel();
-          });
-        });
-
-        closeBtn.addEventListener("click", closePanel);
-        overlay.addEventListener("click", closePanel);
-
-        prevBtn.addEventListener("click", function () {
-          if (currentIndex > 0) showRow(currentIndex - 1);
-        });
-
-        nextBtn.addEventListener("click", function () {
-          if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
-        });
-
-        document.addEventListener("keydown", function (e) {
-          if (!panel.classList.contains("active")) return;
-
-          if (e.key === "Escape") closePanel();
-
-          if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-            e.preventDefault();
-            if (currentIndex > 0) showRow(currentIndex - 1);
-          }
-          if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-            e.preventDefault();
-            if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
-          }
-        });
-
-        document
-          .querySelectorAll('.eal-row-btn[title="View"]')
-          .forEach(function (btn, idx) {
-            btn.addEventListener("click", function (e) {
-              e.stopPropagation();
-              currentIndex = idx;
-              showRow(currentIndex);
-              openPanel();
-            });
-          });
-      })();
-    </script>
   </body>
 </html>
