@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Job Order Report | iRoad Admin</title>
+    <title>Create Job Order Report | iRoad Admin</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,6 +28,122 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="Style/style.css" />
     <link rel="stylesheet" href="Style/responsive.css" />
+    <style>
+      /* Report Summary — read-only data view (not form fields) */
+      .jor-summary-panel {
+        padding: 4px 2px 8px;
+      }
+      .jor-summary-panel .eal-stats-row {
+        margin-bottom: 14px;
+      }
+      .jor-summary-panel .eal-stats-row:last-of-type {
+        margin-bottom: 0;
+      }
+      .jor-summary-section-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #8b8fa3;
+        margin: 0 0 10px 2px;
+      }
+      .jor-summary-currency {
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+      }
+      .jor-summary-total-card {
+        border-color: #d4d5f9 !important;
+        background: linear-gradient(
+          145deg,
+          #f7f7ff 0%,
+          #ffffff 55%,
+          #ffffff 100%
+        ) !important;
+        box-shadow: 0 2px 14px rgba(80, 81, 249, 0.07);
+      }
+      .jor-summary-total-card .eal-stat-value {
+        font-size: 24px;
+        color: #383b8f;
+      }
+      .lookup-input-wrap {
+        position: relative;
+      }
+      .lookup-input-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #8b8fa3;
+        font-size: 12px;
+        pointer-events: none;
+      }
+      .lookup-input-wrap .lookup-input {
+        padding-left: 30px;
+      }
+      .lookup-menu {
+        position: fixed;
+        z-index: 9999;
+        background: #fff;
+        border: 1px solid #ecedf3;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+        overflow: hidden;
+        display: none;
+      }
+      .lookup-menu.is-open {
+        display: block;
+      }
+      .lookup-menu-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-bottom: 1px solid #f0f1f6;
+        background: #fbfbfe;
+      }
+      .lookup-menu-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #4b4e5e;
+      }
+      .lookup-menu-hint {
+        font-size: 11px;
+        color: #8b8fa3;
+      }
+      .lookup-menu-list {
+        max-height: 220px;
+        overflow: auto;
+        padding: 6px;
+      }
+      .lookup-option {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        padding: 9px 10px;
+        border-radius: 10px;
+        font-size: 12.5px;
+        color: #1e1f26;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .lookup-option:hover,
+      .lookup-option:focus {
+        outline: none;
+        background: #f2f3ff;
+      }
+      .lookup-option i {
+        color: #5051f9;
+        font-size: 14px;
+      }
+      .lookup-empty {
+        padding: 12px;
+        font-size: 12px;
+        color: #8b8fa3;
+      }
+    </style>
   </head>
 
   <body>
@@ -413,13 +529,6 @@
                 <a href="Tenant-currency-settings.html" class="submenu-link">
                   <i class="bi bi-currency-exchange"></i>
                   <span>Tenant Currency Settings</span>
-                </a>
-              </li>
-
-              <li class="submenu-item">
-                <a href="FX-rate-change-log.html" class="submenu-link">
-                  <i class="bi bi-currency-exchange"></i>
-                  <span>FX Rate Change Log</span>
                 </a>
               </li>
             </ul>
@@ -1261,573 +1370,616 @@
             <li class="breadcrumb-item">Finance</li>
             <li class="breadcrumb-item">Sales Invoicing</li>
             <li class="breadcrumb-item active" aria-current="page">
-              Job Order Report
+              Create Sales Invoice Report
             </li>
           </ol>
         </nav>
         <div class="page-header-row">
           <div class="page-header-left">
-            <h1 class="page-title">Job Order Report</h1>
+            <h1 class="page-title">Create Sales Invoice Report</h1>
             <p class="page-subtitle">
-              View and manage job order reports. Open a row to see full details.
+              Select client account and booking period to build the billing
+              worksheet. Use Auto Post to aggregate executed bookings, related
+              shipments and surcharges pending billing for that period.
             </p>
           </div>
           <div class="page-header-right">
             <div class="eal-header-actions">
-              <a
-                href="Job-order-report-create.html"
-                class="eal-btn eal-btn-primary"
-              >
-                <i class="bi bi-plus-lg"></i>
-                <span>Create Job Order Report</span>
+              <a href="Job-order-report.html" class="eal-btn eal-btn-outline">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back</span>
               </a>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Stats Row -->
-      <div class="eal-stats-row">
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon purple">
-            <i class="bi bi-receipt"></i>
+      <!-- Job Order Report Form -->
+      <form id="jobOrderReportForm">
+        <!-- Section 1: Report Header -->
+        <div class="form-card" data-section="1">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-receipt"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Job Order Report</h2>
+              <p class="form-card-desc">
+                Header, client account, booking period and auto-post options.
+              </p>
+            </div>
           </div>
-          <div>
-            <div class="eal-stat-value">10</div>
-            <div class="eal-stat-label">Total</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon amber">
-            <i class="bi bi-pencil-square"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">5</div>
-            <div class="eal-stat-label">Draft</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon blue">
-            <i class="bi bi-check-circle"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">3</div>
-            <div class="eal-stat-label">Issued</div>
-          </div>
-        </div>
-        <div class="eal-stat-card">
-          <div class="eal-stat-icon green">
-            <i class="bi bi-file-earmark-text"></i>
-          </div>
-          <div>
-            <div class="eal-stat-value">2</div>
-            <div class="eal-stat-label">Invoiced</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Table Card -->
-      <div class="eal-table-card">
-        <!-- Toolbar -->
-        <div class="eal-toolbar">
-          <div class="eal-toolbar-left">
-            <div class="eal-search">
-              <i class="bi bi-search"></i>
-              <input
-                type="text"
-                placeholder="Search job order reports&hellip;"
-              />
+          <div class="form-card-body">
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-layout-text-sidebar-reverse"></i>
+                Header Section
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="reportNo" class="form-label">Report No</label>
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-hash"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="reportNo"
+                      placeholder="Auto-generated"
+                      readonly
+                    />
+                  </div>
+                  <span class="field-hint">Auto-generated, read-only</span>
+                </div>
+                <div class="field">
+                  <label for="reportDate" class="form-label"
+                    >Report Date (date-time)
+                    <span class="required">*</span></label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-calendar2-check"></i>
+                    <input
+                      type="datetime-local"
+                      class="form-control has-icon"
+                      id="reportDate"
+                    />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="reportUpdateDate" class="form-label"
+                    >Report Update Date (date-time)</label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <input
+                      type="datetime-local"
+                      class="form-control has-icon"
+                      id="reportUpdateDate"
+                      readonly
+                    />
+                  </div>
+                  <span class="field-hint">Set on save/update</span>
+                </div>
+              </div>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="status" class="form-label">Status</label>
+                  <select class="form-select" id="status">
+                    <option value="draft" selected>Draft</option>
+                    <option value="verified">Verified</option>
+                    <option value="converted">Converted to Invoice</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="clientAccount" class="form-label"
+                    >Client Account
+                    <span class="required">*</span></label
+                  >
+                  <select class="form-select" id="clientAccount">
+                    <option value="" selected disabled>-Select client-</option>
+                    <option value="c1">Al Safa Logistics</option>
+                    <option value="c2">Riyadh Trading Co.</option>
+                    <option value="c3">Blue Ocean Imports</option>
+                  </select>
+                  <span class="field-hint">Active clients only</span>
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <h3 class="field-group-title">
+                <i class="bi bi-calendar-range"></i>
+                Booking Period
+              </h3>
+              <div class="fields-grid cols-3">
+                <div class="field">
+                  <label for="bookingDateFrom" class="form-label"
+                    >Booking From (date)</label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-calendar-event"></i>
+                    <input
+                      type="date"
+                      class="form-control has-icon"
+                      id="bookingDateFrom"
+                    />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="bookingDateTo" class="form-label"
+                    >Booking To (date)</label
+                  >
+                  <div class="input-icon-wrapper">
+                    <i class="bi bi-calendar-event"></i>
+                    <input
+                      type="date"
+                      class="form-control has-icon"
+                      id="bookingDateTo"
+                    />
+                  </div>
+                </div>
+                <div class="field">
+                  <span class="form-label d-block">Auto Post</span>
+                  <div
+                    class="d-flex flex-wrap align-items-start gap-3 mt-1"
+                  >
+                    <div class="form-check form-switch flex-shrink-0">
+                      <label class="setting-toggle">
+                        <input type="checkbox" id="autoPost" />
+                        <span class="toggle-track"></span>
+                      </label>
+                    </div>
+                    <p class="field-hint mb-0 flex-grow-1" style="max-width: 42rem">
+                      All executed bookings and related shipments and surcharges
+                      pending billing will be automatically aggregated for the
+                      specified period.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Table -->
-        <div class="eal-table-wrap">
-          <table class="eal-table">
-            <thead>
-              <tr>
-                <th class="eal-col-check">
-                  <input
-                    type="checkbox"
-                    class="eal-custom-check"
-                    id="ealSelectAll"
-                  />
-                </th>
-                <th>
-                  Report No
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Report Date
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Client
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  From
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  To
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Currency
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Total
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>
-                  Status
-                  <span class="sort-indicator">
-                    <i class="bi bi-caret-up-fill"></i>
-                    <i class="bi bi-caret-down-fill"></i>
-                  </span>
-                </th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000010</span></td>
-                <td>11 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Al Safa Logistics</span>
-                  </div>
-                </td>
-                <td>01 Mar 2026</td>
-                <td>10 Mar 2026</td>
-                <td>SAR</td>
-                <td>4,250.00</td>
-                <td><span class="status-badge active">Draft</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000009</span></td>
-                <td>10 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Riyadh Trading Co.</span>
-                  </div>
-                </td>
-                <td>28 Feb 2026</td>
-                <td>08 Mar 2026</td>
-                <td>SAR</td>
-                <td>8,100.00</td>
-                <td><span class="status-badge active">Issued</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000008</span></td>
-                <td>09 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Blue Ocean Imports</span>
-                  </div>
-                </td>
-                <td>01 Mar 2026</td>
-                <td>09 Mar 2026</td>
-                <td>USD</td>
-                <td>2,400.00</td>
-                <td><span class="status-badge active">Invoiced</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000007</span></td>
-                <td>08 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Desert Star Transport</span>
-                  </div>
-                </td>
-                <td>25 Feb 2026</td>
-                <td>07 Mar 2026</td>
-                <td>SAR</td>
-                <td>5,600.00</td>
-                <td><span class="status-badge pending">Draft</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000006</span></td>
-                <td>07 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">National Water Co.</span>
-                  </div>
-                </td>
-                <td>20 Feb 2026</td>
-                <td>05 Mar 2026</td>
-                <td>SAR</td>
-                <td>12,400.00</td>
-                <td><span class="status-badge active">Issued</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000005</span></td>
-                <td>06 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Jeddah Fresh Foods</span>
-                  </div>
-                </td>
-                <td>15 Feb 2026</td>
-                <td>04 Mar 2026</td>
-                <td>SAR</td>
-                <td>3,800.00</td>
-                <td><span class="status-badge pending">Draft</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000004</span></td>
-                <td>05 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Global Medical Supplies</span>
-                  </div>
-                </td>
-                <td>10 Feb 2026</td>
-                <td>02 Mar 2026</td>
-                <td>USD</td>
-                <td>6,200.00</td>
-                <td><span class="status-badge active">Invoiced</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000003</span></td>
-                <td>04 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Kuwait Steel Works</span>
-                  </div>
-                </td>
-                <td>05 Feb 2026</td>
-                <td>28 Feb 2026</td>
-                <td>SAR</td>
-                <td>15,750.00</td>
-                <td><span class="status-badge active">Issued</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000002</span></td>
-                <td>03 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Qatar Energy Group</span>
-                  </div>
-                </td>
-                <td>01 Feb 2026</td>
-                <td>25 Feb 2026</td>
-                <td>EUR</td>
-                <td>9,100.00</td>
-                <td><span class="status-badge pending">Draft</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr>
-                <td class="eal-col-check">
-                  <input type="checkbox" class="eal-custom-check" />
-                </td>
-                <td><span class="eal-entity-id">JOR-000001</span></td>
-                <td>02 Mar 2026</td>
-                <td>
-                  <div class="eal-name-cell">
-                    <span class="eal-name-text">Ahmed Khan</span>
-                  </div>
-                </td>
-                <td>28 Jan 2026</td>
-                <td>20 Feb 2026</td>
-                <td>SAR</td>
-                <td>1,950.00</td>
-                <td><span class="status-badge pending">Draft</span></td>
-                <td>
-                  <div class="eal-actions-cell">
-                    <button class="eal-row-btn" title="View">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                    <button class="eal-row-btn" title="Edit">
-                      <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="eal-row-btn danger" title="Delete">
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Section 2: Bookings -->
+        <div class="form-card" data-section="2">
+          <div class="form-card-header">
+            <div class="form-card-icon green">
+              <i class="bi bi-calendar-check"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Bookings</h2>
+              <p class="form-card-desc">
+                Executed bookings included in the billing worksheet. Sell price
+                locked from Sales Order snapshot.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <div class="eal-table-wrap">
+                <table class="eal-table" id="selectedBookingsTable">
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Booking</th>
+                      <th>Booking Date</th>
+                      <th>Service Item</th>
+                      <th>Trip Type</th>
+                      <th>Sell Price</th>
+                    </tr>
+                  </thead>
+                  <tbody id="selectedBookingsTbody">
+                    <tr>
+                      <td class="booking-sn">1</td>
+                      <td>
+                        <div class="lookup-input-wrap">
+                          <i class="bi bi-search lookup-input-icon"></i>
+                          <input
+                            type="text"
+                            class="form-control form-control-sm lookup-input"
+                            placeholder="Search booking..."
+                            aria-label="Booking lookup"
+                            list="bookingLookupOptions"
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="date"
+                          class="form-control form-control-sm"
+                          readonly
+                        />
+                      </td>
+                      <td>
+                        <div class="lookup-input-wrap">
+                          <i class="bi bi-search lookup-input-icon"></i>
+                          <input
+                            type="text"
+                            class="form-control form-control-sm lookup-input"
+                            placeholder="Search service item..."
+                            aria-label="Service item lookup"
+                            list="serviceItemLookupOptions"
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <select
+                          class="form-select form-select-sm"
+                          aria-label="Trip type"
+                        >
+                          <option value="" selected disabled>-Select type-</option>
+                          <option value="one-way">One-Way</option>
+                          <option value="round">Round</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control form-control-sm text-end"
+                          placeholder="0.00"
+                          step="0.01"
+                          readonly
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Pagination -->
-        <div class="eal-pagination">
-          <div class="eal-pagination-info">
-            Showing <strong>1&ndash;10</strong> of <strong>10</strong> job order
-            reports
+        <!-- Section 3: Related Shipments -->
+        <div class="form-card" data-section="3">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-truck"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Related Shipments</h2>
+              <p class="form-card-desc">
+                Shipments executed for selected bookings. Customer Ref contains
+                delivery document references.
+              </p>
+            </div>
           </div>
-          <div class="eal-pagination-controls">
-            <button class="eal-page-btn" title="Previous">
-              <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="eal-page-btn active">1</button>
-            <button class="eal-page-btn" title="Next">
-              <i class="bi bi-chevron-right"></i>
-            </button>
+          <div class="form-card-body">
+            <div class="field-group">
+              <div class="eal-table-wrap">
+                <table class="eal-table" id="relatedShipmentsTable">
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Booking</th>
+                      <th>Shipment</th>
+                      <th>Shipment Date</th>
+                      <th>Route</th>
+                      <th>Truck</th>
+                      <th>Customer Ref</th>
+                      <th>POD Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="relatedShipmentsTbody">
+                    <tr>
+                      <td class="shipment-sn">1</td>
+                      <td>
+                        <div class="lookup-input-wrap">
+                          <i class="bi bi-search lookup-input-icon"></i>
+                          <input
+                            type="text"
+                            class="form-control form-control-sm lookup-input"
+                            placeholder="Search booking..."
+                            aria-label="Booking lookup"
+                            list="bookingLookupOptions"
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <div class="lookup-input-wrap">
+                          <i class="bi bi-search lookup-input-icon"></i>
+                          <input
+                            type="text"
+                            class="form-control form-control-sm lookup-input"
+                            placeholder="Search shipment..."
+                            aria-label="Shipment lookup"
+                            list="shipmentLookupOptions"
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="date"
+                          class="form-control form-control-sm"
+                          readonly
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          placeholder="Route"
+                          readonly
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          placeholder="Truck"
+                          readonly
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          placeholder="Customer ref"
+                          readonly
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="date"
+                          class="form-control form-control-sm"
+                          readonly
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </main>
 
-    <!-- Detail Panel Overlay & Slide Panel -->
-    <div class="detail-panel-overlay" id="detailPanelOverlay"></div>
-    <aside class="detail-panel" id="detailPanel">
-      <div class="detail-panel-header">
-        <div class="detail-panel-nav">
-          <button class="detail-nav-btn" id="detailPrevBtn" title="Previous">
-            <i class="bi bi-chevron-left"></i>
-          </button>
-          <button class="detail-nav-btn" id="detailNextBtn" title="Next">
-            <i class="bi bi-chevron-right"></i>
-          </button>
+        <!-- Section 4: Related Surcharges -->
+        <div class="form-card" data-section="4">
+          <div class="form-card-header">
+            <div class="form-card-icon amber">
+              <i class="bi bi-plus-circle"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Related Surcharges</h2>
+              <p class="form-card-desc">
+                Surcharges linked to selected shipments/bookings. Source:
+                confirmed Sales Surcharge transactions.
+              </p>
+            </div>
+          </div>
+          <div class="form-card-body">
+            <div class="field-group">
+              <div class="eal-table-wrap">
+                <table class="eal-table" id="relatedSurchargesTable">
+                  <thead>
+                    <tr>
+                      <th>SN</th>
+                      <th>Transaction No</th>
+                      <th>Transaction Date</th>
+                      <th>Shipment</th>
+                      <th>Type</th>
+                      <th>QTY</th>
+                      <th>Price</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="relatedSurchargesTbody">
+                    <tr>
+                      <td class="surcharge-sn">1</td>
+                      <td>
+                        <div class="lookup-input-wrap">
+                          <i class="bi bi-search lookup-input-icon"></i>
+                          <input
+                            type="text"
+                            class="form-control form-control-sm lookup-input"
+                            placeholder="Search transaction..."
+                            aria-label="Transaction lookup"
+                            list="transactionLookupOptions"
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <input
+                          type="date"
+                          class="form-control form-control-sm"
+                          readonly
+                        />
+                      </td>
+                      <td>
+                        <div class="lookup-input-wrap">
+                          <i class="bi bi-search lookup-input-icon"></i>
+                          <input
+                            type="text"
+                            class="form-control form-control-sm lookup-input"
+                            placeholder="Search shipment..."
+                            aria-label="Shipment lookup"
+                            list="shipmentLookupOptions"
+                          />
+                        </div>
+                      </td>
+                      <td>
+                        <select
+                          class="form-select form-select-sm"
+                          aria-label="Surcharge type"
+                          disabled
+                        >
+                          <option value="" selected disabled>-Select type-</option>
+                          <option value="fuel">Fuel</option>
+                          <option value="detention">Detention</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control form-control-sm text-end"
+                          placeholder="0"
+                          step="1"
+                          min="0"
+                          readonly
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control form-control-sm text-end"
+                          placeholder="0.00"
+                          step="0.01"
+                          readonly
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          class="form-control form-control-sm text-end"
+                          placeholder="0.00"
+                          step="0.01"
+                          readonly
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="detail-panel-actions">
-          <button class="detail-action-btn edit" title="Edit">
-            <i class="bi bi-pencil-square"></i><span>Edit</span>
-          </button>
-          <button class="detail-action-btn duplicate" title="Duplicate">
-            <i class="bi bi-copy"></i><span>Duplicate</span>
-          </button>
-          <button class="detail-action-btn delete" title="Delete">
-            <i class="bi bi-trash3"></i><span>Delete</span>
-          </button>
-        </div>
-        <button class="detail-close-btn" id="detailCloseBtn" title="Close">
-          <i class="bi bi-x-lg"></i>
-        </button>
-      </div>
-      <div class="detail-panel-body">
-        <div class="detail-section">
-          <h3 class="detail-section-title">Report Overview</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Report No</span>
-            <span class="detail-field-value" id="dpReportNo">&mdash;</span>
+
+        <!-- Section 5: Report Summary -->
+        <div class="form-card" data-section="5">
+          <div class="form-card-header">
+            <div class="form-card-icon blue">
+              <i class="bi bi-calculator"></i>
+            </div>
+            <div class="form-card-header-text">
+              <h2 class="form-card-title">Report Summary</h2>
+              <p class="form-card-desc">
+                Aggregated counts and amounts for this report.
+              </p>
+            </div>
           </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Client</span>
-            <span class="detail-field-value" id="dpClient">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Report Date</span>
-            <span class="detail-field-value" id="dpDate">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Status</span>
-            <span class="detail-field-value" id="dpStatus">&mdash;</span>
-          </div>
-        </div>
-        <div class="detail-section">
-          <h3 class="detail-section-title">Booking Period &amp; Currency</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Booking Date From</span>
-            <span class="detail-field-value" id="dpBookingDateFrom"
-              >&mdash;</span
+          <div class="form-card-body">
+            <div
+              class="jor-summary-panel"
+              role="region"
+              aria-label="Report summary figures"
             >
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Booking Date To</span>
-            <span class="detail-field-value" id="dpBookingDateTo">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Currency</span>
-            <span class="detail-field-value" id="dpCurrency">&mdash;</span>
-          </div>
-        </div>
-        <div class="detail-section">
-          <h3 class="detail-section-title">Totals</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Freight Total</span>
-            <span class="detail-field-value" id="dpFreightTotal">&mdash;</span>
-          </div>
-        </div>
-        <div class="detail-section detail-comments-section">
-          <h3 class="detail-section-title">
-            <i class="bi bi-chat-dots"></i>
-            <span class="detail-comment-count">0</span> Comments
-          </h3>
-          <p class="detail-no-comments"><em>No comments yet.</em></p>
-          <div class="detail-comment-box">
-            <div class="detail-comment-avatar">A</div>
-            <div class="detail-comment-input-wrap">
-              <input
-                type="text"
-                class="detail-comment-input"
-                placeholder="Write a comment..."
-              />
-              <button class="detail-comment-btn">Comment</button>
+              <p class="jor-summary-section-title">Volume</p>
+              <div class="eal-stats-row">
+                <div class="eal-stat-card">
+                  <div class="eal-stat-icon green">
+                    <i class="bi bi-calendar-check"></i>
+                  </div>
+                  <div>
+                    <div class="eal-stat-value" id="bookingsCount">0</div>
+                    <div class="eal-stat-label">Bookings count</div>
+                  </div>
+                </div>
+                <div class="eal-stat-card">
+                  <div class="eal-stat-icon blue">
+                    <i class="bi bi-truck"></i>
+                  </div>
+                  <div>
+                    <div class="eal-stat-value" id="shipmentCount">0</div>
+                    <div class="eal-stat-label">Shipment count</div>
+                  </div>
+                </div>
+                <div class="eal-stat-card">
+                  <div class="eal-stat-icon amber">
+                    <i class="bi bi-tag"></i>
+                  </div>
+                  <div>
+                    <div class="eal-stat-value" id="surchargesCount">0</div>
+                    <div class="eal-stat-label">Surcharges count</div>
+                  </div>
+                </div>
+              </div>
+
+              <p class="jor-summary-section-title">Amounts</p>
+              <div class="eal-stats-row">
+                <div class="eal-stat-card">
+                  <div class="eal-stat-icon green">
+                    <i class="bi bi-currency-dollar"></i>
+                  </div>
+                  <div>
+                    <div
+                      class="eal-stat-value jor-summary-currency"
+                      id="bookingAmount"
+                    >
+                      $0.00
+                    </div>
+                    <div class="eal-stat-label">Booking amount</div>
+                  </div>
+                </div>
+                <div class="eal-stat-card">
+                  <div class="eal-stat-icon amber">
+                    <i class="bi bi-cash-stack"></i>
+                  </div>
+                  <div>
+                    <div
+                      class="eal-stat-value jor-summary-currency"
+                      id="surchargesAmount"
+                    >
+                      $0.00
+                    </div>
+                    <div class="eal-stat-label">Surcharges amount</div>
+                  </div>
+                </div>
+                <div class="eal-stat-card jor-summary-total-card">
+                  <div class="eal-stat-icon purple">
+                    <i class="bi bi-wallet2"></i>
+                  </div>
+                  <div>
+                    <div
+                      class="eal-stat-value jor-summary-currency"
+                      id="reportTotal"
+                    >
+                      $0.00
+                    </div>
+                    <div class="eal-stat-label">Total</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <p class="detail-comment-hint">Press Enter to send</p>
         </div>
-      </div>
-    </aside>
+
+        <datalist id="bookingLookupOptions">
+          <option value="BKG-2026-001 - Airport Transfer"></option>
+          <option value="BKG-2026-002 - City Delivery"></option>
+          <option value="BKG-2026-003 - Long Haul"></option>
+        </datalist>
+        <datalist id="serviceItemLookupOptions">
+          <option value="Airport Transfer"></option>
+          <option value="FTL - Riyadh to Dammam"></option>
+          <option value="Distribution Run"></option>
+        </datalist>
+        <datalist id="shipmentLookupOptions">
+          <option value="SHP-2026-1001"></option>
+          <option value="SHP-2026-1002"></option>
+          <option value="SHP-2026-1003"></option>
+        </datalist>
+        <datalist id="transactionLookupOptions">
+          <option value="SCH-TRX-9001"></option>
+          <option value="SCH-TRX-9002"></option>
+          <option value="SCH-TRX-9003"></option>
+        </datalist>
+
+        <!-- Form Actions -->
+        <div class="form-actions-bar">
+          <div class="form-actions-left">
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-counterclockwise"></i>
+              Reset Form
+            </button>
+          </div>
+          <div class="form-actions-right">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-circle"></i>
+              Save Job Order Report
+            </button>
+          </div>
+        </div>
+      </form>
+    </main>
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -1835,128 +1987,123 @@
     <!-- Custom JS -->
     <script src="Javascript/main.js"></script>
 
-    <!-- Detail Panel JS -->
     <script>
       (function () {
-        const panel = document.getElementById("detailPanel");
-        const overlay = document.getElementById("detailPanelOverlay");
-        const closeBtn = document.getElementById("detailCloseBtn");
-        const prevBtn = document.getElementById("detailPrevBtn");
-        const nextBtn = document.getElementById("detailNextBtn");
-        const rows = document.querySelectorAll(".eal-table tbody tr");
-        let currentIndex = -1;
-
-        function txt(el) {
-          return el ? el.textContent.trim() : "\u2014";
+        var reportDateEl = document.getElementById("reportDate");
+        if (reportDateEl && !reportDateEl.value) {
+          var d = new Date();
+          d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+          reportDateEl.value = d.toISOString().slice(0, 16);
         }
 
-        function openPanel() {
-          panel.classList.add("active");
-          overlay.classList.add("active");
-          document.body.style.overflow = "hidden";
-        }
+        function initLookupDropdown(input) {
+          var listId = input.getAttribute("list");
+          if (!listId) return;
+          var dl = document.getElementById(listId);
+          if (!dl) return;
 
-        function closePanel() {
-          panel.classList.remove("active");
-          overlay.classList.remove("active");
-          document.body.style.overflow = "";
-          rows.forEach(function (r) {
-            r.classList.remove("row-selected");
-          });
-          currentIndex = -1;
-        }
+          input.setAttribute("autocomplete", "off");
 
-        function populatePanel(row) {
-          const cells = row.querySelectorAll("td");
-          // 0=check, 1=reportNo, 2=reportDate, 3=client, 4=from, 5=to, 6=currency, 7=total, 8=status, 9=actions
-          document.getElementById("dpReportNo").textContent = txt(cells[1]);
-          const nameCell = cells[3]
-            ? cells[3].querySelector(".eal-name-text")
-            : null;
-          document.getElementById("dpClient").textContent = nameCell
-            ? nameCell.textContent.trim()
-            : txt(cells[3]);
-          document.getElementById("dpDate").textContent = txt(cells[2]);
-          document.getElementById("dpBookingDateFrom").textContent = txt(
-            cells[4],
-          );
-          document.getElementById("dpBookingDateTo").textContent = txt(
-            cells[5],
-          );
-          document.getElementById("dpCurrency").textContent = txt(cells[6]);
-          document.getElementById("dpFreightTotal").textContent = txt(cells[7]);
-          const statusBadge = cells[8]
-            ? cells[8].querySelector(".status-badge")
-            : null;
-          const statusEl = document.getElementById("dpStatus");
-          if (statusBadge) {
-            statusEl.innerHTML = "";
-            statusEl.appendChild(statusBadge.cloneNode(true));
-          } else {
-            statusEl.textContent = txt(cells[8]);
+          var wrap = input.closest(".lookup-input-wrap");
+          if (!wrap) return;
+
+          var menu = document.createElement("div");
+          menu.className = "lookup-menu";
+          menu.innerHTML =
+            '<div class="lookup-menu-list" role="listbox"></div>';
+
+          var listEl = menu.querySelector(".lookup-menu-list");
+          document.body.appendChild(menu);
+
+          function positionMenu() {
+            if (!menu.classList.contains("is-open")) return;
+            var r = input.getBoundingClientRect();
+            var top = Math.round(r.bottom + 6);
+            var left = Math.round(r.left);
+            var width = Math.round(r.width);
+            menu.style.top = top + "px";
+            menu.style.left = left + "px";
+            menu.style.width = width + "px";
           }
 
-          rows.forEach(function (r) {
-            r.classList.remove("row-selected");
-          });
-          row.classList.add("row-selected");
-        }
+          function getOptions() {
+            var opts = Array.prototype.slice.call(dl.querySelectorAll("option"));
+            return opts
+              .map(function (o) {
+                return (o.value || "").trim();
+              })
+              .filter(Boolean);
+          }
 
-        function showRow(index) {
-          if (index < 0 || index >= rows.length) return;
-          currentIndex = index;
-          populatePanel(rows[currentIndex]);
-          prevBtn.disabled = currentIndex === 0;
-          nextBtn.disabled = currentIndex === rows.length - 1;
-        }
+          function render(filterText) {
+            var ft = (filterText || "").trim().toLowerCase();
+            var options = getOptions().filter(function (v) {
+              return !ft || v.toLowerCase().indexOf(ft) !== -1;
+            });
 
-        rows.forEach(function (row, idx) {
-          row.style.cursor = "pointer";
-          row.addEventListener("click", function (e) {
-            if (
-              e.target.closest(".eal-col-check") ||
-              e.target.closest(".eal-actions-cell") ||
-              e.target.closest('input[type="checkbox"]')
-            )
+            listEl.innerHTML = "";
+            if (!options.length) {
+              var empty = document.createElement("div");
+              empty.className = "lookup-empty";
+              empty.textContent = "No matches.";
+              listEl.appendChild(empty);
               return;
-            currentIndex = idx;
-            showRow(currentIndex);
-            openPanel();
+            }
+
+            options.slice(0, 50).forEach(function (value) {
+              var btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "lookup-option";
+              btn.setAttribute("role", "option");
+              btn.innerHTML = '<i class="bi bi-search"></i><span></span>';
+              btn.querySelector("span").textContent = value;
+              btn.addEventListener("mousedown", function (e) {
+                // mousedown so selection works before input blur
+                e.preventDefault();
+                input.value = value;
+                close();
+              });
+              listEl.appendChild(btn);
+            });
+          }
+
+          function open() {
+            menu.classList.add("is-open");
+            render(input.value);
+            positionMenu();
+          }
+
+          function close() {
+            menu.classList.remove("is-open");
+          }
+
+          input.addEventListener("focus", open);
+          input.addEventListener("click", open);
+          input.addEventListener("input", function () {
+            if (!menu.classList.contains("is-open")) open();
+            render(input.value);
+            positionMenu();
           });
-        });
+          input.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") close();
+          });
 
-        closeBtn.addEventListener("click", closePanel);
-        overlay.addEventListener("click", closePanel);
+          document.addEventListener("mousedown", function (e) {
+            if (!menu.contains(e.target) && !wrap.contains(e.target)) close();
+          });
 
-        prevBtn.addEventListener("click", function () {
-          if (currentIndex > 0) showRow(currentIndex - 1);
-        });
-        nextBtn.addEventListener("click", function () {
-          if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
-        });
+          window.addEventListener("resize", positionMenu, { passive: true });
+          window.addEventListener("scroll", positionMenu, { passive: true });
+        }
 
-        document.addEventListener("keydown", function (e) {
-          if (!panel.classList.contains("active")) return;
-          if (e.key === "Escape") closePanel();
-          if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
-            e.preventDefault();
-            if (currentIndex > 0) showRow(currentIndex - 1);
-          }
-          if (e.key === "ArrowDown" || e.key === "ArrowRight") {
-            e.preventDefault();
-            if (currentIndex < rows.length - 1) showRow(currentIndex + 1);
-          }
-        });
+        Array.prototype.slice
+          .call(document.querySelectorAll("input.lookup-input[list]"))
+          .forEach(initLookupDropdown);
 
         document
-          .querySelectorAll('.eal-row-btn[title="View"]')
-          .forEach(function (btn, idx) {
-            btn.addEventListener("click", function (e) {
-              e.stopPropagation();
-              currentIndex = idx;
-              showRow(currentIndex);
-              openPanel();
-            });
+          .getElementById("jobOrderReportForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
           });
       })();
     </script>
