@@ -381,29 +381,47 @@
 {{ block.super }}
 <script>
 (function () {
+  var selectAll = document.getElementById("daListSelectAll");
+  if (selectAll) {
+    function syncSelectAll() {
+      var rows = document.querySelectorAll(".da-row-check");
+      var total = rows.length;
+      var checked = 0;
+      rows.forEach(function (cb) {
+        if (cb.checked) checked++;
+      });
+      selectAll.checked = total > 0 && checked === total;
+      selectAll.indeterminate = checked > 0 && checked < total;
+    }
+
+    selectAll.addEventListener("change", function () {
+      var on = selectAll.checked;
+      document.querySelectorAll(".da-row-check").forEach(function (cb) {
+        cb.checked = on;
+      });
+      syncSelectAll();
+    });
+
+    document.querySelectorAll(".da-row-check").forEach(function (cb) {
+      cb.addEventListener("change", syncSelectAll);
+    });
+    syncSelectAll();
+  }
+
   var modalEl = document.getElementById("driverAttachmentDeleteModal");
   var form = document.getElementById("driverAttachmentDeleteForm");
   var modal =
     modalEl && typeof bootstrap !== "undefined"
       ? bootstrap.Modal.getOrCreateInstance(modalEl)
       : null;
-  if (!modal || !form) return;
 
-  document.querySelectorAll(".da-delete-trigger").forEach(function (btn) {
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var url = btn.getAttribute("data-delete-url") || "";
-      form.setAttribute("action", url);
-      modal.show();
-    });
-  });
-
-  var selectAll = document.getElementById("daListSelectAll");
-  if (selectAll) {
-    selectAll.addEventListener("change", function () {
-      var on = selectAll.checked;
-      document.querySelectorAll(".da-row-check").forEach(function (cb) {
-        cb.checked = on;
+  if (modal && form) {
+    document.querySelectorAll(".da-delete-trigger").forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var url = btn.getAttribute("data-delete-url") || "";
+        form.setAttribute("action", url);
+        modal.show();
       });
     });
   }

@@ -136,7 +136,12 @@
       <thead>
         <tr>
           <th class="eal-col-check">
-            <input type="checkbox" class="eal-custom-check" />
+            <input
+              type="checkbox"
+              class="eal-custom-check"
+              id="tmListSelectAll"
+              aria-label="Select all rows"
+            />
           </th>
           <th>
             <a href="{{ sort_url_truck_code }}" class="tm-sort-link{% if sort_key == 'truck_code' %} is-active{% endif %}">
@@ -207,7 +212,9 @@
       <tbody>
         {% for row in trucks_page %}
         <tr>
-          <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
+          <td class="eal-col-check">
+            <input type="checkbox" class="eal-custom-check tm-row-check" aria-label="Select row" />
+          </td>
           <td>
             <span class="eal-entity-id">{{ row.truck_code }}</span>
           </td>
@@ -443,33 +450,60 @@
 {{ block.super }}
 <script>
 (function () {
+  var selectAll = document.getElementById("tmListSelectAll");
+  if (selectAll) {
+    function syncSelectAll() {
+      var rows = document.querySelectorAll(".tm-row-check");
+      var total = rows.length;
+      var checked = 0;
+      rows.forEach(function (cb) {
+        if (cb.checked) checked++;
+      });
+      selectAll.checked = total > 0 && checked === total;
+      selectAll.indeterminate = checked > 0 && checked < total;
+    }
+
+    selectAll.addEventListener("change", function () {
+      var on = selectAll.checked;
+      document.querySelectorAll(".tm-row-check").forEach(function (cb) {
+        cb.checked = on;
+      });
+      syncSelectAll();
+    });
+
+    document.querySelectorAll(".tm-row-check").forEach(function (cb) {
+      cb.addEventListener("change", syncSelectAll);
+    });
+    syncSelectAll();
+  }
+
   var modalEl = document.getElementById("truckMasterStatusModal");
   var modal =
     modalEl && typeof bootstrap !== "undefined"
       ? bootstrap.Modal.getOrCreateInstance(modalEl)
       : null;
-  if (!modal) return;
-
-  document.querySelectorAll(".tm-status-trigger").forEach(function (btn) {
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var newStatus = btn.getAttribute("data-new-status") || "";
-      var id = btn.getAttribute("data-truck-id") || "";
-      document.getElementById("tmConfirmId").value = id;
-      document.getElementById("tmConfirmStatus").value = newStatus;
-      var deact = newStatus === "Inactive";
-      document.getElementById("tmMsgDeact").classList.toggle("d-none", !deact);
-      document.getElementById("tmMsgAct").classList.toggle("d-none", deact);
-      document.getElementById("truckMasterStatusTitle").textContent = deact
-        ? "Deactivate truck"
-        : "Activate truck";
-      var sub = document.getElementById("tmConfirmSubmit");
-      sub.textContent = deact ? "Deactivate" : "Activate";
-      sub.className = "btn px-4 " + (deact ? "btn-danger" : "btn-success");
-      sub.setAttribute("aria-label", deact ? "Deactivate" : "Activate");
-      modal.show();
+  if (modal) {
+    document.querySelectorAll(".tm-status-trigger").forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var newStatus = btn.getAttribute("data-new-status") || "";
+        var id = btn.getAttribute("data-truck-id") || "";
+        document.getElementById("tmConfirmId").value = id;
+        document.getElementById("tmConfirmStatus").value = newStatus;
+        var deact = newStatus === "Inactive";
+        document.getElementById("tmMsgDeact").classList.toggle("d-none", !deact);
+        document.getElementById("tmMsgAct").classList.toggle("d-none", deact);
+        document.getElementById("truckMasterStatusTitle").textContent = deact
+          ? "Deactivate truck"
+          : "Activate truck";
+        var sub = document.getElementById("tmConfirmSubmit");
+        sub.textContent = deact ? "Deactivate" : "Activate";
+        sub.className = "btn px-4 " + (deact ? "btn-danger" : "btn-success");
+        sub.setAttribute("aria-label", deact ? "Deactivate" : "Activate");
+        modal.show();
+      });
     });
-  });
+  }
 })();
 </script>
 {% endblock %}

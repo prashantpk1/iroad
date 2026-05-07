@@ -441,12 +441,30 @@
 (function () {
   var selectAll = document.getElementById("dmListSelectAll");
   if (!selectAll) return;
+
+  function syncSelectAll() {
+    var rows = document.querySelectorAll(".dm-row-check");
+    var total = rows.length;
+    var checked = 0;
+    rows.forEach(function (cb) {
+      if (cb.checked) checked++;
+    });
+    selectAll.checked = total > 0 && checked === total;
+    selectAll.indeterminate = checked > 0 && checked < total;
+  }
+
   selectAll.addEventListener("change", function () {
     var on = selectAll.checked;
     document.querySelectorAll(".dm-row-check").forEach(function (cb) {
       cb.checked = on;
     });
+    syncSelectAll();
   });
+
+  document.querySelectorAll(".dm-row-check").forEach(function (cb) {
+    cb.addEventListener("change", syncSelectAll);
+  });
+  syncSelectAll();
 })();
 </script>
 {% endblock %}

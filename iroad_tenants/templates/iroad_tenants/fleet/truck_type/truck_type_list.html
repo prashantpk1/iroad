@@ -135,7 +135,12 @@
       <thead>
         <tr>
           <th class="eal-col-check">
-            <input type="checkbox" class="eal-custom-check" />
+            <input
+              type="checkbox"
+              class="eal-custom-check"
+              id="ttListSelectAll"
+              aria-label="Select all rows"
+            />
           </th>
           <th>
             <a
@@ -192,7 +197,7 @@
         {% for row in truck_types_page %}
         <tr>
           <td class="eal-col-check">
-            <input type="checkbox" class="eal-custom-check" />
+            <input type="checkbox" class="eal-custom-check tt-row-check" aria-label="Select row" />
           </td>
           <td>
             <span class="eal-entity-id">{{ row.truck_type_code }}</span>
@@ -340,6 +345,33 @@
 {{ block.super }}
 <script>
 (function () {
+  var selectAll = document.getElementById("ttListSelectAll");
+  if (selectAll) {
+    function syncSelectAll() {
+      var rows = document.querySelectorAll(".tt-row-check");
+      var total = rows.length;
+      var checked = 0;
+      rows.forEach(function (cb) {
+        if (cb.checked) checked++;
+      });
+      selectAll.checked = total > 0 && checked === total;
+      selectAll.indeterminate = checked > 0 && checked < total;
+    }
+
+    selectAll.addEventListener("change", function () {
+      var on = selectAll.checked;
+      document.querySelectorAll(".tt-row-check").forEach(function (cb) {
+        cb.checked = on;
+      });
+      syncSelectAll();
+    });
+
+    document.querySelectorAll(".tt-row-check").forEach(function (cb) {
+      cb.addEventListener("change", syncSelectAll);
+    });
+    syncSelectAll();
+  }
+
   var modalEl = document.getElementById("truckTypeStatusModal");
   var modal =
     modalEl && typeof bootstrap !== "undefined"

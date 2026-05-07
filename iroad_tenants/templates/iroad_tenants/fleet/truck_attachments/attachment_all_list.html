@@ -363,29 +363,47 @@
 {{ block.super }}
 <script>
 (function () {
+  var selectAll = document.getElementById("taListSelectAll");
+  if (selectAll) {
+    function syncSelectAll() {
+      var rows = document.querySelectorAll(".ta-row-check");
+      var total = rows.length;
+      var checked = 0;
+      rows.forEach(function (cb) {
+        if (cb.checked) checked++;
+      });
+      selectAll.checked = total > 0 && checked === total;
+      selectAll.indeterminate = checked > 0 && checked < total;
+    }
+
+    selectAll.addEventListener("change", function () {
+      var on = selectAll.checked;
+      document.querySelectorAll(".ta-row-check").forEach(function (cb) {
+        cb.checked = on;
+      });
+      syncSelectAll();
+    });
+
+    document.querySelectorAll(".ta-row-check").forEach(function (cb) {
+      cb.addEventListener("change", syncSelectAll);
+    });
+    syncSelectAll();
+  }
+
   var modalEl = document.getElementById("truckAttachmentDeleteModal");
   var form = document.getElementById("truckAttachmentDeleteForm");
   var modal =
     modalEl && typeof bootstrap !== "undefined"
       ? bootstrap.Modal.getOrCreateInstance(modalEl)
       : null;
-  if (!modal || !form) return;
 
-  document.querySelectorAll(".ta-delete-trigger").forEach(function (btn) {
-    btn.addEventListener("click", function (e) {
-      e.stopPropagation();
-      var url = btn.getAttribute("data-delete-url") || "";
-      form.setAttribute("action", url);
-      modal.show();
-    });
-  });
-
-  var selectAll = document.getElementById("taListSelectAll");
-  if (selectAll) {
-    selectAll.addEventListener("change", function () {
-      var on = selectAll.checked;
-      document.querySelectorAll(".ta-row-check").forEach(function (cb) {
-        cb.checked = on;
+  if (modal && form) {
+    document.querySelectorAll(".ta-delete-trigger").forEach(function (btn) {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var url = btn.getAttribute("data-delete-url") || "";
+        form.setAttribute("action", url);
+        modal.show();
       });
     });
   }
