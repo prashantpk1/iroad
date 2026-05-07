@@ -18,7 +18,7 @@
   <div class="page-header-row">
     <div class="page-header-left">
       <h1 class="page-title">Truck Details</h1>
-      <p class="page-subtitle">View operational and profile details of this truck.</p>
+      <p class="page-subtitle">View truck profile, registration, assignments, and attachments.</p>
     </div>
     <div class="page-header-right">
       <div class="eal-header-actions">
@@ -34,65 +34,141 @@
   <div class="ch-left">
     <div class="ch-title-row">
       <div class="ch-logo"><i class="bi bi-truck"></i></div>
-      <h2 class="ch-title">{{ truck.truck_code }} ({{ truck.plate_number|default:"—" }})</h2>
+      <div>
+        <h2 class="ch-title mb-0">{{ truck.truck_code }}{% if truck.plate_number %} ({{ truck.plate_number }}){% endif %}</h2>
+      </div>
     </div>
     <div class="ch-badges">
       <div class="ch-badge"><i class="bi bi-truck-flatbed"></i><span>{% if truck.truck_type %}{{ truck.truck_type.english_label }}{% else %}—{% endif %}</span></div>
       <div class="ch-badge"><i class="bi bi-building"></i><span>{{ truck.owner_name|default:"—" }}</span></div>
+      {% if truck.sourcing_mode == 'In-Source' %}
+      <div class="ch-badge"><i class="bi bi-box-arrow-in-right"></i><span class="status-badge tm-source-in d-inline border-0">In-Source</span></div>
+      {% elif truck.sourcing_mode == 'Out-Source' %}
+      <div class="ch-badge"><i class="bi bi-box-arrow-up-right"></i><span class="status-badge tm-source-out d-inline border-0">Out-Source</span></div>
+      {% else %}
       <div class="ch-badge"><i class="bi bi-key"></i><span>{{ truck.sourcing_mode|default:"—" }}</span></div>
-      <div class="ch-badge"><i class="bi bi-check2-circle"></i><span>{{ truck.status|default:"—" }}</span></div>
+      {% endif %}
+      {% if truck.status == 'Active' %}
+      <div class="ch-badge"><i class="bi bi-check2-circle"></i><span class="status-badge tm-status-active d-inline border-0">Active</span></div>
+      {% else %}
+      <div class="ch-badge"><i class="bi bi-dash-circle"></i><span class="status-badge tm-status-inactive d-inline border-0">Inactive</span></div>
+      {% endif %}
     </div>
   </div>
   <div class="ch-right">
     <div class="ch-contact-item">
       <div class="ch-contact-icon"><i class="bi bi-person-badge"></i></div>
-      <div class="ch-contact-text">Driver: {{ truck.default_driver_id|default:"—" }}</div>
+      <div class="ch-contact-text">
+        Driver:
+        {% if truck.default_driver_id %}
+          {{ truck.default_driver_id.driver_code }}{% if truck.default_driver_id.arabic_name %} — {{ truck.default_driver_id.arabic_name }}{% endif %}
+        {% else %}
+          —
+        {% endif %}
+      </div>
     </div>
     <div class="ch-contact-item">
       <div class="ch-contact-icon"><i class="bi bi-geo-alt"></i></div>
-      <div class="ch-contact-text">Registration Country: {{ reg_country_display|default:"—" }}</div>
+      <div class="ch-contact-text">Location: <span class="cd-pending">Under development</span></div>
     </div>
   </div>
 </div>
 
 <div class="ch-actions">
-  <a href="{% url 'iroad_tenants:truck_master_edit' truck.truck_id %}" class="ch-action-btn"><i class="bi bi-pencil"></i> Edit</a>
-  <a href="{% url 'iroad_tenants:truck_attachment_create' truck.truck_id %}" class="ch-action-btn"><i class="bi bi-file-earmark-plus"></i> Add Document</a>
-  <button type="button" class="ch-action-btn"><i class="bi bi-folder-symlink"></i> Update Documents</button>
-  <button type="button" class="ch-action-btn"><i class="bi bi-geo-alt"></i> Create Movement</button>
+  <a href="{% url 'iroad_tenants:truck_master_edit' truck.truck_id %}" class="ch-action-btn"><i class="bi bi-pencil-square"></i> Edit</a>
+  <a href="{% url 'iroad_tenants:truck_attachment_create' truck.truck_id %}" class="ch-action-btn"><i class="bi bi-card-heading"></i> Update Documents</a>
+  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
+    <i class="bi bi-geo-alt"></i> Create Movement
+  </button>
+  {% if truck.status == 'Active' %}
+  <button type="button" class="ch-action-btn text-danger border-danger tm-detail-status-trigger" data-truck-id="{{ truck.truck_id }}" data-new-status="Inactive">
+    <i class="bi bi-pause-circle"></i> Suspend Truck
+  </button>
+  {% else %}
+  <button type="button" class="ch-action-btn text-success border-success tm-detail-status-trigger" data-truck-id="{{ truck.truck_id }}" data-new-status="Active">
+    <i class="bi bi-arrow-counterclockwise"></i> Activate Truck
+  </button>
+  {% endif %}
+  <a href="{% url 'iroad_tenants:truck_attachment_create' truck.truck_id %}" class="ch-action-btn"><i class="bi bi-paperclip"></i> Add Document</a>
 </div>
 
 <div class="cd-main-card">
   <div class="cd-tabs-container">
     <ul class="nav cd-tabs-list" role="tablist">
-      <li class="nav-item"><button class="cd-tab active" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button">Overview</button></li>
-      <li class="nav-item"><button class="cd-tab" data-bs-toggle="tab" data-bs-target="#pane-documents" type="button">Documents &amp; Attachments</button></li>
-      <li class="nav-item"><button class="cd-tab" data-bs-toggle="tab" data-bs-target="#pane-assigned-drivers" type="button">Assigned Drivers</button></li>
-      <li class="nav-item"><button class="cd-tab" data-bs-toggle="tab" data-bs-target="#pane-shipments" type="button">Shipments</button></li>
-      <li class="nav-item"><button class="cd-tab" data-bs-toggle="tab" data-bs-target="#pane-movements" type="button">Movements Log</button></li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button" role="tab" aria-controls="pane-overview" aria-selected="true">Overview</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab" id="tab-documents" data-bs-toggle="tab" data-bs-target="#pane-documents" type="button" role="tab" aria-controls="pane-documents" aria-selected="false">Documents &amp; Attachments</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab" id="tab-assigned-drivers" data-bs-toggle="tab" data-bs-target="#pane-assigned-drivers" type="button" role="tab" aria-controls="pane-assigned-drivers" aria-selected="false">Assigned Drivers</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab" id="tab-shipments" data-bs-toggle="tab" data-bs-target="#pane-shipments" type="button" role="tab" aria-controls="pane-shipments" aria-selected="false">Shipments</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="cd-tab" id="tab-movements" data-bs-toggle="tab" data-bs-target="#pane-movements" type="button" role="tab" aria-controls="pane-movements" aria-selected="false">Movements Log</button>
+      </li>
     </ul>
   </div>
 
   <div class="tab-content">
-    <div class="tab-pane fade show active" id="pane-overview" role="tabpanel">
+    <div class="tab-pane fade show active" id="pane-overview" role="tabpanel" aria-labelledby="tab-overview">
       <div class="cd-details-section mb-4">
         <div class="cd-details-header">Basic Info &amp; Ownership</div>
         <div class="cd-details-body">
           <div class="cd-grid-row">
-            <div class="cd-field"><span class="cd-field-label">Truck Code</span><span class="cd-field-value">{{ truck.truck_code }}</span></div>
-            <div class="cd-field"><span class="cd-field-label">Status</span><span class="cd-field-value">{{ truck.status|default:"—" }}</span></div>
+            <div class="cd-field">
+              <span class="cd-field-label">Truck Code</span>
+              <span class="cd-field-value">{{ truck.truck_code }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Status</span>
+              <span class="cd-field-value">
+                {% if truck.status == 'Active' %}
+                <span class="status-badge tm-status-active"><i class="bi bi-check2-circle"></i> Active</span>
+                {% else %}
+                <span class="status-badge tm-status-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
+                {% endif %}
+              </span>
+            </div>
           </div>
           <div class="cd-grid-row">
-            <div class="cd-field"><span class="cd-field-label">Sourcing Mode</span><span class="cd-field-value">{{ truck.sourcing_mode|default:"—" }}</span></div>
-            <div class="cd-field"><span class="cd-field-label">Registration Country</span><span class="cd-field-value">{{ reg_country_display|default:"—" }}</span></div>
+            <div class="cd-field">
+              <span class="cd-field-label">Sourcing Mode</span>
+              <span class="cd-field-value">{{ truck.sourcing_mode|default:"—" }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Registration Country</span>
+              <span class="cd-field-value">{{ reg_country_display|default:"—" }}</span>
+            </div>
           </div>
           <div class="cd-grid-row">
-            <div class="cd-field"><span class="cd-field-label">Vendor Account</span><span class="cd-field-value">{% if truck.vendor_account_id %}{{ truck.vendor_account_id }}{% else %}<span class="cd-pending">Under development</span>{% endif %}</span></div>
-            <div class="cd-field"><span class="cd-field-label">Owner ID</span><span class="cd-field-value">{{ truck.owner_id|default:"—" }}</span></div>
+            <div class="cd-field">
+              <span class="cd-field-label">Vendor Account</span>
+              <span class="cd-field-value">{% if truck.vendor_account_id %}{{ truck.vendor_account_id }}{% else %}<span class="cd-pending">Under development</span>{% endif %}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Owner ID</span>
+              <span class="cd-field-value">{{ truck.owner_id|default:"—" }}</span>
+            </div>
           </div>
           <div class="cd-grid-row">
-            <div class="cd-field"><span class="cd-field-label">Owner Name</span><span class="cd-field-value">{{ truck.owner_name|default:"—" }}</span></div>
-            <div class="cd-field"><span class="cd-field-label">Is Vendor Same as Owner</span><span class="cd-field-value">{% if truck.is_vendor_same_as_owner %}Yes{% else %}No{% endif %}</span></div>
+            <div class="cd-field">
+              <span class="cd-field-label">Owner Name</span>
+              <span class="cd-field-value">{{ truck.owner_name|default:"—" }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Is Vendor Same as Owner</span>
+              <span class="cd-field-value">
+                {% if truck.is_vendor_same_as_owner %}
+                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">Yes</span>
+                {% else %}
+                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">No</span>
+                {% endif %}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -110,10 +186,24 @@
           </div>
           <div class="cd-grid-row">
             <div class="cd-field"><span class="cd-field-label">Non-Saudi Plate Number</span><span class="cd-field-value">{{ truck.non_saudi_plate_number|default:"—" }}</span></div>
-            <div class="cd-field"><span class="cd-field-label">Plate Image</span><span class="cd-field-value">{% if truck.plate_image %}<a href="{{ truck.plate_image.url }}" target="_blank" rel="noopener">View</a>{% else %}—{% endif %}</span></div>
+            <div class="cd-field">
+              {% if truck.plate_image %}
+              <span class="cd-field-label d-block mb-2">Plate Image</span>
+              <a href="{{ truck.plate_image.url }}" target="_blank" rel="noopener"><img src="{{ truck.plate_image.url }}" alt="" class="tm-doc-thumb rounded border" /></a>
+              {% else %}
+              <span class="cd-field-label">Plate Image</span><span class="cd-field-value">—</span>
+              {% endif %}
+            </div>
           </div>
           <div class="cd-grid-row">
-            <div class="cd-field"><span class="cd-field-label">Vehicle Registration Image</span><span class="cd-field-value">{% if truck.vehicle_registration_image %}<a href="{{ truck.vehicle_registration_image.url }}" target="_blank" rel="noopener">View</a>{% else %}—{% endif %}</span></div>
+            <div class="cd-field">
+              {% if truck.vehicle_registration_image %}
+              <span class="cd-field-label d-block mb-2">Vehicle Registration Image</span>
+              <a href="{{ truck.vehicle_registration_image.url }}" target="_blank" rel="noopener"><img src="{{ truck.vehicle_registration_image.url }}" alt="" class="tm-doc-thumb rounded border" /></a>
+              {% else %}
+              <span class="cd-field-label">Vehicle Registration Image</span><span class="cd-field-value">—</span>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
@@ -123,7 +213,7 @@
         <div class="cd-details-body">
           <div class="cd-grid-row">
             <div class="cd-field"><span class="cd-field-label">Truck Type</span><span class="cd-field-value">{% if truck.truck_type %}{{ truck.truck_type.english_label }}{% else %}—{% endif %}</span></div>
-            <div class="cd-field"><span class="cd-field-label">Chassis Number (VIN)</span><span class="cd-field-value">{{ truck.chassis_number_vin|default:"—" }}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Chassis Number / VIN</span><span class="cd-field-value">{{ truck.chassis_number_vin|default:"—" }}</span></div>
           </div>
           <div class="cd-grid-row">
             <div class="cd-field"><span class="cd-field-label">Serial Number</span><span class="cd-field-value">{{ truck.serial_number|default:"—" }}</span></div>
@@ -146,7 +236,7 @@
         </div>
       </div>
 
-      <div class="cd-details-section mb-4">
+      <div class="cd-details-section mb-0">
         <div class="cd-details-header">Specifications &amp; Capacities</div>
         <div class="cd-details-body">
           <div class="cd-grid-row">
@@ -162,44 +252,82 @@
             <div class="cd-field"><span class="cd-field-label">Volume (m³)</span><span class="cd-field-value">{{ truck.volume_m3|default:"—" }}</span></div>
           </div>
           <div class="cd-grid-row">
-            <div class="cd-field"><span class="cd-field-label">Default Driver</span><span class="cd-field-value">{% if truck.default_driver_id %}{{ truck.default_driver_id }}{% else %}<span class="cd-pending">Under development</span>{% endif %}</span></div>
+            <div class="cd-field"><span class="cd-field-label">Default Driver</span><span class="cd-field-value">{% if truck.default_driver_id %}{{ truck.default_driver_id.driver_code }}{% else %}<span class="cd-pending">Under development</span>{% endif %}</span></div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="tab-pane fade" id="pane-documents" role="tabpanel">
-      <div class="cd-details-section">
-        <div class="cd-details-header d-flex justify-content-between align-items-center">
-          <span>Truck Documents</span>
+    <div class="tab-pane fade" id="pane-documents" role="tabpanel" aria-labelledby="tab-documents">
+      <div class="cd-details-section mb-0">
+        <div class="cd-details-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <span>Truck Documents <span class="badge bg-secondary ms-1">{{ document_attachment_count }} files</span></span>
           <a href="{% url 'iroad_tenants:truck_attachment_create' truck.truck_id %}" class="btn btn-primary btn-sm">
-            <i class="bi bi-paperclip"></i> Add Attachment
+            <i class="bi bi-upload"></i> Upload Document
           </a>
         </div>
         <div class="cd-details-body p-0">
           {% if document_attachments_preview %}
           <div class="eal-table-wrap" style="box-shadow:none;border-radius:0;">
             <table class="eal-table mb-0">
-              <thead><tr><th>Date</th><th>File</th><th>Status</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>SN</th>
+                  <th>Arabic Label</th>
+                  <th>English Label</th>
+                  <th>Ref Num</th>
+                  <th>Expiry Date</th>
+                  <th>File Attached</th>
+                  <th>Status</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
               <tbody>
                 {% for a in document_attachments_preview %}
                 <tr>
-                  <td>{{ a.attachment_date }}</td>
-                  <td>{% if a.attachment_file %}<a href="{{ a.attachment_file.url }}" target="_blank" rel="noopener">{{ a.attachment_file.name }}</a>{% else %}—{% endif %}</td>
-                  <td>{{ a.status }}</td>
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ a.arabic_label|default:"—" }}</td>
+                  <td>{{ a.english_label|default:"—" }}</td>
+                  <td>{{ a.doc_ref_number|default:"—" }}</td>
+                  <td>{% if a.is_expiry_applicable and a.expiry_date %}{{ a.expiry_date|date:"d M Y" }}{% else %}—{% endif %}</td>
+                  <td>
+                    {% if a.attachment_file %}
+                    <a href="{{ a.attachment_file.url }}" target="_blank" rel="noopener">{{ a.attachment_file.name|truncatechars:34 }}</a>
+                    {% else %}
+                    —
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if a.status == 'Valid' %}
+                    <span class="status-badge tm-doc-valid">Active</span>
+                    {% elif a.status == 'Expired' %}
+                    <span class="status-badge tm-doc-expired">Expired</span>
+                    {% else %}
+                    <span class="status-badge tm-doc-none">Does Not Expire</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    {% if a.attachment_file %}
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ a.attachment_file.url }}" target="_blank" rel="noopener" title="Download">
+                      <i class="bi bi-download"></i>
+                    </a>
+                    {% else %}
+                    <button class="btn btn-sm btn-outline-secondary" disabled><i class="bi bi-dash"></i></button>
+                    {% endif %}
+                  </td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
           {% else %}
-          <div class="p-4 text-muted">No document attachments yet.</div>
+          <div class="p-4 text-muted cd-empty border-0">No truck documents uploaded yet.</div>
           {% endif %}
         </div>
       </div>
     </div>
 
-    <div class="tab-pane fade" id="pane-assigned-drivers" role="tabpanel">
+    <div class="tab-pane fade" id="pane-assigned-drivers" role="tabpanel" aria-labelledby="tab-assigned-drivers">
       <div class="cd-details-section">
         <div class="cd-details-header">Driver Assignment History</div>
         <div class="cd-details-body p-0">
@@ -243,60 +371,175 @@
             </table>
           </div>
           {% else %}
-          <div class="cd-empty m-3">
-            <strong>No driver is assigned.</strong>
-          </div>
+          <div class="cd-empty m-3"><strong>No driver is assigned.</strong></div>
           {% endif %}
         </div>
       </div>
     </div>
 
-    <div class="tab-pane fade" id="pane-shipments" role="tabpanel">
+    <div class="tab-pane fade" id="pane-shipments" role="tabpanel" aria-labelledby="tab-shipments">
       <div class="cd-empty">
-        <strong>Under development:</strong> Shipment linkage for truck history is pending backend connection.
+        <strong>Under development:</strong> This section is currently under development.
       </div>
     </div>
 
-    <div class="tab-pane fade" id="pane-movements" role="tabpanel">
+    <div class="tab-pane fade" id="pane-movements" role="tabpanel" aria-labelledby="tab-movements">
       <div class="cd-empty">
-        <strong>Under development:</strong> Movement log module linkage is pending backend connection.
+        <strong>Under development:</strong> This section is currently under development.
       </div>
     </div>
   </div>
 </div>
 
+<div class="modal fade" id="truckDetailStatusModal" tabindex="-1" aria-labelledby="truckDetailStatusTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="post" action="{% url 'iroad_tenants:truck_master' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="set_status" />
+        <input type="hidden" name="truck_id" id="tmDetailConfirmId" value="" />
+        <input type="hidden" name="new_status" id="tmDetailConfirmStatus" value="" />
+        <input type="hidden" name="redirect_query" value="" />
+        <div class="modal-header">
+          <h5 class="modal-title" id="truckDetailStatusTitle">Confirm</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0 d-none" id="tmDetailMsgDeact">Suspend this truck?</p>
+          <p class="mb-0 d-none" id="tmDetailMsgAct">Activate this truck?</p>
+        </div>
+        <div class="modal-footer gap-2">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger px-4" id="tmDetailConfirmSubmit">Suspend</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <style>
-  .ch-header-card { background:#fff; border-radius:12px; padding:20px; display:flex; justify-content:space-between; align-items:flex-start; border:1px solid rgba(0,0,0,.08); gap:20px; flex-wrap:wrap; margin-bottom:18px; }
-  .ch-left { display:flex; flex-direction:column; gap:14px; }
-  .ch-title-row { display:flex; align-items:center; gap:14px; }
-  .ch-logo { width:44px; height:44px; background:#ebecfa; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#5051f9; font-size:1.15rem; }
-  .ch-title { font-size:1.25rem; font-weight:700; margin:0; color:#1a1a1a; }
-  .ch-badges { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .ch-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:18px; border:1px solid rgba(0,0,0,.08); font-size:.82rem; font-weight:500; color:#4a4a4a; background:#fff; }
-  .ch-right { display:flex; flex-direction:column; gap:10px; min-width:260px; }
-  .ch-contact-item { display:flex; align-items:stretch; background:#f4f5f9; border-radius:6px; overflow:hidden; font-size:.85rem; border:1px solid rgba(0,0,0,.04); }
-  .ch-contact-icon { padding:8px 12px; background:#e4e6fb; color:#5051f9; display:flex; align-items:center; justify-content:center; }
-  .ch-contact-text { padding:8px 14px; flex:1; display:flex; align-items:center; color:#1a1a1a; font-weight:500; }
-  .ch-actions { display:flex; align-items:center; gap:10px; margin:16px 0 18px; flex-wrap:wrap; }
-  .ch-action-btn { display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border:1px solid #c2c4fa; border-radius:8px; background:#fff; color:#5051f9; font-size:.9rem; font-weight:500; text-decoration:none; }
-  .cd-main-card { background:#fff; border-radius:12px; border:1px solid rgba(0,0,0,.08); padding:18px; }
-  .cd-tabs-container { background:#f4f5fc; border-radius:8px; padding:6px; margin-bottom:20px; }
-  .cd-tabs-list { display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto; margin:0; padding:0; list-style:none; }
-  .cd-tab { border:none; background:transparent; padding:8px 16px; font-size:.85rem; color:#6b6b6b; border-radius:6px; font-weight:500; white-space:nowrap; }
-  .cd-tab.active { background:#5051f9; color:#fff; }
-  .cd-details-section { border:1px solid rgba(0,0,0,.08); border-radius:8px; overflow:hidden; }
-  .cd-details-header { background:#f4f5fc; padding:14px 18px; font-weight:600; font-size:.9rem; color:#1a1a1a; border-bottom:1px solid rgba(0,0,0,.05); }
-  .cd-details-body { background:#fff; padding:18px; }
-  .cd-grid-row { display:grid; grid-template-columns:1fr 1fr; gap:24px; padding-bottom:16px; margin-bottom:16px; border-bottom:1px dashed rgba(0,0,0,.1); }
-  .cd-grid-row:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
-  .cd-field { display:flex; flex-direction:column; gap:6px; }
-  .cd-field-label { font-size:.8rem; color:#6b6b6b; }
-  .cd-field-value { font-size:1rem; font-weight:700; color:#1a1a1a; }
-  .cd-thumb { width:110px; height:84px; object-fit:cover; border:1px solid #d7dcef; border-radius:8px; }
-  .cd-empty { border:1px dashed rgba(0,0,0,.2); border-radius:14px; padding:18px; background:rgba(0,0,0,.02); }
-  .cd-pending { color:#b45309; font-weight:600; }
+  .ch-header-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+  }
+  .ch-left { display: flex; flex-direction: column; gap: 16px; }
+  .ch-title-row { display: flex; align-items: center; gap: 16px; }
+  .ch-logo {
+    width: 48px; height: 48px; background: #ebecfa; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.25rem;
+  }
+  .ch-title { font-size: 1.4rem; font-weight: 700; margin: 0; color: #1a1a1a; }
+  .ch-badges { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ch-badge {
+    display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.08); font-size: 0.85rem; font-weight: 500; color: #4a4a4a; background: #fff;
+  }
+  .ch-badge i { color: #6b6b6b; }
+  .ch-right { display: flex; flex-direction: column; gap: 10px; min-width: 250px; }
+  .ch-contact-item {
+    display: flex; align-items: stretch; background: #f4f5f9; border-radius: 6px; overflow: hidden;
+    font-size: 0.85rem; border: 1px solid rgba(0, 0, 0, 0.04);
+  }
+  .ch-contact-icon { padding: 8px 12px; background: #e4e6fb; color: #3b82f6; display: flex; align-items: center; justify-content: center; }
+  .ch-contact-text { padding: 8px 16px; flex: 1; display: flex; align-items: center; color: #1a1a1a; font-weight: 500; }
+  .ch-actions { display: flex; align-items: center; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+  .ch-action-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+    border: 1px solid #c2c4fa; border-radius: 8px; background: #fff; color: #3b82f6;
+    font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; border-width: 1px;
+  }
+  .ch-action-btn:hover { background: #f4f5fc; color: #3b82f6; }
+  .ch-action-btn--disabled,
+  .ch-action-btn--disabled:hover {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: #fff;
+    color: #64748b;
+    border-color: #e2e8f0;
+  }
+  .cd-main-card {
+    background: #fff; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.08); padding: 20px;
+  }
+  .cd-tabs-container { background: #f4f5fc; border-radius: 8px; padding: 6px; margin-bottom: 24px; }
+  .cd-tabs-list { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; padding: 0; margin: 0; list-style: none; }
+  .cd-tabs-list::-webkit-scrollbar { display: none; }
+  .cd-tab {
+    border: none; background: transparent; padding: 8px 20px; font-size: 0.85rem; color: #6b6b6b;
+    cursor: pointer; border-radius: 6px; font-weight: 500; white-space: nowrap; transition: all 0.2s;
+  }
+  .cd-tab.active { background: #3b82f6; color: #fff; box-shadow: 0 2px 4px rgba(80, 81, 249, 0.2); }
+  .cd-tab:hover:not(.active) { color: #1a1a1a; }
+  .cd-details-section { border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
+  .cd-details-header {
+    background: #f4f5fc; padding: 16px 20px; font-weight: 600; font-size: 0.9rem;
+    color: #1a1a1a; border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .cd-details-body { background: #fff; padding: 20px; }
+  .cd-grid-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    padding-bottom: 20px; margin-bottom: 20px; border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+  }
+  .cd-grid-row:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
+  .cd-field { display: flex; flex-direction: column; gap: 6px; }
+  .cd-field-label { font-size: 0.8rem; color: #6b6b6b; }
+  .cd-field-value { font-size: 1rem; font-weight: 700; color: #1a1a1a; }
+  .cd-empty {
+    border: 1px dashed rgba(0, 0, 0, 0.2); border-radius: 14px; padding: 18px; background: rgba(0, 0, 0, 0.02);
+  }
+  .cd-pending { color: #b45309; font-weight: 600; }
+  .cd-thumb { width: 110px; height: 84px; object-fit: cover; border: 1px solid #d7dcef; border-radius: 8px; }
+  .tm-doc-thumb { max-width: 120px; max-height: 120px; object-fit: contain; display: block; }
+  .status-badge.tm-source-in { background: #0d6efd; color: #fff; border: 0; }
+  .status-badge.tm-source-out { background: #fd7e14; color: #fff; border: 0; }
+  .status-badge.tm-status-active { background: #198754; color: #fff; border: 0; }
+  .status-badge.tm-status-inactive { background: #94a3b8; color: #fff; border: 0; }
+  .status-badge.tm-doc-valid { background: #198754; color: #fff; border: 0; }
+  .status-badge.tm-doc-expired { background: #dc3545; color: #fff; border: 0; }
+  .status-badge.tm-doc-none { background: #64748b; color: #fff; border: 0; }
   .status-badge.asg-status-current { background:#e8f8ee; color:#0f8a4b; border:1px solid #bfe7cf; }
   .status-badge.asg-status-ended { background:#eef1f5; color:#6b7280; border:1px solid #dde2ea; }
-  @media (max-width: 768px) { .cd-grid-row { grid-template-columns:1fr; } .ch-header-card { flex-direction:column; } }
+  @media (max-width: 768px) {
+    .ch-header-card { flex-direction: column; }
+    .cd-grid-row { grid-template-columns: 1fr; }
+  }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  var modalEl = document.getElementById("truckDetailStatusModal");
+  var modal =
+    modalEl && typeof bootstrap !== "undefined"
+      ? bootstrap.Modal.getOrCreateInstance(modalEl)
+      : null;
+  if (!modal) return;
+
+  document.querySelectorAll(".tm-detail-status-trigger").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var newStatus = btn.getAttribute("data-new-status") || "";
+      var id = btn.getAttribute("data-truck-id") || "";
+      document.getElementById("tmDetailConfirmId").value = id;
+      document.getElementById("tmDetailConfirmStatus").value = newStatus;
+      var deact = newStatus === "Inactive";
+      document.getElementById("tmDetailMsgDeact").classList.toggle("d-none", !deact);
+      document.getElementById("tmDetailMsgAct").classList.toggle("d-none", deact);
+      document.getElementById("truckDetailStatusTitle").textContent = deact ? "Suspend truck" : "Activate truck";
+      var sub = document.getElementById("tmDetailConfirmSubmit");
+      sub.textContent = deact ? "Suspend" : "Activate";
+      sub.className = "btn px-4 " + (deact ? "btn-danger" : "btn-success");
+      modal.show();
+    });
+  });
+})();
+</script>
 {% endblock %}
