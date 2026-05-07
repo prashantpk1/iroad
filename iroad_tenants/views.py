@@ -130,11 +130,11 @@ DRIVER_MASTER_REF_PREFIX = 'DR'
 
 TRUCK_ATTACHMENT_AUTO_FORM_CODE = 'truck-attachment'
 TRUCK_ATTACHMENT_AUTO_FORM_LABEL = 'Truck Attachment No'
-TRUCK_ATTACHMENT_REF_PREFIX = 'TA'
+TRUCK_ATTACHMENT_REF_PREFIX = 'TRA'
 
 DRIVER_ATTACHMENT_AUTO_FORM_CODE = 'driver-attachment'
 DRIVER_ATTACHMENT_AUTO_FORM_LABEL = 'Driver Attachment No'
-DRIVER_ATTACHMENT_REF_PREFIX = 'DA'
+DRIVER_ATTACHMENT_REF_PREFIX = 'DRA'
 
 CARGO_MASTER_AUTO_FORM_CODE = 'cargo-master'
 CARGO_MASTER_AUTO_FORM_LABEL = 'Cargo code'
@@ -7260,7 +7260,11 @@ class TruckTypeMasterCreateView(View):
             return response
 
         try:
-            preview = _preview_next_truck_type_code()
+            preview = _preview_next_auto_number_for_form(
+                form_code='truck-type-master',
+                form_label='Truck Type Master',
+                prefix='TRT',
+            )
             form = TruckTypeMasterForm()
             context.update(
                 {
@@ -7290,7 +7294,11 @@ class TruckTypeMasterCreateView(View):
         try:
             form = TruckTypeMasterForm(request.POST)
             if not form.is_valid():
-                preview = _preview_next_truck_type_code()
+                preview = _preview_next_auto_number_for_form(
+                    form_code='truck-type-master',
+                    form_label='Truck Type Master',
+                    prefix='TRT',
+                )
                 context.update(
                     {
                         'form': form,
@@ -7305,9 +7313,9 @@ class TruckTypeMasterCreateView(View):
             try:
                 with db_transaction.atomic():
                     code, seq = _next_auto_number_for_form(
-                        TRUCK_TYPE_AUTO_FORM_CODE,
-                        TRUCK_TYPE_AUTO_FORM_LABEL,
-                        TRUCK_TYPE_REF_PREFIX,
+                        form_code='truck-type-master',
+                        form_label='Truck Type Master',
+                        prefix='TRT',
                     )
                     obj = form.save(commit=False)
                     obj.truck_type_code = code
@@ -7315,7 +7323,11 @@ class TruckTypeMasterCreateView(View):
                     obj.full_clean()
                     obj.save()
             except IntegrityError:
-                preview = _preview_next_truck_type_code()
+                preview = _preview_next_auto_number_for_form(
+                    form_code='truck-type-master',
+                    form_label='Truck Type Master',
+                    prefix='TRT',
+                )
                 form.add_error(
                     None,
                     ValidationError(
@@ -7334,7 +7346,11 @@ class TruckTypeMasterCreateView(View):
                 messages.error(request, 'Could not save the truck type.', extra_tags='tenant')
                 return render(request, self.template_name, context)
             except ValidationError as ve:
-                preview = _preview_next_truck_type_code()
+                preview = _preview_next_auto_number_for_form(
+                    form_code='truck-type-master',
+                    form_label='Truck Type Master',
+                    prefix='TRT',
+                )
                 if getattr(ve, 'error_dict', None):
                     for field_name, errs in ve.error_dict.items():
                         for err in errs:
@@ -7785,7 +7801,11 @@ class TruckMasterCreateView(View):
 
         try:
             settings = TruckSettings.get_or_create_singleton()
-            code_preview = _preview_next_truck_master_code()
+            code_preview = _preview_next_auto_number_for_form(
+                form_code='truck-master',
+                form_label='Truck Master',
+                prefix='TR',
+            )
             form = TruckMasterForm(
                 initial={
                     'status': _settings_effective_truck_status(
@@ -7827,7 +7847,11 @@ class TruckMasterCreateView(View):
             settings = TruckSettings.get_or_create_singleton()
             form = TruckMasterForm(request.POST, request.FILES)
             if not form.is_valid():
-                code_preview = _preview_next_truck_master_code()
+                code_preview = _preview_next_auto_number_for_form(
+                    form_code='truck-master',
+                    form_label='Truck Master',
+                    prefix='TR',
+                )
                 context.update(
                     {
                         'form': form,
@@ -7851,7 +7875,11 @@ class TruckMasterCreateView(View):
                     'default_driver_id',
                     'Truck Settings requires assigning a default driver.',
                 )
-                code_preview = _preview_next_truck_master_code()
+                code_preview = _preview_next_auto_number_for_form(
+                    form_code='truck-master',
+                    form_label='Truck Master',
+                    prefix='TR',
+                )
                 context.update(
                     {
                         'form': form,
@@ -7871,9 +7899,9 @@ class TruckMasterCreateView(View):
             try:
                 with db_transaction.atomic():
                     code, seq = _next_auto_number_for_form(
-                        TRUCK_MASTER_AUTO_FORM_CODE,
-                        TRUCK_MASTER_AUTO_FORM_LABEL,
-                        TRUCK_MASTER_REF_PREFIX,
+                        form_code='truck-master',
+                        form_label='Truck Master',
+                        prefix='TR',
                     )
                     obj = form.save(commit=False)
                     obj.truck_code = code
@@ -7890,7 +7918,11 @@ class TruckMasterCreateView(View):
                             TruckImage.objects.create(truck=obj, image=img_file)
             except IntegrityError:
                 logger.exception('Truck Master create integrity violation')
-                code_preview = _preview_next_truck_master_code()
+                code_preview = _preview_next_auto_number_for_form(
+                    form_code='truck-master',
+                    form_label='Truck Master',
+                    prefix='TR',
+                )
                 form.add_error(
                     None,
                     ValidationError(
@@ -7914,7 +7946,11 @@ class TruckMasterCreateView(View):
                 messages.error(request, 'Could not save the truck.', extra_tags='tenant')
                 return render(request, self.template_name, context)
             except ValidationError as ve:
-                code_preview = _preview_next_truck_master_code()
+                code_preview = _preview_next_auto_number_for_form(
+                    form_code='truck-master',
+                    form_label='Truck Master',
+                    prefix='TR',
+                )
                 if getattr(ve, 'error_dict', None):
                     for field_name, errs in ve.error_dict.items():
                         for err in errs:
@@ -8522,7 +8558,11 @@ class DriverMasterCreateView(View):
 
         try:
             settings = DriverSettings.get_or_create_singleton()
-            code_preview = _preview_next_driver_master_code()
+            code_preview = _preview_next_auto_number_for_form(
+                form_code='driver-master',
+                form_label='Driver Master',
+                prefix='DR',
+            )
             form = DriverMasterForm(
                 initial={
                     'driver_status': _settings_effective_driver_status(
@@ -8567,7 +8607,11 @@ class DriverMasterCreateView(View):
             settings = DriverSettings.get_or_create_singleton()
             form = DriverMasterForm(request.POST, request.FILES)
             if not form.is_valid():
-                code_preview = _preview_next_driver_master_code()
+                code_preview = _preview_next_auto_number_for_form(
+                    form_code='driver-master',
+                    form_label='Driver Master',
+                    prefix='DR',
+                )
                 context.update(
                     {
                         'form': form,
@@ -8597,9 +8641,9 @@ class DriverMasterCreateView(View):
                         raise ValidationError('Driver assignment is required by settings.')
 
                     code, seq = _next_auto_number_for_form(
-                        DRIVER_MASTER_AUTO_FORM_CODE,
-                        DRIVER_MASTER_AUTO_FORM_LABEL,
-                        DRIVER_MASTER_REF_PREFIX,
+                        form_code='driver-master',
+                        form_label='Driver Master',
+                        prefix='DR',
                     )
                     obj = form.save(commit=False)
                     obj.driver_code = code
@@ -8637,7 +8681,11 @@ class DriverMasterCreateView(View):
                     )
             except IntegrityError:
                 logger.exception('Driver Master create integrity violation')
-                code_preview = _preview_next_driver_master_code()
+                code_preview = _preview_next_auto_number_for_form(
+                    form_code='driver-master',
+                    form_label='Driver Master',
+                    prefix='DR',
+                )
                 form.add_error(
                     None,
                     ValidationError(
@@ -8663,7 +8711,11 @@ class DriverMasterCreateView(View):
                 messages.error(request, 'Could not save the driver.', extra_tags='tenant')
                 return render(request, self.template_name, context)
             except ValidationError as ve:
-                code_preview = _preview_next_driver_master_code()
+                code_preview = _preview_next_auto_number_for_form(
+                    form_code='driver-master',
+                    form_label='Driver Master',
+                    prefix='DR',
+                )
                 if getattr(ve, 'error_dict', None):
                     for field_name, errs in ve.error_dict.items():
                         for err in errs:
@@ -9253,7 +9305,11 @@ class DriverAttachmentCreateView(View):
                     'form': form,
                     'driver': driver,
                     'page_title': 'Add Attachment',
-                    'attachment_no_preview': _preview_next_driver_attachment_no(),
+                    'attachment_no_preview': _preview_next_auto_number_for_form(
+                        form_code='driver-attachment',
+                        form_label='Driver Attachments',
+                        prefix='DRA',
+                    ),
                     'show_driver_selector': show_driver_selector,
                     'drivers_for_select': drivers_for_select,
                     'selected_driver_id': '',
@@ -9309,7 +9365,11 @@ class DriverAttachmentCreateView(View):
                         'form': form,
                         'driver': driver,
                         'page_title': 'Add Attachment',
-                        'attachment_no_preview': _preview_next_driver_attachment_no(),
+                        'attachment_no_preview': _preview_next_auto_number_for_form(
+                            form_code='driver-attachment',
+                            form_label='Driver Attachments',
+                            prefix='DRA',
+                        ),
                         'show_driver_selector': show_driver_selector,
                         'drivers_for_select': drivers_for_select,
                         'selected_driver_id': selected_driver_id,
@@ -9320,16 +9380,18 @@ class DriverAttachmentCreateView(View):
                 messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
                 return render(request, self.template_name, context)
 
-            attachment_no, attachment_seq = _next_auto_number_for_form(
-                DRIVER_ATTACHMENT_AUTO_FORM_CODE,
-                DRIVER_ATTACHMENT_AUTO_FORM_LABEL,
-                DRIVER_ATTACHMENT_REF_PREFIX,
-            )
-            obj = form.save(commit=False)
-            obj.driver = driver
-            obj.attachment_no = attachment_no
-            obj.attachment_sequence = attachment_seq
-            obj.save()
+            with db_transaction.atomic():
+                attachment_no, attachment_seq = _next_auto_number_for_form(
+                    form_code='driver-attachment',
+                    form_label='Driver Attachments',
+                    prefix='DRA',
+                )
+                obj = form.save(commit=False)
+                obj.driver = driver
+                obj.attachment_no = attachment_no
+                obj.attachment_sequence = attachment_seq
+                obj.full_clean()
+                obj.save()
             messages.success(request, 'Attachment saved.', extra_tags='tenant')
             return redirect('iroad_tenants:driver_attachment_all_list')
         finally:
@@ -9762,7 +9824,11 @@ class TruckAttachmentCreateView(View):
                     'form': form,
                     'truck': truck,
                     'page_title': 'Add Attachment',
-                    'attachment_no_preview': _preview_next_truck_attachment_no(),
+                    'attachment_no_preview': _preview_next_auto_number_for_form(
+                        form_code='truck-attachment',
+                        form_label='Truck Attachments',
+                        prefix='TRA',
+                    ),
                     'show_truck_selector': show_truck_selector,
                     'trucks_for_select': trucks_for_select,
                     'selected_truck_id': '',
@@ -9818,7 +9884,11 @@ class TruckAttachmentCreateView(View):
                         'form': form,
                         'truck': truck,
                         'page_title': 'Add Attachment',
-                        'attachment_no_preview': _preview_next_truck_attachment_no(),
+                        'attachment_no_preview': _preview_next_auto_number_for_form(
+                            form_code='truck-attachment',
+                            form_label='Truck Attachments',
+                            prefix='TRA',
+                        ),
                         'show_truck_selector': show_truck_selector,
                         'trucks_for_select': trucks_for_select,
                         'selected_truck_id': selected_truck_id,
@@ -9829,16 +9899,18 @@ class TruckAttachmentCreateView(View):
                 messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
                 return render(request, self.template_name, context)
 
-            attachment_no, attachment_seq = _next_auto_number_for_form(
-                TRUCK_ATTACHMENT_AUTO_FORM_CODE,
-                TRUCK_ATTACHMENT_AUTO_FORM_LABEL,
-                TRUCK_ATTACHMENT_REF_PREFIX,
-            )
-            obj = form.save(commit=False)
-            obj.truck = truck
-            obj.attachment_no = attachment_no
-            obj.attachment_sequence = attachment_seq
-            obj.save()
+            with db_transaction.atomic():
+                attachment_no, attachment_seq = _next_auto_number_for_form(
+                    form_code='truck-attachment',
+                    form_label='Truck Attachments',
+                    prefix='TRA',
+                )
+                obj = form.save(commit=False)
+                obj.truck = truck
+                obj.attachment_no = attachment_no
+                obj.attachment_sequence = attachment_seq
+                obj.full_clean()
+                obj.save()
             messages.success(request, 'Attachment saved.', extra_tags='tenant')
             return redirect('iroad_tenants:truck_attachment_all_list')
         finally:
@@ -10463,16 +10535,37 @@ class TenantAutoNumberConfigurationView(View):
         CLIENT_ACCOUNT_FORM_CODE: CLIENT_ACCOUNT_FORM_LABEL,
         CLIENT_CONTRACT_FORM_CODE: CLIENT_CONTRACT_FORM_LABEL,
         ADDRESS_MASTER_AUTO_FORM_CODE: ADDRESS_MASTER_AUTO_FORM_LABEL,
-        TRUCK_TYPE_AUTO_FORM_CODE: TRUCK_TYPE_AUTO_FORM_LABEL,
-        TRUCK_MASTER_AUTO_FORM_CODE: TRUCK_MASTER_AUTO_FORM_LABEL,
-        DRIVER_MASTER_AUTO_FORM_CODE: DRIVER_MASTER_AUTO_FORM_LABEL,
-        TRUCK_ATTACHMENT_AUTO_FORM_CODE: TRUCK_ATTACHMENT_AUTO_FORM_LABEL,
+        # Fleet + Driver modules (configurable from Auto Number Configuration).
+        TRUCK_MASTER_AUTO_FORM_CODE: 'Truck Master',
+        TRUCK_TYPE_AUTO_FORM_CODE: 'Truck Type Master',
+        TRUCK_ATTACHMENT_AUTO_FORM_CODE: 'Truck Attachments',
+        DRIVER_MASTER_AUTO_FORM_CODE: 'Driver Master',
+        DRIVER_ATTACHMENT_AUTO_FORM_CODE: 'Driver Attachments',
         CARGO_MASTER_AUTO_FORM_CODE: CARGO_MASTER_AUTO_FORM_LABEL,
         CARGO_CATEGORY_AUTO_FORM_CODE: CARGO_CATEGORY_AUTO_FORM_LABEL,
         LOCATION_MASTER_AUTO_FORM_CODE: LOCATION_MASTER_AUTO_FORM_LABEL,
         ROUTE_MASTER_AUTO_FORM_CODE: ROUTE_MASTER_AUTO_FORM_LABEL,
         SERVICE_ITEM_MASTER_AUTO_FORM_CODE: SERVICE_ITEM_MASTER_AUTO_FORM_LABEL,
         PRICE_LIST_MASTER_AUTO_FORM_CODE: PRICE_LIST_MASTER_AUTO_FORM_LABEL,
+    }
+
+    FORM_PREFIXES = {
+        ORGANIZATION_FORM_CODE: 'ORG',
+        USERS_FORM_CODE: 'USR',
+        CLIENT_ACCOUNT_FORM_CODE: 'CA',
+        CLIENT_CONTRACT_FORM_CODE: CLIENT_CONTRACT_REF_PREFIX,
+        ADDRESS_MASTER_AUTO_FORM_CODE: ADDRESS_MASTER_REF_PREFIX,
+        TRUCK_MASTER_AUTO_FORM_CODE: TRUCK_MASTER_REF_PREFIX,
+        TRUCK_TYPE_AUTO_FORM_CODE: TRUCK_TYPE_REF_PREFIX,
+        TRUCK_ATTACHMENT_AUTO_FORM_CODE: TRUCK_ATTACHMENT_REF_PREFIX,
+        DRIVER_MASTER_AUTO_FORM_CODE: DRIVER_MASTER_REF_PREFIX,
+        DRIVER_ATTACHMENT_AUTO_FORM_CODE: DRIVER_ATTACHMENT_REF_PREFIX,
+        CARGO_MASTER_AUTO_FORM_CODE: CARGO_MASTER_REF_PREFIX,
+        CARGO_CATEGORY_AUTO_FORM_CODE: CARGO_CATEGORY_REF_PREFIX,
+        LOCATION_MASTER_AUTO_FORM_CODE: LOCATION_MASTER_REF_PREFIX,
+        ROUTE_MASTER_AUTO_FORM_CODE: ROUTE_MASTER_REF_PREFIX,
+        SERVICE_ITEM_MASTER_AUTO_FORM_CODE: SERVICE_ITEM_MASTER_REF_PREFIX,
+        PRICE_LIST_MASTER_AUTO_FORM_CODE: PRICE_LIST_MASTER_REF_PREFIX,
     }
 
     @staticmethod
@@ -10531,6 +10624,7 @@ class TenantAutoNumberConfigurationView(View):
                 'auto_number_config': config,
                 'auto_number_form_code': requested_form_code,
                 'auto_number_form_label': self.FORM_LABELS.get(requested_form_code, requested_form_code),
+                'auto_number_prefix': self.FORM_PREFIXES.get(requested_form_code, ''),
                 'base_next_number': base_next_number,
                 'auto_number_enabled_form_codes': list(self.FORM_LABELS.keys()),
                 'tenant_schema_name': tenant_registry.schema_name,
@@ -12564,6 +12658,28 @@ def _render_tenant_ref_no(sequence, config, prefix='ORG'):
     return f'{prefix}-{rendered}'
 
 
+def _preview_next_auto_number_for_form(*, form_code: str, form_label: str, prefix: str) -> str:
+    """Preview next ref no for a form without consuming sequence.
+
+    This is the shared, reusable preview helper. It reads:
+    - AutoNumberConfiguration (creates default if missing)
+    - AutoNumberSequence (reads next_number if exists; does NOT increment)
+    and renders via `_render_tenant_ref_no(...)`.
+    """
+    config, _ = AutoNumberConfiguration.objects.get_or_create(
+        form_code=form_code,
+        defaults={
+            'form_label': form_label,
+            'number_of_digits': 4,
+            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
+            'is_unique': True,
+        },
+    )
+    sequence = AutoNumberSequence.objects.filter(form_code=form_code).first()
+    next_seq = sequence.next_number if sequence else 1
+    return _render_tenant_ref_no(next_seq, config, prefix=prefix)
+
+
 def _next_auto_number_for_form(form_code, form_label, prefix):
     config, _ = AutoNumberConfiguration.objects.get_or_create(
         form_code=form_code,
@@ -12586,111 +12702,51 @@ def _next_auto_number_for_form(form_code, form_label, prefix):
 
 
 def _preview_next_address_master_code():
-    """Next AD-xxxx preview in tenant schema without consuming the sequence."""
-    config, _ = AutoNumberConfiguration.objects.get_or_create(
+    return _preview_next_auto_number_for_form(
         form_code=ADDRESS_MASTER_AUTO_FORM_CODE,
-        defaults={
-            'form_label': ADDRESS_MASTER_AUTO_FORM_LABEL,
-            'number_of_digits': 4,
-            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
-            'is_unique': True,
-        },
+        form_label=ADDRESS_MASTER_AUTO_FORM_LABEL,
+        prefix=ADDRESS_MASTER_REF_PREFIX,
     )
-    sequence = AutoNumberSequence.objects.filter(
-        form_code=ADDRESS_MASTER_AUTO_FORM_CODE,
-    ).first()
-    next_seq = sequence.next_number if sequence else 1
-    return _render_tenant_ref_no(next_seq, config, prefix=ADDRESS_MASTER_REF_PREFIX)
 
 
 def _preview_next_truck_type_code():
-    """Next TRT-xxxx preview in tenant schema without consuming the sequence."""
-    config, _ = AutoNumberConfiguration.objects.get_or_create(
+    return _preview_next_auto_number_for_form(
         form_code=TRUCK_TYPE_AUTO_FORM_CODE,
-        defaults={
-            'form_label': TRUCK_TYPE_AUTO_FORM_LABEL,
-            'number_of_digits': 4,
-            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
-            'is_unique': True,
-        },
+        form_label=TRUCK_TYPE_AUTO_FORM_LABEL,
+        prefix=TRUCK_TYPE_REF_PREFIX,
     )
-    sequence = AutoNumberSequence.objects.filter(
-        form_code=TRUCK_TYPE_AUTO_FORM_CODE,
-    ).first()
-    next_seq = sequence.next_number if sequence else 1
-    return _render_tenant_ref_no(next_seq, config, prefix=TRUCK_TYPE_REF_PREFIX)
 
 
 def _preview_next_truck_master_code():
-    """Next TR-xxxx preview in tenant schema without consuming the sequence."""
-    config, _ = AutoNumberConfiguration.objects.get_or_create(
+    return _preview_next_auto_number_for_form(
         form_code=TRUCK_MASTER_AUTO_FORM_CODE,
-        defaults={
-            'form_label': TRUCK_MASTER_AUTO_FORM_LABEL,
-            'number_of_digits': 4,
-            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
-            'is_unique': True,
-        },
+        form_label=TRUCK_MASTER_AUTO_FORM_LABEL,
+        prefix=TRUCK_MASTER_REF_PREFIX,
     )
-    sequence = AutoNumberSequence.objects.filter(
-        form_code=TRUCK_MASTER_AUTO_FORM_CODE,
-    ).first()
-    next_seq = sequence.next_number if sequence else 1
-    return _render_tenant_ref_no(next_seq, config, prefix=TRUCK_MASTER_REF_PREFIX)
 
 
 def _preview_next_driver_master_code():
-    """Next DR-xxxx preview in tenant schema without consuming the sequence."""
-    config, _ = AutoNumberConfiguration.objects.get_or_create(
+    return _preview_next_auto_number_for_form(
         form_code=DRIVER_MASTER_AUTO_FORM_CODE,
-        defaults={
-            'form_label': DRIVER_MASTER_AUTO_FORM_LABEL,
-            'number_of_digits': 4,
-            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
-            'is_unique': True,
-        },
+        form_label=DRIVER_MASTER_AUTO_FORM_LABEL,
+        prefix=DRIVER_MASTER_REF_PREFIX,
     )
-    sequence = AutoNumberSequence.objects.filter(
-        form_code=DRIVER_MASTER_AUTO_FORM_CODE,
-    ).first()
-    next_seq = sequence.next_number if sequence else 1
-    return _render_tenant_ref_no(next_seq, config, prefix=DRIVER_MASTER_REF_PREFIX)
 
 
 def _preview_next_truck_attachment_no():
-    """Next TA-xxxx preview in tenant schema without consuming the sequence."""
-    config, _ = AutoNumberConfiguration.objects.get_or_create(
+    return _preview_next_auto_number_for_form(
         form_code=TRUCK_ATTACHMENT_AUTO_FORM_CODE,
-        defaults={
-            'form_label': TRUCK_ATTACHMENT_AUTO_FORM_LABEL,
-            'number_of_digits': 4,
-            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
-            'is_unique': True,
-        },
+        form_label=TRUCK_ATTACHMENT_AUTO_FORM_LABEL,
+        prefix=TRUCK_ATTACHMENT_REF_PREFIX,
     )
-    sequence = AutoNumberSequence.objects.filter(
-        form_code=TRUCK_ATTACHMENT_AUTO_FORM_CODE,
-    ).first()
-    next_seq = sequence.next_number if sequence else 1
-    return _render_tenant_ref_no(next_seq, config, prefix=TRUCK_ATTACHMENT_REF_PREFIX)
 
 
 def _preview_next_driver_attachment_no():
-    """Next DA-xxxx preview in tenant schema without consuming the sequence."""
-    config, _ = AutoNumberConfiguration.objects.get_or_create(
+    return _preview_next_auto_number_for_form(
         form_code=DRIVER_ATTACHMENT_AUTO_FORM_CODE,
-        defaults={
-            'form_label': DRIVER_ATTACHMENT_AUTO_FORM_LABEL,
-            'number_of_digits': 4,
-            'sequence_format': AutoNumberConfiguration.SequenceFormat.NUMERIC,
-            'is_unique': True,
-        },
+        form_label=DRIVER_ATTACHMENT_AUTO_FORM_LABEL,
+        prefix=DRIVER_ATTACHMENT_REF_PREFIX,
     )
-    sequence = AutoNumberSequence.objects.filter(
-        form_code=DRIVER_ATTACHMENT_AUTO_FORM_CODE,
-    ).first()
-    next_seq = sequence.next_number if sequence else 1
-    return _render_tenant_ref_no(next_seq, config, prefix=DRIVER_ATTACHMENT_REF_PREFIX)
 
 
 def _preview_next_cargo_master_code():

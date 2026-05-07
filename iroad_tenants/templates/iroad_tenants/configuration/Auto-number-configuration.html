@@ -107,7 +107,19 @@
       <li class="form-list-item" data-form="truck-movement-log">
         Truck Movement Log
       </li>
-      <li class="form-list-item" data-form="driver-master">Driver Master</li>
+      <li class="form-list-item {% if auto_number_form_code == 'truck-master' %}active{% endif %}" data-form="truck-master">
+        Truck Master
+      </li>
+      <li class="form-list-item {% if auto_number_form_code == 'truck-type-master' %}active{% endif %}" data-form="truck-type-master">
+        Truck Type Master
+      </li>
+      <li class="form-list-item {% if auto_number_form_code == 'truck-attachment' %}active{% endif %}" data-form="truck-attachment">
+        Truck Attachments
+      </li>
+      <li class="form-list-item {% if auto_number_form_code == 'driver-master' %}active{% endif %}" data-form="driver-master">Driver Master</li>
+      <li class="form-list-item {% if auto_number_form_code == 'driver-attachment' %}active{% endif %}" data-form="driver-attachment">
+        Driver Attachments
+      </li>
 
       <li class="form-list-section">Financial &amp; Treasury</li>
       <li class="form-list-item" data-form="financial-account-master">
@@ -207,6 +219,11 @@
             type="hidden"
             id="baseNextNumber"
             value="{{ base_next_number|default:1 }}"
+          />
+          <input
+            type="hidden"
+            id="autoNumberPrefix"
+            value="{{ auto_number_prefix|default:'' }}"
           />
 
           <div class="field-group">
@@ -338,12 +355,18 @@
     const sequenceFormatEl = document.getElementById("sequenceFormat");
     const nextNumberEl = document.getElementById("nextNumber");
     const baseNextNumberEl = document.getElementById("baseNextNumber");
+    const prefixEl = document.getElementById("autoNumberPrefix");
     const ENABLED_FORM_CODES = new Set([
       "organization-profile",
       "users-administration",
       "client-account",
       "client-contract",
       "address-master",
+      "truck-master",
+      "truck-type-master",
+      "truck-attachment",
+      "driver-master",
+      "driver-attachment",
       "cargo-master",
       "cargo-category",
       "location-master",
@@ -381,7 +404,19 @@
       const baseNumber = parseInt(baseNextNumberEl.value || "1", 10);
       const digits = parseInt(numberOfDigitsEl.value || "1", 10);
       const format = sequenceFormatEl.value || "numeric";
-      nextNumberEl.value = previewValue(baseNumber, digits, format);
+      const prefix = (prefixEl && prefixEl.value ? String(prefixEl.value) : "").trim();
+      const core = previewValue(baseNumber, digits, format);
+      nextNumberEl.value = prefix ? (prefix + "-" + core) : core;
+    }
+
+    function focusActiveFormItem() {
+      const activeItem = document.querySelector(".form-list-item.active");
+      if (!activeItem) return;
+      activeItem.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "nearest"
+      });
     }
 
     formItems.forEach(function (item) {
@@ -417,6 +452,7 @@
     numberOfDigitsEl.addEventListener("input", refreshPreview);
     sequenceFormatEl.addEventListener("change", refreshPreview);
     refreshPreview();
+    focusActiveFormItem();
 
     searchInput.addEventListener("input", function () {
       const query = searchInput.value.toLowerCase();
@@ -439,6 +475,7 @@
         }
         sec.style.display = hasVisible ? "" : "none";
       });
+      focusActiveFormItem();
     });
 
     // Auto-dismiss Django flash messages after 4 seconds.
