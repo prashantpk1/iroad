@@ -457,6 +457,30 @@
           </li>
           {% endif %}
 
+          <!-- --- FINANCE --- -->
+          <li class="nav-section-title">
+            <span>Finance</span>
+          </li>
+
+          <!-- Sales Invoicing -->
+          {% if is_tenant_admin or can_view_sales_invoicing %}
+          <li class="nav-item has-submenu{% if request.resolver_match and 'sales_invoice_report_' in request.resolver_match.url_name %} open{% endif %}">
+            <a href="#" class="nav-link" data-tooltip="Sales Invoicing">
+              <i class="bi bi-receipt"></i>
+              <span class="nav-text">Sales Invoicing</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:sales_invoice_report_list' %}" class="submenu-link{% if request.resolver_match and 'sales_invoice_report_' in request.resolver_match.url_name %} active{% endif %}">
+                  <i class="bi bi-receipt"></i>
+                  <span>Sales Invoice Report</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          {% endif %}
+
           <!-- Driver Treasury -->
           {% if is_tenant_admin %}
           <li class="nav-item has-submenu{% if request.resolver_match %}{% if request.resolver_match.url_name == 'driver_treasury_list' or request.resolver_match.url_name == 'driver_treasury_create' or request.resolver_match.url_name == 'driver_treasury_edit' or request.resolver_match.url_name == 'driver_treasury_detail' or request.resolver_match.url_name == 'driver_transaction_list' or request.resolver_match.url_name == 'driver_transaction_create' or request.resolver_match.url_name == 'driver_transaction_edit' or request.resolver_match.url_name == 'driver_transaction_detail' %} open{% endif %}{% endif %}">
@@ -485,31 +509,8 @@
           </li>
           {% endif %}
 
-          <!-- --- FINANCE --- -->
-          <li class="nav-section-title">
-            <span>Finance</span>
-          </li>
-
-          <!-- Sales Invoicing -->
-          {% if is_tenant_admin or can_view_sales_invoicing %}
-          <li class="nav-item has-submenu{% if request.resolver_match and 'sales_invoice_report_' in request.resolver_match.url_name %} open{% endif %}">
-            <a href="#" class="nav-link" data-tooltip="Sales Invoicing">
-              <i class="bi bi-receipt"></i>
-              <span class="nav-text">Sales Invoicing</span>
-              <i class="bi bi-chevron-right arrow"></i>
-            </a>
-            <ul class="submenu">
-              <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:sales_invoice_report_list' %}" class="submenu-link{% if request.resolver_match and 'sales_invoice_report_' in request.resolver_match.url_name %} active{% endif %}">
-                  <i class="bi bi-receipt"></i>
-                  <span>Sales Invoice Report</span>
-                </a>
-              </li>
-            </ul>
-          </li>
-          {% endif %}
-
           <!-- Treasury Management -->
+          <!-- {% comment %} -->
           {% if is_tenant_admin %}
           <li class="nav-item has-submenu">
             <a href="#" class="nav-link" data-tooltip="Treasury Management">
@@ -534,6 +535,7 @@
             </ul>
           </li>
           {% endif %}
+          <!-- {% endcomment %} -->
 
           <!-- --- SYSTEM --- -->
           <li class="nav-section-title">
