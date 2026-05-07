@@ -1,0 +1,122 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}{{ report.report_no }} | Sales Invoice Report{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Finance</li>
+      <li class="breadcrumb-item">Sales Invoicing</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:sales_invoice_report_list' %}">Sales Invoice Report</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ report.report_no }}</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">Sales Invoice Report</h1>
+      <p class="page-subtitle">{{ report.report_no }} - Read-only worksheet review</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions">
+        {% if report.status != 'Converted' %}
+        <a href="{% url 'iroad_tenants:sales_invoice_report_edit' report.report_id %}" class="eal-btn eal-btn-primary"><i class="bi bi-pencil"></i><span>Edit</span></a>
+        {% endif %}
+        <a href="{% url 'iroad_tenants:sales_invoice_report_list' %}" class="eal-btn eal-btn-outline"><i class="bi bi-arrow-left"></i><span>Back</span></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="form-card">
+  <div class="form-card-header">
+    <div class="form-card-icon blue"><i class="bi bi-receipt"></i></div>
+    <div class="form-card-header-text">
+      <h2 class="form-card-title">Header Section</h2>
+    </div>
+  </div>
+  <div class="form-card-body">
+    <div class="fields-grid cols-3">
+      <div class="field"><label class="form-label">Report No</label><input class="form-control" value="{{ report.report_no }}" readonly /></div>
+      <div class="field"><label class="form-label">Report Date</label><input class="form-control" value="{{ report.report_date|date:'Y-m-d' }}" readonly /></div>
+      <div class="field"><label class="form-label">Status</label><input class="form-control" value="{{ report.status }}" readonly /></div>
+    </div>
+    <div class="fields-grid cols-3">
+      <div class="field"><label class="form-label">Client</label><input class="form-control" value="{{ report.client.display_name }}" readonly /></div>
+      <div class="field"><label class="form-label">Booking From</label><input class="form-control" value="{{ report.booking_date_from|date:'Y-m-d' }}" readonly /></div>
+      <div class="field"><label class="form-label">Booking To</label><input class="form-control" value="{{ report.booking_date_to|date:'Y-m-d' }}" readonly /></div>
+    </div>
+  </div>
+</div>
+
+<div class="form-card">
+  <div class="form-card-header"><div class="form-card-icon green"><i class="bi bi-calendar-check"></i></div><div class="form-card-header-text"><h2 class="form-card-title">Bookings</h2></div></div>
+  <div class="form-card-body">
+    <div class="eal-table-wrap">
+      <table class="eal-table"><thead><tr><th>SN</th><th>Booking</th><th>Booking Date</th><th>Service Item</th><th>Trip Type</th><th>Sell Price</th></tr></thead><tbody>{% for r in booking_lines %}<tr><td>{{ r.line_no }}</td><td>{{ r.booking_ref|default:"—" }}</td><td>{{ report.booking_date_from|date:"d M Y" }}</td><td>{{ r.service_name }}</td><td>{{ r.trip_type }}</td><td>{{ r.sell_price }}</td></tr>{% empty %}<tr><td colspan="6" class="text-muted text-center">No booking lines.</td></tr>{% endfor %}</tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="form-card">
+  <div class="form-card-header"><div class="form-card-icon blue"><i class="bi bi-truck"></i></div><div class="form-card-header-text"><h2 class="form-card-title">Related Shipments</h2></div></div>
+  <div class="form-card-body">
+    <div class="eal-table-wrap">
+      <table class="eal-table"><thead><tr><th>SN</th><th>Booking</th><th>Shipment</th><th>Shipment Date</th><th>Route</th><th>Truck</th><th>Customer Ref</th><th>POD Date</th></tr></thead><tbody>{% for r in shipment_lines %}<tr><td>{{ r.line_no }}</td><td>{{ r.booking_ref|default:"—" }}</td><td>{{ r.shipment_ref|default:"—" }}</td><td>{{ r.shipment_date|default:"—" }}</td><td>{{ r.from_location }}{% if r.to_location %} → {{ r.to_location }}{% endif %}</td><td>{{ r.truck_plate }}</td><td>{{ r.customer_ref_docs|default:"—" }}</td><td>{{ r.pod_date|default:"—" }}</td></tr>{% empty %}<tr><td colspan="8" class="text-muted text-center">No shipment lines.</td></tr>{% endfor %}</tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="form-card">
+  <div class="form-card-header"><div class="form-card-icon amber"><i class="bi bi-plus-circle"></i></div><div class="form-card-header-text"><h2 class="form-card-title">Related Surcharges</h2></div></div>
+  <div class="form-card-body">
+    <div class="eal-table-wrap">
+      <table class="eal-table"><thead><tr><th>SN</th><th>Transaction No</th><th>Transaction Date</th><th>Shipment</th><th>Type</th><th>Amount</th></tr></thead><tbody>{% for r in surcharge_lines %}<tr><td>{{ r.line_no }}</td><td>{{ r.surcharge_trx_ref|default:"—" }}</td><td>—</td><td>{{ r.shipment_ref|default:"—" }}</td><td>{{ r.surcharge_type }}</td><td>{{ r.amount }}</td></tr>{% empty %}<tr><td colspan="6" class="text-muted text-center">No surcharge lines.</td></tr>{% endfor %}</tbody></table>
+    </div>
+  </div>
+</div>
+
+<div class="form-card">
+  <div class="form-card-header"><div class="form-card-icon purple"><i class="bi bi-calculator"></i></div><div class="form-card-header-text"><h2 class="form-card-title">Report Summary</h2></div></div>
+  <div class="form-card-body">
+    <div class="eal-stats-row">
+      <div class="eal-stat-card"><div class="eal-stat-icon green"><i class="bi bi-calendar-check"></i></div><div><div class="eal-stat-value">{{ booking_lines|length }}</div><div class="eal-stat-label">Bookings count</div></div></div>
+      <div class="eal-stat-card"><div class="eal-stat-icon blue"><i class="bi bi-truck"></i></div><div><div class="eal-stat-value">{{ shipment_lines|length }}</div><div class="eal-stat-label">Shipment count</div></div></div>
+      <div class="eal-stat-card"><div class="eal-stat-icon amber"><i class="bi bi-tag"></i></div><div><div class="eal-stat-value">{{ surcharge_lines|length }}</div><div class="eal-stat-label">Surcharges count</div></div></div>
+    </div>
+    <div class="eal-stats-row">
+      <div class="eal-stat-card"><div class="eal-stat-icon green"><i class="bi bi-currency-dollar"></i></div><div><div class="eal-stat-value">{{ report.total_freight_amount }}</div><div class="eal-stat-label">Freight amount</div></div></div>
+      <div class="eal-stat-card"><div class="eal-stat-icon amber"><i class="bi bi-cash-stack"></i></div><div><div class="eal-stat-value">{{ report.total_surcharge_amount }}</div><div class="eal-stat-label">Surcharges amount</div></div></div>
+      <div class="eal-stat-card"><div class="eal-stat-icon purple"><i class="bi bi-wallet2"></i></div><div><div class="eal-stat-value">{{ report.total_freight_amount|add:report.total_surcharge_amount }}</div><div class="eal-stat-label">Total</div></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="form-card">
+  <div class="form-card-header"><div class="form-card-header-text"><h2 class="form-card-title">Workflow & Finance Extensions</h2></div></div>
+  <div class="form-card-body">
+    <div class="d-flex gap-2 flex-wrap mb-3">
+      {% for s in status_timeline %}
+      <span class="status-badge {% if s.active %}active{% else %}inactive{% endif %}">{{ s.label }}</span>
+      {% endfor %}
+    </div>
+    {% if report.status != 'Converted' %}
+    <form method="post" action="{% url 'iroad_tenants:sales_invoice_report_status_update' report.report_id %}" class="d-flex gap-2 mb-3">
+      {% csrf_token %}
+      <select name="status" class="form-select form-select-sm" style="max-width:220px;">
+        <option value="Draft" {% if report.status == 'Draft' %}selected{% endif %}>Draft</option>
+        <option value="Verified" {% if report.status == 'Verified' %}selected{% endif %}>Verified</option>
+        <option value="Converted" {% if report.status == 'Converted' %}selected{% endif %}>Converted</option>
+      </select>
+      <button class="btn btn-sm btn-primary" type="submit">Update Status</button>
+    </form>
+    {% endif %}
+    <div class="cd-empty">
+      <strong>Under Development:</strong> invoice conversion history, audit trail, printable PDF preview, comments and attachments, accounting integration.
+    </div>
+  </div>
+</div>
+{% endblock %}

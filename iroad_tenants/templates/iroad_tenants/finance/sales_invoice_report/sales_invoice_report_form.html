@@ -1,0 +1,299 @@
+{% extends 'iroad_tenants/base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} | iRoad{% endblock %}
+{% block breadcrumb %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
+      <li class="breadcrumb-item">Finance</li>
+      <li class="breadcrumb-item">Sales Invoicing</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:sales_invoice_report_list' %}">Sales Invoice Report</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+    </ol>
+  </nav>
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+      <p class="page-subtitle">Select client account and booking period to build the billing worksheet.</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions">
+        <a href="{% url 'iroad_tenants:sales_invoice_report_list' %}" class="eal-btn eal-btn-outline">
+          <i class="bi bi-arrow-left"></i><span>Back</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<form method="post" id="sirForm">
+  {% csrf_token %}
+  <div id="sirDynamicMessage" class="alert d-none" role="alert"></div>
+
+  <div class="form-card" data-section="1">
+    <div class="form-card-header">
+      <div class="form-card-icon blue"><i class="bi bi-receipt"></i></div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Sales Invoice Report</h2>
+        <p class="form-card-desc">Header, booking scope, and worksheet controls.</p>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="field-group">
+        <h3 class="field-group-title"><i class="bi bi-layout-text-sidebar-reverse"></i> Header Section</h3>
+        <div class="fields-grid cols-3">
+          <div class="field"><label class="form-label">Report No</label>{{ report_form.report_no }}<span class="field-hint">Auto-generated, read-only</span></div>
+          <div class="field"><label class="form-label">Report Date <span class="required">*</span></label>{{ report_form.report_date }}</div>
+          <div class="field"><label class="form-label">Status</label>{{ report_form.status }}</div>
+        </div>
+        <div class="fields-grid cols-3">
+          <div class="field"><label class="form-label">Client Account <span class="required">*</span></label>{{ report_form.client }}</div>
+          <div class="field"><label class="form-label">Freight Total</label>{{ report_form.total_freight_amount }}</div>
+          <div class="field"><label class="form-label">Surcharge Total</label>{{ report_form.total_surcharge_amount }}</div>
+        </div>
+        <div class="fields-grid cols-1">
+          <div class="field"><label class="form-label">Remarks</label>{{ report_form.remarks }}</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <h3 class="field-group-title"><i class="bi bi-calendar-range"></i> Booking Period</h3>
+        <div class="fields-grid cols-3">
+          <div class="field"><label class="form-label">Booking From (date)</label>{{ report_form.booking_date_from }}</div>
+          <div class="field"><label class="form-label">Booking To (date)</label>{{ report_form.booking_date_to }}</div>
+          <div class="field">
+            <label class="form-label">Currency</label>
+            {{ report_form.currency }}
+            <div class="mt-2">
+              <button type="button" class="btn btn-outline-primary btn-sm" id="sirPreviewBtn">
+                <i class="bi bi-arrow-repeat"></i> Preview / Auto Load
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% if report_form.errors %}
+      <div class="alert alert-danger mt-3 mb-0">{{ report_form.errors }}</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="form-card" data-section="2">
+    <div class="form-card-header">
+      <div class="form-card-icon green"><i class="bi bi-calendar-check"></i></div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Bookings</h2>
+      </div>
+    </div>
+    <div class="form-card-body">
+      <div class="eal-table-wrap">
+        <table class="eal-table">
+          <thead><tr><th>SN</th><th>Booking</th><th>Booking Date</th><th>Service Item</th><th>Trip Type</th><th>Sell Price</th></tr></thead>
+          <tbody id="sirBookingsBody">{% for r in booking_lines %}<tr><td>{{ r.line_no }}</td><td>{{ r.booking_ref|default:"—" }}</td><td>{{ report_form.booking_date_from.value|default:"—" }}</td><td>{{ r.service_name }}</td><td>{{ r.trip_type }}</td><td>{{ r.sell_price }}</td></tr>{% empty %}<tr><td colspan="6" class="text-muted text-center">No booking lines.</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card" data-section="3">
+    <div class="form-card-header">
+      <div class="form-card-icon blue"><i class="bi bi-truck"></i></div>
+      <div class="form-card-header-text"><h2 class="form-card-title">Related Shipments</h2></div>
+    </div>
+    <div class="form-card-body">
+      <div class="eal-table-wrap">
+        <table class="eal-table">
+          <thead><tr><th>SN</th><th>Booking</th><th>Shipment</th><th>Shipment Date</th><th>Route</th><th>Truck</th><th>Customer Ref</th><th>POD Date</th></tr></thead>
+          <tbody id="sirShipmentsBody">{% for r in shipment_lines %}<tr><td>{{ r.line_no }}</td><td>{{ r.booking_ref|default:"—" }}</td><td>{{ r.shipment_ref|default:"—" }}</td><td>{{ r.shipment_date|default:"—" }}</td><td>{{ r.from_location }}{% if r.to_location %} → {{ r.to_location }}{% endif %}</td><td>{{ r.truck_plate }}</td><td>{{ r.customer_ref_docs|default:"—" }}</td><td>{{ r.pod_date|default:"—" }}</td></tr>{% empty %}<tr><td colspan="8" class="text-muted text-center">No shipment lines.</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card" data-section="4">
+    <div class="form-card-header">
+      <div class="form-card-icon amber"><i class="bi bi-plus-circle"></i></div>
+      <div class="form-card-header-text"><h2 class="form-card-title">Related Surcharges</h2></div>
+    </div>
+    <div class="form-card-body">
+      <div class="eal-table-wrap">
+        <table class="eal-table">
+          <thead><tr><th>SN</th><th>Transaction No</th><th>Transaction Date</th><th>Shipment</th><th>Type</th><th>Amount</th></tr></thead>
+          <tbody id="sirSurchargesBody">{% for r in surcharge_lines %}<tr><td>{{ r.line_no }}</td><td>{{ r.surcharge_trx_ref|default:"—" }}</td><td>—</td><td>{{ r.shipment_ref|default:"—" }}</td><td>{{ r.surcharge_type }}</td><td>{{ r.amount }}</td></tr>{% empty %}<tr><td colspan="6" class="text-muted text-center">No surcharge lines.</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-card" data-section="5">
+    <div class="form-card-header">
+      <div class="form-card-icon purple"><i class="bi bi-calculator"></i></div>
+      <div class="form-card-header-text"><h2 class="form-card-title">Report Summary</h2></div>
+    </div>
+    <div class="form-card-body">
+      <div class="eal-stats-row">
+        <div class="eal-stat-card"><div class="eal-stat-icon green"><i class="bi bi-calendar-check"></i></div><div><div class="eal-stat-value" id="sirBookingsCount">{{ booking_lines|length }}</div><div class="eal-stat-label">Bookings count</div></div></div>
+        <div class="eal-stat-card"><div class="eal-stat-icon blue"><i class="bi bi-truck"></i></div><div><div class="eal-stat-value" id="sirShipmentsCount">{{ shipment_lines|length }}</div><div class="eal-stat-label">Shipment count</div></div></div>
+        <div class="eal-stat-card"><div class="eal-stat-icon amber"><i class="bi bi-tag"></i></div><div><div class="eal-stat-value" id="sirSurchargesCount">{{ surcharge_lines|length }}</div><div class="eal-stat-label">Surcharges count</div></div></div>
+      </div>
+      <div class="eal-stats-row">
+        <div class="eal-stat-card"><div class="eal-stat-icon green"><i class="bi bi-currency-dollar"></i></div><div><div class="eal-stat-value" id="id_total_freight_amount_display">{{ report_form.total_freight_amount.value|default:"0.00" }}</div><div class="eal-stat-label">Freight amount</div></div></div>
+        <div class="eal-stat-card"><div class="eal-stat-icon amber"><i class="bi bi-cash-stack"></i></div><div><div class="eal-stat-value" id="id_total_surcharge_amount_display">{{ report_form.total_surcharge_amount.value|default:"0.00" }}</div><div class="eal-stat-label">Surcharges amount</div></div></div>
+        <div class="eal-stat-card"><div class="eal-stat-icon purple"><i class="bi bi-wallet2"></i></div><div><div class="eal-stat-value" id="sirCombinedTotal">0.00</div><div class="eal-stat-label">Total</div></div></div>
+      </div>
+      <div class="cd-empty mt-3">
+        <strong>Under Development:</strong> Approval workflow timeline, finance audit logs, printable PDF preview, comments/attachments.
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions-bar">
+    <div class="form-actions-left">
+      <button type="reset" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-counterclockwise"></i> Reset Form
+      </button>
+    </div>
+    <div class="form-actions-right">
+      <button type="submit" class="btn btn-primary"{% if lock_state == 'locked' %} disabled{% endif %}>
+        <i class="bi bi-check-circle"></i> {% if is_edit %}Update{% else %}Save{% endif %} Sales Invoice Report
+      </button>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+(function () {
+  function safeText(v) { return (v === null || v === undefined || v === "") ? "—" : String(v); }
+  function renderRows(bodyId, rows, cols, rowBuilder) {
+    var body = document.getElementById(bodyId);
+    if (!body) return;
+    if (!rows || !rows.length) {
+      body.innerHTML = '<tr><td colspan="' + cols + '" class="text-muted text-center">No records found for selected filters.</td></tr>';
+      return;
+    }
+    body.innerHTML = rows.map(rowBuilder).join("");
+  }
+
+  var messageEl = document.getElementById("sirDynamicMessage");
+  function showMessage(kind, text) {
+    if (!messageEl) return;
+    messageEl.className = "alert alert-" + kind;
+    messageEl.textContent = text;
+  }
+
+  function clearMessage() {
+    if (!messageEl) return;
+    messageEl.className = "alert d-none";
+    messageEl.textContent = "";
+  }
+
+  var clientEl = document.getElementById("id_client");
+  var fromEl = document.getElementById("id_booking_date_from");
+  var toEl = document.getElementById("id_booking_date_to");
+  var ccyEl = document.getElementById("id_currency");
+  var reportNoEl = document.getElementById("id_report_no");
+  var freightEl = document.getElementById("id_total_freight_amount");
+  var surchargeEl = document.getElementById("id_total_surcharge_amount");
+  var bookingsCountEl = document.getElementById("sirBookingsCount");
+  var surchargesCountEl = document.getElementById("sirSurchargesCount");
+  var shipmentsCountEl = document.getElementById("sirShipmentsCount");
+  var combinedTotalEl = document.getElementById("sirCombinedTotal");
+
+  function setTotals(f, s, c) {
+    if (freightEl) freightEl.value = safeText(f === "—" ? "" : f);
+    if (surchargeEl) surchargeEl.value = safeText(s === "—" ? "" : s);
+    var freightCard = document.getElementById("id_total_freight_amount_display");
+    var surchargeCard = document.getElementById("id_total_surcharge_amount_display");
+    if (freightCard) freightCard.textContent = safeText(f);
+    if (surchargeCard) surchargeCard.textContent = safeText(s);
+    if (combinedTotalEl) combinedTotalEl.textContent = safeText(c);
+  }
+
+  function resetDynamicTables() {
+    renderRows("sirBookingsBody", [], 7, function () { return ""; });
+    renderRows("sirSurchargesBody", [], 5, function () { return ""; });
+    renderRows("sirShipmentsBody", [], 8, function () { return ""; });
+    if (bookingsCountEl) bookingsCountEl.textContent = "0";
+    if (surchargesCountEl) surchargesCountEl.textContent = "0";
+    if (shipmentsCountEl) shipmentsCountEl.textContent = "0";
+    setTotals("0", "0", "0");
+  }
+
+  function validateFilters() {
+    var client = (clientEl && clientEl.value) || "";
+    var d1 = (fromEl && fromEl.value) || "";
+    var d2 = (toEl && toEl.value) || "";
+    var ccy = (ccyEl && ccyEl.value) || "";
+    if (!client || !d1 || !d2 || !ccy) return "Select client, booking date from/to, and currency first.";
+    if (d1 > d2) return "Booking date from cannot be later than booking date to.";
+    return "";
+  }
+
+  function loadDynamicData() {
+    var invalid = validateFilters();
+    if (invalid) {
+      showMessage("warning", invalid);
+      resetDynamicTables();
+      return;
+    }
+    clearMessage();
+    var params = new URLSearchParams({
+      action: "preview",
+      client: clientEl.value,
+      booking_date_from: fromEl.value,
+      booking_date_to: toEl.value,
+      currency: ccyEl.value
+    });
+    fetch(window.location.pathname + "?" + params.toString(), { credentials: "same-origin" })
+      .then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+      .then(function (resp) {
+        var data = resp.body || {};
+        if (resp.status >= 400 || !data.ok) {
+          showMessage("danger", data.error || "Unable to load dynamic report data.");
+          resetDynamicTables();
+          return;
+        }
+        if (reportNoEl && data.report_no_preview && !reportNoEl.value) {
+          reportNoEl.value = data.report_no_preview;
+        }
+
+        renderRows("sirBookingsBody", data.bookings, 6, function (r) {
+          return "<tr><td>" + safeText(r.line_no) + "</td><td>" + safeText(r.booking_ref) + "</td><td>" + safeText((fromEl && fromEl.value) || "—") + "</td><td>" + safeText(r.service_name) + "</td><td>" + safeText(r.trip_type) + "</td><td>" + safeText(r.sell_price) + "</td></tr>";
+        });
+        renderRows("sirSurchargesBody", data.surcharges, 6, function (r) {
+          return "<tr><td>" + safeText(r.line_no) + "</td><td>" + safeText(r.surcharge_trx_ref) + "</td><td>—</td><td>" + safeText(r.shipment_ref) + "</td><td>" + safeText(r.surcharge_type) + "</td><td>" + safeText(r.amount) + "</td></tr>";
+        });
+        renderRows("sirShipmentsBody", data.shipments, 8, function (r) {
+          var route = safeText(r.from_location) + ((r.to_location || "") ? " → " + safeText(r.to_location) : "");
+          return "<tr><td>" + safeText(r.line_no) + "</td><td>" + safeText(r.booking_ref) + "</td><td>" + safeText(r.shipment_ref) + "</td><td>" + safeText(r.shipment_date) + "</td><td>" + route + "</td><td>" + safeText(r.truck_plate) + "</td><td>" + safeText(r.customer_ref_docs) + "</td><td>" + safeText(r.pod_date) + "</td></tr>";
+        });
+
+        if (bookingsCountEl) bookingsCountEl.textContent = String((data.bookings || []).length);
+        if (surchargesCountEl) surchargesCountEl.textContent = String((data.surcharges || []).length);
+        if (shipmentsCountEl) shipmentsCountEl.textContent = String((data.shipments || []).length);
+        setTotals(data.total_freight_amount || "0", data.total_surcharge_amount || "0", data.combined_total_amount || "0");
+
+        if (!(data.bookings || []).length) {
+          showMessage("info", "No eligible executed bookings found for selected filters.");
+        }
+      })
+      .catch(function () {
+        showMessage("danger", "Unable to load dynamic data. Please try again.");
+        resetDynamicTables();
+      });
+  }
+
+  var btn = document.getElementById("sirPreviewBtn");
+  if (btn) btn.addEventListener("click", loadDynamicData);
+  [clientEl, fromEl, toEl, ccyEl].forEach(function (el) {
+    if (el) el.addEventListener("change", loadDynamicData);
+  });
+})();
+</script>
+{% endblock %}

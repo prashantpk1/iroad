@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 
 import logging
 import io
+from django.apps import apps
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
@@ -19,7 +20,7 @@ from django.core.files.storage import default_storage
 from django.db import IntegrityError, ProgrammingError, connection
 from django.db.models.deletion import ProtectedError
 from django.db import transaction as db_transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils import timezone
 from django_tenants.utils import schema_context
@@ -94,6 +95,10 @@ from tenant_workspace.models import (
     TruckSettings,
     TruckMaster,
     TruckTypeMaster,
+    SalesInvoiceReport,
+    SalesInvoiceReportBooking,
+    SalesInvoiceReportSurcharge,
+    SalesInvoiceReportShipment,
     TenantRole,
     TenantRolePermission,
     TenantUser,
@@ -109,6 +114,12 @@ from iroad_tenants.forms_driver_master import DriverMasterForm
 from iroad_tenants.forms_truck_master import TruckMasterForm
 from iroad_tenants.forms_truck import TruckSettingsForm
 from iroad_tenants.forms_truck_attachment import TruckAttachmentForm
+from iroad_tenants.forms_sales_invoice_report import (
+    SalesInvoiceReportForm,
+    SalesInvoiceReportBookingForm,
+    SalesInvoiceReportSurchargeForm,
+    SalesInvoiceReportShipmentForm,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +169,9 @@ SERVICE_ITEM_MASTER_REF_PREFIX = 'SV'
 PRICE_LIST_MASTER_AUTO_FORM_CODE = 'price-list-master'
 PRICE_LIST_MASTER_AUTO_FORM_LABEL = 'Price List Master'
 PRICE_LIST_MASTER_REF_PREFIX = 'PL'
+SALES_INVOICE_REPORT_AUTO_FORM_CODE = 'sales-invoice-report'
+SALES_INVOICE_REPORT_AUTO_FORM_LABEL = 'Sales Invoice Report'
+SALES_INVOICE_REPORT_REF_PREFIX = 'SIR'
 SERVICE_ITEM_CATEGORY_OPTIONS = (
     'Service Category 1',
     'Service Category 2',
@@ -3756,6 +3770,443 @@ class TenantPriceListMasterDeleteView(View):
             connection.set_schema_to_public()
 
 
+class TenantSalesInvoiceReportListView(View):
+    template_name = 'iroad_tenants/finance/sales_invoice_report/sales_invoice_report_list.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_sales_invoice_report_access(request, context)
+        if denied:
+            return denied
+
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            qs = SalesInvoiceReport.objects.select_related('client').all()
+            search_q = (request.GET.get('q') or '').strip()
+            status_filter = (request.GET.get('status') or '').strip()
+            client_filter = (request.GET.get('client') or '').strip()
+            date_from = parse_date((request.GET.get('date_from') or '').strip())
+            date_to = parse_date((request.GET.get('date_to') or '').strip())
+
+            if search_q:
+                qs = qs.filter(
+                    Q(report_no__icontains=search_q)
+                    | Q(client__display_name__icontains=search_q)
+                    | Q(client__account_no__icontains=search_q)
+                    | Q(currency__icontains=search_q)
+                )
+            if status_filter in {
+                SalesInvoiceReport.Status.DRAFT,
+                SalesInvoiceReport.Status.VERIFIED,
+                SalesInvoiceReport.Status.CONVERTED,
+            }:
+                qs = qs.filter(status=status_filter)
+            if client_filter:
+                try:
+                    qs = qs.filter(client_id=uuid.UUID(client_filter))
+                except ValueError:
+                    pass
+            if date_from:
+                qs = qs.filter(report_date__gte=date_from)
+            if date_to:
+                qs = qs.filter(report_date__lte=date_to)
+
+            qs = qs.order_by('-report_date', '-created_at')
+            paginator = Paginator(qs, 10)
+            try:
+                page_no = max(1, int(request.GET.get('page') or 1))
+            except ValueError:
+                page_no = 1
+            page = paginator.get_page(page_no)
+
+            total_count = SalesInvoiceReport.objects.count()
+            draft_count = SalesInvoiceReport.objects.filter(
+                status=SalesInvoiceReport.Status.DRAFT
+            ).count()
+            verified_count = SalesInvoiceReport.objects.filter(
+                status=SalesInvoiceReport.Status.VERIFIED
+            ).count()
+            converted_count = SalesInvoiceReport.objects.filter(
+                status=SalesInvoiceReport.Status.CONVERTED
+            ).count()
+            total_freight = (
+                SalesInvoiceReport.objects.aggregate(v=Sum('total_freight_amount')).get('v')
+                or Decimal('0')
+            )
+            total_surcharge = (
+                SalesInvoiceReport.objects.aggregate(v=Sum('total_surcharge_amount')).get('v')
+                or Decimal('0')
+            )
+
+            context.update(
+                {
+                    'reports_page': page,
+                    'search_q': search_q,
+                    'status_filter': status_filter,
+                    'client_filter': client_filter,
+                    'date_from': request.GET.get('date_from') or '',
+                    'date_to': request.GET.get('date_to') or '',
+                    'client_choices': TenantClientAccount.objects.filter(
+                        status=TenantClientAccount.Status.ACTIVE
+                    ).order_by('display_name'),
+                    'stats': {
+                        'total_count': total_count,
+                        'draft_count': draft_count,
+                        'verified_count': verified_count,
+                        'converted_count': converted_count,
+                        'total_freight': total_freight,
+                        'total_surcharge': total_surcharge,
+                    },
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantSalesInvoiceReportCreateView(View):
+    template_name = 'iroad_tenants/finance/sales_invoice_report/sales_invoice_report_form.html'
+
+    def get(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_sales_invoice_report_access(request, context)
+        if denied:
+            return denied
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            if (request.GET.get('action') or '').strip() == 'preview':
+                client_id = (request.GET.get('client') or '').strip()
+                date_from = parse_date((request.GET.get('booking_date_from') or '').strip())
+                date_to = parse_date((request.GET.get('booking_date_to') or '').strip())
+                currency = (request.GET.get('currency') or '').strip()
+                try:
+                    payload = _sales_invoice_report_preview_payload(
+                        client_id=client_id,
+                        booking_date_from=date_from,
+                        booking_date_to=date_to,
+                        currency=currency,
+                    )
+                except ValidationError as exc:
+                    return JsonResponse({'ok': False, 'error': str(exc)}, status=400)
+                return JsonResponse(payload)
+
+            bundle = _sales_invoice_report_forms_with_preview()
+            context.update(
+                {
+                    **bundle,
+                    'is_edit': False,
+                    'page_title': 'Create Sales Invoice Report',
+                    'lock_state': 'editable',
+                    'booking_lines': [],
+                    'surcharge_lines': [],
+                    'shipment_lines': [],
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_sales_invoice_report_access(request, context)
+        if denied:
+            return denied
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            bundle = _sales_invoice_report_forms_with_preview(data=request.POST)
+            form = bundle['report_form']
+            if not form.is_valid():
+                context.update(
+                    {
+                        **bundle,
+                        'is_edit': False,
+                        'page_title': 'Create Sales Invoice Report',
+                        'lock_state': 'editable',
+                        'booking_lines': [],
+                        'surcharge_lines': [],
+                        'shipment_lines': [],
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            obj = _create_sales_invoice_report_with_auto_number(
+                form=form,
+                created_by=context.get('display_name') or '',
+            )
+            messages.success(
+                request,
+                f'Sales Invoice Report {obj.report_no} created successfully.',
+                extra_tags='tenant',
+            )
+            return _tenant_redirect(
+                request,
+                'iroad_tenants:sales_invoice_report_detail',
+                report_id=obj.report_id,
+            )
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantSalesInvoiceReportDetailView(View):
+    template_name = 'iroad_tenants/finance/sales_invoice_report/sales_invoice_report_detail.html'
+
+    def get(self, request, report_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_sales_invoice_report_access(request, context)
+        if denied:
+            return denied
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            report = (
+                SalesInvoiceReport.objects.select_related('client')
+                .filter(pk=report_id)
+                .first()
+            )
+            if not report:
+                messages.error(request, 'Sales Invoice Report not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:sales_invoice_report_list')
+
+            status_timeline = [
+                {
+                    'label': 'Draft',
+                    'active': report.status in {
+                        SalesInvoiceReport.Status.DRAFT,
+                        SalesInvoiceReport.Status.VERIFIED,
+                        SalesInvoiceReport.Status.CONVERTED,
+                    },
+                },
+                {
+                    'label': 'Verified',
+                    'active': report.status in {
+                        SalesInvoiceReport.Status.VERIFIED,
+                        SalesInvoiceReport.Status.CONVERTED,
+                    },
+                },
+                {
+                    'label': 'Converted',
+                    'active': report.status == SalesInvoiceReport.Status.CONVERTED,
+                },
+            ]
+
+            context.update(
+                {
+                    'report': report,
+                    'booking_lines': report.booking_lines.all().order_by('line_no'),
+                    'surcharge_lines': report.surcharge_lines.all().order_by('line_no'),
+                    'shipment_lines': report.shipment_lines.all().order_by('line_no'),
+                    'status_timeline': status_timeline,
+                    'lock_state': _sales_invoice_report_lock_state(report.status),
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantSalesInvoiceReportUpdateView(View):
+    template_name = 'iroad_tenants/finance/sales_invoice_report/sales_invoice_report_form.html'
+
+    def get(self, request, report_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_sales_invoice_report_access(request, context)
+        if denied:
+            return denied
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            if (request.GET.get('action') or '').strip() == 'preview':
+                client_id = (request.GET.get('client') or '').strip()
+                date_from = parse_date((request.GET.get('booking_date_from') or '').strip())
+                date_to = parse_date((request.GET.get('booking_date_to') or '').strip())
+                currency = (request.GET.get('currency') or '').strip()
+                try:
+                    payload = _sales_invoice_report_preview_payload(
+                        client_id=client_id,
+                        booking_date_from=date_from,
+                        booking_date_to=date_to,
+                        currency=currency,
+                    )
+                except ValidationError as exc:
+                    return JsonResponse({'ok': False, 'error': str(exc)}, status=400)
+                return JsonResponse(payload)
+
+            report = SalesInvoiceReport.objects.filter(pk=report_id).first()
+            if not report:
+                messages.error(request, 'Sales Invoice Report not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:sales_invoice_report_list')
+            bundle = _sales_invoice_report_forms_with_preview(instance=report)
+            context.update(
+                {
+                    **bundle,
+                    'report': report,
+                    'booking_lines': report.booking_lines.all().order_by('line_no'),
+                    'surcharge_lines': report.surcharge_lines.all().order_by('line_no'),
+                    'shipment_lines': report.shipment_lines.all().order_by('line_no'),
+                    'is_edit': True,
+                    'page_title': f'Edit {report.report_no}',
+                    'lock_state': _sales_invoice_report_lock_state(report.status),
+                    'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                }
+            )
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
+
+    def post(self, request, report_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_sales_invoice_report_access(request, context)
+        if denied:
+            return denied
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            report = SalesInvoiceReport.objects.filter(pk=report_id).first()
+            if not report:
+                messages.error(request, 'Sales Invoice Report not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:sales_invoice_report_list')
+            if report.status == SalesInvoiceReport.Status.CONVERTED:
+                messages.error(request, 'Converted reports cannot be edited.', extra_tags='tenant')
+                return _tenant_redirect(
+                    request,
+                    'iroad_tenants:sales_invoice_report_detail',
+                    report_id=report.report_id,
+                )
+
+            original = SalesInvoiceReport.objects.get(pk=report.pk)
+            bundle = _sales_invoice_report_forms_with_preview(instance=report, data=request.POST)
+            form = bundle['report_form']
+            if not form.is_valid():
+                context.update(
+                    {
+                        **bundle,
+                        'report': report,
+                        'booking_lines': report.booking_lines.all().order_by('line_no'),
+                        'surcharge_lines': report.surcharge_lines.all().order_by('line_no'),
+                        'shipment_lines': report.shipment_lines.all().order_by('line_no'),
+                        'is_edit': True,
+                        'page_title': f'Edit {report.report_no}',
+                        'lock_state': _sales_invoice_report_lock_state(report.status),
+                        'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
+                    }
+                )
+                messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
+                return render(request, self.template_name, context)
+
+            with db_transaction.atomic():
+                obj = form.save(commit=False)
+                if original.status == SalesInvoiceReport.Status.VERIFIED:
+                    # Verified reports are partially locked: keep header scope immutable.
+                    obj.client_id = original.client_id
+                    obj.report_date = original.report_date
+                    obj.booking_date_from = original.booking_date_from
+                    obj.booking_date_to = original.booking_date_to
+                    obj.currency = original.currency
+                    obj.sales_invoice_ref = original.sales_invoice_ref
+                obj.updated_by = (context.get('display_name') or '').strip()
+                obj.full_clean()
+                obj.save()
+
+                # Verified state allows only limited edits (remarks/status); no child refresh.
+                if original.status == SalesInvoiceReport.Status.DRAFT:
+                    header_changed = any(
+                        [
+                            original.client_id != obj.client_id,
+                            original.booking_date_from != obj.booking_date_from,
+                            original.booking_date_to != obj.booking_date_to,
+                            (original.currency or '') != (obj.currency or ''),
+                        ]
+                    )
+                    if header_changed:
+                        _refresh_sales_invoice_report_children(obj)
+
+            messages.success(request, f'{obj.report_no} updated successfully.', extra_tags='tenant')
+            return _tenant_redirect(
+                request,
+                'iroad_tenants:sales_invoice_report_detail',
+                report_id=obj.report_id,
+            )
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantSalesInvoiceReportStatusUpdateView(View):
+    def post(self, request, report_id):
+        context = _tenant_context_from_session(request)
+        denied = _tenant_sales_invoice_report_access(request, context)
+        if denied:
+            return denied
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            report = SalesInvoiceReport.objects.filter(pk=report_id).first()
+            if not report:
+                messages.error(request, 'Sales Invoice Report not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:sales_invoice_report_list')
+            next_status = (request.POST.get('status') or '').strip()
+            if next_status not in {
+                SalesInvoiceReport.Status.DRAFT,
+                SalesInvoiceReport.Status.VERIFIED,
+                SalesInvoiceReport.Status.CONVERTED,
+            }:
+                messages.error(request, 'Invalid status selected.', extra_tags='tenant')
+                return _tenant_redirect(
+                    request,
+                    'iroad_tenants:sales_invoice_report_detail',
+                    report_id=report.report_id,
+                )
+            if report.status == SalesInvoiceReport.Status.CONVERTED:
+                messages.error(request, 'Converted report cannot change status.', extra_tags='tenant')
+                return _tenant_redirect(
+                    request,
+                    'iroad_tenants:sales_invoice_report_detail',
+                    report_id=report.report_id,
+                )
+
+            report.status = next_status
+            if next_status == SalesInvoiceReport.Status.CONVERTED and not report.sales_invoice_ref:
+                report.sales_invoice_ref = uuid.uuid4()
+            report.updated_by = (context.get('display_name') or '').strip()
+            report.save(update_fields=['status', 'sales_invoice_ref', 'updated_by', 'updated_at'])
+            messages.success(request, f'Status updated to {next_status}.', extra_tags='tenant')
+            return _tenant_redirect(
+                request,
+                'iroad_tenants:sales_invoice_report_detail',
+                report_id=report.report_id,
+            )
+        finally:
+            connection.set_schema_to_public()
+
+
 class TenantOperationBookingCreateView(TenantSimplePageView):
     """Render booking create page."""
 
@@ -6353,6 +6804,21 @@ def _tenant_driver_master_access(request, context):
         messages.error(
             request,
             'You do not have access to Driver Master.',
+            extra_tags='tenant',
+        )
+        return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+    return None
+
+
+def _tenant_sales_invoice_report_access(request, context):
+    if context is None:
+        response = redirect('login')
+        clear_tenant_portal_cookie(response, request=request)
+        return response
+    if not (context.get('is_tenant_admin') or context.get('can_view_sales_invoicing')):
+        messages.error(
+            request,
+            'You do not have access to Sales Invoice Report.',
             extra_tags='tenant',
         )
         return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
@@ -10547,6 +11013,7 @@ class TenantAutoNumberConfigurationView(View):
         ROUTE_MASTER_AUTO_FORM_CODE: ROUTE_MASTER_AUTO_FORM_LABEL,
         SERVICE_ITEM_MASTER_AUTO_FORM_CODE: SERVICE_ITEM_MASTER_AUTO_FORM_LABEL,
         PRICE_LIST_MASTER_AUTO_FORM_CODE: PRICE_LIST_MASTER_AUTO_FORM_LABEL,
+        SALES_INVOICE_REPORT_AUTO_FORM_CODE: SALES_INVOICE_REPORT_AUTO_FORM_LABEL,
     }
 
     FORM_PREFIXES = {
@@ -10566,6 +11033,7 @@ class TenantAutoNumberConfigurationView(View):
         ROUTE_MASTER_AUTO_FORM_CODE: ROUTE_MASTER_REF_PREFIX,
         SERVICE_ITEM_MASTER_AUTO_FORM_CODE: SERVICE_ITEM_MASTER_REF_PREFIX,
         PRICE_LIST_MASTER_AUTO_FORM_CODE: PRICE_LIST_MASTER_REF_PREFIX,
+        SALES_INVOICE_REPORT_AUTO_FORM_CODE: SALES_INVOICE_REPORT_REF_PREFIX,
     }
 
     @staticmethod
@@ -12699,6 +13167,260 @@ def _next_auto_number_for_form(form_code, form_label, prefix):
     sequence.next_number = account_sequence + 1
     sequence.save(update_fields=['next_number', 'updated_at'])
     return ref_no, account_sequence
+
+
+def _sales_invoice_report_lock_state(status: str) -> str:
+    s = (status or '').strip()
+    if s == SalesInvoiceReport.Status.CONVERTED:
+        return 'locked'
+    if s == SalesInvoiceReport.Status.VERIFIED:
+        return 'partial'
+    return 'editable'
+
+
+def _sales_invoice_report_forms_with_preview(*, instance=None, data=None):
+    preview_no = _preview_next_auto_number_for_form(
+        form_code=SALES_INVOICE_REPORT_AUTO_FORM_CODE,
+        form_label=SALES_INVOICE_REPORT_AUTO_FORM_LABEL,
+        prefix=SALES_INVOICE_REPORT_REF_PREFIX,
+    )
+    report_form = SalesInvoiceReportForm(data=data, instance=instance)
+    if not getattr(instance, 'pk', None):
+        report_form.fields['report_no'].initial = preview_no
+    booking_form = SalesInvoiceReportBookingForm()
+    surcharge_form = SalesInvoiceReportSurchargeForm()
+    shipment_form = SalesInvoiceReportShipmentForm()
+    return {
+        'report_form': report_form,
+        'booking_form': booking_form,
+        'surcharge_form': surcharge_form,
+        'shipment_form': shipment_form,
+        'report_no_preview': preview_no,
+    }
+
+
+def _safe_get_tenant_model(model_name: str):
+    try:
+        return apps.get_model('tenant_workspace', model_name)
+    except LookupError:
+        return None
+
+
+def _eligible_executed_bookings_for_report(*, client_id, booking_date_from, booking_date_to, currency):
+    """
+    Fetch source bookings eligible for Sales Invoice Report auto-load.
+    Returns list[dict] snapshots ready for SalesInvoiceReportBooking rows.
+    """
+    BookingModel = _safe_get_tenant_model('Booking')
+    if BookingModel is None:
+        return []
+
+    qs = BookingModel.objects.filter(client_id=client_id)
+    if hasattr(BookingModel, 'status'):
+        qs = qs.filter(status__iexact='executed')
+    if hasattr(BookingModel, 'booking_date'):
+        qs = qs.filter(booking_date__gte=booking_date_from, booking_date__lte=booking_date_to)
+    if currency and hasattr(BookingModel, 'currency'):
+        qs = qs.filter(currency=currency)
+
+    # Exclude bookings already used in converted reports.
+    converted_booking_ids = (
+        SalesInvoiceReportBooking.objects.filter(
+            report__status=SalesInvoiceReport.Status.CONVERTED,
+            booking_ref__isnull=False,
+        ).values_list('booking_ref', flat=True)
+    )
+    if hasattr(BookingModel, 'booking_id'):
+        qs = qs.exclude(booking_id__in=list(converted_booking_ids))
+    elif hasattr(BookingModel, 'id'):
+        qs = qs.exclude(id__in=list(converted_booking_ids))
+
+    rows = []
+    seen_booking_refs = set()
+    for b in qs.order_by('booking_date'):
+        booking_pk = getattr(b, 'booking_id', None) or getattr(b, 'id', None)
+        if booking_pk in seen_booking_refs:
+            continue
+        seen_booking_refs.add(booking_pk)
+        rows.append(
+            {
+                'line_no': len(rows) + 1,
+                'booking_ref': booking_pk,
+                'so_ref': getattr(b, 'sales_order_no', '') or '',
+                'service_name': getattr(b, 'service_name', '') or '',
+                'trip_type': getattr(b, 'trip_type', '') or '',
+                'sell_price': getattr(b, 'sell_price', 0) or 0,
+                'booking_status': 'Executed',
+            }
+        )
+    return rows
+
+
+def _eligible_confirmed_surcharges_for_report(*, booking_refs):
+    SurchargeModel = _safe_get_tenant_model('SurchargeSalesTransaction')
+    if SurchargeModel is None or not booking_refs:
+        return []
+
+    qs = SurchargeModel.objects.all()
+    if hasattr(SurchargeModel, 'status'):
+        qs = qs.filter(status__iexact='confirmed')
+    if hasattr(SurchargeModel, 'booking_ref'):
+        qs = qs.filter(booking_ref__in=booking_refs)
+
+    rows = []
+    seen_refs = set()
+    for s in qs.order_by('id'):
+        trx_ref = getattr(s, 'id', None)
+        if trx_ref in seen_refs:
+            continue
+        seen_refs.add(trx_ref)
+        rows.append(
+            {
+                'line_no': len(rows) + 1,
+                'surcharge_trx_ref': trx_ref,
+                'booking_ref': getattr(s, 'booking_ref', None),
+                'surcharge_type': getattr(s, 'surcharge_type', '') or '',
+                'shipment_ref': str(getattr(s, 'shipment_ref', '') or ''),
+                'service_name': getattr(s, 'service_name', '') or '',
+                'amount': getattr(s, 'amount', 0) or 0,
+            }
+        )
+    return rows
+
+
+def _related_shipments_for_report(*, booking_refs):
+    ShipmentModel = _safe_get_tenant_model('Shipment')
+    if ShipmentModel is None or not booking_refs:
+        return []
+
+    qs = ShipmentModel.objects.all()
+    if hasattr(ShipmentModel, 'booking_ref'):
+        qs = qs.filter(booking_ref__in=booking_refs)
+
+    rows = []
+    seen_refs = set()
+    for sh in qs.order_by('shipment_date'):
+        shipment_ref = getattr(sh, 'id', None)
+        if shipment_ref in seen_refs:
+            continue
+        seen_refs.add(shipment_ref)
+        rows.append(
+            {
+                'line_no': len(rows) + 1,
+                'shipment_ref': shipment_ref,
+                'booking_ref': str(getattr(sh, 'booking_ref', '') or ''),
+                'shipment_date': getattr(sh, 'shipment_date', None),
+                'from_location': getattr(sh, 'from_location', '') or '',
+                'to_location': getattr(sh, 'to_location', '') or '',
+                'truck_plate': getattr(sh, 'truck_plate', '') or '',
+                'customer_ref_docs': getattr(sh, 'customer_ref_docs', '') or '',
+                'pod_date': getattr(sh, 'pod_date', None),
+            }
+        )
+    return rows
+
+
+def _sales_invoice_report_preview_payload(*, client_id, booking_date_from, booking_date_to, currency):
+    if not client_id:
+        raise ValidationError('Client is required.')
+    if not booking_date_from or not booking_date_to:
+        raise ValidationError('Booking date range is required.')
+    if booking_date_from > booking_date_to:
+        raise ValidationError('Booking date from cannot be later than booking date to.')
+    if not currency:
+        raise ValidationError('Currency is required.')
+
+    rows = _eligible_executed_bookings_for_report(
+        client_id=client_id,
+        booking_date_from=booking_date_from,
+        booking_date_to=booking_date_to,
+        currency=currency,
+    )
+    booking_refs = [r.get('booking_ref') for r in rows if r.get('booking_ref')]
+    surcharge_rows = _eligible_confirmed_surcharges_for_report(booking_refs=booking_refs)
+    shipment_rows = _related_shipments_for_report(booking_refs=booking_refs)
+    total_freight = sum(Decimal(str(r.get('sell_price') or 0)) for r in rows)
+    total_surcharge = sum(Decimal(str(r.get('amount') or 0)) for r in surcharge_rows)
+
+    return {
+        'ok': True,
+        'report_no_preview': _preview_next_auto_number_for_form(
+            form_code=SALES_INVOICE_REPORT_AUTO_FORM_CODE,
+            form_label=SALES_INVOICE_REPORT_AUTO_FORM_LABEL,
+            prefix=SALES_INVOICE_REPORT_REF_PREFIX,
+        ),
+        'bookings': rows,
+        'surcharges': surcharge_rows,
+        'shipments': shipment_rows,
+        'total_freight_amount': str(total_freight),
+        'total_surcharge_amount': str(total_surcharge),
+        'combined_total_amount': str(total_freight + total_surcharge),
+    }
+
+
+def _refresh_sales_invoice_report_children(report: SalesInvoiceReport):
+    """
+    Auto-populate child lines from source operational modules.
+    Safe for repeated calls: it fully refreshes child rows.
+    """
+    if report.is_fully_locked:
+        raise ValidationError('Converted reports are locked and cannot be refreshed.')
+
+    bookings = _eligible_executed_bookings_for_report(
+        client_id=report.client_id,
+        booking_date_from=report.booking_date_from,
+        booking_date_to=report.booking_date_to,
+        currency=report.currency,
+    )
+    booking_refs = [row['booking_ref'] for row in bookings if row.get('booking_ref')]
+    surcharges = _eligible_confirmed_surcharges_for_report(booking_refs=booking_refs)
+    shipments = _related_shipments_for_report(booking_refs=booking_refs)
+
+    with db_transaction.atomic():
+        report.booking_lines.all().delete()
+        report.surcharge_lines.all().delete()
+        report.shipment_lines.all().delete()
+
+        SalesInvoiceReportBooking.objects.bulk_create(
+            [SalesInvoiceReportBooking(report=report, **row) for row in bookings]
+        )
+        SalesInvoiceReportSurcharge.objects.bulk_create(
+            [SalesInvoiceReportSurcharge(report=report, **row) for row in surcharges]
+        )
+        SalesInvoiceReportShipment.objects.bulk_create(
+            [SalesInvoiceReportShipment(report=report, **row) for row in shipments]
+        )
+        report.recalculate_totals(save=True)
+
+    return {
+        'bookings_loaded': len(bookings),
+        'surcharges_loaded': len(surcharges),
+        'shipments_loaded': len(shipments),
+        'total_freight_amount': report.total_freight_amount,
+        'total_surcharge_amount': report.total_surcharge_amount,
+    }
+
+
+def _create_sales_invoice_report_with_auto_number(*, form: SalesInvoiceReportForm, created_by: str):
+    """
+    Create Sales Invoice Report header with shared auto-number engine.
+    Child auto-population runs after successful header save.
+    """
+    with db_transaction.atomic():
+        report_no, report_seq = _next_auto_number_for_form(
+            form_code=SALES_INVOICE_REPORT_AUTO_FORM_CODE,
+            form_label=SALES_INVOICE_REPORT_AUTO_FORM_LABEL,
+            prefix=SALES_INVOICE_REPORT_REF_PREFIX,
+        )
+        obj = form.save(commit=False)
+        obj.report_no = report_no
+        obj.report_sequence = report_seq
+        obj.created_by = (created_by or '').strip()
+        obj.updated_by = (created_by or '').strip()
+        obj.full_clean()
+        obj.save()
+        _refresh_sales_invoice_report_children(obj)
+    return obj
 
 
 def _preview_next_address_master_code():

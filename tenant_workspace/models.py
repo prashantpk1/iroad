@@ -10,10 +10,11 @@ import uuid
 import secrets
 import string
 from datetime import date
+from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -2337,6 +2338,243 @@ class TenantPriceListServiceLine(models.Model):
             errors['service_item'] = [_('Service item is required.')]
         if errors:
             raise ValidationError(errors)
+
+
+class SalesInvoiceReport(models.Model):
+    class Status(models.TextChoices):
+        DRAFT = 'Draft', 'Draft'
+        VERIFIED = 'Verified', 'Verified'
+        CONVERTED = 'Converted', 'Converted'
+
+    report_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    report_no = models.CharField(max_length=64, unique=True)
+    report_sequence = models.PositiveIntegerField(default=0)
+    client = models.ForeignKey(
+        TenantClientAccount,
+        on_delete=models.PROTECT,
+        related_name='sales_invoice_reports',
+    )
+    report_date = models.DateField(default=timezone.localdate)
+    booking_date_from = models.DateField()
+    booking_date_to = models.DateField()
+    currency = models.CharField(max_length=10, blank=True, default='')
+    total_freight_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    total_surcharge_amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.DRAFT)
+    sales_invoice_ref = models.UUIDField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='FK-ready reference to Sales Invoice (model pending).',
+    )
+    remarks = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.CharField(max_length=200, blank=True, default='')
+    updated_by = models.CharField(max_length=200, blank=True, default='')
+
+    class Meta:
+        db_table = 'tenant_sales_invoice_report'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['report_no'], name='sir_report_no_idx'),
+            models.Index(fields=['client', 'status'], name='sir_client_status_idx'),
+            models.Index(fields=['booking_date_from', 'booking_date_to'], name='sir_booking_period_idx'),
+        ]
+
+    def __str__(self):
+        return self.report_no
+
+    def clean(self):
+        errors = {}
+        if self.booking_date_from and self.booking_date_to:
+            if self.booking_date_from > self.booking_date_to:
+                errors['booking_date_to'] = _('Booking date to must be on/after booking date from.')
+
+        if self.client_id:
+            if self.client.status != TenantClientAccount.Status.ACTIVE:
+                errors['client'] = _('Only active client accounts can be selected.')
+        else:
+            errors['client'] = _('Client is required.')
+
+        if self.pk:
+            prev = SalesInvoiceReport.objects.filter(pk=self.pk).only('status').first()
+            if prev and prev.status == self.Status.CONVERTED:
+                errors['status'] = _('Converted reports are locked from editing.')
+
+        if errors:
+            raise ValidationError(errors)
+
+    @property
+    def is_fully_locked(self):
+        return self.status == self.Status.CONVERTED
+
+    @property
+    def is_partially_locked(self):
+        return self.status == self.Status.VERIFIED
+
+    def recalculate_totals(self, *, save=True):
+        freight_total = (
+            self.booking_lines.aggregate(total=Sum('sell_price')).get('total')
+            or Decimal('0')
+        )
+        surcharge_total = (
+            self.surcharge_lines.aggregate(total=Sum('amount')).get('total')
+            or Decimal('0')
+        )
+        self.total_freight_amount = freight_total
+        self.total_surcharge_amount = surcharge_total
+        if save and self.pk:
+            type(self).objects.filter(pk=self.pk).update(
+                total_freight_amount=freight_total,
+                total_surcharge_amount=surcharge_total,
+                updated_at=timezone.now(),
+            )
+
+    def save(self, *args, **kwargs):
+        # Header totals are system-derived and not user-editable.
+        self.total_freight_amount = Decimal(self.total_freight_amount or 0)
+        self.total_surcharge_amount = Decimal(self.total_surcharge_amount or 0)
+        super().save(*args, **kwargs)
+
+
+class SalesInvoiceReportBooking(models.Model):
+    line_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    line_no = models.PositiveIntegerField()
+    report = models.ForeignKey(
+        SalesInvoiceReport,
+        on_delete=models.CASCADE,
+        related_name='booking_lines',
+    )
+    booking_ref = models.UUIDField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='FK-ready reference to Booking (model pending).',
+    )
+    so_ref = models.CharField(max_length=120, blank=True, default='')
+    service_name = models.CharField(max_length=200, blank=True, default='')
+    trip_type = models.CharField(max_length=50, blank=True, default='')
+    sell_price = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    booking_status = models.CharField(
+        max_length=30,
+        blank=True,
+        default='',
+        help_text='Snapshot of booking execution status (expects Executed).',
+    )
+
+    class Meta:
+        db_table = 'tenant_sales_invoice_report_booking'
+        ordering = ['line_no']
+        constraints = [
+            models.UniqueConstraint(fields=['report', 'line_no'], name='sir_booking_line_no_uq'),
+            models.UniqueConstraint(
+                fields=['report', 'booking_ref'],
+                condition=Q(booking_ref__isnull=False),
+                name='sir_unique_booking_per_report_uq',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['report', 'line_no'], name='sir_booking_report_line_idx'),
+            models.Index(fields=['booking_ref'], name='sir_booking_ref_idx'),
+        ]
+
+    def clean(self):
+        errors = {}
+        if self.booking_status and self.booking_status.lower() != 'executed':
+            errors['booking_status'] = _('Only executed bookings can be added.')
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.report.recalculate_totals(save=True)
+
+    def delete(self, *args, **kwargs):
+        report = self.report
+        super().delete(*args, **kwargs)
+        report.recalculate_totals(save=True)
+
+
+class SalesInvoiceReportSurcharge(models.Model):
+    line_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    line_no = models.PositiveIntegerField()
+    report = models.ForeignKey(
+        SalesInvoiceReport,
+        on_delete=models.CASCADE,
+        related_name='surcharge_lines',
+    )
+    surcharge_trx_ref = models.UUIDField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='FK-ready reference to Surcharge Sales Transaction (model pending).',
+    )
+    booking_ref = models.UUIDField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='FK-ready reference to Booking (model pending).',
+    )
+    surcharge_type = models.CharField(max_length=120, blank=True, default='')
+    shipment_ref = models.CharField(max_length=120, blank=True, default='')
+    service_name = models.CharField(max_length=200, blank=True, default='')
+    amount = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+
+    class Meta:
+        db_table = 'tenant_sales_invoice_report_surcharge'
+        ordering = ['line_no']
+        constraints = [
+            models.UniqueConstraint(fields=['report', 'line_no'], name='sir_surcharge_line_no_uq'),
+        ]
+        indexes = [
+            models.Index(fields=['report', 'line_no'], name='sir_surcharge_report_line_idx'),
+            models.Index(fields=['surcharge_trx_ref'], name='sir_surcharge_trx_ref_idx'),
+        ]
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.report.recalculate_totals(save=True)
+
+    def delete(self, *args, **kwargs):
+        report = self.report
+        super().delete(*args, **kwargs)
+        report.recalculate_totals(save=True)
+
+
+class SalesInvoiceReportShipment(models.Model):
+    line_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    line_no = models.PositiveIntegerField()
+    report = models.ForeignKey(
+        SalesInvoiceReport,
+        on_delete=models.CASCADE,
+        related_name='shipment_lines',
+    )
+    shipment_ref = models.UUIDField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text='FK-ready reference to Shipment (model pending).',
+    )
+    booking_ref = models.CharField(max_length=120, blank=True, default='')
+    shipment_date = models.DateField(null=True, blank=True)
+    from_location = models.CharField(max_length=200, blank=True, default='')
+    to_location = models.CharField(max_length=200, blank=True, default='')
+    truck_plate = models.CharField(max_length=120, blank=True, default='')
+    customer_ref_docs = models.TextField(blank=True, default='')
+    pod_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'tenant_sales_invoice_report_shipment'
+        ordering = ['line_no']
+        constraints = [
+            models.UniqueConstraint(fields=['report', 'line_no'], name='sir_shipment_line_no_uq'),
+        ]
+        indexes = [
+            models.Index(fields=['report', 'line_no'], name='sir_shipment_report_line_idx'),
+            models.Index(fields=['shipment_ref'], name='sir_shipment_ref_idx'),
+        ]
+
 
 class TenantUser(models.Model):
     """Tenant-scoped internal users (stored per tenant schema)."""

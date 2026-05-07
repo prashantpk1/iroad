@@ -150,8 +150,8 @@
       </li>
 
       <li class="form-list-section">Reports</li>
-      <li class="form-list-item" data-form="job-order-report">
-        Job Order Report
+      <li class="form-list-item {% if auto_number_form_code == 'sales-invoice-report' %}active{% endif %}" data-form="sales-invoice-report">
+        Sales Invoice Report
       </li>
 
       <li class="form-list-section">Tax</li>
@@ -374,6 +374,7 @@
       "service-item-master",
       "price-list-master",
       "booking",
+      "sales-invoice-report",
     ]);
 
     function toAlpha(num) {

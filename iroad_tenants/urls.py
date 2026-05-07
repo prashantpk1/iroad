@@ -120,6 +120,11 @@ from .views import (
     TenantPriceListMasterEditView,
     TenantOperationBookingCreateView,
     TenantOperationBookingListView, 
+    TenantSalesInvoiceReportListView,
+    TenantSalesInvoiceReportCreateView,
+    TenantSalesInvoiceReportDetailView,
+    TenantSalesInvoiceReportUpdateView,
+    TenantSalesInvoiceReportStatusUpdateView,
     TenantPriceListMasterDeleteView,
     TenantPriceListMasterEditView,
 
@@ -723,6 +728,31 @@ urlpatterns = [
         'operations/booking/list/',
         TenantOperationBookingListView.as_view(),
         name='tenant_operation_booking_list',
+    ),
+    path(
+        'finance/sales-invoicing/reports/',
+        TenantSalesInvoiceReportListView.as_view(),
+        name='sales_invoice_report_list',
+    ),
+    path(
+        'finance/sales-invoicing/reports/create/',
+        TenantSalesInvoiceReportCreateView.as_view(),
+        name='sales_invoice_report_create',
+    ),
+    path(
+        'finance/sales-invoicing/reports/<uuid:report_id>/',
+        TenantSalesInvoiceReportDetailView.as_view(),
+        name='sales_invoice_report_detail',
+    ),
+    path(
+        'finance/sales-invoicing/reports/<uuid:report_id>/edit/',
+        TenantSalesInvoiceReportUpdateView.as_view(),
+        name='sales_invoice_report_edit',
+    ),
+    path(
+        'finance/sales-invoicing/reports/<uuid:report_id>/status/',
+        TenantSalesInvoiceReportStatusUpdateView.as_view(),
+        name='sales_invoice_report_status_update',
     ),
     path(
         'operations/shipment/list/',

@@ -464,7 +464,7 @@
 
           <!-- Sales Invoicing -->
           {% if is_tenant_admin or can_view_sales_invoicing %}
-          <li class="nav-item has-submenu">
+          <li class="nav-item has-submenu{% if request.resolver_match and 'sales_invoice_report_' in request.resolver_match.url_name %} open{% endif %}">
             <a href="#" class="nav-link" data-tooltip="Sales Invoicing">
               <i class="bi bi-receipt"></i>
               <span class="nav-text">Sales Invoicing</span>
@@ -472,9 +472,9 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="Sales-invoice-create.html" class="submenu-link">
+                <a href="{% url 'iroad_tenants:sales_invoice_report_list' %}" class="submenu-link{% if request.resolver_match and 'sales_invoice_report_' in request.resolver_match.url_name %} active{% endif %}">
                   <i class="bi bi-receipt"></i>
-                  <span>Sales Invoice Reports</span>
+                  <span>Sales Invoice Report</span>
                 </a>
               </li>
             </ul>
