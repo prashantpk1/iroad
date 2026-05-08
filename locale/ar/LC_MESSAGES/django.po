@@ -2,11 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: iRoad\n"
 "POT-Creation-Date: 2026-04-20 00:00+0000\n"
-"PO-Revision-Date: 2026-04-20 00:00+0000\n"
+"PO-Revision-Date: 2026-05-08 15:21+0530\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.9\n"
 
 msgid "2FA Adoption Rate"
 msgstr "معدل اعتماد التحقق الثنائي"
@@ -559,3 +562,117 @@ msgstr "مرحباً بعودتك"
 
 msgid "You are yet to receive notifications"
 msgstr "لم تصلك إشعارات بعد"
+
+# Mobile API — Auth messages
+msgid "mobile.auth.token_expired"
+msgstr "انتهت صلاحية الجلسة. يرجى تسجيل الدخول مجدداً"
+
+msgid "mobile.auth.token_invalid"
+msgstr "رمز المصادقة غير صالح. يرجى تسجيل الدخول مجدداً"
+
+msgid "mobile.auth.unauthorized"
+msgstr "غير مصرح لك بالوصول. يرجى تسجيل الدخول"
+
+msgid "mobile.auth.forbidden"
+msgstr "ليس لديك صلاحية للوصول لهذا المورد"
+
+msgid "mobile.auth.admin_required"
+msgstr "هذه الصفحة تتطلب صلاحيات المسؤول"
+
+# Mobile API — Validation messages
+msgid "mobile.validation.failed"
+msgstr "البيانات المدخلة غير صحيحة. يرجى المراجعة"
+
+# Mobile API — Error messages
+msgid "mobile.error.not_found"
+msgstr "المورد المطلوب غير موجود"
+
+msgid "mobile.error.method_not_allowed"
+msgstr "طريقة الطلب غير مدعومة"
+
+msgid "mobile.error.rate_limit"
+msgstr "لقد تجاوزت الحد المسموح به من الطلبات."
+
+msgid "mobile.error.generic"
+msgstr "حدث خطأ في معالجة طلبك"
+
+msgid "mobile.error.server_error"
+msgstr "خطأ في الخادم. يرجى المحاولة لاحقاً"
+
+# Mobile API — Success messages
+msgid "mobile.success.data_retrieved"
+msgstr "تم استرجاع البيانات بنجاح"
+
+# TODO: Run compilemessages after installing gettext
+# Mobile API — Driver Auth
+msgid "mobile.auth.email_required"
+msgstr "البريد الإلكتروني مطلوب"
+
+msgid "mobile.auth.email_invalid"
+msgstr "صيغة البريد الإلكتروني غير صحيحة"
+
+msgid "mobile.auth.password_required"
+msgstr "كلمة المرور مطلوبة"
+
+msgid "mobile.auth.password_min_length"
+msgstr "كلمة المرور يجب أن تكون 8 أحرف على الأقل"
+
+msgid "mobile.auth.confirm_password_required"
+msgstr "تأكيد كلمة المرور مطلوب"
+
+msgid "mobile.auth.passwords_do_not_match"
+msgstr "كلمتا المرور غير متطابقتين"
+
+msgid "mobile.auth.otp_required"
+msgstr "رمز التحقق مطلوب"
+
+msgid "mobile.auth.otp_invalid_length"
+msgstr "رمز التحقق يجب أن يكون 6 أرقام"
+
+msgid "mobile.auth.otp_digits_only"
+msgstr "رمز التحقق يجب أن يحتوي على أرقام فقط"
+
+msgid "mobile.auth.invalid_credentials"
+msgstr "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+
+msgid "mobile.auth.account_inactive"
+msgstr "هذا الحساب غير نشط. يرجى التواصل مع الدعم"
+
+msgid "mobile.auth.not_a_driver"
+msgstr "هذا الحساب غير مرتبط بسائق"
+
+msgid "mobile.auth.driver_inactive"
+msgstr "حساب السائق غير نشط. يرجى التواصل مع الإدارة"
+
+msgid "mobile.auth.login_success"
+msgstr "تم تسجيل الدخول بنجاح"
+
+msgid "mobile.auth.otp_sent"
+msgstr "تم إرسال رمز التحقق إلى بريدك الإلكتروني إن كان مسجلاً"
+
+msgid "mobile.auth.otp_not_found"
+msgstr "لم يتم العثور على رمز تحقق نشط"
+
+msgid "mobile.auth.otp_expired"
+msgstr "انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد"
+
+msgid "mobile.auth.otp_max_attempts"
+msgstr "تم تجاوز الحد الأقصى لمحاولات التحقق"
+
+msgid "mobile.auth.otp_wrong"
+msgstr "رمز التحقق غير صحيح"
+
+msgid "mobile.auth.otp_verified"
+msgstr "تم التحقق من الرمز بنجاح"
+
+msgid "mobile.auth.otp_not_verified"
+msgstr "يجب التحقق من رمز OTP أولاً"
+
+msgid "mobile.auth.user_not_found"
+msgstr "المستخدم غير موجود"
+
+msgid "mobile.auth.password_reset_success"
+msgstr "تم تغيير كلمة المرور بنجاح"
+
+msgid "mobile.auth.logout_success"
+msgstr "تم تسجيل الخروج بنجاح"

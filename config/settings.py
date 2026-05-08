@@ -56,11 +56,15 @@ SHARED_APPS = [
     'django_celery_results',
     'django_celery_beat',
     'superadmin',
+    'rest_framework',
+    'corsheaders',
+    'mobile_api',
     
 ]
 
 TENANT_APPS = [
     'tenant_workspace',
+    'mobile_api',
 ]
 
 INSTALLED_APPS = list(SHARED_APPS) + [
@@ -76,6 +80,7 @@ SHOW_PUBLIC_IF_NO_TENANT_FOUND = True
 DATABASE_ROUTERS = ('django_tenants.routers.TenantSyncRouter',)
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django_tenants.middleware.main.TenantMainMiddleware',
     'superadmin.middleware.TenantApiSchemaMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -275,4 +280,91 @@ SUBSCRIPTION_EXPIRY_GRACE_DAYS = config(
 # Session — keep Django session for JTI pointer only
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 86400  # 24hrs max — Redis TTL controls real expiry
+
+# ─────────────────────────────────────────
+# Mobile API — Django REST Framework
+# ─────────────────────────────────────────
+REST_FRAMEWORK = {
+    # Rendering
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.FormParser',
+    ],
+
+    # Auth — handled by our custom class
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'mobile_api.authentication.MobileJWTAuthentication',
+    ],
+
+    # Permissions — default deny all, override per view
+    'DEFAULT_PERMISSION_CLASSES': [
+        'mobile_api.permissions.IsMobileAuthenticated',
+    ],
+
+    # Pagination — custom envelope
+    'DEFAULT_PAGINATION_CLASS':
+        'mobile_api.pagination.MobileApiPagination',
+    'PAGE_SIZE': 10,
+
+    # Exception handler — custom envelope
+    'EXCEPTION_HANDLER':
+        'mobile_api.exceptions.mobile_exception_handler',
+
+    # Throttling — rate limiting
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '30/minute',
+        'user': '100/minute',
+        'mobile_auth': '10/minute',
+        'mobile_otp': '5/minute',
+    },
+}
+
+# ─────────────────────────────────────────
+# Mobile API — CORS Settings
+# ─────────────────────────────────────────
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'origin',
+    'x-requested-with',
+    'x-language',
+    'x-tenant-id',
+    'x-api-key',
+]
+
+# ─────────────────────────────────────────
+# Mobile API — JWT Settings
+# ─────────────────────────────────────────
+MOBILE_API_ACCESS_TOKEN_TTL_SECONDS = config(
+    'MOBILE_API_ACCESS_TOKEN_TTL_SECONDS',
+    default=3600,
+    cast=int,
+)
+MOBILE_API_REFRESH_TOKEN_TTL_SECONDS = config(
+    'MOBILE_API_REFRESH_TOKEN_TTL_SECONDS',
+    default=2592000,  # 30 days
+    cast=int,
+)
+MOBILE_API_JWT_SIGNING_KEY = config(
+    'MOBILE_API_JWT_SIGNING_KEY',
+    default='',
+)
+
+# ─────────────────────────────────────────
+# Mobile API — Pagination
+# ─────────────────────────────────────────
+MOBILE_API_DEFAULT_PAGE_SIZE = 10
+MOBILE_API_MAX_PAGE_SIZE = 100
 

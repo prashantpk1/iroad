@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
 from django.db import connection
+from django.db.models import Q
 from django.shortcuts import redirect
 
 
@@ -23,17 +24,20 @@ class TenantApiSchemaMiddleware:
         if not request.path.startswith(self.API_PREFIX):
             return self.get_response(request)
 
-        tenant_id = (request.headers.get('X-Tenant-ID') or '').strip()
-        if not tenant_id:
+        tenant_identifier = (request.headers.get('X-Tenant-ID') or '').strip()
+        if not tenant_identifier:
             return self.get_response(request)
 
         connection.set_schema_to_public()
         try:
             from iroad_tenants.models import TenantRegistry
 
+            # Accept either tenant UUID (tenant_profile_id) or schema_name.
+            # Mobile clients may send one or the other while migrating.
             reg = (
                 TenantRegistry.objects.filter(
-                    tenant_profile_id=tenant_id,
+                    Q(tenant_profile_id=tenant_identifier)
+                    | Q(schema_name=tenant_identifier)
                 )
                 .select_related('tenant_profile')
                 .first()

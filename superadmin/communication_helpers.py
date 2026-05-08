@@ -572,6 +572,44 @@ DEFAULT_NOTIFICATION_EMAIL_TEMPLATES = [
         ),
     },
     {
+        'template_name': 'MOBILE_FORGOT_PASSWORD_OTP',
+        'category': 'Transactional',
+        'subject_en': 'Your iRoad Password Reset OTP',
+        'subject_ar': 'رمز OTP لإعادة تعيين كلمة مرور iRoad',
+        'body_en': _wrap_email_body(
+            '<h2>Password Reset OTP 🔐</h2>'
+            '<p>Hello {{ user_name|default:"Driver" }},</p>'
+            '<p>We received a password reset request for your iRoad mobile account. '
+            'Use the OTP below to continue:</p>'
+            '<div style="text-align:center;margin:28px 0;">'
+            '<div style="display:inline-block;background:#1f2d49;color:#ffffff;border-radius:12px;'
+            'padding:14px 26px;font-family:Courier New,monospace;font-size:34px;letter-spacing:8px;'
+            'font-weight:700;">{{ otp_code|default:otp }}</div>'
+            '</div>'
+            '<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#334e68;">'
+            'This OTP is valid for <strong>10 minutes</strong>.</p>'
+            '<p style="font-size:13px;color:#94a3b8;line-height:1.6;">'
+            'If you did not request this, please ignore this email.</p>'
+        ),
+        'body_ar': _wrap_email_body(
+            '<div dir="rtl" style="text-align:right;">'
+            '<h2>رمز OTP لإعادة تعيين كلمة المرور 🔐</h2>'
+            '<p>مرحباً {{ user_name|default:"Driver" }}،</p>'
+            '<p>تلقينا طلباً لإعادة تعيين كلمة مرور حساب iRoad على الجوال. '
+            'استخدم رمز OTP التالي للمتابعة:</p>'
+            '<div style="text-align:center;margin:28px 0;">'
+            '<div style="display:inline-block;background:#1f2d49;color:#ffffff;border-radius:12px;'
+            'padding:14px 26px;font-family:Courier New,monospace;font-size:34px;letter-spacing:8px;'
+            'font-weight:700;">{{ otp_code|default:otp }}</div>'
+            '</div>'
+            '<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#334e68;">'
+            'هذا الرمز صالح لمدة <strong>10 دقائق</strong> فقط.</p>'
+            '<p style="font-size:13px;color:#94a3b8;line-height:1.6;">'
+            'إذا لم تطلب ذلك، يمكنك تجاهل هذه الرسالة.</p>'
+            '</div>'
+        ),
+    },
+    {
         'template_name': 'TENANT_PASSWORD_RESET',
         'category': 'Transactional',
         'subject_en': 'Reset Your iRoad Tenant Password',
