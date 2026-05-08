@@ -4310,6 +4310,7 @@ class TenantOperationShipmentCreateView(TenantSimplePageView):
         if not context.get('is_tenant_admin') and not context.get('can_view_shipment'):
             messages.error(request, 'You do not have permission to view Shipment.', extra_tags='tenant')
             return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
+        context['shipment_creation_date'] = timezone.now().date()
         return render(request, self.template_name, context)
 
     def post(self, request):
