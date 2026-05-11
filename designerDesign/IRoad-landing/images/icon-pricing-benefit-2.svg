@@ -1,12 +1,27 @@
 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_438_4949)">
-<path d="M10 6.42801V4.28516" stroke="#FF7D44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M7.85938 12.144C7.85938 13.2154 8.81652 13.5725 10.0022 13.5725C11.1879 13.5725 12.1451 13.5725 12.1451 12.144C12.1451 10.0011 7.85938 10.0011 7.85938 7.85826C7.85938 6.42969 8.81652 6.42969 10.0022 6.42969C11.1879 6.42969 12.1451 6.97254 12.1451 7.85826" stroke="#FF7D44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M10 13.5723V15.7151" stroke="#FF7D44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M10.0006 19.2863C15.1289 19.2863 19.2863 15.1289 19.2863 10.0006C19.2863 4.8722 15.1289 0.714844 10.0006 0.714844C4.8722 0.714844 0.714844 4.8722 0.714844 10.0006C0.714844 15.1289 4.8722 19.2863 10.0006 19.2863Z" stroke="#FF7D44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<g clip-path="url(#clip0_1427_54186)">
+<g clip-path="url(#clip1_1427_54186)">
+<g clip-path="url(#clip2_1427_54186)">
+<mask id="mask0_1427_54186" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+<path d="M20 0H0V20H20V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_1427_54186)">
+<path d="M10 6.42801V4.28516" stroke="#2673E2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7.85938 12.144C7.85938 13.2154 8.81652 13.5725 10.0022 13.5725C11.1879 13.5725 12.1451 13.5725 12.1451 12.144C12.1451 10.0011 7.85938 10.0011 7.85938 7.85826C7.85938 6.42969 8.81652 6.42969 10.0022 6.42969C11.1879 6.42969 12.1451 6.97254 12.1451 7.85826" stroke="#2673E2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M10 13.5723V15.7151" stroke="#2673E2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M10.0006 19.2863C15.1289 19.2863 19.2863 15.1289 19.2863 10.0006C19.2863 4.8722 15.1289 0.714844 10.0006 0.714844C4.8722 0.714844 0.714844 4.8722 0.714844 10.0006C0.714844 15.1289 4.8722 19.2863 10.0006 19.2863Z" stroke="#2673E2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</g>
+</g>
 </g>
 <defs>
-<clipPath id="clip0_438_4949">
+<clipPath id="clip0_1427_54186">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+<clipPath id="clip1_1427_54186">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+<clipPath id="clip2_1427_54186">
 <rect width="20" height="20" fill="white"/>
 </clipPath>
 </defs>
