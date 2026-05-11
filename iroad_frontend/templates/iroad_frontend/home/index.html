@@ -1,0 +1,884 @@
+{% extends 'iroad_frontend/base.html' %}
+{% load static %}
+
+{% block content %}
+    <!-- Hero Section Start -->
+    <div class="hero-elite bg-section">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-12">
+            <!-- Hero Box Start -->
+            <div class="hero-box-elite">
+              <!-- Hero Content Start -->
+              <div class="hero-content-elite">
+                <!-- Hero Content Header Start -->
+                <div class="hero-content-header-elite">
+                  <!-- Section Title Start -->
+                  <div class="section-title section-title-center">
+                    <h3>{{ home.hero_kicker_en }}</h3>
+                    <h1>{{ home.hero_heading_en }}</h1>
+                    <p class="wow fadeInUp" data-wow-delay="0.2s">{{ home.hero_subheading_en }}</p>
+                  </div>
+                  <!-- Section Title End -->
+
+                  <!-- Section Button Start -->
+                  <div class="section-btn-elite wow fadeInUp" data-wow-delay="0.4s">
+                    <a href="{{ home.hero_cta_url }}" class="btn-default">{{ home.hero_cta_label_en }}</a>
+                  </div>
+                  <!-- Section Button End -->
+                </div>
+                <!-- Hero Content Header End -->
+
+                <!-- Hero Content Body Start -->
+                <div class="hero-content-body-elite wow fadeInUp" data-wow-delay="0.6s">
+                  <ul>
+                    {% if home.hero_bullet_1_en %}<li>{{ home.hero_bullet_1_en }}</li>{% endif %}
+                    {% if home.hero_bullet_2_en %}<li>{{ home.hero_bullet_2_en }}</li>{% endif %}
+                    {% if home.hero_bullet_3_en %}<li>{{ home.hero_bullet_3_en }}</li>{% endif %}
+                  </ul>
+                </div>
+                <!-- Hero Content Body End -->
+              </div>
+              <!-- Hero Content End -->
+
+              <!-- Hero Images Box Start -->
+              <div class="hero-Images-boxes-elite wow fadeInUp" data-wow-delay="0.2s">
+                <!-- Hero Image Box Start -->
+                <div class="hero-Image-box-1-elite">
+                  <!-- Hero Image Start -->
+                  <div class="hero-Image-elite">
+                    <figure class="image-anime">
+                      {% if home.hero_image_primary %}
+                        <img src="{{ home.hero_image_primary.url }}" alt="" />
+                      {% else %}
+                        <img src="{% static 'landing/images/hero-Image-1-elite.jpg' %}" alt="" />
+                      {% endif %}
+                    </figure>
+                  </div>
+                  <!-- Hero Image End -->
+                </div>
+                <!-- Hero Image Box End -->
+
+                <!-- Hero Image Box Start -->
+                <div class="hero-Image-box-2-elite">
+                  <!-- Hero Review Box Image Start -->
+                  <div class="hero-review-box-image-elite">
+                    <!-- Hero Image Start -->
+                    <div class="hero-Image-elite">
+                      <figure class="image-anime">
+                        {% if home.hero_image_secondary %}
+                          <img src="{{ home.hero_image_secondary.url }}" alt="" />
+                        {% else %}
+                          <img src="{% static 'landing/images/hero-Image-2-elite.jpg' %}" alt="" />
+                        {% endif %}
+                      </figure>
+                    </div>
+                    <!-- Hero Image End -->
+                  </div>
+                  <!-- Hero Review Box Image End -->
+                </div>
+                <!-- Hero Image Box End -->
+              </div>
+              <!-- Hero Images Box End -->
+            </div>
+            <!-- Hero Box End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Hero Section End -->
+
+    <!-- Scrolling Ticker Start -->
+    <div class="our-scrolling-ticker-elite">
+      <div class="scrolling-content-elite">
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_4_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_5_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_4_en }}</span>
+      </div>
+
+      <div class="scrolling-content-elite">
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_5_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_4_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_5_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_4_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_5_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
+      </div>
+    </div>
+    <!-- Scrolling Ticker End -->
+
+    <!-- About Us Section Start -->
+    <div class="about-us-elite">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-xl-6">
+            <!-- About Us Images Start -->
+            <div class="about-us-images-elite">
+              <figure class="image-anime reveal">
+                {% if home.about_main_image %}
+                  <img src="{{ home.about_main_image.url }}" alt="" />
+                {% else %}
+                  <img src="{% static 'landing/images/about-us-image-elite.jpg' %}" alt="" />
+                {% endif %}
+              </figure>
+            </div>
+            <!-- About Us Images End -->
+          </div>
+
+          <div class="col-xl-6">
+            <!-- About Us Content Start -->
+            <div class="about-us-content-elite">
+              <!-- Section Title Start -->
+              <div class="section-title">
+                <h3>{{ home.about_kicker_en }}</h3>
+                <h2>{{ home.about_heading_en }}</h2>
+                <p class="wow fadeInUp" data-wow-delay="0.2s">{{ home.about_body_en }}</p>
+              </div>
+              <!-- Section Title End -->
+
+              <!-- About Us Body Start -->
+              <div class="about-us-body-elite">
+                <!-- About Body Item List Start -->
+                <div class="about-body-item-list-elite wow fadeInUp" data-wow-delay="0.4s">
+                  <!-- About Body Item Start -->
+                  <div class="about-body-item-elite">
+                    <div class="icon-box">
+                      {% if home.about_point_1_icon %}
+                        <img src="{{ home.about_point_1_icon.url }}" alt="" />
+                      {% else %}
+                        <img src="{% static 'landing/images/icon-about-body-item-1-elite.svg' %}" alt="" />
+                      {% endif %}
+                    </div>
+                    <div class="about-body-item-content-elite">
+                      <h3>{{ home.about_point_1_title_en }}</h3>
+                      <p>{{ home.about_point_1_body_en }}</p>
+                    </div>
+                  </div>
+                  <!-- About Body Item End -->
+
+                  <!-- About Body Item Start -->
+                  <div class="about-body-item-elite">
+                    <div class="icon-box">
+                      {% if home.about_point_2_icon %}
+                        <img src="{{ home.about_point_2_icon.url }}" alt="" />
+                      {% else %}
+                        <img src="{% static 'landing/images/icon-about-body-item-2-elite.svg' %}" alt="" />
+                      {% endif %}
+                    </div>
+                    <div class="about-body-item-content-elite">
+                      <h3>{{ home.about_point_2_title_en }}</h3>
+                      <p>{{ home.about_point_2_body_en }}</p>
+                    </div>
+                  </div>
+                  <!-- About Body Item End -->
+                </div>
+                <!-- About Body Item List End -->
+
+                <!-- About Experience Box Start -->
+                <div class="about-experience-box-elite">
+                  <div class="about-experience-box-image-elite">
+                    <figure>
+                      {% if home.about_experience_image %}
+                        <img src="{{ home.about_experience_image.url }}" alt="" />
+                      {% else %}
+                        <img src="{% static 'landing/images/about-experience-box-image-elite.jpg' %}" alt="" />
+                      {% endif %}
+                    </figure>
+                  </div>
+                  <div class="about-experience-box-content-elite">
+                    <h2><span class="counter">{{ home.about_experience_number }}</span>{{ home.about_experience_suffix_en }}</h2>
+                    <p>{{ home.about_experience_caption_en }}</p>
+                  </div>
+                </div>
+                <!-- About Experience Box End -->
+              </div>
+              <!-- About Us Body End -->
+
+              <!-- About Us Footer Start -->
+              <div class="about-us-footer-elite wow fadeInUp" data-wow-delay="0.6s">
+                <!-- About Us Button Start -->
+                <div class="about-us-btn-elite">
+                  <a href="{{ home.about_cta_url }}" class="btn-default">{{ home.about_cta_label_en }}</a>
+                </div>
+                <!-- About Us Button End -->
+              </div>
+              <!-- About Us Footer End -->
+            </div>
+            <!-- About Us Content End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- About Us Section End -->
+
+    <!-- Our Services Section Start -->
+    <div class="our-services-elite bg-section">
+      <div class="container">
+        <div class="row section-row">
+          <div class="col-lg-12">
+            <!-- Section Title Start -->
+            <div class="section-title section-title-center">
+              <h3>{{ home.services_kicker_en }}</h3>
+              <h2>{{ home.services_heading_en }}</h2>
+            </div>
+            <!-- Section Title End -->
+          </div>
+        </div>
+
+        <div class="row">
+          {% for card in service_cards %}
+            <div class="col-xl-3 col-md-6">
+              <!-- Services Item Start -->
+              <div
+                class="service-item-elite wow fadeInUp"
+                {% if forloop.counter0 == 1 %}data-wow-delay="0.2s"{% elif forloop.counter0 == 2 %}data-wow-delay="0.4s"{% elif forloop.counter0 == 3 %}data-wow-delay="0.6s"{% endif %}
+              >
+                <div class="service-item-header-elite">
+                  <div class="icon-box">
+                    {% if card.icon %}
+                      <img src="{{ card.icon.url }}" alt="" />
+                    {% elif forloop.counter == 1 %}
+                      <img src="{% static 'landing/images/icon-service-1-elite.svg' %}" alt="" />
+                    {% elif forloop.counter == 2 %}
+                      <img src="{% static 'landing/images/icon-service-2-elite.svg' %}" alt="" />
+                    {% elif forloop.counter == 3 %}
+                      <img src="{% static 'landing/images/icon-service-3-elite.svg' %}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/icon-service-4-elite.svg' %}" alt="" />
+                    {% endif %}
+                  </div>
+                  <div class="service-item-title-elite">
+                    <h3>
+                      <a href="{{ card.detail_url }}">{{ card.title_en }}</a>
+                    </h3>
+                  </div>
+                </div>
+                <div class="service-item-body-elite">
+                  <div class="service-item-content-elite">
+                    <p>{{ card.summary_en }}</p>
+                  </div>
+                  <div class="service-item-btn-elite">
+                    <a href="{{ card.detail_url }}" class="readmore-btn">{{ card.cta_label_en }}</a>
+                  </div>
+                </div>
+              </div>
+              <!-- Services Item End -->
+            </div>
+          {% endfor %}
+
+          <div class="col-lg-12">
+            <!-- Section Footer Text Start -->
+            <div class="section-footer-text wow fadeInUp" data-wow-delay="0.4s">
+              <p>
+                {{ home.services_footer_text_en }}
+                <a href="{{ home.services_footer_link_url }}">{{ home.services_footer_link_label_en }}</a>
+              </p>
+            </div>
+            <!-- Section Footer Text End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Our Services Section End -->
+
+    <!-- Why Choose Section Start -->
+    <div class="why-choose-us-elite">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-xl-6">
+            <!-- Why Choose Content Start -->
+            <div class="why-choose-content-elite">
+              <!-- Section Title Start -->
+              <div class="section-title">
+                <h3>{{ home.why_kicker_en }}</h3>
+                <h2>{{ home.why_heading_en }}</h2>
+              </div>
+              <!-- Section Title End -->
+
+              <!-- Why Choose Step List Start -->
+              <div class="why-choose-step-list-elite wow fadeInUp" data-wow-delay="0.2s">
+                <!-- Why Choose Item Start -->
+                <div class="why-choose-item-elite">
+                  <div class="icon-box">
+                    {% if home.why_point_1_icon %}
+                      <img src="{{ home.why_point_1_icon.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/icon-why-choose-item-1-elite.svg' %}" alt="" />
+                    {% endif %}
+                  </div>
+                  <div class="why-choose-item-elite-content">
+                    <h3>{{ home.why_point_1_title_en }}</h3>
+                    <p>{{ home.why_point_1_body_en }}</p>
+                  </div>
+                </div>
+                <!-- Why Choose Item End -->
+
+                <!-- Why Choose Item Start -->
+                <div class="why-choose-item-elite">
+                  <div class="icon-box">
+                    {% if home.why_point_2_icon %}
+                      <img src="{{ home.why_point_2_icon.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/icon-why-choose-item-2-elite.svg' %}" alt="" />
+                    {% endif %}
+                  </div>
+                  <div class="why-choose-item-elite-content">
+                    <h3>{{ home.why_point_2_title_en }}</h3>
+                    <p>{{ home.why_point_2_body_en }}</p>
+                  </div>
+                </div>
+                <!-- Why Choose Item End -->
+
+                <!-- Why Choose Item Start -->
+                <div class="why-choose-item-elite">
+                  <div class="icon-box">
+                    {% if home.why_point_3_icon %}
+                      <img src="{{ home.why_point_3_icon.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/icon-why-choose-item-3-elite.svg' %}" alt="" />
+                    {% endif %}
+                  </div>
+                  <div class="why-choose-item-elite-content">
+                    <h3>{{ home.why_point_3_title_en }}</h3>
+                    <p>{{ home.why_point_3_body_en }}</p>
+                  </div>
+                </div>
+                <!-- Why Choose Item End -->
+              </div>
+              <!-- Why Choose Step List End -->
+            </div>
+            <!-- Why Choose Content End -->
+          </div>
+
+          <div class="col-xl-6">
+            <!-- Why Choose Images Boxes Start -->
+            <div class="why-choose-images-boxes-elite wow fadeInUp" data-wow-delay="0.2s">
+              <!-- Why Choose Image Box Start -->
+              <div class="why-choose-image-box-1-elite">
+                <!-- Why Choose Image Start -->
+                <div class="why-choose-image-elite">
+                  <figure class="image-anime">
+                    {% if home.why_image_1 %}
+                      <img src="{{ home.why_image_1.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/why-choose-image-1-elite.jpg' %}" alt="" />
+                    {% endif %}
+                  </figure>
+                </div>
+                <!-- Why Choose Image End -->
+              </div>
+              <!-- Why Choose Image Box End -->
+
+              <!-- Why Choose Image Box Start -->
+              <div class="why-choose-image-box-2-elite">
+                <!-- Why Choose Image Start -->
+                <div class="why-choose-image-elite">
+                  <figure class="image-anime">
+                    {% if home.why_image_2 %}
+                      <img src="{{ home.why_image_2.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/why-choose-image-2-elite.jpg' %}" alt="" />
+                    {% endif %}
+                  </figure>
+                </div>
+                <!-- Why Choose Image End -->
+
+                <!-- Why Choose Image Start -->
+                <div class="why-choose-image-elite">
+                  <figure class="image-anime">
+                    {% if home.why_image_3 %}
+                      <img src="{{ home.why_image_3.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/why-choose-image-3-elite.jpg' %}" alt="" />
+                    {% endif %}
+                  </figure>
+                </div>
+                <!-- Why Choose Image End -->
+              </div>
+              <!-- Why Choose Image Box End -->
+            </div>
+            <!-- Why Choose Images Boxes End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Why Choose Section End -->
+
+    <!-- Our Features Section Start -->
+    <div class="our-features-elite bg-section dark-section">
+      <div class="container">
+        <div class="row section-row">
+          <div class="col-lg-12">
+            <!-- Section Title Start -->
+            <div class="section-title section-title-center">
+              <h3>{{ home.features_kicker_en }}</h3>
+              <h2>{{ home.features_heading_en }}</h2>
+            </div>
+            <!-- Section Title End -->
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-12">
+            <!-- Features Items List Start -->
+            <div class="features-items-list-elite">
+              <!-- Feature Image Box Start -->
+              <div class="feature-image-box-elite wow fadeInUp">
+                <div class="feature-image-elite">
+                  <figure class="image-anime">
+                    {% if home.feature_a_image %}
+                      <img src="{{ home.feature_a_image.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/feature-image-1-elite.jpg' %}" alt="" />
+                    {% endif %}
+                  </figure>
+                </div>
+                <div class="feature-item-image-elite">
+                  <div class="icon-box">
+                    {% if home.feature_a_icon %}
+                      <img src="{{ home.feature_a_icon.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/icon-feature-item-image-1.svg' %}" alt="" />
+                    {% endif %}
+                  </div>
+                  <div class="feature-item-image-content-elite">
+                    <h3>{{ home.feature_a_title_en }}</h3>
+                    <p>{{ home.feature_a_body_en }}</p>
+                  </div>
+                </div>
+              </div>
+              <!-- Feature Image Box End -->
+
+              <!-- Feature Item Start -->
+              <div class="feature-item-elite wow fadeInUp" data-wow-delay="0.2s">
+                <div class="icon-box">
+                  {% if home.feature_b_icon %}
+                    <img src="{{ home.feature_b_icon.url }}" alt="" />
+                  {% else %}
+                    <img src="{% static 'landing/images/icon-feature-item-1-elite.svg' %}" alt="" />
+                  {% endif %}
+                </div>
+                <div class="feature-item-content-elite">
+                  <h3>{{ home.feature_b_title_en }}</h3>
+                  <p>{{ home.feature_b_body_en }}</p>
+                  <ul>
+                    {% if home.feature_b_list_item_1_en %}<li>{{ home.feature_b_list_item_1_en }}</li>{% endif %}
+                    {% if home.feature_b_list_item_2_en %}<li>{{ home.feature_b_list_item_2_en }}</li>{% endif %}
+                  </ul>
+                </div>
+              </div>
+              <!-- Feature Item End -->
+
+              <!-- Feature Image Box Start -->
+              <div class="feature-image-box-elite wow fadeInUp" data-wow-delay="0.4s">
+                <div class="feature-image-elite">
+                  <figure class="image-anime">
+                    {% if home.feature_c_image %}
+                      <img src="{{ home.feature_c_image.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/feature-image-2-elite.jpg' %}" alt="" />
+                    {% endif %}
+                  </figure>
+                </div>
+                <div class="feature-item-image-elite">
+                  <div class="icon-box">
+                    {% if home.feature_c_icon %}
+                      <img src="{{ home.feature_c_icon.url }}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/icon-feature-item-image-2.svg' %}" alt="" />
+                    {% endif %}
+                  </div>
+                  <div class="feature-item-image-content-elite">
+                    <h3>{{ home.feature_c_title_en }}</h3>
+                    <p>{{ home.feature_c_body_en }}</p>
+                  </div>
+                </div>
+              </div>
+              <!-- Feature Image Box End -->
+
+              <!-- Feature Item Start -->
+              <div class="feature-item-elite wow fadeInUp" data-wow-delay="0.6s">
+                <div class="icon-box">
+                  {% if home.feature_d_icon %}
+                    <img src="{{ home.feature_d_icon.url }}" alt="" />
+                  {% else %}
+                    <img src="{% static 'landing/images/icon-feature-item-2-elite.svg' %}" alt="" />
+                  {% endif %}
+                </div>
+                <div class="feature-item-content-elite">
+                  <h3>{{ home.feature_d_title_en }}</h3>
+                  <p>{{ home.feature_d_body_en }}</p>
+                  <ul>
+                    {% if home.feature_d_list_item_1_en %}<li>{{ home.feature_d_list_item_1_en }}</li>{% endif %}
+                    {% if home.feature_d_list_item_2_en %}<li>{{ home.feature_d_list_item_2_en }}</li>{% endif %}
+                  </ul>
+                </div>
+              </div>
+              <!-- Feature Item End -->
+            </div>
+            <!-- Features Items List End -->
+          </div>
+
+          <div class="col-lg-12">
+            <!-- Section Footer Text Start -->
+            <div class="section-footer-text wow fadeInUp" data-wow-delay="0.4s">
+              <p>
+                {{ home.features_footer_text_en }}
+                <a href="{{ home.features_footer_link_url }}">{{ home.features_footer_link_label_en }}</a>
+              </p>
+              <ul>
+                <li>{{ home.features_rating_value }}</li>
+                <li>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                </li>
+                <li>{{ home.features_review_count_label_en }}</li>
+              </ul>
+            </div>
+            <!-- Section Footer Text End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Our Features Section End -->
+
+    <!-- Our Pricing Section Start -->
+    <div class="our-pricing-elite bg-section">
+      <div class="container">
+        <div class="row section-row">
+          <div class="col-lg-12">
+            <!-- Section Title Start -->
+            <div class="section-title section-title-center">
+              <h3>{{ home.pricing_kicker_en|default:"Pricing Plans" }}</h3>
+              <h2>{{ home.pricing_heading_en|default:"Pricing that scales with your transport team" }}</h2>
+            </div>
+            <!-- Section Title End -->
+          </div>
+        </div>
+
+        <div class="row">
+          {% for tier in pricing_tiers %}
+            <div class="col-xl-4 col-md-6">
+              <!-- Pricing Item Start -->
+              <div
+                class="pricing-item-elite wow fadeInUp"
+                {% if forloop.counter0 == 0 %}data-wow-delay="0.2s"{% elif forloop.counter0 == 1 %}data-wow-delay="0.4s"{% elif forloop.counter0 == 2 %}data-wow-delay="0.6s"{% endif %}
+              >
+                <!-- Pricing Item Header Start -->
+                <div class="pricing-item-header-elite">
+                  <!-- Pricing Header Content Start -->
+                  <div class="pricing-header-content-elite">
+                    <h3>{{ tier.name_en }}</h3>
+                    <p>{{ tier.summary_en }}</p>
+                  </div>
+                  <!-- Pricing Header Content End -->
+
+                  <!-- Pricing Price Start -->
+                  <div class="pricing-item-price-elite">
+                    <h2>{{ tier.price_display_en|safe }}</h2>
+                  </div>
+                  <!-- Pricing Price End -->
+                </div>
+                <!-- Pricing Item Header End -->
+
+                <!-- Pricing Body Start -->
+                <div class="pricing-item-list-elite">
+                  <ul>
+                    {% if tier.bullet_1_en %}<li>{{ tier.bullet_1_en }}</li>{% endif %}
+                    {% if tier.bullet_2_en %}<li>{{ tier.bullet_2_en }}</li>{% endif %}
+                    {% if tier.bullet_3_en %}<li>{{ tier.bullet_3_en }}</li>{% endif %}
+                    {% if tier.bullet_4_en %}<li>{{ tier.bullet_4_en }}</li>{% endif %}
+                  </ul>
+                </div>
+                <!-- Pricing Body End -->
+
+                <!-- Pricing Item Button Start -->
+                <div class="pricing-item-btn-elite">
+                  <a href="{{ tier.cta_url }}" class="btn-default">{{ tier.cta_label_en }}</a>
+                </div>
+                <!-- Pricing Item Button End -->
+              </div>
+              <!-- Pricing Item End -->
+            </div>
+          {% endfor %}
+
+          <div class="col-lg-12">
+            <!-- Pricing Benifit List Start -->
+            <div class="pricing-benefit-list-elite wow fadeInUp" data-wow-delay="0.4s">
+              <ul>
+                {% for tier in pricing_tiers %}
+                  {% if forloop.first %}
+                    {% if tier.pricing_benefit_1_text_en %}
+                      <li>
+                        <img src="{% static 'landing/images/icon-pricing-benefit-1.svg' %}" alt="" />{{ tier.pricing_benefit_1_text_en }}
+                      </li>
+                    {% endif %}
+                    {% if tier.pricing_benefit_2_text_en %}
+                      <li>
+                        <img src="{% static 'landing/images/icon-pricing-benefit-2.svg' %}" alt="" />{{ tier.pricing_benefit_2_text_en }}
+                      </li>
+                    {% endif %}
+                    {% if tier.pricing_benefit_3_text_en %}
+                      <li>
+                        <img src="{% static 'landing/images/icon-pricing-benefit-3.svg' %}" alt="" />{{ tier.pricing_benefit_3_text_en }}
+                      </li>
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            </div>
+            <!-- Pricing Benifit List End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Our Pricing Section End -->
+
+    <!-- Our Business Section Start -->
+    <div class="our-business-elite bg-section">
+      <div class="container-fluid">
+        <div class="row no-gutters">
+          <div class="col-xl-12">
+            <!-- Our Business Boxes Start -->
+            <div class="our-business-boxes-elite">
+              <!-- Business Map Box Start -->
+              <div class="business-map-box-elite wow fadeInUp">
+                <!-- Business WorldWide Map Start -->
+                <div class="business-worldwide-map-elite">
+                  <!-- Partner World Map Image Start -->
+                  <div class="partner-world-map-image-elite">
+                    <figure>
+                      {% if home.business_map_image %}
+                        <img src="{{ home.business_map_image.url }}" alt="" />
+                      {% else %}
+                        <img src="{% static 'landing/images/world-map-image.png' %}" alt="" />
+                      {% endif %}
+                    </figure>
+                  </div>
+                  <!-- Partner World Map Image End -->
+
+                  <!-- World Map Cards Box Start -->
+                  <div class="world-map-cards-box-elite">
+                    {% for loc in map_locations %}
+                      <!-- World Map Card Item Start -->
+                      <div class="world-map-card-item-elite card-{{ forloop.counter }}{% if forloop.counter == 3 %} active{% endif %}">
+                        <!-- World Map Card Button Start -->
+                        <button class="world-map-card-btn-elite" type="button">
+                          <img src="{% static 'landing/images/icon-location-accent.svg' %}" alt="" />
+                        </button>
+                        <!-- World Map Card Button End -->
+
+                        <!-- World Map Card Body Start -->
+                        <div class="world-map-card-body-elite">
+                          <div class="world-map-card-image-elite">
+                            <figure>
+                              {% if loc.card_image %}
+                                <img src="{{ loc.card_image.url }}" alt="" />
+                              {% else %}
+                                <img src="{% static 'landing/images/world-map-card-image-1.jpg' %}" alt="" />
+                              {% endif %}
+                            </figure>
+                          </div>
+                          <div class="world-map-card-content-elite">
+                            <h3>{{ loc.title_en }}</h3>
+                            <p>{{ loc.subtitle_en }}</p>
+                          </div>
+                        </div>
+                        <!-- World Map Card Body End -->
+                      </div>
+                      <!-- World Map Card Item End -->
+                    {% endfor %}
+                  </div>
+                  <!-- World Map Cards Box End -->
+                </div>
+                <!-- Business WorldWide Map End -->
+
+                <!-- Business Counter Box Start -->
+                <div class="business-counter-box-elite">
+                  <div class="business-counter-title-elite">
+                    <h2><span class="counter">{{ home.business_counter_value }}</span>{{ home.business_counter_suffix_en }}</h2>
+                  </div>
+                  <div class="business-counter-content-elite">
+                    <p>{{ home.business_counter_caption_en }}</p>
+                  </div>
+                </div>
+                <!-- Business Counter Box End -->
+              </div>
+              <!-- Business Map Box End -->
+
+              <!-- Business Content Box Start -->
+              <div class="business-content-box-elite wow fadeInUp" data-wow-delay="0.2s">
+                <!-- Business Content Start -->
+                <div class="business-content-elite">
+                  <div class="business-content-header-elite">
+                    <h2>{{ home.business_heading_en }}</h2>
+                  </div>
+                  <div class="business-content-body-elite">
+                    <p>{{ home.business_body_en }}</p>
+                    <ul>
+                      {% if home.business_bullet_1_en %}<li>{{ home.business_bullet_1_en }}</li>{% endif %}
+                      {% if home.business_bullet_2_en %}<li>{{ home.business_bullet_2_en }}</li>{% endif %}
+                    </ul>
+                  </div>
+                </div>
+                <!-- Business Content End -->
+
+                <!-- Business Content Image Start -->
+                <div class="business-content-image-elite">
+                  {% if home.business_side_image %}
+                    <img src="{{ home.business_side_image.url }}" alt="" />
+                  {% else %}
+                    <img src="{% static 'landing/images/business-content-image-elite.png' %}" alt="" />
+                  {% endif %}
+                </div>
+                <!-- Business Content Image End -->
+              </div>
+              <!-- Business Content Box End -->
+            </div>
+            <!-- Our Business Boxes End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Our Business Section End -->
+
+    <!-- Our Testimonials Section Start -->
+    <div class="our-testimonials bg-section">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-5">
+            <!-- Testimonial Image Box Start -->
+            <div class="testimonial-image-box wow fadeInUp" data-wow-delay="0.2s">
+              <!-- Testimonial Image Start -->
+              <div class="testimonial-image">
+                <figure class="image-anime">
+                  {% if home.testimonials_hero_image %}
+                    <img src="{{ home.testimonials_hero_image.url }}" alt="" />
+                  {% else %}
+                    <img src="{% static 'landing/images/testimonial-image.jpg' %}" alt="" />
+                  {% endif %}
+                </figure>
+              </div>
+              <!-- Testimonial Image End -->
+
+              <!-- Happy Customer Box Start -->
+              <div class="happy-customer-box">
+                <!-- Satisfy Client Images Start -->
+                <div class="satisfy-client-images">
+                  <div class="satisfy-client-image">
+                    <figure class="image-anime">
+                      <img src="{% static 'landing/images/author-1.jpg' %}" alt="" />
+                    </figure>
+                  </div>
+                  <div class="satisfy-client-image">
+                    <figure class="image-anime">
+                      <img src="{% static 'landing/images/author-2.jpg' %}" alt="" />
+                    </figure>
+                  </div>
+                  <div class="satisfy-client-image">
+                    <figure class="image-anime">
+                      <img src="{% static 'landing/images/author-3.jpg' %}" alt="" />
+                    </figure>
+                  </div>
+                  <div class="satisfy-client-image add-more">
+                    <h3>{{ home.testimonials_happy_count }}</h3>
+                  </div>
+                </div>
+                <!-- Satisfy Client Images End -->
+
+                <!-- Review Content Start -->
+                <div class="happy-customer-content">
+                  <p>{{ home.testimonials_happy_label_en }}</p>
+                </div>
+                <!-- Review Content End -->
+              </div>
+              <!-- Happy Customer Box End -->
+            </div>
+            <!-- Testimonial Image Box End -->
+          </div>
+
+          <div class="col-xl-7">
+            <!-- Testimonial Content Box Start -->
+            <div class="testimonial-content-box">
+              <!-- Section Title Start -->
+              <div class="section-title">
+                <h3>{{ home.testimonials_kicker_en }}</h3>
+                <h2 data-cursor="-opaque">{{ home.testimonials_heading_en }}</h2>
+              </div>
+              <!-- Section Title End -->
+
+              <!-- Testimonial Slider Start -->
+              <div class="testimonial-slider">
+                <div class="swiper">
+                  <div class="swiper-wrapper" data-cursor-text="Drag">
+                    {% for t in testimonials %}
+                      <!-- Testimonial Slide Start -->
+                      <div class="swiper-slide">
+                        <div class="testimonial-item">
+                          <div class="testimonial-company-logo">
+                            {% if t.company_logo %}
+                              <img src="{{ t.company_logo.url }}" alt="" />
+                            {% else %}
+                              <img src="{% static 'landing/images/company-logo-1.svg' %}" alt="" />
+                            {% endif %}
+                          </div>
+                          <div class="testimonial-content">
+                            <p>"{{ t.quote_en }}"</p>
+                          </div>
+                          <div class="testimonial-author">
+                            <div class="author-content">
+                              <h3>{{ t.author_name_en }}</h3>
+                              <p>{{ t.author_role_en }}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Testimonial Slide End -->
+                    {% empty %}
+                      <div class="swiper-slide">
+                        <div class="testimonial-item">
+                          <div class="testimonial-company-logo">
+                            <img src="{% static 'landing/images/company-logo-1.svg' %}" alt="" />
+                          </div>
+                          <div class="testimonial-content">
+                            <p>&nbsp;</p>
+                          </div>
+                          <div class="testimonial-author">
+                            <div class="author-content">
+                              <h3>&nbsp;</h3>
+                              <p>&nbsp;</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                  <div class="testimonial-pagination"></div>
+                </div>
+              </div>
+              <!-- Testimonial Slider End -->
+            </div>
+            <!-- Testimonial Content Box End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Our Testimonials Section End -->
+{% endblock %}

@@ -1,0 +1,65 @@
+{% load static %}
+<!-- Header Start -->
+<header class="main-header header-elite">
+  <div class="header-sticky bg-section">
+    <nav class="navbar navbar-expand-lg">
+      <div class="container-fluid">
+        <!-- Logo Start -->
+        <a class="navbar-brand" href="/">
+          {% if home.logo_image %}
+            <img src="{{ home.logo_image.url }}" alt="{{ home.logo_alt_en }}" />
+          {% else %}
+            <img src="{% static 'landing/images/logo-elite.svg' %}" alt="{{ home.logo_alt_en }}" />
+          {% endif %}
+        </a>
+        <!-- Logo End -->
+
+        <!-- Main Menu Start -->
+        <div class="collapse navbar-collapse main-menu">
+          <div class="nav-menu-wrapper">
+            <ul class="navbar-nav mr-auto" id="menu">
+              <li class="nav-item">
+                <a class="nav-link" href="/">{{ home.nav_home_en }}</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/about/">{{ home.nav_about_en }}</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/pricing/">{{ home.nav_pricing_en }}</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/contact/">{{ home.nav_contact_en }}</a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Header Contact Box Start -->
+          <div class="header-contact-box">
+            <!-- Header Contact Item Start -->
+            <div class="header-contact-item">
+              <div class="icon-box">
+                <img src="{% static 'landing/images/icon-phone-white.svg' %}" alt="" />
+              </div>
+              <div class="header-contact-item-content">
+                <p>{{ home.header_cta_small_title_en }}</p>
+                <h3><a href="{{ home.header_cta_url }}">{{ home.header_cta_title_en }}</a></h3>
+              </div>
+            </div>
+            <!-- Header Contact Item End -->
+
+            <!-- Header Btn Start -->
+            <div class="header-btn">
+              <a href="{{ home.header_sign_in_url }}" class="btn-default">{{ home.header_sign_in_en }}</a>
+            </div>
+            <!-- Header Btn End -->
+          </div>
+          <!-- Hedaer Contact Box End -->
+        </div>
+        <!-- Main Menu End -->
+        <div class="navbar-toggle"></div>
+      </div>
+    </nav>
+    <div class="responsive-menu"></div>
+  </div>
+</header>
+<!-- Header End -->

@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ lang|default:'en' }}" dir="{{ dir|default:'ltr' }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}{{ home.page_title_en }}{% endblock %}</title>
+    <meta name="description" content="{{ home.meta_description_en }}" />
+    {% if home.favicon %}
+      <link rel="icon" href="{{ home.favicon.url }}" />
+    {% else %}
+      <link rel="icon" href="{% static 'landing/images/favicon.png' %}" />
+    {% endif %}
+    <link rel="preconnect" href="https://fonts.googleapis.com/" />
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&amp;family=Manrope:wght@200..800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'landing/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'landing/css/slicknav.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'landing/css/swiper-bundle.min.css' %}" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      media="screen"
+    />
+    <link rel="stylesheet" href="{% static 'landing/css/animate.css' %}" />
+    <link rel="stylesheet" href="{% static 'landing/css/magnific-popup.css' %}" />
+    <link rel="stylesheet" href="{% static 'landing/css/mousecursor.css' %}" />
+    <link rel="stylesheet" href="{% static 'landing/css/custom.css' %}" />
+    {% block extra_head %}{% endblock %}
+  </head>
+  <body>
+    <!-- Preloader Start -->
+    <div class="preloader">
+      <div class="loading-container">
+        <div class="loading"></div>
+        <div id="loading-icon">
+          <img src="{% static 'landing/images/loader.svg' %}" alt="" />
+        </div>
+      </div>
+    </div>
+    <!-- Preloader End -->
+
+    {% include 'iroad_frontend/partials/header.html' %}
+    {% block content %}{% endblock %}
+    {% include 'iroad_frontend/partials/footer.html' %}
+
+    <script src="{% static 'landing/js/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'landing/js/circle-progress.min.js' %}"></script>
+    <script src="{% static 'landing/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'landing/js/validator.min.js' %}"></script>
+    <script src="{% static 'landing/js/jquery.slicknav.js' %}"></script>
+    <script src="{% static 'landing/js/swiper-bundle.min.js' %}"></script>
+    <script src="{% static 'landing/js/jquery.waypoints.min.js' %}"></script>
+    <script src="{% static 'landing/js/jquery.counterup.min.js' %}"></script>
+    <script src="{% static 'landing/js/jquery.magnific-popup.min.js' %}"></script>
+    <script src="{% static 'landing/js/SmoothScroll.js' %}"></script>
+    <script src="{% static 'landing/js/parallaxie.js' %}"></script>
+    <script src="{% static 'landing/js/gsap.min.js' %}"></script>
+    <script src="{% static 'landing/js/magiccursor.js' %}"></script>
+    <script src="{% static 'landing/js/SplitText.min.js' %}"></script>
+    <script src="{% static 'landing/js/ScrollTrigger.min.js' %}"></script>
+    <script src="{% static 'landing/js/jquery.mb.YTPlayer.min.js' %}"></script>
+    <script src="{% static 'landing/js/wow.min.js' %}"></script>
+    <script src="{% static 'landing/js/function.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

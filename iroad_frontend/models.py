@@ -1,0 +1,758 @@
+"""
+iroad_frontend/models.py
+
+CMS models for IRoad landing page.
+All text fields are bilingual (EN + AR).
+Images stored under media/marketing/home/
+Singleton pattern for main content.
+Child models for repeatable sections.
+"""
+
+from django.core.validators import FileExtensionValidator
+from django.db import models
+
+# ImageField uses Pillow and rejects SVG. CMS accepts logos/icons as SVG via FileField.
+_CMS_UPLOAD_VALIDATORS = [
+    FileExtensionValidator(
+        allowed_extensions=[
+            'svg',
+            'png',
+            'jpg',
+            'jpeg',
+            'gif',
+            'webp',
+            'ico',
+            'bmp',
+            'avif',
+            'tif',
+            'tiff',
+        ],
+    ),
+]
+
+
+def home_upload_path(instance, filename):
+    return f'marketing/home/{filename}'
+
+
+# ── Main Singleton ────────────────────────────────────────────────
+
+
+class HomePageContent(models.Model):
+    """
+    Singleton CMS model for Home Page.
+    Only ONE record should exist.
+    All sections stored here except repeaters.
+    """
+
+    # ── SEO ──────────────────────────────────────────────────────
+    page_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    page_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    meta_description_en = models.TextField(blank=True, default='')
+    meta_description_ar = models.TextField(blank=True, default='')
+    favicon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+
+    # ── Header ───────────────────────────────────────────────────
+    logo_image = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    logo_alt_en = models.CharField(
+        max_length=100, blank=True, default='IRoad')
+    logo_alt_ar = models.CharField(
+        max_length=100, blank=True, default='آيروود')
+    nav_home_en = models.CharField(
+        max_length=50, blank=True, default='Home')
+    nav_home_ar = models.CharField(
+        max_length=50, blank=True, default='الرئيسية')
+    nav_about_en = models.CharField(
+        max_length=50, blank=True, default='About')
+    nav_about_ar = models.CharField(
+        max_length=50, blank=True, default='عن الشركة')
+    nav_pricing_en = models.CharField(
+        max_length=50, blank=True, default='Pricing')
+    nav_pricing_ar = models.CharField(
+        max_length=50, blank=True, default='الأسعار')
+    nav_contact_en = models.CharField(
+        max_length=50, blank=True, default='Contact')
+    nav_contact_ar = models.CharField(
+        max_length=50, blank=True, default='اتصل بنا')
+    header_cta_small_title_en = models.CharField(
+        max_length=100, blank=True, default='')
+    header_cta_small_title_ar = models.CharField(
+        max_length=100, blank=True, default='')
+    header_cta_title_en = models.CharField(
+        max_length=100, blank=True, default='Book a Demo')
+    header_cta_title_ar = models.CharField(
+        max_length=100, blank=True, default='احجز عرضاً')
+    header_cta_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    header_sign_in_en = models.CharField(
+        max_length=50, blank=True, default='Sign In')
+    header_sign_in_ar = models.CharField(
+        max_length=50, blank=True, default='تسجيل الدخول')
+    header_sign_in_url = models.CharField(
+        max_length=500, blank=True, default='/login/')
+
+    # ── Hero ─────────────────────────────────────────────────────
+    hero_kicker_en = models.CharField(
+        max_length=200, blank=True, default='')
+    hero_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    hero_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    hero_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    hero_subheading_en = models.TextField(blank=True, default='')
+    hero_subheading_ar = models.TextField(blank=True, default='')
+    hero_cta_label_en = models.CharField(
+        max_length=100, blank=True, default='Start Free Trial')
+    hero_cta_label_ar = models.CharField(
+        max_length=100, blank=True, default='ابدأ مجاناً')
+    hero_cta_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    hero_bullet_1_en = models.CharField(
+        max_length=200, blank=True, default='')
+    hero_bullet_1_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    hero_bullet_2_en = models.CharField(
+        max_length=200, blank=True, default='')
+    hero_bullet_2_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    hero_bullet_3_en = models.CharField(
+        max_length=200, blank=True, default='')
+    hero_bullet_3_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    hero_image_primary = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    hero_image_secondary = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+
+    # ── Ticker ───────────────────────────────────────────────────
+    ticker_item_1_en = models.CharField(
+        max_length=100, blank=True, default='Fleet Management')
+    ticker_item_1_ar = models.CharField(
+        max_length=100, blank=True, default='إدارة الأسطول')
+    ticker_item_2_en = models.CharField(
+        max_length=100, blank=True, default='Shipment Tracking')
+    ticker_item_2_ar = models.CharField(
+        max_length=100, blank=True, default='تتبع الشحنات')
+    ticker_item_3_en = models.CharField(
+        max_length=100, blank=True, default='Finance Automation')
+    ticker_item_3_ar = models.CharField(
+        max_length=100, blank=True, default='أتمتة المالية')
+    ticker_item_4_en = models.CharField(
+        max_length=100, blank=True, default='Driver App')
+    ticker_item_4_ar = models.CharField(
+        max_length=100, blank=True, default='تطبيق السائق')
+    ticker_item_5_en = models.CharField(
+        max_length=100, blank=True, default='POD Management')
+    ticker_item_5_ar = models.CharField(
+        max_length=100, blank=True, default='إدارة التسليم')
+
+    # ── About ────────────────────────────────────────────────────
+    about_kicker_en = models.CharField(
+        max_length=200, blank=True, default='')
+    about_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    about_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    about_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    about_body_en = models.TextField(blank=True, default='')
+    about_body_ar = models.TextField(blank=True, default='')
+    about_main_image = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    about_point_1_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    about_point_1_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    about_point_1_body_en = models.TextField(blank=True, default='')
+    about_point_1_body_ar = models.TextField(blank=True, default='')
+    about_point_1_icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    about_point_2_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    about_point_2_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    about_point_2_body_en = models.TextField(blank=True, default='')
+    about_point_2_body_ar = models.TextField(blank=True, default='')
+    about_point_2_icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    about_experience_image = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    about_experience_number = models.CharField(
+        max_length=20, blank=True, default='25')
+    about_experience_suffix_en = models.CharField(
+        max_length=20, blank=True, default='+')
+    about_experience_suffix_ar = models.CharField(
+        max_length=20, blank=True, default='+')
+    about_experience_caption_en = models.CharField(
+        max_length=200, blank=True, default='')
+    about_experience_caption_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    about_cta_label_en = models.CharField(
+        max_length=100, blank=True, default='More About Us')
+    about_cta_label_ar = models.CharField(
+        max_length=100, blank=True, default='المزيد عنا')
+    about_cta_url = models.CharField(
+        max_length=500, blank=True, default='/about/')
+
+    # ── Services Section Header ───────────────────────────────────
+    services_kicker_en = models.CharField(
+        max_length=200, blank=True, default='')
+    services_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    services_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    services_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    services_footer_text_en = models.CharField(
+        max_length=300, blank=True, default='')
+    services_footer_text_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    services_footer_link_label_en = models.CharField(
+        max_length=100, blank=True, default='Start Free Trial')
+    services_footer_link_label_ar = models.CharField(
+        max_length=100, blank=True, default='ابدأ مجاناً')
+    services_footer_link_url = models.CharField(
+        max_length=500, blank=True, default='#')
+
+    # ── Why Choose Section ────────────────────────────────────────
+    why_kicker_en = models.CharField(
+        max_length=200, blank=True, default='')
+    why_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    why_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    why_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    why_point_1_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    why_point_1_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    why_point_1_body_en = models.TextField(blank=True, default='')
+    why_point_1_body_ar = models.TextField(blank=True, default='')
+    why_point_1_icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    why_point_2_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    why_point_2_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    why_point_2_body_en = models.TextField(blank=True, default='')
+    why_point_2_body_ar = models.TextField(blank=True, default='')
+    why_point_2_icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    why_point_3_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    why_point_3_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    why_point_3_body_en = models.TextField(blank=True, default='')
+    why_point_3_body_ar = models.TextField(blank=True, default='')
+    why_point_3_icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    why_image_1 = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    why_image_2 = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    why_image_3 = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+
+    # ── Advanced Features Section ─────────────────────────────────
+    features_kicker_en = models.CharField(
+        max_length=200, blank=True, default='')
+    features_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    features_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    features_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    features_footer_text_en = models.CharField(
+        max_length=300, blank=True, default='')
+    features_footer_text_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    features_footer_link_label_en = models.CharField(
+        max_length=100, blank=True, default='')
+    features_footer_link_label_ar = models.CharField(
+        max_length=100, blank=True, default='')
+    features_footer_link_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    features_rating_value = models.CharField(
+        max_length=10, blank=True, default='4.9/5')
+    features_review_count_label_en = models.CharField(
+        max_length=100, blank=True, default='4,200+ reviews')
+    features_review_count_label_ar = models.CharField(
+        max_length=100, blank=True, default='+4,200 تقييم')
+    feature_a_image = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    feature_a_icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    feature_a_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_a_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_a_body_en = models.TextField(blank=True, default='')
+    feature_a_body_ar = models.TextField(blank=True, default='')
+    feature_b_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_b_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_b_body_en = models.TextField(blank=True, default='')
+    feature_b_body_ar = models.TextField(blank=True, default='')
+    feature_b_icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    feature_b_list_item_1_en = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_b_list_item_1_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_b_list_item_2_en = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_b_list_item_2_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_c_image = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    feature_c_icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    feature_c_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_c_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_c_body_en = models.TextField(blank=True, default='')
+    feature_c_body_ar = models.TextField(blank=True, default='')
+    feature_d_title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_d_title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_d_body_en = models.TextField(blank=True, default='')
+    feature_d_body_ar = models.TextField(blank=True, default='')
+    feature_d_icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    feature_d_list_item_1_en = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_d_list_item_1_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_d_list_item_2_en = models.CharField(
+        max_length=200, blank=True, default='')
+    feature_d_list_item_2_ar = models.CharField(
+        max_length=200, blank=True, default='')
+
+    # ── Pricing Section Header (tier rows are HomePricingTier) ─────
+    pricing_kicker_en = models.CharField(
+        max_length=200, blank=True, default='Pricing Plans')
+    pricing_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    pricing_heading_en = models.CharField(
+        max_length=300, blank=True,
+        default='Pricing that scales with your transport team')
+    pricing_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+
+    # ── Business / Map Section ────────────────────────────────────
+    business_map_image = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    business_counter_value = models.CharField(
+        max_length=20, blank=True, default='200')
+    business_counter_suffix_en = models.CharField(
+        max_length=20, blank=True, default='+')
+    business_counter_suffix_ar = models.CharField(
+        max_length=20, blank=True, default='+')
+    business_counter_caption_en = models.CharField(
+        max_length=200, blank=True, default='')
+    business_counter_caption_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    business_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    business_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    business_body_en = models.TextField(blank=True, default='')
+    business_body_ar = models.TextField(blank=True, default='')
+    business_bullet_1_en = models.CharField(
+        max_length=200, blank=True, default='')
+    business_bullet_1_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    business_bullet_2_en = models.CharField(
+        max_length=200, blank=True, default='')
+    business_bullet_2_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    business_side_image = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+
+    # ── Testimonials Section Header ───────────────────────────────
+    testimonials_kicker_en = models.CharField(
+        max_length=200, blank=True, default='')
+    testimonials_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    testimonials_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    testimonials_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    testimonials_hero_image = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    testimonials_happy_count = models.CharField(
+        max_length=20, blank=True, default='10+k')
+    testimonials_happy_label_en = models.CharField(
+        max_length=100, blank=True, default='Happy Customers')
+    testimonials_happy_label_ar = models.CharField(
+        max_length=100, blank=True, default='عملاء سعداء')
+
+    # ── Footer ───────────────────────────────────────────────────
+    footer_cta_left_en = models.CharField(
+        max_length=200, blank=True, default="Let's Connect")
+    footer_cta_left_ar = models.CharField(
+        max_length=200, blank=True, default='لنتواصل')
+    footer_brand_text_en = models.CharField(
+        max_length=100, blank=True, default='IRoad')
+    footer_brand_text_ar = models.CharField(
+        max_length=100, blank=True, default='آيروود')
+    footer_cta_right_en = models.CharField(
+        max_length=200, blank=True, default='Book a Demo')
+    footer_cta_right_ar = models.CharField(
+        max_length=200, blank=True, default='احجز عرضاً')
+    footer_about_blurb_en = models.TextField(blank=True, default='')
+    footer_about_blurb_ar = models.TextField(blank=True, default='')
+    footer_social_pinterest_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    footer_social_x_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    footer_social_facebook_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    footer_social_instagram_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    footer_column_title_en = models.CharField(
+        max_length=100, blank=True, default='Features')
+    footer_column_title_ar = models.CharField(
+        max_length=100, blank=True, default='الميزات')
+    footer_link_1_label_en = models.CharField(
+        max_length=100, blank=True, default='About')
+    footer_link_1_label_ar = models.CharField(
+        max_length=100, blank=True, default='عن الشركة')
+    footer_link_1_url = models.CharField(
+        max_length=500, blank=True, default='/about/')
+    footer_link_2_label_en = models.CharField(
+        max_length=100, blank=True, default='Pricing')
+    footer_link_2_label_ar = models.CharField(
+        max_length=100, blank=True, default='الأسعار')
+    footer_link_2_url = models.CharField(
+        max_length=500, blank=True, default='/pricing/')
+    footer_link_3_label_en = models.CharField(
+        max_length=100, blank=True, default='Contact')
+    footer_link_3_label_ar = models.CharField(
+        max_length=100, blank=True, default='اتصل بنا')
+    footer_link_3_url = models.CharField(
+        max_length=500, blank=True, default='/contact/')
+    footer_newsletter_title_en = models.CharField(
+        max_length=200, blank=True, default='Get Product Updates')
+    footer_newsletter_title_ar = models.CharField(
+        max_length=200, blank=True, default='احصل على تحديثات المنتج')
+    footer_newsletter_desc_en = models.TextField(
+        blank=True, default='')
+    footer_newsletter_desc_ar = models.TextField(
+        blank=True, default='')
+    footer_newsletter_placeholder_en = models.CharField(
+        max_length=100, blank=True, default='Enter your email')
+    footer_newsletter_placeholder_ar = models.CharField(
+        max_length=100, blank=True, default='أدخل بريدك الإلكتروني')
+    footer_newsletter_action_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    footer_copyright_en = models.CharField(
+        max_length=300, blank=True,
+        default='© 2026 All Rights Reserved.')
+    footer_copyright_ar = models.CharField(
+        max_length=300, blank=True,
+        default='© 2026 جميع الحقوق محفوظة.')
+    footer_credit_en = models.CharField(
+        max_length=300, blank=True, default='')
+    footer_credit_ar = models.CharField(
+        max_length=300, blank=True, default='')
+
+    # ── Audit ─────────────────────────────────────────────────────
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(
+        max_length=200, blank=True, default='')
+
+    class Meta:
+        db_table = 'iroad_frontend_home_content'
+        verbose_name = 'Home Page Content'
+        verbose_name_plural = 'Home Page Content'
+
+    def __str__(self):
+        return 'Home Page Content'
+
+    @classmethod
+    def get_singleton(cls):
+        """Get or create the single CMS record."""
+        obj, _created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+# ── Service Cards (repeater) ──────────────────────────────────────
+
+
+class HomeServiceCard(models.Model):
+    """4 service feature cards in Core Features section."""
+    home = models.ForeignKey(
+        HomePageContent,
+        on_delete=models.CASCADE,
+        related_name='service_cards',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    title_en = models.CharField(max_length=200, blank=True, default='')
+    title_ar = models.CharField(max_length=200, blank=True, default='')
+    summary_en = models.TextField(blank=True, default='')
+    summary_ar = models.TextField(blank=True, default='')
+    icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    detail_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    cta_label_en = models.CharField(
+        max_length=100, blank=True, default='Explore Feature')
+    cta_label_ar = models.CharField(
+        max_length=100, blank=True, default='استكشف الميزة')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_home_service_card'
+        ordering = ['order']
+        verbose_name = 'Service Card'
+        verbose_name_plural = 'Service Cards'
+
+    def __str__(self):
+        return f'Service Card {self.order}: {self.title_en}'
+
+
+# ── Pricing Tiers (repeater) ──────────────────────────────────────
+
+
+class HomePricingTier(models.Model):
+    """3 pricing plan tiers in Pricing section."""
+    home = models.ForeignKey(
+        HomePageContent,
+        on_delete=models.CASCADE,
+        related_name='pricing_tiers',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    name_en = models.CharField(max_length=100, blank=True, default='')
+    name_ar = models.CharField(max_length=100, blank=True, default='')
+    summary_en = models.TextField(blank=True, default='')
+    summary_ar = models.TextField(blank=True, default='')
+    price_display_en = models.CharField(
+        max_length=50, blank=True, default='')
+    price_display_ar = models.CharField(
+        max_length=50, blank=True, default='')
+    bullet_1_en = models.CharField(max_length=200, blank=True, default='')
+    bullet_1_ar = models.CharField(max_length=200, blank=True, default='')
+    bullet_2_en = models.CharField(max_length=200, blank=True, default='')
+    bullet_2_ar = models.CharField(max_length=200, blank=True, default='')
+    bullet_3_en = models.CharField(max_length=200, blank=True, default='')
+    bullet_3_ar = models.CharField(max_length=200, blank=True, default='')
+    bullet_4_en = models.CharField(max_length=200, blank=True, default='')
+    bullet_4_ar = models.CharField(max_length=200, blank=True, default='')
+    cta_label_en = models.CharField(
+        max_length=100, blank=True, default='Start Free Trial')
+    cta_label_ar = models.CharField(
+        max_length=100, blank=True, default='ابدأ مجاناً')
+    cta_url = models.CharField(max_length=500, blank=True, default='#')
+    is_featured = models.BooleanField(
+        default=False,
+        help_text='Highlighted plan (e.g. Business)')
+    is_active = models.BooleanField(default=True)
+
+    # Pricing benefits (stored on tier 1 for simplicity)
+    pricing_benefit_1_text_en = models.CharField(
+        max_length=200, blank=True, default='')
+    pricing_benefit_1_text_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    pricing_benefit_2_text_en = models.CharField(
+        max_length=200, blank=True, default='')
+    pricing_benefit_2_text_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    pricing_benefit_3_text_en = models.CharField(
+        max_length=200, blank=True, default='')
+    pricing_benefit_3_text_ar = models.CharField(
+        max_length=200, blank=True, default='')
+
+    class Meta:
+        db_table = 'iroad_frontend_home_pricing_tier'
+        ordering = ['order']
+        verbose_name = 'Pricing Tier'
+        verbose_name_plural = 'Pricing Tiers'
+
+    def __str__(self):
+        return f'Plan {self.order}: {self.name_en}'
+
+
+# ── Testimonials (repeater) ───────────────────────────────────────
+
+
+class HomeTestimonial(models.Model):
+    """3 testimonial slides in Testimonials section."""
+    home = models.ForeignKey(
+        HomePageContent,
+        on_delete=models.CASCADE,
+        related_name='testimonials',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    quote_en = models.TextField(blank=True, default='')
+    quote_ar = models.TextField(blank=True, default='')
+    author_name_en = models.CharField(
+        max_length=200, blank=True, default='')
+    author_name_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    author_role_en = models.CharField(
+        max_length=200, blank=True, default='')
+    author_role_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    author_avatar = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    company_logo = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_home_testimonial'
+        ordering = ['order']
+        verbose_name = 'Testimonial'
+        verbose_name_plural = 'Testimonials'
+
+    def __str__(self):
+        return f'Testimonial {self.order}: {self.author_name_en}'
+
+
+# ── Map Location Cards (repeater) ─────────────────────────────────
+
+
+class HomeMapLocation(models.Model):
+    """4 map pin cards in Business/Map section."""
+    home = models.ForeignKey(
+        HomePageContent,
+        on_delete=models.CASCADE,
+        related_name='map_locations',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    title_en = models.CharField(max_length=200, blank=True, default='')
+    title_ar = models.CharField(max_length=200, blank=True, default='')
+    subtitle_en = models.CharField(
+        max_length=300, blank=True, default='')
+    subtitle_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    card_image = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_home_map_location'
+        ordering = ['order']
+        verbose_name = 'Map Location'
+        verbose_name_plural = 'Map Locations'
+
+    def __str__(self):
+        return f'Location {self.order}: {self.title_en}'

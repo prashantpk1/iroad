@@ -410,6 +410,68 @@
         </ul>
       </li>
 
+      <!-- Website CMS -->
+      <li
+        class="nav-item has-submenu{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name %} open{% endif %}"
+      >
+        <a
+          href="#"
+          class="nav-link{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name %} active{% endif %}"
+          data-tooltip="{% translate 'Website CMS' %}"
+        >
+          <i class="bi bi-layout-text-window"></i>
+          <span class="nav-text">{% translate "Website CMS" %}</span>
+          <i class="bi bi-chevron-right arrow"></i>
+        </a>
+        <ul class="submenu">
+          <li class="submenu-item">
+            <a
+              href="{% url 'home_page_cms' %}"
+              class="submenu-link{% if request.resolver_match.url_name == 'home_page_cms' %} active{% endif %}"
+            >
+              <i class="bi bi-house"></i>
+              <span>{% translate "Home Page" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'home_service_card_list' %}"
+              class="submenu-link{% if 'home_service_card' in request.resolver_match.url_name %} active{% endif %}"
+            >
+              <i class="bi bi-grid"></i>
+              <span>{% translate "Service Cards" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'home_pricing_tier_list' %}"
+              class="submenu-link{% if 'home_pricing_tier' in request.resolver_match.url_name %} active{% endif %}"
+            >
+              <i class="bi bi-tags"></i>
+              <span>{% translate "Pricing Tiers" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'home_testimonial_list' %}"
+              class="submenu-link{% if 'home_testimonial' in request.resolver_match.url_name %} active{% endif %}"
+            >
+              <i class="bi bi-chat-quote"></i>
+              <span>{% translate "Testimonials" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'home_map_location_list' %}"
+              class="submenu-link{% if 'home_map_location' in request.resolver_match.url_name %} active{% endif %}"
+            >
+              <i class="bi bi-geo-alt"></i>
+              <span>{% translate "Map Locations" %}</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+
       <!-- Support Management -->
       <li
         class="nav-item has-submenu{% if 'support_category' in request.resolver_match.url_name or 'canned_response' in request.resolver_match.url_name or 'ticket' in request.resolver_match.url_name or 'subscription_faq' in request.resolver_match.url_name %} open{% endif %}"
