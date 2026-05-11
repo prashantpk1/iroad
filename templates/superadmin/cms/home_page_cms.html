@@ -1,0 +1,437 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Home Page CMS{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active" aria-current="page">Home Page CMS</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="page-header-left">
+      <h1 class="page-title">Home Page CMS</h1>
+      <p class="page-subtitle text-muted mb-0">{% translate "Edit bilingual home page content." %}</p>
+    </div>
+    <div class="page-header-right">
+      <a href="/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary">
+        <i class="bi bi-box-arrow-up-right"></i>
+        {% translate "View Live Page" %}
+      </a>
+    </div>
+  </div>
+</div>
+
+{% if form.non_field_errors %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ form.non_field_errors }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endif %}
+{% if form.errors and not form.non_field_errors %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {% translate "Please correct the errors below." %}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endif %}
+
+<form method="post" action="" enctype="multipart/form-data" id="homePageCmsForm">
+  {% csrf_token %}
+
+  <ul class="nav nav-tabs flex-wrap" id="homeCmsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="tab-seo-btn" data-bs-toggle="tab" data-bs-target="#tab-seo" type="button" role="tab">{% translate "SEO & Meta" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-header-btn" data-bs-toggle="tab" data-bs-target="#tab-header" type="button" role="tab">{% translate "Header" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-hero-btn" data-bs-toggle="tab" data-bs-target="#tab-hero" type="button" role="tab">{% translate "Hero" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-ticker-btn" data-bs-toggle="tab" data-bs-target="#tab-ticker" type="button" role="tab">{% translate "Ticker" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-about-btn" data-bs-toggle="tab" data-bs-target="#tab-about" type="button" role="tab">{% translate "About" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-services-btn" data-bs-toggle="tab" data-bs-target="#tab-services" type="button" role="tab">{% translate "Services Section" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-why-btn" data-bs-toggle="tab" data-bs-target="#tab-why" type="button" role="tab">{% translate "Why Choose" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-features-btn" data-bs-toggle="tab" data-bs-target="#tab-features" type="button" role="tab">{% translate "Features" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-pricing-btn" data-bs-toggle="tab" data-bs-target="#tab-pricing" type="button" role="tab">{% translate "Pricing" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-business-btn" data-bs-toggle="tab" data-bs-target="#tab-business" type="button" role="tab">{% translate "Business / Map" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-testimonials-btn" data-bs-toggle="tab" data-bs-target="#tab-testimonials" type="button" role="tab">{% translate "Testimonials" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-footer-btn" data-bs-toggle="tab" data-bs-target="#tab-footer" type="button" role="tab">{% translate "Footer" %}</button>
+    </li>
+  </ul>
+
+  <div class="tab-content border border-top-0 rounded-bottom bg-white p-3 p-md-4 mb-3">
+    {# --- Tab 1: SEO --- #}
+    <div class="tab-pane fade show active" id="tab-seo" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_title_en.id_for_label }}">{{ form.page_title_en.label }}</label>
+          {{ form.page_title_en }}{{ form.page_title_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_title_ar.id_for_label }}">{{ form.page_title_ar.label }}</label>
+          {{ form.page_title_ar }}{{ form.page_title_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.meta_description_en.id_for_label }}">{{ form.meta_description_en.label }}</label>
+          {{ form.meta_description_en }}{{ form.meta_description_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.meta_description_ar.id_for_label }}">{{ form.meta_description_ar.label }}</label>
+          {{ form.meta_description_ar }}{{ form.meta_description_ar.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.favicon.id_for_label }}">{{ form.favicon.label }}</label>
+          {% if home.favicon %}<img src="{{ home.favicon.url }}" style="max-height:60px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.favicon }}{{ form.favicon.errors }}
+        </div>
+      </div>
+    </div>
+
+    {# --- Tab 2: Header --- #}
+    <div class="tab-pane fade" id="tab-header" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label" for="{{ form.logo_image.id_for_label }}">{{ form.logo_image.label }}</label>
+          {% if home.logo_image %}<img src="{{ home.logo_image.url }}" style="max-height:60px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.logo_image }}{{ form.logo_image.errors }}
+        </div>
+        <div class="col-md-6"><label class="form-label">{{ form.logo_alt_en.label }}</label>{{ form.logo_alt_en }}{{ form.logo_alt_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.logo_alt_ar.label }}</label>{{ form.logo_alt_ar }}{{ form.logo_alt_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.nav_home_en.label }}</label>{{ form.nav_home_en }}{{ form.nav_home_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.nav_home_ar.label }}</label>{{ form.nav_home_ar }}{{ form.nav_home_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.nav_about_en.label }}</label>{{ form.nav_about_en }}{{ form.nav_about_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.nav_about_ar.label }}</label>{{ form.nav_about_ar }}{{ form.nav_about_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.nav_pricing_en.label }}</label>{{ form.nav_pricing_en }}{{ form.nav_pricing_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.nav_pricing_ar.label }}</label>{{ form.nav_pricing_ar }}{{ form.nav_pricing_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.nav_contact_en.label }}</label>{{ form.nav_contact_en }}{{ form.nav_contact_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.nav_contact_ar.label }}</label>{{ form.nav_contact_ar }}{{ form.nav_contact_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.header_cta_small_title_en.label }}</label>{{ form.header_cta_small_title_en }}{{ form.header_cta_small_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.header_cta_small_title_ar.label }}</label>{{ form.header_cta_small_title_ar }}{{ form.header_cta_small_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.header_cta_title_en.label }}</label>{{ form.header_cta_title_en }}{{ form.header_cta_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.header_cta_title_ar.label }}</label>{{ form.header_cta_title_ar }}{{ form.header_cta_title_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.header_cta_url.label }}</label>{{ form.header_cta_url }}{{ form.header_cta_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.header_sign_in_en.label }}</label>{{ form.header_sign_in_en }}{{ form.header_sign_in_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.header_sign_in_ar.label }}</label>{{ form.header_sign_in_ar }}{{ form.header_sign_in_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.header_sign_in_url.label }}</label>{{ form.header_sign_in_url }}{{ form.header_sign_in_url.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 3: Hero --- #}
+    <div class="tab-pane fade" id="tab-hero" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.hero_kicker_en.label }}</label>{{ form.hero_kicker_en }}{{ form.hero_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_kicker_ar.label }}</label>{{ form.hero_kicker_ar }}{{ form.hero_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_heading_en.label }}</label>{{ form.hero_heading_en }}{{ form.hero_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_heading_ar.label }}</label>{{ form.hero_heading_ar }}{{ form.hero_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_subheading_en.label }}</label>{{ form.hero_subheading_en }}{{ form.hero_subheading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_subheading_ar.label }}</label>{{ form.hero_subheading_ar }}{{ form.hero_subheading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_cta_label_en.label }}</label>{{ form.hero_cta_label_en }}{{ form.hero_cta_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_cta_label_ar.label }}</label>{{ form.hero_cta_label_ar }}{{ form.hero_cta_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.hero_cta_url.label }}</label>{{ form.hero_cta_url }}{{ form.hero_cta_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_bullet_1_en.label }}</label>{{ form.hero_bullet_1_en }}{{ form.hero_bullet_1_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_bullet_1_ar.label }}</label>{{ form.hero_bullet_1_ar }}{{ form.hero_bullet_1_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_bullet_2_en.label }}</label>{{ form.hero_bullet_2_en }}{{ form.hero_bullet_2_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_bullet_2_ar.label }}</label>{{ form.hero_bullet_2_ar }}{{ form.hero_bullet_2_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_bullet_3_en.label }}</label>{{ form.hero_bullet_3_en }}{{ form.hero_bullet_3_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.hero_bullet_3_ar.label }}</label>{{ form.hero_bullet_3_ar }}{{ form.hero_bullet_3_ar.errors }}</div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.hero_image_primary.label }}</label>
+          {% if home.hero_image_primary %}<img src="{{ home.hero_image_primary.url }}" style="max-height:80px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.hero_image_primary }}{{ form.hero_image_primary.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.hero_image_secondary.label }}</label>
+          {% if home.hero_image_secondary %}<img src="{{ home.hero_image_secondary.url }}" style="max-height:80px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.hero_image_secondary }}{{ form.hero_image_secondary.errors }}
+        </div>
+      </div>
+    </div>
+
+    {# --- Tab 4: Ticker --- #}
+    <div class="tab-pane fade" id="tab-ticker" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_1_en.label }}</label>{{ form.ticker_item_1_en }}{{ form.ticker_item_1_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_1_ar.label }}</label>{{ form.ticker_item_1_ar }}{{ form.ticker_item_1_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_2_en.label }}</label>{{ form.ticker_item_2_en }}{{ form.ticker_item_2_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_2_ar.label }}</label>{{ form.ticker_item_2_ar }}{{ form.ticker_item_2_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_3_en.label }}</label>{{ form.ticker_item_3_en }}{{ form.ticker_item_3_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_3_ar.label }}</label>{{ form.ticker_item_3_ar }}{{ form.ticker_item_3_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_4_en.label }}</label>{{ form.ticker_item_4_en }}{{ form.ticker_item_4_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_4_ar.label }}</label>{{ form.ticker_item_4_ar }}{{ form.ticker_item_4_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_5_en.label }}</label>{{ form.ticker_item_5_en }}{{ form.ticker_item_5_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.ticker_item_5_ar.label }}</label>{{ form.ticker_item_5_ar }}{{ form.ticker_item_5_ar.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 5: About --- #}
+    <div class="tab-pane fade" id="tab-about" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.about_kicker_en.label }}</label>{{ form.about_kicker_en }}{{ form.about_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_kicker_ar.label }}</label>{{ form.about_kicker_ar }}{{ form.about_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_heading_en.label }}</label>{{ form.about_heading_en }}{{ form.about_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_heading_ar.label }}</label>{{ form.about_heading_ar }}{{ form.about_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_body_en.label }}</label>{{ form.about_body_en }}{{ form.about_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_body_ar.label }}</label>{{ form.about_body_ar }}{{ form.about_body_ar.errors }}</div>
+        <div class="col-12">
+          <label class="form-label">{{ form.about_main_image.label }}</label>
+          {% if home.about_main_image %}<img src="{{ home.about_main_image.url }}" style="max-height:80px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.about_main_image }}{{ form.about_main_image.errors }}
+        </div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_point_1_title_en.label }}</label>{{ form.about_point_1_title_en }}{{ form.about_point_1_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_point_1_title_ar.label }}</label>{{ form.about_point_1_title_ar }}{{ form.about_point_1_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_point_1_body_en.label }}</label>{{ form.about_point_1_body_en }}{{ form.about_point_1_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_point_1_body_ar.label }}</label>{{ form.about_point_1_body_ar }}{{ form.about_point_1_body_ar.errors }}</div>
+        <div class="col-12">
+          <label class="form-label">{{ form.about_point_1_icon.label }}</label>
+          {% if home.about_point_1_icon %}<img src="{{ home.about_point_1_icon.url }}" style="max-height:48px" class="mb-2 d-block" alt="">{% endif %}
+          {{ form.about_point_1_icon }}{{ form.about_point_1_icon.errors }}
+        </div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_point_2_title_en.label }}</label>{{ form.about_point_2_title_en }}{{ form.about_point_2_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_point_2_title_ar.label }}</label>{{ form.about_point_2_title_ar }}{{ form.about_point_2_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_point_2_body_en.label }}</label>{{ form.about_point_2_body_en }}{{ form.about_point_2_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_point_2_body_ar.label }}</label>{{ form.about_point_2_body_ar }}{{ form.about_point_2_body_ar.errors }}</div>
+        <div class="col-12">
+          <label class="form-label">{{ form.about_point_2_icon.label }}</label>
+          {% if home.about_point_2_icon %}<img src="{{ home.about_point_2_icon.url }}" style="max-height:48px" class="mb-2 d-block" alt="">{% endif %}
+          {{ form.about_point_2_icon }}{{ form.about_point_2_icon.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">{{ form.about_experience_image.label }}</label>
+          {% if home.about_experience_image %}<img src="{{ home.about_experience_image.url }}" style="max-height:80px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.about_experience_image }}{{ form.about_experience_image.errors }}
+        </div>
+        <div class="col-md-4"><label class="form-label">{{ form.about_experience_number.label }}</label>{{ form.about_experience_number }}{{ form.about_experience_number.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.about_experience_suffix_en.label }}</label>{{ form.about_experience_suffix_en }}{{ form.about_experience_suffix_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.about_experience_suffix_ar.label }}</label>{{ form.about_experience_suffix_ar }}{{ form.about_experience_suffix_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_experience_caption_en.label }}</label>{{ form.about_experience_caption_en }}{{ form.about_experience_caption_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_experience_caption_ar.label }}</label>{{ form.about_experience_caption_ar }}{{ form.about_experience_caption_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_cta_label_en.label }}</label>{{ form.about_cta_label_en }}{{ form.about_cta_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_cta_label_ar.label }}</label>{{ form.about_cta_label_ar }}{{ form.about_cta_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.about_cta_url.label }}</label>{{ form.about_cta_url }}{{ form.about_cta_url.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 6: Services section --- #}
+    <div class="tab-pane fade" id="tab-services" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.services_kicker_en.label }}</label>{{ form.services_kicker_en }}{{ form.services_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.services_kicker_ar.label }}</label>{{ form.services_kicker_ar }}{{ form.services_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.services_heading_en.label }}</label>{{ form.services_heading_en }}{{ form.services_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.services_heading_ar.label }}</label>{{ form.services_heading_ar }}{{ form.services_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.services_footer_text_en.label }}</label>{{ form.services_footer_text_en }}{{ form.services_footer_text_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.services_footer_text_ar.label }}</label>{{ form.services_footer_text_ar }}{{ form.services_footer_text_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.services_footer_link_label_en.label }}</label>{{ form.services_footer_link_label_en }}{{ form.services_footer_link_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.services_footer_link_label_ar.label }}</label>{{ form.services_footer_link_label_ar }}{{ form.services_footer_link_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.services_footer_link_url.label }}</label>{{ form.services_footer_link_url }}{{ form.services_footer_link_url.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 7: Why --- #}
+    <div class="tab-pane fade" id="tab-why" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.why_kicker_en.label }}</label>{{ form.why_kicker_en }}{{ form.why_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_kicker_ar.label }}</label>{{ form.why_kicker_ar }}{{ form.why_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_heading_en.label }}</label>{{ form.why_heading_en }}{{ form.why_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_heading_ar.label }}</label>{{ form.why_heading_ar }}{{ form.why_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_1_title_en.label }}</label>{{ form.why_point_1_title_en }}{{ form.why_point_1_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_1_title_ar.label }}</label>{{ form.why_point_1_title_ar }}{{ form.why_point_1_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_1_body_en.label }}</label>{{ form.why_point_1_body_en }}{{ form.why_point_1_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_1_body_ar.label }}</label>{{ form.why_point_1_body_ar }}{{ form.why_point_1_body_ar.errors }}</div>
+        <div class="col-12">{% if home.why_point_1_icon %}<img src="{{ home.why_point_1_icon.url }}" style="max-height:48px" class="mb-2 d-block" alt="">{% endif %}<label class="form-label">{{ form.why_point_1_icon.label }}</label>{{ form.why_point_1_icon }}{{ form.why_point_1_icon.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_2_title_en.label }}</label>{{ form.why_point_2_title_en }}{{ form.why_point_2_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_2_title_ar.label }}</label>{{ form.why_point_2_title_ar }}{{ form.why_point_2_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_2_body_en.label }}</label>{{ form.why_point_2_body_en }}{{ form.why_point_2_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_2_body_ar.label }}</label>{{ form.why_point_2_body_ar }}{{ form.why_point_2_body_ar.errors }}</div>
+        <div class="col-12">{% if home.why_point_2_icon %}<img src="{{ home.why_point_2_icon.url }}" style="max-height:48px" class="mb-2 d-block" alt="">{% endif %}<label class="form-label">{{ form.why_point_2_icon.label }}</label>{{ form.why_point_2_icon }}{{ form.why_point_2_icon.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_3_title_en.label }}</label>{{ form.why_point_3_title_en }}{{ form.why_point_3_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_3_title_ar.label }}</label>{{ form.why_point_3_title_ar }}{{ form.why_point_3_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_3_body_en.label }}</label>{{ form.why_point_3_body_en }}{{ form.why_point_3_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.why_point_3_body_ar.label }}</label>{{ form.why_point_3_body_ar }}{{ form.why_point_3_body_ar.errors }}</div>
+        <div class="col-12">{% if home.why_point_3_icon %}<img src="{{ home.why_point_3_icon.url }}" style="max-height:48px" class="mb-2 d-block" alt="">{% endif %}<label class="form-label">{{ form.why_point_3_icon.label }}</label>{{ form.why_point_3_icon }}{{ form.why_point_3_icon.errors }}</div>
+        <div class="col-md-4">{% if home.why_image_1 %}<img src="{{ home.why_image_1.url }}" style="max-height:72px" class="mb-2 d-block rounded border" alt="">{% endif %}<label class="form-label">{{ form.why_image_1.label }}</label>{{ form.why_image_1 }}{{ form.why_image_1.errors }}</div>
+        <div class="col-md-4">{% if home.why_image_2 %}<img src="{{ home.why_image_2.url }}" style="max-height:72px" class="mb-2 d-block rounded border" alt="">{% endif %}<label class="form-label">{{ form.why_image_2.label }}</label>{{ form.why_image_2 }}{{ form.why_image_2.errors }}</div>
+        <div class="col-md-4">{% if home.why_image_3 %}<img src="{{ home.why_image_3.url }}" style="max-height:72px" class="mb-2 d-block rounded border" alt="">{% endif %}<label class="form-label">{{ form.why_image_3.label }}</label>{{ form.why_image_3 }}{{ form.why_image_3.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 8: Features --- #}
+    <div class="tab-pane fade" id="tab-features" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.features_kicker_en.label }}</label>{{ form.features_kicker_en }}{{ form.features_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.features_kicker_ar.label }}</label>{{ form.features_kicker_ar }}{{ form.features_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.features_heading_en.label }}</label>{{ form.features_heading_en }}{{ form.features_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.features_heading_ar.label }}</label>{{ form.features_heading_ar }}{{ form.features_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.features_footer_text_en.label }}</label>{{ form.features_footer_text_en }}{{ form.features_footer_text_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.features_footer_text_ar.label }}</label>{{ form.features_footer_text_ar }}{{ form.features_footer_text_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.features_footer_link_label_en.label }}</label>{{ form.features_footer_link_label_en }}{{ form.features_footer_link_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.features_footer_link_label_ar.label }}</label>{{ form.features_footer_link_label_ar }}{{ form.features_footer_link_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.features_footer_link_url.label }}</label>{{ form.features_footer_link_url }}{{ form.features_footer_link_url.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.features_rating_value.label }}</label>{{ form.features_rating_value }}{{ form.features_rating_value.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.features_review_count_label_en.label }}</label>{{ form.features_review_count_label_en }}{{ form.features_review_count_label_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.features_review_count_label_ar.label }}</label>{{ form.features_review_count_label_ar }}{{ form.features_review_count_label_ar.errors }}</div>
+        <hr class="col-12">
+        <div class="col-12"><h6 class="text-muted">Feature block A</h6></div>
+        <div class="col-md-6">{% if home.feature_a_image %}<img src="{{ home.feature_a_image.url }}" style="max-height:72px" class="mb-2 d-block rounded border" alt="">{% endif %}<label class="form-label">{{ form.feature_a_image.label }}</label>{{ form.feature_a_image }}{{ form.feature_a_image.errors }}</div>
+        <div class="col-md-6">{% if home.feature_a_icon %}<img src="{{ home.feature_a_icon.url }}" style="max-height:48px" class="mb-2 d-block" alt="">{% endif %}<label class="form-label">{{ form.feature_a_icon.label }}</label>{{ form.feature_a_icon }}{{ form.feature_a_icon.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_a_title_en.label }}</label>{{ form.feature_a_title_en }}{{ form.feature_a_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_a_title_ar.label }}</label>{{ form.feature_a_title_ar }}{{ form.feature_a_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_a_body_en.label }}</label>{{ form.feature_a_body_en }}{{ form.feature_a_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_a_body_ar.label }}</label>{{ form.feature_a_body_ar }}{{ form.feature_a_body_ar.errors }}</div>
+        <div class="col-12"><h6 class="text-muted">Feature block B</h6></div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_b_title_en.label }}</label>{{ form.feature_b_title_en }}{{ form.feature_b_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_b_title_ar.label }}</label>{{ form.feature_b_title_ar }}{{ form.feature_b_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_b_body_en.label }}</label>{{ form.feature_b_body_en }}{{ form.feature_b_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_b_body_ar.label }}</label>{{ form.feature_b_body_ar }}{{ form.feature_b_body_ar.errors }}</div>
+        <div class="col-12">{% if home.feature_b_icon %}<img src="{{ home.feature_b_icon.url }}" style="max-height:48px" class="mb-2 d-block" alt="">{% endif %}<label class="form-label">{{ form.feature_b_icon.label }}</label>{{ form.feature_b_icon }}{{ form.feature_b_icon.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_b_list_item_1_en.label }}</label>{{ form.feature_b_list_item_1_en }}{{ form.feature_b_list_item_1_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_b_list_item_1_ar.label }}</label>{{ form.feature_b_list_item_1_ar }}{{ form.feature_b_list_item_1_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_b_list_item_2_en.label }}</label>{{ form.feature_b_list_item_2_en }}{{ form.feature_b_list_item_2_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_b_list_item_2_ar.label }}</label>{{ form.feature_b_list_item_2_ar }}{{ form.feature_b_list_item_2_ar.errors }}</div>
+        <div class="col-12"><h6 class="text-muted">Feature block C</h6></div>
+        <div class="col-md-6">{% if home.feature_c_image %}<img src="{{ home.feature_c_image.url }}" style="max-height:72px" class="mb-2 d-block rounded border" alt="">{% endif %}<label class="form-label">{{ form.feature_c_image.label }}</label>{{ form.feature_c_image }}{{ form.feature_c_image.errors }}</div>
+        <div class="col-md-6">{% if home.feature_c_icon %}<img src="{{ home.feature_c_icon.url }}" style="max-height:48px" class="mb-2 d-block" alt="">{% endif %}<label class="form-label">{{ form.feature_c_icon.label }}</label>{{ form.feature_c_icon }}{{ form.feature_c_icon.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_c_title_en.label }}</label>{{ form.feature_c_title_en }}{{ form.feature_c_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_c_title_ar.label }}</label>{{ form.feature_c_title_ar }}{{ form.feature_c_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_c_body_en.label }}</label>{{ form.feature_c_body_en }}{{ form.feature_c_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_c_body_ar.label }}</label>{{ form.feature_c_body_ar }}{{ form.feature_c_body_ar.errors }}</div>
+        <div class="col-12"><h6 class="text-muted">Feature block D</h6></div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_d_title_en.label }}</label>{{ form.feature_d_title_en }}{{ form.feature_d_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_d_title_ar.label }}</label>{{ form.feature_d_title_ar }}{{ form.feature_d_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_d_body_en.label }}</label>{{ form.feature_d_body_en }}{{ form.feature_d_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_d_body_ar.label }}</label>{{ form.feature_d_body_ar }}{{ form.feature_d_body_ar.errors }}</div>
+        <div class="col-12">{% if home.feature_d_icon %}<img src="{{ home.feature_d_icon.url }}" style="max-height:48px" class="mb-2 d-block" alt="">{% endif %}<label class="form-label">{{ form.feature_d_icon.label }}</label>{{ form.feature_d_icon }}{{ form.feature_d_icon.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_d_list_item_1_en.label }}</label>{{ form.feature_d_list_item_1_en }}{{ form.feature_d_list_item_1_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_d_list_item_1_ar.label }}</label>{{ form.feature_d_list_item_1_ar }}{{ form.feature_d_list_item_1_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_d_list_item_2_en.label }}</label>{{ form.feature_d_list_item_2_en }}{{ form.feature_d_list_item_2_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.feature_d_list_item_2_ar.label }}</label>{{ form.feature_d_list_item_2_ar }}{{ form.feature_d_list_item_2_ar.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab: Pricing section header (tiers edited under Website CMS) --- #}
+    <div class="tab-pane fade" id="tab-pricing" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_kicker_en.label }}</label>{{ form.pricing_kicker_en }}{{ form.pricing_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_kicker_ar.label }}</label>{{ form.pricing_kicker_ar }}{{ form.pricing_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_heading_en.label }}</label>{{ form.pricing_heading_en }}{{ form.pricing_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_heading_ar.label }}</label>{{ form.pricing_heading_ar }}{{ form.pricing_heading_ar.errors }}</div>
+        <p class="col-12 text-muted small mb-0">{% translate "Plan names, prices, and bullets are edited under Pricing Tiers." %}</p>
+      </div>
+    </div>
+
+    {# --- Tab 9: Business / Map --- #}
+    <div class="tab-pane fade" id="tab-business" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">{{ form.business_map_image.label }}</label>
+          {% if home.business_map_image %}<img src="{{ home.business_map_image.url }}" style="max-height:100px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.business_map_image }}{{ form.business_map_image.errors }}
+        </div>
+        <div class="col-md-4"><label class="form-label">{{ form.business_counter_value.label }}</label>{{ form.business_counter_value }}{{ form.business_counter_value.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.business_counter_suffix_en.label }}</label>{{ form.business_counter_suffix_en }}{{ form.business_counter_suffix_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.business_counter_suffix_ar.label }}</label>{{ form.business_counter_suffix_ar }}{{ form.business_counter_suffix_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_counter_caption_en.label }}</label>{{ form.business_counter_caption_en }}{{ form.business_counter_caption_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_counter_caption_ar.label }}</label>{{ form.business_counter_caption_ar }}{{ form.business_counter_caption_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_heading_en.label }}</label>{{ form.business_heading_en }}{{ form.business_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_heading_ar.label }}</label>{{ form.business_heading_ar }}{{ form.business_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_body_en.label }}</label>{{ form.business_body_en }}{{ form.business_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_body_ar.label }}</label>{{ form.business_body_ar }}{{ form.business_body_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_bullet_1_en.label }}</label>{{ form.business_bullet_1_en }}{{ form.business_bullet_1_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_bullet_1_ar.label }}</label>{{ form.business_bullet_1_ar }}{{ form.business_bullet_1_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_bullet_2_en.label }}</label>{{ form.business_bullet_2_en }}{{ form.business_bullet_2_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.business_bullet_2_ar.label }}</label>{{ form.business_bullet_2_ar }}{{ form.business_bullet_2_ar.errors }}</div>
+        <div class="col-12">
+          <label class="form-label">{{ form.business_side_image.label }}</label>
+          {% if home.business_side_image %}<img src="{{ home.business_side_image.url }}" style="max-height:80px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.business_side_image }}{{ form.business_side_image.errors }}
+        </div>
+      </div>
+    </div>
+
+    {# --- Tab 10: Testimonials header --- #}
+    <div class="tab-pane fade" id="tab-testimonials" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_kicker_en.label }}</label>{{ form.testimonials_kicker_en }}{{ form.testimonials_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_kicker_ar.label }}</label>{{ form.testimonials_kicker_ar }}{{ form.testimonials_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_heading_en.label }}</label>{{ form.testimonials_heading_en }}{{ form.testimonials_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_heading_ar.label }}</label>{{ form.testimonials_heading_ar }}{{ form.testimonials_heading_ar.errors }}</div>
+        <div class="col-12">
+          <label class="form-label">{{ form.testimonials_hero_image.label }}</label>
+          {% if home.testimonials_hero_image %}<img src="{{ home.testimonials_hero_image.url }}" style="max-height:80px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.testimonials_hero_image }}{{ form.testimonials_hero_image.errors }}
+        </div>
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_happy_count.label }}</label>{{ form.testimonials_happy_count }}{{ form.testimonials_happy_count.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_happy_label_en.label }}</label>{{ form.testimonials_happy_label_en }}{{ form.testimonials_happy_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_happy_label_ar.label }}</label>{{ form.testimonials_happy_label_ar }}{{ form.testimonials_happy_label_ar.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 11: Footer --- #}
+    <div class="tab-pane fade" id="tab-footer" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.footer_cta_left_en.label }}</label>{{ form.footer_cta_left_en }}{{ form.footer_cta_left_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_cta_left_ar.label }}</label>{{ form.footer_cta_left_ar }}{{ form.footer_cta_left_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_brand_text_en.label }}</label>{{ form.footer_brand_text_en }}{{ form.footer_brand_text_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_brand_text_ar.label }}</label>{{ form.footer_brand_text_ar }}{{ form.footer_brand_text_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_cta_right_en.label }}</label>{{ form.footer_cta_right_en }}{{ form.footer_cta_right_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_cta_right_ar.label }}</label>{{ form.footer_cta_right_ar }}{{ form.footer_cta_right_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_about_blurb_en.label }}</label>{{ form.footer_about_blurb_en }}{{ form.footer_about_blurb_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_about_blurb_ar.label }}</label>{{ form.footer_about_blurb_ar }}{{ form.footer_about_blurb_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_social_pinterest_url.label }}</label>{{ form.footer_social_pinterest_url }}{{ form.footer_social_pinterest_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_social_x_url.label }}</label>{{ form.footer_social_x_url }}{{ form.footer_social_x_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_social_facebook_url.label }}</label>{{ form.footer_social_facebook_url }}{{ form.footer_social_facebook_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_social_instagram_url.label }}</label>{{ form.footer_social_instagram_url }}{{ form.footer_social_instagram_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_column_title_en.label }}</label>{{ form.footer_column_title_en }}{{ form.footer_column_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_column_title_ar.label }}</label>{{ form.footer_column_title_ar }}{{ form.footer_column_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_link_1_label_en.label }}</label>{{ form.footer_link_1_label_en }}{{ form.footer_link_1_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_link_1_label_ar.label }}</label>{{ form.footer_link_1_label_ar }}{{ form.footer_link_1_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.footer_link_1_url.label }}</label>{{ form.footer_link_1_url }}{{ form.footer_link_1_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_link_2_label_en.label }}</label>{{ form.footer_link_2_label_en }}{{ form.footer_link_2_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_link_2_label_ar.label }}</label>{{ form.footer_link_2_label_ar }}{{ form.footer_link_2_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.footer_link_2_url.label }}</label>{{ form.footer_link_2_url }}{{ form.footer_link_2_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_link_3_label_en.label }}</label>{{ form.footer_link_3_label_en }}{{ form.footer_link_3_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_link_3_label_ar.label }}</label>{{ form.footer_link_3_label_ar }}{{ form.footer_link_3_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.footer_link_3_url.label }}</label>{{ form.footer_link_3_url }}{{ form.footer_link_3_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_newsletter_title_en.label }}</label>{{ form.footer_newsletter_title_en }}{{ form.footer_newsletter_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_newsletter_title_ar.label }}</label>{{ form.footer_newsletter_title_ar }}{{ form.footer_newsletter_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_newsletter_desc_en.label }}</label>{{ form.footer_newsletter_desc_en }}{{ form.footer_newsletter_desc_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_newsletter_desc_ar.label }}</label>{{ form.footer_newsletter_desc_ar }}{{ form.footer_newsletter_desc_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_newsletter_placeholder_en.label }}</label>{{ form.footer_newsletter_placeholder_en }}{{ form.footer_newsletter_placeholder_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_newsletter_placeholder_ar.label }}</label>{{ form.footer_newsletter_placeholder_ar }}{{ form.footer_newsletter_placeholder_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.footer_newsletter_action_url.label }}</label>{{ form.footer_newsletter_action_url }}{{ form.footer_newsletter_action_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_copyright_en.label }}</label>{{ form.footer_copyright_en }}{{ form.footer_copyright_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_copyright_ar.label }}</label>{{ form.footer_copyright_ar }}{{ form.footer_copyright_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_credit_en.label }}</label>{{ form.footer_credit_en }}{{ form.footer_credit_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.footer_credit_ar.label }}</label>{{ form.footer_credit_ar }}{{ form.footer_credit_ar.errors }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-none" aria-hidden="true">{{ form.updated_by }}</div>
+
+  <div class="d-flex gap-2 align-items-center">
+    <button type="submit" class="btn btn-primary btn-lg">
+      <i class="bi bi-check2-circle"></i> {% translate "Save all changes" %}
+    </button>
+  </div>
+</form>
+{% endblock %}

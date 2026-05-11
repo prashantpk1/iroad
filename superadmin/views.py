@@ -10919,3 +10919,331 @@ class GlobalSearchView(LoginRequiredMixin, TemplateView):
         context['total_count'] = total_count
         context['page_title'] = f"Search results for '{query}'"
         return context
+
+
+# ── CMS: Home Page (iroad_frontend) ─────────────────────────────────
+
+from iroad_frontend.models import (
+    HomeMapLocation,
+    HomePageContent,
+    HomePricingTier,
+    HomeServiceCard,
+    HomeTestimonial,
+)
+from iroad_frontend.cms_forms import (
+    HomeMapLocationForm,
+    HomePageContentForm,
+    HomePricingTierForm,
+    HomeServiceCardForm,
+    HomeTestimonialForm,
+)
+
+
+def _cms_next_child_order(queryset):
+    last = queryset.order_by('-order').first()
+    if last is None:
+        return 0
+    return (last.order or 0) + 1
+
+
+class HomePageCMSView(LoginRequiredMixin, View):
+    """
+    Singleton edit view for Home Page main content.
+    GET: show form pre-filled with current content
+    POST: save and redirect back with success message
+    """
+    template_name = 'superadmin/cms/home_page_cms.html'
+
+    def _get_home(self):
+        return HomePageContent.get_singleton()
+
+    def get(self, request):
+        home = self._get_home()
+        form = HomePageContentForm(instance=home)
+        return render(request, self.template_name, {
+            'form': form,
+            'home': home,
+            'page_title': 'Home Page CMS',
+        })
+
+    def post(self, request):
+        home = self._get_home()
+        form = HomePageContentForm(
+            request.POST,
+            request.FILES,
+            instance=home,
+        )
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.updated_by = (
+                f'{request.user.first_name} '
+                f'{request.user.last_name}'
+            )
+            obj.save()
+            messages.success(
+                request,
+                'Home page content updated successfully.',
+            )
+            return redirect('home_page_cms')
+        return render(request, self.template_name, {
+            'form': form,
+            'home': home,
+            'page_title': 'Home Page CMS',
+        })
+
+
+class HomeServiceCardListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/service_card_list.html'
+
+    def get(self, request):
+        home = HomePageContent.get_singleton()
+        cards = home.service_cards.all()
+        return render(request, self.template_name, {
+            'cards': cards,
+            'page_title': 'Service Cards',
+        })
+
+
+class HomeServiceCardCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/service_card_form.html'
+
+    def get(self, request):
+        form = HomeServiceCardForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Service Card',
+        })
+
+    def post(self, request):
+        form = HomeServiceCardForm(request.POST, request.FILES)
+        if form.is_valid():
+            card = form.save(commit=False)
+            card.home = HomePageContent.get_singleton()
+            card.order = _cms_next_child_order(card.home.service_cards.all())
+            card.save()
+            messages.success(request, 'Service card created.')
+            return redirect('home_service_card_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Service Card',
+        })
+
+
+class HomeServiceCardUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/service_card_form.html'
+
+    def get(self, request, pk):
+        card = get_object_or_404(HomeServiceCard, pk=pk)
+        form = HomeServiceCardForm(instance=card)
+        return render(request, self.template_name, {
+            'form': form,
+            'card': card,
+            'page_title': 'Edit Service Card',
+        })
+
+    def post(self, request, pk):
+        card = get_object_or_404(HomeServiceCard, pk=pk)
+        form = HomeServiceCardForm(
+            request.POST, request.FILES, instance=card)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Service card updated.')
+            return redirect('home_service_card_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'card': card,
+            'page_title': 'Edit Service Card',
+        })
+
+
+class HomePricingTierListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/pricing_tier_list.html'
+
+    def get(self, request):
+        home = HomePageContent.get_singleton()
+        tiers = home.pricing_tiers.all()
+        return render(request, self.template_name, {
+            'tiers': tiers,
+            'page_title': 'Pricing Tiers',
+        })
+
+
+class HomePricingTierCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/pricing_tier_form.html'
+
+    def get(self, request):
+        form = HomePricingTierForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Pricing Tier',
+        })
+
+    def post(self, request):
+        form = HomePricingTierForm(request.POST, request.FILES)
+        if form.is_valid():
+            tier = form.save(commit=False)
+            tier.home = HomePageContent.get_singleton()
+            tier.order = _cms_next_child_order(tier.home.pricing_tiers.all())
+            tier.save()
+            messages.success(request, 'Pricing tier created.')
+            return redirect('home_pricing_tier_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Pricing Tier',
+        })
+
+
+class HomePricingTierUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/pricing_tier_form.html'
+
+    def get(self, request, pk):
+        tier = get_object_or_404(HomePricingTier, pk=pk)
+        form = HomePricingTierForm(instance=tier)
+        return render(request, self.template_name, {
+            'form': form,
+            'tier': tier,
+            'page_title': 'Edit Pricing Tier',
+        })
+
+    def post(self, request, pk):
+        tier = get_object_or_404(HomePricingTier, pk=pk)
+        form = HomePricingTierForm(
+            request.POST, request.FILES, instance=tier)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Pricing tier updated.')
+            return redirect('home_pricing_tier_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'tier': tier,
+            'page_title': 'Edit Pricing Tier',
+        })
+
+
+class HomeTestimonialListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/testimonial_list.html'
+
+    def get(self, request):
+        home = HomePageContent.get_singleton()
+        testimonials = home.testimonials.all()
+        return render(request, self.template_name, {
+            'testimonials': testimonials,
+            'page_title': 'Testimonials',
+        })
+
+
+class HomeTestimonialCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/testimonial_form.html'
+
+    def get(self, request):
+        form = HomeTestimonialForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Testimonial',
+        })
+
+    def post(self, request):
+        form = HomeTestimonialForm(request.POST, request.FILES)
+        if form.is_valid():
+            testimonial = form.save(commit=False)
+            testimonial.home = HomePageContent.get_singleton()
+            testimonial.order = _cms_next_child_order(
+                testimonial.home.testimonials.all())
+            testimonial.save()
+            messages.success(request, 'Testimonial created.')
+            return redirect('home_testimonial_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Testimonial',
+        })
+
+
+class HomeTestimonialUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/testimonial_form.html'
+
+    def get(self, request, pk):
+        testimonial = get_object_or_404(HomeTestimonial, pk=pk)
+        form = HomeTestimonialForm(instance=testimonial)
+        return render(request, self.template_name, {
+            'form': form,
+            'testimonial': testimonial,
+            'page_title': 'Edit Testimonial',
+        })
+
+    def post(self, request, pk):
+        testimonial = get_object_or_404(HomeTestimonial, pk=pk)
+        form = HomeTestimonialForm(
+            request.POST, request.FILES, instance=testimonial)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Testimonial updated.')
+            return redirect('home_testimonial_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'testimonial': testimonial,
+            'page_title': 'Edit Testimonial',
+        })
+
+
+class HomeMapLocationListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/map_location_list.html'
+
+    def get(self, request):
+        home = HomePageContent.get_singleton()
+        locations = home.map_locations.all()
+        return render(request, self.template_name, {
+            'locations': locations,
+            'page_title': 'Map Locations',
+        })
+
+
+class HomeMapLocationCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/map_location_form.html'
+
+    def get(self, request):
+        form = HomeMapLocationForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Map Location',
+        })
+
+    def post(self, request):
+        form = HomeMapLocationForm(request.POST, request.FILES)
+        if form.is_valid():
+            loc = form.save(commit=False)
+            loc.home = HomePageContent.get_singleton()
+            loc.order = _cms_next_child_order(loc.home.map_locations.all())
+            loc.save()
+            messages.success(request, 'Map location created.')
+            return redirect('home_map_location_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Map Location',
+        })
+
+
+class HomeMapLocationUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/map_location_form.html'
+
+    def get(self, request, pk):
+        loc = get_object_or_404(HomeMapLocation, pk=pk)
+        form = HomeMapLocationForm(instance=loc)
+        return render(request, self.template_name, {
+            'form': form,
+            'location': loc,
+            'page_title': 'Edit Map Location',
+        })
+
+    def post(self, request, pk):
+        loc = get_object_or_404(HomeMapLocation, pk=pk)
+        form = HomeMapLocationForm(
+            request.POST, request.FILES, instance=loc)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Map location updated.')
+            return redirect('home_map_location_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'location': loc,
+            'page_title': 'Edit Map Location',
+        })

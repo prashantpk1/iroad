@@ -176,6 +176,19 @@ from .views import (
     RevokeSessionView,
     GlobalSearchView,
     CommGatewayTestConnectionView,
+    HomeMapLocationCreateView,
+    HomeMapLocationListView,
+    HomeMapLocationUpdateView,
+    HomePageCMSView,
+    HomePricingTierCreateView,
+    HomePricingTierListView,
+    HomePricingTierUpdateView,
+    HomeServiceCardCreateView,
+    HomeServiceCardListView,
+    HomeServiceCardUpdateView,
+    HomeTestimonialCreateView,
+    HomeTestimonialListView,
+    HomeTestimonialUpdateView,
 )
 
 urlpatterns = [
@@ -978,6 +991,68 @@ urlpatterns = [
         'crm/tenants/<uuid:pk>/add-note/',
         CRMNoteCreateView.as_view(),
         name='crm_note_create',
+    ),
+    # ── CMS (marketing home page) ─────────────────────────────────
+    path('cms/home/', HomePageCMSView.as_view(), name='home_page_cms'),
+    path(
+        'cms/service-cards/',
+        HomeServiceCardListView.as_view(),
+        name='home_service_card_list',
+    ),
+    path(
+        'cms/service-cards/create/',
+        HomeServiceCardCreateView.as_view(),
+        name='home_service_card_create',
+    ),
+    path(
+        'cms/service-cards/<int:pk>/edit/',
+        HomeServiceCardUpdateView.as_view(),
+        name='home_service_card_edit',
+    ),
+    path(
+        'cms/pricing-tiers/',
+        HomePricingTierListView.as_view(),
+        name='home_pricing_tier_list',
+    ),
+    path(
+        'cms/pricing-tiers/create/',
+        HomePricingTierCreateView.as_view(),
+        name='home_pricing_tier_create',
+    ),
+    path(
+        'cms/pricing-tiers/<int:pk>/edit/',
+        HomePricingTierUpdateView.as_view(),
+        name='home_pricing_tier_edit',
+    ),
+    path(
+        'cms/testimonials/',
+        HomeTestimonialListView.as_view(),
+        name='home_testimonial_list',
+    ),
+    path(
+        'cms/testimonials/create/',
+        HomeTestimonialCreateView.as_view(),
+        name='home_testimonial_create',
+    ),
+    path(
+        'cms/testimonials/<int:pk>/edit/',
+        HomeTestimonialUpdateView.as_view(),
+        name='home_testimonial_edit',
+    ),
+    path(
+        'cms/map-locations/',
+        HomeMapLocationListView.as_view(),
+        name='home_map_location_list',
+    ),
+    path(
+        'cms/map-locations/create/',
+        HomeMapLocationCreateView.as_view(),
+        name='home_map_location_create',
+    ),
+    path(
+        'cms/map-locations/<int:pk>/edit/',
+        HomeMapLocationUpdateView.as_view(),
+        name='home_map_location_edit',
     ),
     path(
         'search/',

@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item">
+    <a href="{% url 'home_testimonial_list' %}">{% translate "Testimonials" %}</a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="form-card">
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form.order.id_for_label }}">{{ form.order.label }}</label>
+          {{ form.order }}{{ form.order.errors }}
+        </div>
+        <div class="col-md-8"></div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.quote_en.id_for_label }}">{{ form.quote_en.label }}</label>
+          {{ form.quote_en }}{{ form.quote_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.quote_ar.id_for_label }}">{{ form.quote_ar.label }}</label>
+          {{ form.quote_ar }}{{ form.quote_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.author_name_en.id_for_label }}">{{ form.author_name_en.label }}</label>
+          {{ form.author_name_en }}{{ form.author_name_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.author_name_ar.id_for_label }}">{{ form.author_name_ar.label }}</label>
+          {{ form.author_name_ar }}{{ form.author_name_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.author_role_en.id_for_label }}">{{ form.author_role_en.label }}</label>
+          {{ form.author_role_en }}{{ form.author_role_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.author_role_ar.id_for_label }}">{{ form.author_role_ar.label }}</label>
+          {{ form.author_role_ar }}{{ form.author_role_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.author_avatar.id_for_label }}">{{ form.author_avatar.label }}</label>
+          {% if testimonial and testimonial.author_avatar %}
+            <img src="{{ testimonial.author_avatar.url }}" alt="" style="max-height: 64px" class="mb-2 d-block rounded-circle border">
+          {% endif %}
+          {{ form.author_avatar }}{{ form.author_avatar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.company_logo.id_for_label }}">{{ form.company_logo.label }}</label>
+          {% if testimonial and testimonial.company_logo %}
+            <img src="{{ testimonial.company_logo.url }}" alt="" style="max-height: 48px" class="mb-2 d-block rounded border">
+          {% endif %}
+          {{ form.company_logo }}{{ form.company_logo.errors }}
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+          </div>
+          {{ form.is_active.errors }}
+        </div>
+      </div>
+    </div>
+    <div class="form-card-footer d-flex flex-wrap gap-2 justify-content-end">
+      <a href="{% url 'home_testimonial_list' %}" class="btn btn-outline-secondary">{% translate "Cancel" %}</a>
+      <button type="submit" class="btn btn-primary">{% translate "Save" %}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

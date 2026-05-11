@@ -59,7 +59,8 @@ SHARED_APPS = [
     'rest_framework',
     'corsheaders',
     'mobile_api',
-    
+    'iroad_frontend',
+
 ]
 
 TENANT_APPS = [

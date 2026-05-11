@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item">
+    <a href="{% url 'home_pricing_tier_list' %}">{% translate "Pricing Tiers" %}</a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="form-card">
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form.order.id_for_label }}">{{ form.order.label }}</label>
+          {{ form.order }}{{ form.order.errors }}
+        </div>
+        <div class="col-md-8"></div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.name_en.id_for_label }}">{{ form.name_en.label }}</label>
+          {{ form.name_en }}{{ form.name_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.name_ar.id_for_label }}">{{ form.name_ar.label }}</label>
+          {{ form.name_ar }}{{ form.name_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.summary_en.id_for_label }}">{{ form.summary_en.label }}</label>
+          {{ form.summary_en }}{{ form.summary_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.summary_ar.id_for_label }}">{{ form.summary_ar.label }}</label>
+          {{ form.summary_ar }}{{ form.summary_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.price_display_en.id_for_label }}">{{ form.price_display_en.label }}</label>
+          {{ form.price_display_en }}{{ form.price_display_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.price_display_ar.id_for_label }}">{{ form.price_display_ar.label }}</label>
+          {{ form.price_display_ar }}{{ form.price_display_ar.errors }}
+        </div>
+        <div class="col-12"><hr class="my-1"><h6 class="text-muted small text-uppercase">{% translate "Bullets" %}</h6></div>
+        <div class="col-md-6"><label class="form-label">{{ form.bullet_1_en.label }}</label>{{ form.bullet_1_en }}{{ form.bullet_1_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.bullet_1_ar.label }}</label>{{ form.bullet_1_ar }}{{ form.bullet_1_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.bullet_2_en.label }}</label>{{ form.bullet_2_en }}{{ form.bullet_2_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.bullet_2_ar.label }}</label>{{ form.bullet_2_ar }}{{ form.bullet_2_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.bullet_3_en.label }}</label>{{ form.bullet_3_en }}{{ form.bullet_3_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.bullet_3_ar.label }}</label>{{ form.bullet_3_ar }}{{ form.bullet_3_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.bullet_4_en.label }}</label>{{ form.bullet_4_en }}{{ form.bullet_4_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.bullet_4_ar.label }}</label>{{ form.bullet_4_ar }}{{ form.bullet_4_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.cta_label_en.label }}</label>{{ form.cta_label_en }}{{ form.cta_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.cta_label_ar.label }}</label>{{ form.cta_label_ar }}{{ form.cta_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.cta_url.label }}</label>{{ form.cta_url }}{{ form.cta_url.errors }}</div>
+        <div class="col-12">
+          <div class="form-check">
+            {{ form.is_featured }}
+            <label class="form-check-label" for="{{ form.is_featured.id_for_label }}">{{ form.is_featured.label }}</label>
+          </div>
+          {{ form.is_featured.errors }}
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+          </div>
+          {{ form.is_active.errors }}
+        </div>
+        <div class="col-12"><hr class="my-2"></div>
+        <div class="col-12">
+          <h6 class="mb-1">{% translate "Pricing benefit lines" %}</h6>
+          <p class="form-text text-muted mb-3">{% translate "Benefit lines shown on first tier only." %}</p>
+        </div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_1_text_en.label }}</label>{{ form.pricing_benefit_1_text_en }}{{ form.pricing_benefit_1_text_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_1_text_ar.label }}</label>{{ form.pricing_benefit_1_text_ar }}{{ form.pricing_benefit_1_text_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_2_text_en.label }}</label>{{ form.pricing_benefit_2_text_en }}{{ form.pricing_benefit_2_text_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_2_text_ar.label }}</label>{{ form.pricing_benefit_2_text_ar }}{{ form.pricing_benefit_2_text_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_3_text_en.label }}</label>{{ form.pricing_benefit_3_text_en }}{{ form.pricing_benefit_3_text_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_3_text_ar.label }}</label>{{ form.pricing_benefit_3_text_ar }}{{ form.pricing_benefit_3_text_ar.errors }}</div>
+      </div>
+    </div>
+    <div class="form-card-footer d-flex flex-wrap gap-2 justify-content-end">
+      <a href="{% url 'home_pricing_tier_list' %}" class="btn btn-outline-secondary">{% translate "Cancel" %}</a>
+      <button type="submit" class="btn btn-primary">{% translate "Save" %}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

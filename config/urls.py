@@ -25,5 +25,6 @@ urlpatterns = [
     path('api/v1/mobile/', include(('mobile_api.urls', 'mobile_api'), namespace='mobile_api')),
     path('api/v1/', include('superadmin.api_urls')),
     path('tenant/', include(('iroad_tenants.urls', 'iroad_tenants'), namespace='iroad_tenants')),
+    path('', include(('iroad_frontend.urls', 'iroad_frontend'), namespace='iroad_frontend')),
     path('', include('superadmin.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

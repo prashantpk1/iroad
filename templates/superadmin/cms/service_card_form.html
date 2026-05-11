@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item">
+    <a href="{% url 'home_service_card_list' %}">{% translate "Service Cards" %}</a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="form-card">
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form.order.id_for_label }}">{{ form.order.label }}</label>
+          {{ form.order }}{{ form.order.errors }}
+        </div>
+        <div class="col-md-8"></div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.title_en.id_for_label }}">{{ form.title_en.label }}</label>
+          {{ form.title_en }}{{ form.title_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.title_ar.id_for_label }}">{{ form.title_ar.label }}</label>
+          {{ form.title_ar }}{{ form.title_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.summary_en.id_for_label }}">{{ form.summary_en.label }}</label>
+          {{ form.summary_en }}{{ form.summary_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.summary_ar.id_for_label }}">{{ form.summary_ar.label }}</label>
+          {{ form.summary_ar }}{{ form.summary_ar.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.icon.id_for_label }}">{{ form.icon.label }}</label>
+          {% if card and card.icon %}
+            <img src="{{ card.icon.url }}" alt="" style="max-height: 64px" class="mb-2 d-block rounded border">
+          {% endif %}
+          {{ form.icon }}{{ form.icon.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.detail_url.id_for_label }}">{{ form.detail_url.label }}</label>
+          {{ form.detail_url }}{{ form.detail_url.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.cta_label_en.id_for_label }}">{{ form.cta_label_en.label }}</label>
+          {{ form.cta_label_en }}{{ form.cta_label_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.cta_label_ar.id_for_label }}">{{ form.cta_label_ar.label }}</label>
+          {{ form.cta_label_ar }}{{ form.cta_label_ar.errors }}
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+          </div>
+          {{ form.is_active.errors }}
+        </div>
+      </div>
+    </div>
+    <div class="form-card-footer d-flex flex-wrap gap-2 justify-content-end">
+      <a href="{% url 'home_service_card_list' %}" class="btn btn-outline-secondary">{% translate "Cancel" %}</a>
+      <button type="submit" class="btn btn-primary">{% translate "Save" %}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}
