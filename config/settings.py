@@ -85,6 +85,8 @@ MIDDLEWARE = [
     'django_tenants.middleware.main.TenantMainMiddleware',
     'superadmin.middleware.TenantApiSchemaMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    # Serve /static/ when DEBUG=False (see STATICFILES_DIRS); required for styled 404 and marketing pages.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -192,6 +194,10 @@ USE_TZ = True
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_URL = '/static/'
+
+# WhiteNoise: with DEBUG=False, Django does not serve staticfiles; use finders so dev/local
+# works without running collectstatic (production should still run collectstatic for caching).
+WHITENOISE_USE_FINDERS = True
 
 # Media Files
 MEDIA_URL = '/media/'

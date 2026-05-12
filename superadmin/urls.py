@@ -186,6 +186,9 @@ from .views import (
     AboutHowWorkStepListView,
     AboutHowWorkStepUpdateView,
     AboutPageCMSView,
+    ContactPageCMSView,
+    ContactSubmissionDetailView,
+    ContactSubmissionListView,
     HomeMapLocationCreateView,
     HomeMapLocationListView,
     HomeMapLocationUpdateView,
@@ -1153,6 +1156,17 @@ urlpatterns = [
         'cms/pricing/interactive/<int:pk>/edit/',
         PricingInteractiveStepUpdateView.as_view(),
         name='pricing_interactive_edit',
+    ),
+    path('cms/contact/', ContactPageCMSView.as_view(), name='contact_page_cms'),
+    path(
+        'cms/contact/submissions/',
+        ContactSubmissionListView.as_view(),
+        name='contact_submission_list',
+    ),
+    path(
+        'cms/contact/submissions/<int:pk>/',
+        ContactSubmissionDetailView.as_view(),
+        name='contact_submission_detail',
     ),
     path(
         'search/',

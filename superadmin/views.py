@@ -25,6 +25,7 @@ from django.core.paginator import Paginator
 from django.core.files.storage import default_storage
 from django.core import signing
 from django.urls import reverse
+from urllib.parse import urlencode
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
@@ -10928,6 +10929,8 @@ from iroad_frontend.models import (
     AboutFaqItem,
     AboutHowWorkStep,
     AboutPageContent,
+    ContactPageContent,
+    ContactSubmission,
     HomeMapLocation,
     HomePageContent,
     HomePricingBenefit,
@@ -10942,6 +10945,7 @@ from iroad_frontend.cms_forms import (
     AboutFaqItemForm,
     AboutHowWorkStepForm,
     AboutPageContentForm,
+    ContactPageContentForm,
     HomeMapLocationForm,
     HomePageContentForm,
     HomePricingBenefitForm,
@@ -11684,4 +11688,116 @@ class PricingInteractiveStepUpdateView(LoginRequiredMixin, View):
             'form': form,
             'step': step,
             'page_title': 'Edit Interactive Step',
+        })
+
+
+# ── CMS: Contact Page (iroad_frontend) ────────────────────────────
+
+
+class ContactPageCMSView(LoginRequiredMixin, View):
+    """Singleton edit view for Contact Page CMS."""
+
+    template_name = 'superadmin/cms/contact_page_cms.html'
+
+    def _get_contact(self):
+        return ContactPageContent.get_singleton()
+
+    def get(self, request):
+        contact = self._get_contact()
+        form = ContactPageContentForm(instance=contact)
+        return render(request, self.template_name, {
+            'form': form,
+            'contact': contact,
+            'page_title': 'Contact Page CMS',
+        })
+
+    def post(self, request):
+        contact = self._get_contact()
+        form = ContactPageContentForm(
+            request.POST,
+            request.FILES,
+            instance=contact,
+        )
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.updated_by = (
+                f'{request.user.first_name} '
+                f'{request.user.last_name}'
+            )
+            obj.save()
+            messages.success(
+                request,
+                'Contact page content updated successfully.',
+            )
+            return redirect('contact_page_cms')
+        return render(request, self.template_name, {
+            'form': form,
+            'contact': contact,
+            'page_title': 'Contact Page CMS',
+        })
+
+
+class ContactSubmissionListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/contact_submission_list.html'
+
+    def get(self, request):
+        qs = ContactSubmission.objects.all().order_by('-submitted_at')
+        q = (request.GET.get('q') or '').strip()
+        if q:
+            qs = qs.filter(
+                Q(email__icontains=q)
+                | Q(first_name__icontains=q)
+                | Q(last_name__icontains=q),
+            )
+        unread_count = ContactSubmission.objects.filter(is_read=False).count()
+        return render(request, self.template_name, {
+            'submissions': qs,
+            'search_query': q,
+            'unread_count': unread_count,
+            'page_title': 'Contact Submissions',
+        })
+
+    def post(self, request):
+        if request.POST.get('action') == 'mark_all_read':
+            updated = ContactSubmission.objects.filter(is_read=False).update(
+                is_read=True,
+            )
+            messages.success(
+                request,
+                f'Marked {updated} submission(s) as read.',
+            )
+        elif request.POST.get('action') == 'mark_read':
+            raw_pk = request.POST.get('submission_id')
+            if raw_pk:
+                try:
+                    pk = int(raw_pk)
+                except (TypeError, ValueError):
+                    pk = None
+                if pk is not None:
+                    sub = get_object_or_404(ContactSubmission, pk=pk)
+                    sub.is_read = not sub.is_read
+                    sub.save(update_fields=['is_read'])
+                    state = 'read' if sub.is_read else 'unread'
+                    messages.success(
+                        request,
+                        f'Submission marked as {state}.',
+                    )
+        q = (request.POST.get('q') or '').strip()
+        base = reverse('contact_submission_list')
+        if q:
+            return redirect(f'{base}?{urlencode({"q": q})}')
+        return redirect(base)
+
+
+class ContactSubmissionDetailView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/contact_submission_detail.html'
+
+    def get(self, request, pk):
+        submission = get_object_or_404(ContactSubmission, pk=pk)
+        if not submission.is_read:
+            submission.is_read = True
+            submission.save(update_fields=['is_read'])
+        return render(request, self.template_name, {
+            'submission': submission,
+            'page_title': f'Contact — {submission.email}',
         })

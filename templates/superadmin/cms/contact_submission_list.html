@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="page-header-left d-flex flex-wrap align-items-center gap-2">
+      <h1 class="page-title mb-0">{{ page_title }}</h1>
+      {% if unread_count %}
+        <span class="badge rounded-pill text-bg-warning">{{ unread_count }} {% translate "unread" %}</span>
+      {% else %}
+        <span class="badge rounded-pill text-bg-secondary">0 {% translate "unread" %}</span>
+      {% endif %}
+    </div>
+    <div class="page-header-right d-flex flex-wrap gap-2">
+      {% if unread_count %}
+        <form method="post" action="" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="mark_all_read">
+          {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+          <button type="submit" class="btn btn-warning">
+            <i class="bi bi-envelope-check"></i> {% translate "Mark all as read" %}
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+  <p class="page-subtitle text-muted mb-0 mt-2">{% translate "Demo requests from the public contact form." %}</p>
+</div>
+
+<div class="form-card mb-3">
+  <div class="form-card-body">
+    <form method="get" action="" class="row g-2 align-items-end">
+      <div class="col-md-8 col-lg-6">
+        <label class="form-label" for="q">{% translate "Search" %}</label>
+        <input type="search" name="q" id="q" class="form-control" value="{{ search_query }}" placeholder="{% translate 'Email or name' %}">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary">{% translate "Search" %}</button>
+        {% if search_query %}
+          <a href="{% url 'contact_submission_list' %}" class="btn btn-outline-secondary">{% translate "Clear" %}</a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="form-card">
+  <div class="form-card-body p-0">
+    {% if submissions %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" class="text-muted" style="width: 72px">#</th>
+              <th scope="col">{% translate "Name" %}</th>
+              <th scope="col">{% translate "Email" %}</th>
+              <th scope="col">{% translate "Phone" %}</th>
+              <th scope="col">{% translate "Date" %}</th>
+              <th scope="col">{% translate "Read?" %}</th>
+              <th scope="col" class="text-end" style="width: 140px">{% translate "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in submissions %}
+              <tr
+                class="contact-submission-row"
+                data-detail-url="{% url 'contact_submission_detail' s.pk %}"
+                role="button"
+                tabindex="0"
+                style="cursor: pointer;"
+              >
+                <td class="text-muted small" onclick="event.stopPropagation();">{{ s.pk }}</td>
+                <td>{{ s.first_name }} {{ s.last_name }}</td>
+                <td><a href="mailto:{{ s.email }}" onclick="event.stopPropagation();">{{ s.email }}</a></td>
+                <td>{{ s.phone }}</td>
+                <td class="text-nowrap text-muted small">{{ s.submitted_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                  {% if s.is_read %}
+                    <span class="badge text-bg-secondary">{% translate "Read" %}</span>
+                  {% else %}
+                    <span class="badge text-bg-warning text-dark">{% translate "Unread" %}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end" onclick="event.stopPropagation();">
+                  <a href="{% url 'contact_submission_detail' s.pk %}" class="btn btn-sm btn-outline-primary">{% translate "Open" %}</a>
+                  <form method="post" action="" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="mark_read">
+                    <input type="hidden" name="submission_id" value="{{ s.pk }}">
+                    {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="{% translate 'Toggle read / unread' %}">
+                      <i class="bi bi-envelope-open"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5 px-3 text-muted">
+        <i class="bi bi-inbox" style="font-size: 2rem"></i>
+        {% if search_query %}
+          <p class="mb-0 mt-2">{% translate "No submissions match your search." %}</p>
+        {% else %}
+          <p class="mb-0 mt-2">{% translate "No demo requests yet." %}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+(function () {
+  function goDetail(tr) {
+    var url = tr.getAttribute('data-detail-url');
+    if (url) window.location.href = url;
+  }
+  document.querySelectorAll('tr.contact-submission-row').forEach(function (tr) {
+    tr.addEventListener('click', function (e) {
+      if (e.target.closest('a, button, form, input, label')) return;
+      goDetail(tr);
+    });
+    tr.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        goDetail(tr);
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

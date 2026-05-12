@@ -9,19 +9,21 @@
       <div class="container">
         <div class="row">
           <div class="col-lg-12">
+            <!-- Page Header Box Start -->
             <div class="page-header-box">
               <h1>Page not found</h1>
               <nav class="wow fadeInUp" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                   <li class="breadcrumb-item">
-                    <a href="{% url 'iroad_frontend:home' %}">Home</a>
+                    <a href="{% url 'iroad_frontend:home' %}">{{ home.nav_home_en|default:"Home" }}</a>
                   </li>
                   <li class="breadcrumb-item active" aria-current="page">
-                    404 error
+                    404 Error
                   </li>
                 </ol>
               </nav>
             </div>
+            <!-- Page Header Box End -->
           </div>
         </div>
       </div>
@@ -51,7 +53,7 @@
                   class="btn-default wow fadeInUp"
                   data-wow-delay="0.4s"
                   href="{% url 'iroad_frontend:home' %}"
-                  >back to home</a
+                  ><span>Back To Home</span></a
                 >
               </div>
             </div>

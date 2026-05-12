@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+{% if form.non_field_errors %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {{ form.non_field_errors }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endif %}
+{% if form.errors and not form.non_field_errors %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {% translate "Please correct the errors below." %}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endif %}
+
+<div class="page-header">
+  <div class="page-header-row d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+      <p class="page-subtitle text-muted mb-0">{% translate "Edit bilingual contact page copy, form labels, and sidebar info." %}</p>
+    </div>
+    <div class="page-header-right d-flex flex-wrap gap-2">
+      <button type="submit" form="contactPageCmsForm" class="btn btn-primary btn-lg">
+        <i class="bi bi-check2-circle"></i> {% translate "Save Changes" %}
+      </button>
+      <a href="/contact/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-lg">
+        <i class="bi bi-box-arrow-up-right"></i> {% translate "View Contact Page" %}
+      </a>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="" enctype="multipart/form-data" id="contactPageCmsForm">
+  {% csrf_token %}
+
+  <ul class="nav nav-tabs flex-wrap" id="contactCmsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="tab-contact-seo-btn" data-bs-toggle="tab" data-bs-target="#tab-contact-seo" type="button" role="tab">{% translate "SEO & Page Header" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-contact-section-btn" data-bs-toggle="tab" data-bs-target="#tab-contact-section" type="button" role="tab">{% translate "Section Heading" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-contact-form-btn" data-bs-toggle="tab" data-bs-target="#tab-contact-form" type="button" role="tab">{% translate "Form Labels" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-contact-sidebar-btn" data-bs-toggle="tab" data-bs-target="#tab-contact-sidebar" type="button" role="tab">{% translate "Sidebar & Contact Info" %}</button>
+    </li>
+  </ul>
+
+  <div class="tab-content border border-top-0 rounded-bottom bg-white p-3 p-md-4 mb-3">
+    {# Tab 1: SEO & Page Header #}
+    <div class="tab-pane fade show active" id="tab-contact-seo" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_title_en.id_for_label }}">{{ form.page_title_en.label }}</label>
+          {{ form.page_title_en }}{{ form.page_title_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_title_ar.id_for_label }}">{{ form.page_title_ar.label }}</label>
+          {{ form.page_title_ar }}{{ form.page_title_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.meta_description_en.id_for_label }}">{{ form.meta_description_en.label }}</label>
+          {{ form.meta_description_en }}{{ form.meta_description_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.meta_description_ar.id_for_label }}">{{ form.meta_description_ar.label }}</label>
+          {{ form.meta_description_ar }}{{ form.meta_description_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_header_h1_en.id_for_label }}">{{ form.page_header_h1_en.label }}</label>
+          {{ form.page_header_h1_en }}{{ form.page_header_h1_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_header_h1_ar.id_for_label }}">{{ form.page_header_h1_ar.label }}</label>
+          {{ form.page_header_h1_ar }}{{ form.page_header_h1_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.breadcrumb_current_en.id_for_label }}">{{ form.breadcrumb_current_en.label }}</label>
+          {{ form.breadcrumb_current_en }}{{ form.breadcrumb_current_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.breadcrumb_current_ar.id_for_label }}">{{ form.breadcrumb_current_ar.label }}</label>
+          {{ form.breadcrumb_current_ar }}{{ form.breadcrumb_current_ar.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.page_header_background.id_for_label }}">{{ form.page_header_background.label }}</label>
+          {% if contact.page_header_background %}
+            <div class="mb-2">
+              <img src="{{ contact.page_header_background.url }}" alt="" class="img-thumbnail" style="max-height: 120px; object-fit: cover; width: 100%; max-width: 480px;" />
+            </div>
+          {% endif %}
+          {{ form.page_header_background }}{{ form.page_header_background.errors }}
+          <p class="form-text text-muted small">{{ form.page_header_background.field.help_text }}</p>
+        </div>
+      </div>
+    </div>
+
+    {# Tab 2: Section Heading (kicker, heading, image) #}
+    <div class="tab-pane fade" id="tab-contact-section" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.section_kicker_en.id_for_label }}">{{ form.section_kicker_en.label }}</label>
+          {{ form.section_kicker_en }}{{ form.section_kicker_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.section_kicker_ar.id_for_label }}">{{ form.section_kicker_ar.label }}</label>
+          {{ form.section_kicker_ar }}{{ form.section_kicker_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.section_heading_en.id_for_label }}">{{ form.section_heading_en.label }}</label>
+          {{ form.section_heading_en }}{{ form.section_heading_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.section_heading_ar.id_for_label }}">{{ form.section_heading_ar.label }}</label>
+          {{ form.section_heading_ar }}{{ form.section_heading_ar.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.contact_image.id_for_label }}">{{ form.contact_image.label }}</label>
+          {% if contact.contact_image %}
+            <div class="mb-2">
+              <img src="{{ contact.contact_image.url }}" alt="" class="img-thumbnail" style="max-height: 160px; object-fit: cover;" />
+            </div>
+          {% endif %}
+          {{ form.contact_image }}{{ form.contact_image.errors }}
+        </div>
+      </div>
+    </div>
+
+    {# Tab 3: Form labels EN/AR two columns #}
+    <div class="tab-pane fade" id="tab-contact-form" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_title_en.id_for_label }}">{{ form.form_title_en.label }}</label>{{ form.form_title_en }}{{ form.form_title_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_title_ar.id_for_label }}">{{ form.form_title_ar.label }}</label>{{ form.form_title_ar }}{{ form.form_title_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_fname_placeholder_en.id_for_label }}">{{ form.form_fname_placeholder_en.label }}</label>{{ form.form_fname_placeholder_en }}{{ form.form_fname_placeholder_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_fname_placeholder_ar.id_for_label }}">{{ form.form_fname_placeholder_ar.label }}</label>{{ form.form_fname_placeholder_ar }}{{ form.form_fname_placeholder_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_lname_placeholder_en.id_for_label }}">{{ form.form_lname_placeholder_en.label }}</label>{{ form.form_lname_placeholder_en }}{{ form.form_lname_placeholder_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_lname_placeholder_ar.id_for_label }}">{{ form.form_lname_placeholder_ar.label }}</label>{{ form.form_lname_placeholder_ar }}{{ form.form_lname_placeholder_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_phone_placeholder_en.id_for_label }}">{{ form.form_phone_placeholder_en.label }}</label>{{ form.form_phone_placeholder_en }}{{ form.form_phone_placeholder_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_phone_placeholder_ar.id_for_label }}">{{ form.form_phone_placeholder_ar.label }}</label>{{ form.form_phone_placeholder_ar }}{{ form.form_phone_placeholder_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_email_placeholder_en.id_for_label }}">{{ form.form_email_placeholder_en.label }}</label>{{ form.form_email_placeholder_en }}{{ form.form_email_placeholder_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_email_placeholder_ar.id_for_label }}">{{ form.form_email_placeholder_ar.label }}</label>{{ form.form_email_placeholder_ar }}{{ form.form_email_placeholder_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_message_placeholder_en.id_for_label }}">{{ form.form_message_placeholder_en.label }}</label>{{ form.form_message_placeholder_en }}{{ form.form_message_placeholder_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_message_placeholder_ar.id_for_label }}">{{ form.form_message_placeholder_ar.label }}</label>{{ form.form_message_placeholder_ar }}{{ form.form_message_placeholder_ar.errors }}</div>
+        <div class="col-12"><label class="form-label" for="{{ form.form_consent_label_en.id_for_label }}">{{ form.form_consent_label_en.label }}</label>{{ form.form_consent_label_en }}{{ form.form_consent_label_en.errors }}</div>
+        <div class="col-12"><label class="form-label" for="{{ form.form_consent_label_ar.id_for_label }}">{{ form.form_consent_label_ar.label }}</label>{{ form.form_consent_label_ar }}{{ form.form_consent_label_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_submit_label_en.id_for_label }}">{{ form.form_submit_label_en.label }}</label>{{ form.form_submit_label_en }}{{ form.form_submit_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.form_submit_label_ar.id_for_label }}">{{ form.form_submit_label_ar.label }}</label>{{ form.form_submit_label_ar }}{{ form.form_submit_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label" for="{{ form.form_action_url.id_for_label }}">{{ form.form_action_url.label }}</label>{{ form.form_action_url }}{{ form.form_action_url.errors }}</div>
+      </div>
+    </div>
+
+    {# Tab 4: Sidebar & contact info #}
+    <div class="tab-pane fade" id="tab-contact-sidebar" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label" for="{{ form.sidebar_heading_en.id_for_label }}">{{ form.sidebar_heading_en.label }}</label>{{ form.sidebar_heading_en }}{{ form.sidebar_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.sidebar_heading_ar.id_for_label }}">{{ form.sidebar_heading_ar.label }}</label>{{ form.sidebar_heading_ar }}{{ form.sidebar_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.support_label_en.id_for_label }}">{{ form.support_label_en.label }}</label>{{ form.support_label_en }}{{ form.support_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.support_label_ar.id_for_label }}">{{ form.support_label_ar.label }}</label>{{ form.support_label_ar }}{{ form.support_label_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.support_hours_en.id_for_label }}">{{ form.support_hours_en.label }}</label>{{ form.support_hours_en }}{{ form.support_hours_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.support_hours_ar.id_for_label }}">{{ form.support_hours_ar.label }}</label>{{ form.support_hours_ar }}{{ form.support_hours_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.support_online_label_en.id_for_label }}">{{ form.support_online_label_en.label }}</label>{{ form.support_online_label_en }}{{ form.support_online_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.support_online_label_ar.id_for_label }}">{{ form.support_online_label_ar.label }}</label>{{ form.support_online_label_ar }}{{ form.support_online_label_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_book_label_en.id_for_label }}">{{ form.info_book_label_en.label }}</label>{{ form.info_book_label_en }}{{ form.info_book_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_book_label_ar.id_for_label }}">{{ form.info_book_label_ar.label }}</label>{{ form.info_book_label_ar }}{{ form.info_book_label_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_phone_1.id_for_label }}">{{ form.info_phone_1.label }}</label>{{ form.info_phone_1 }}{{ form.info_phone_1.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_phone_2.id_for_label }}">{{ form.info_phone_2.label }}</label>{{ form.info_phone_2 }}{{ form.info_phone_2.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_email_label_en.id_for_label }}">{{ form.info_email_label_en.label }}</label>{{ form.info_email_label_en }}{{ form.info_email_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_email_label_ar.id_for_label }}">{{ form.info_email_label_ar.label }}</label>{{ form.info_email_label_ar }}{{ form.info_email_label_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_email_1.id_for_label }}">{{ form.info_email_1.label }}</label>{{ form.info_email_1 }}{{ form.info_email_1.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_email_2.id_for_label }}">{{ form.info_email_2.label }}</label>{{ form.info_email_2 }}{{ form.info_email_2.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_platform_label_en.id_for_label }}">{{ form.info_platform_label_en.label }}</label>{{ form.info_platform_label_en }}{{ form.info_platform_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label" for="{{ form.info_platform_label_ar.id_for_label }}">{{ form.info_platform_label_ar.label }}</label>{{ form.info_platform_label_ar }}{{ form.info_platform_label_ar.errors }}</div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
