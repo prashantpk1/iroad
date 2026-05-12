@@ -190,6 +190,10 @@ from .views import (
     HomeMapLocationListView,
     HomeMapLocationUpdateView,
     HomePageCMSView,
+    HomePricingBenefitCreateView,
+    HomePricingBenefitDeleteView,
+    HomePricingBenefitListView,
+    HomePricingBenefitUpdateView,
     HomePricingTierCreateView,
     HomePricingTierListView,
     HomePricingTierUpdateView,
@@ -199,6 +203,10 @@ from .views import (
     HomeTestimonialCreateView,
     HomeTestimonialListView,
     HomeTestimonialUpdateView,
+    PricingInteractiveStepCreateView,
+    PricingInteractiveStepListView,
+    PricingInteractiveStepUpdateView,
+    PricingPageCMSView,
 )
 
 urlpatterns = [
@@ -1035,6 +1043,26 @@ urlpatterns = [
         name='home_pricing_tier_edit',
     ),
     path(
+        'cms/home/pricing-benefits/',
+        HomePricingBenefitListView.as_view(),
+        name='home_pricing_benefit_list',
+    ),
+    path(
+        'cms/home/pricing-benefits/create/',
+        HomePricingBenefitCreateView.as_view(),
+        name='home_pricing_benefit_create',
+    ),
+    path(
+        'cms/home/pricing-benefits/<int:pk>/edit/',
+        HomePricingBenefitUpdateView.as_view(),
+        name='home_pricing_benefit_edit',
+    ),
+    path(
+        'cms/home/pricing-benefits/<int:pk>/delete/',
+        HomePricingBenefitDeleteView.as_view(),
+        name='home_pricing_benefit_delete',
+    ),
+    path(
         'cms/testimonials/',
         HomeTestimonialListView.as_view(),
         name='home_testimonial_list',
@@ -1109,6 +1137,22 @@ urlpatterns = [
         'cms/about/faqs/<int:pk>/edit/',
         AboutFaqItemUpdateView.as_view(),
         name='about_faq_edit',
+    ),
+    path('cms/pricing/', PricingPageCMSView.as_view(), name='pricing_page_cms'),
+    path(
+        'cms/pricing/interactive/',
+        PricingInteractiveStepListView.as_view(),
+        name='pricing_interactive_list',
+    ),
+    path(
+        'cms/pricing/interactive/create/',
+        PricingInteractiveStepCreateView.as_view(),
+        name='pricing_interactive_create',
+    ),
+    path(
+        'cms/pricing/interactive/<int:pk>/edit/',
+        PricingInteractiveStepUpdateView.as_view(),
+        name='pricing_interactive_edit',
     ),
     path(
         'search/',

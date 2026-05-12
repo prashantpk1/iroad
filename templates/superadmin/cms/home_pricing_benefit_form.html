@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item">
+    <a href="{% url 'home_pricing_benefit_list' %}">{% translate "Pricing Benefits" %}</a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="form-card">
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form.order.id_for_label }}">{{ form.order.label }}</label>
+          {{ form.order }}{{ form.order.errors }}
+        </div>
+        <div class="col-md-8"></div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.text_en.id_for_label }}">{{ form.text_en.label }}</label>
+          {{ form.text_en }}{{ form.text_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.text_ar.id_for_label }}">{{ form.text_ar.label }}</label>
+          {{ form.text_ar }}{{ form.text_ar.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.icon.id_for_label }}">{{ form.icon.label }}</label>
+          {% if benefit and benefit.icon %}
+            <img src="{{ benefit.icon.url }}" alt="" style="max-height: 48px" class="mb-2 d-block rounded border">
+          {% endif %}
+          {{ form.icon }}{{ form.icon.errors }}
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+          </div>
+          {{ form.is_active.errors }}
+        </div>
+      </div>
+    </div>
+    <div class="form-card-footer d-flex flex-wrap gap-2 justify-content-end">
+      <a href="{% url 'home_pricing_benefit_list' %}" class="btn btn-outline-secondary">{% translate "Cancel" %}</a>
+      <button type="submit" class="btn btn-primary">{% translate "Save" %}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

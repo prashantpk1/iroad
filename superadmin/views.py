@@ -10930,9 +10930,12 @@ from iroad_frontend.models import (
     AboutPageContent,
     HomeMapLocation,
     HomePageContent,
+    HomePricingBenefit,
     HomePricingTier,
     HomeServiceCard,
     HomeTestimonial,
+    PricingInteractiveStep,
+    PricingPageContent,
 )
 from iroad_frontend.cms_forms import (
     AboutApproachPillarForm,
@@ -10941,9 +10944,12 @@ from iroad_frontend.cms_forms import (
     AboutPageContentForm,
     HomeMapLocationForm,
     HomePageContentForm,
+    HomePricingBenefitForm,
     HomePricingTierForm,
     HomeServiceCardForm,
     HomeTestimonialForm,
+    PricingInteractiveStepForm,
+    PricingPageContentForm,
 )
 
 
@@ -11126,6 +11132,78 @@ class HomePricingTierUpdateView(LoginRequiredMixin, View):
             'tier': tier,
             'page_title': 'Edit Pricing Tier',
         })
+
+
+class HomePricingBenefitListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/home_pricing_benefit_list.html'
+
+    def get(self, request):
+        home = HomePageContent.get_singleton()
+        benefits = home.pricing_benefits.all()
+        return render(request, self.template_name, {
+            'benefits': benefits,
+            'page_title': 'Pricing Benefits',
+        })
+
+
+class HomePricingBenefitCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/home_pricing_benefit_form.html'
+
+    def get(self, request):
+        form = HomePricingBenefitForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Pricing Benefit',
+        })
+
+    def post(self, request):
+        form = HomePricingBenefitForm(request.POST, request.FILES)
+        if form.is_valid():
+            row = form.save(commit=False)
+            row.home = HomePageContent.get_singleton()
+            row.order = _cms_next_child_order(row.home.pricing_benefits.all())
+            row.save()
+            messages.success(request, 'Pricing benefit created.')
+            return redirect('home_pricing_benefit_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Pricing Benefit',
+        })
+
+
+class HomePricingBenefitUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/home_pricing_benefit_form.html'
+
+    def get(self, request, pk):
+        benefit = get_object_or_404(HomePricingBenefit, pk=pk)
+        form = HomePricingBenefitForm(instance=benefit)
+        return render(request, self.template_name, {
+            'form': form,
+            'benefit': benefit,
+            'page_title': 'Edit Pricing Benefit',
+        })
+
+    def post(self, request, pk):
+        benefit = get_object_or_404(HomePricingBenefit, pk=pk)
+        form = HomePricingBenefitForm(
+            request.POST, request.FILES, instance=benefit)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Pricing benefit updated.')
+            return redirect('home_pricing_benefit_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'benefit': benefit,
+            'page_title': 'Edit Pricing Benefit',
+        })
+
+
+class HomePricingBenefitDeleteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        benefit = get_object_or_404(HomePricingBenefit, pk=pk)
+        benefit.delete()
+        messages.success(request, 'Pricing benefit deleted.')
+        return redirect('home_pricing_benefit_list')
 
 
 class HomeTestimonialListView(LoginRequiredMixin, View):
@@ -11494,4 +11572,116 @@ class AboutFaqItemUpdateView(LoginRequiredMixin, View):
             'form': form,
             'faq': faq,
             'page_title': 'Edit About FAQ',
+        })
+
+
+# ── CMS: Pricing Page (iroad_frontend) ─────────────────────────────
+
+
+class PricingPageCMSView(LoginRequiredMixin, View):
+    """
+    Singleton edit view for Pricing Page main content.
+    """
+    template_name = 'superadmin/cms/pricing_page_cms.html'
+
+    def _get_pricing(self):
+        return PricingPageContent.get_singleton()
+
+    def get(self, request):
+        pricing = self._get_pricing()
+        form = PricingPageContentForm(instance=pricing)
+        return render(request, self.template_name, {
+            'form': form,
+            'pricing': pricing,
+            'page_title': 'Pricing Page CMS',
+        })
+
+    def post(self, request):
+        pricing = self._get_pricing()
+        form = PricingPageContentForm(
+            request.POST,
+            request.FILES,
+            instance=pricing,
+        )
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.updated_by = (
+                f'{request.user.first_name} '
+                f'{request.user.last_name}'
+            )
+            obj.save()
+            messages.success(
+                request,
+                'Pricing page content updated successfully.',
+            )
+            return redirect('pricing_page_cms')
+        return render(request, self.template_name, {
+            'form': form,
+            'pricing': pricing,
+            'page_title': 'Pricing Page CMS',
+        })
+
+
+class PricingInteractiveStepListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/pricing_interactive_list.html'
+
+    def get(self, request):
+        pricing = PricingPageContent.get_singleton()
+        steps = pricing.interactive_steps.all()
+        return render(request, self.template_name, {
+            'steps': steps,
+            'page_title': 'Pricing Interactive Steps',
+        })
+
+
+class PricingInteractiveStepCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/pricing_interactive_form.html'
+
+    def get(self, request):
+        form = PricingInteractiveStepForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Interactive Step',
+        })
+
+    def post(self, request):
+        form = PricingInteractiveStepForm(request.POST, request.FILES)
+        if form.is_valid():
+            step = form.save(commit=False)
+            step.pricing = PricingPageContent.get_singleton()
+            step.order = _cms_next_child_order(
+                step.pricing.interactive_steps.all())
+            step.save()
+            messages.success(request, 'Interactive step created.')
+            return redirect('pricing_interactive_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Interactive Step',
+        })
+
+
+class PricingInteractiveStepUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/pricing_interactive_form.html'
+
+    def get(self, request, pk):
+        step = get_object_or_404(PricingInteractiveStep, pk=pk)
+        form = PricingInteractiveStepForm(instance=step)
+        return render(request, self.template_name, {
+            'form': form,
+            'step': step,
+            'page_title': 'Edit Interactive Step',
+        })
+
+    def post(self, request, pk):
+        step = get_object_or_404(PricingInteractiveStep, pk=pk)
+        form = PricingInteractiveStepForm(
+            request.POST, request.FILES, instance=step)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Interactive step updated.')
+            return redirect('pricing_interactive_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'step': step,
+            'page_title': 'Edit Interactive Step',
         })

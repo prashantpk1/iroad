@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<form method="post" action="" enctype="multipart/form-data" id="pricingPageCmsForm">
+  {% csrf_token %}
+
+  <div class="page-header">
+    <div class="page-header-row d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="page-header-left">
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle text-muted mb-0">{% translate "Edit bilingual pricing page headers and section copy." %}</p>
+      </div>
+      <div class="page-header-right d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="bi bi-check2-circle"></i> {% translate "Save Changes" %}
+        </button>
+        <a href="/pricing/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-lg">
+          <i class="bi bi-box-arrow-up-right"></i> {% translate "View Pricing Page" %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ form.non_field_errors }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+  {% if form.errors and not form.non_field_errors %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {% translate "Please correct the errors below." %}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+
+  <ul class="nav nav-tabs flex-wrap" id="pricingCmsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="tab-pricing-seo-btn" data-bs-toggle="tab" data-bs-target="#tab-pricing-seo" type="button" role="tab">{% translate "SEO & Page Header" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-pricing-plans-btn" data-bs-toggle="tab" data-bs-target="#tab-pricing-plans" type="button" role="tab">{% translate "Pricing Section Header" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-pricing-interactive-btn" data-bs-toggle="tab" data-bs-target="#tab-pricing-interactive" type="button" role="tab">{% translate "Interactive Process Section" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-pricing-partner-btn" data-bs-toggle="tab" data-bs-target="#tab-pricing-partner" type="button" role="tab">{% translate "Partner & Counters" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-pricing-testimonials-btn" data-bs-toggle="tab" data-bs-target="#tab-pricing-testimonials" type="button" role="tab">{% translate "Testimonials Header" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-pricing-faq-btn" data-bs-toggle="tab" data-bs-target="#tab-pricing-faq" type="button" role="tab">{% translate "FAQ Section Header" %}</button>
+    </li>
+  </ul>
+
+  <div class="tab-content border border-top-0 rounded-bottom bg-white p-3 p-md-4 mb-3">
+    {# --- Tab 1: SEO & Page Header --- #}
+    <div class="tab-pane fade show active" id="tab-pricing-seo" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_title_en.id_for_label }}">{{ form.page_title_en.label }}</label>
+          {{ form.page_title_en }}{{ form.page_title_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_title_ar.id_for_label }}">{{ form.page_title_ar.label }}</label>
+          {{ form.page_title_ar }}{{ form.page_title_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.meta_description_en.id_for_label }}">{{ form.meta_description_en.label }}</label>
+          {{ form.meta_description_en }}{{ form.meta_description_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.meta_description_ar.id_for_label }}">{{ form.meta_description_ar.label }}</label>
+          {{ form.meta_description_ar }}{{ form.meta_description_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_header_h1_en.id_for_label }}">{{ form.page_header_h1_en.label }}</label>
+          {{ form.page_header_h1_en }}{{ form.page_header_h1_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_header_h1_ar.id_for_label }}">{{ form.page_header_h1_ar.label }}</label>
+          {{ form.page_header_h1_ar }}{{ form.page_header_h1_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.breadcrumb_current_en.id_for_label }}">{{ form.breadcrumb_current_en.label }}</label>
+          {{ form.breadcrumb_current_en }}{{ form.breadcrumb_current_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.breadcrumb_current_ar.id_for_label }}">{{ form.breadcrumb_current_ar.label }}</label>
+          {{ form.breadcrumb_current_ar }}{{ form.breadcrumb_current_ar.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.page_header_background.id_for_label }}">{{ form.page_header_background.label }}</label>
+          {% if pricing.page_header_background %}
+            <div class="mb-2">
+              <img src="{{ pricing.page_header_background.url }}" alt="" class="img-thumbnail" style="max-height: 120px; object-fit: cover;" />
+            </div>
+          {% endif %}
+          {{ form.page_header_background }}{{ form.page_header_background.errors }}
+          {% if form.page_header_background.help_text %}
+            <div class="form-text">{{ form.page_header_background.help_text }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# --- Tab 2: Pricing section header --- #}
+    <div class="tab-pane fade" id="tab-pricing-plans" role="tabpanel">
+      <p class="text-muted small mb-3">{% translate "Tier cards and prices are managed on the Home CMS pricing tiers list (shared with the home page)." %}</p>
+      <p class="mb-3">
+        <a href="{% url 'home_pricing_tier_list' %}" class="btn btn-outline-primary btn-sm">
+          {% translate "Manage Pricing Tiers" %} <i class="bi bi-arrow-right"></i>
+        </a>
+        <a href="{% url 'home_pricing_benefit_list' %}" class="btn btn-outline-primary btn-sm">
+          {% translate "Manage Pricing Benefits" %} <i class="bi bi-arrow-right"></i>
+        </a>
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_kicker_en.label }}</label>{{ form.pricing_kicker_en }}{{ form.pricing_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_kicker_ar.label }}</label>{{ form.pricing_kicker_ar }}{{ form.pricing_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_heading_en.label }}</label>{{ form.pricing_heading_en }}{{ form.pricing_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.pricing_heading_ar.label }}</label>{{ form.pricing_heading_ar }}{{ form.pricing_heading_ar.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 3: Interactive process --- #}
+    <div class="tab-pane fade" id="tab-pricing-interactive" role="tabpanel">
+      <p class="mb-3">
+        <a href="{% url 'pricing_interactive_list' %}" class="btn btn-outline-primary btn-sm">
+          {% translate "Manage Steps" %} <i class="bi bi-arrow-right"></i>
+        </a>
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.interactive_kicker_en.label }}</label>{{ form.interactive_kicker_en }}{{ form.interactive_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.interactive_kicker_ar.label }}</label>{{ form.interactive_kicker_ar }}{{ form.interactive_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.interactive_heading_en.label }}</label>{{ form.interactive_heading_en }}{{ form.interactive_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.interactive_heading_ar.label }}</label>{{ form.interactive_heading_ar }}{{ form.interactive_heading_ar.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 4: Partner & counters --- #}
+    <div class="tab-pane fade" id="tab-pricing-partner" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.partner_kicker_en.label }}</label>{{ form.partner_kicker_en }}{{ form.partner_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_kicker_ar.label }}</label>{{ form.partner_kicker_ar }}{{ form.partner_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_heading_en.label }}</label>{{ form.partner_heading_en }}{{ form.partner_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_heading_ar.label }}</label>{{ form.partner_heading_ar }}{{ form.partner_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_body_en.label }}</label>{{ form.partner_body_en }}{{ form.partner_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_body_ar.label }}</label>{{ form.partner_body_ar }}{{ form.partner_body_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_cta_label_en.label }}</label>{{ form.partner_cta_label_en }}{{ form.partner_cta_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_cta_label_ar.label }}</label>{{ form.partner_cta_label_ar }}{{ form.partner_cta_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.partner_cta_url.label }}</label>{{ form.partner_cta_url }}{{ form.partner_cta_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_email_label_en.label }}</label>{{ form.partner_email_label_en }}{{ form.partner_email_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_email_value.label }}</label>{{ form.partner_email_value }}{{ form.partner_email_value.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_platform_label_en.label }}</label>{{ form.partner_platform_label_en }}{{ form.partner_platform_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.partner_platform_label_ar.label }}</label>{{ form.partner_platform_label_ar }}{{ form.partner_platform_label_ar.errors }}</div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.partner_map_image.id_for_label }}">{{ form.partner_map_image.label }}</label>
+          {% if pricing.partner_map_image %}
+            <div class="mb-2">
+              <img src="{{ pricing.partner_map_image.url }}" alt="" class="img-thumbnail" style="max-height: 120px; object-fit: contain;" />
+            </div>
+          {% endif %}
+          {{ form.partner_map_image }}{{ form.partner_map_image.errors }}
+        </div>
+        <div class="col-12"><hr class="my-2"><h6 class="text-muted">{% translate "Counters" %}</h6></div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_1_value.label }}</label>{{ form.counter_1_value }}{{ form.counter_1_value.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_1_label_en.label }}</label>{{ form.counter_1_label_en }}{{ form.counter_1_label_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_1_label_ar.label }}</label>{{ form.counter_1_label_ar }}{{ form.counter_1_label_ar.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_2_value.label }}</label>{{ form.counter_2_value }}{{ form.counter_2_value.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_2_label_en.label }}</label>{{ form.counter_2_label_en }}{{ form.counter_2_label_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_2_label_ar.label }}</label>{{ form.counter_2_label_ar }}{{ form.counter_2_label_ar.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_3_value.label }}</label>{{ form.counter_3_value }}{{ form.counter_3_value.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_3_label_en.label }}</label>{{ form.counter_3_label_en }}{{ form.counter_3_label_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_3_label_ar.label }}</label>{{ form.counter_3_label_ar }}{{ form.counter_3_label_ar.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_4_value.label }}</label>{{ form.counter_4_value }}{{ form.counter_4_value.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_4_label_en.label }}</label>{{ form.counter_4_label_en }}{{ form.counter_4_label_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_4_label_ar.label }}</label>{{ form.counter_4_label_ar }}{{ form.counter_4_label_ar.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_5_value.label }}</label>{{ form.counter_5_value }}{{ form.counter_5_value.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_5_label_en.label }}</label>{{ form.counter_5_label_en }}{{ form.counter_5_label_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.counter_5_label_ar.label }}</label>{{ form.counter_5_label_ar }}{{ form.counter_5_label_ar.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 5: Testimonials header --- #}
+    <div class="tab-pane fade" id="tab-pricing-testimonials" role="tabpanel">
+      <p class="text-muted small mb-3">{% translate "Testimonial slides are managed on the Home CMS testimonials list (shared)." %}</p>
+      <p class="mb-3">
+        <a href="{% url 'home_testimonial_list' %}" class="btn btn-outline-primary btn-sm">
+          {% translate "Manage Testimonials" %} <i class="bi bi-arrow-right"></i>
+        </a>
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_kicker_en.label }}</label>{{ form.testimonials_kicker_en }}{{ form.testimonials_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_kicker_ar.label }}</label>{{ form.testimonials_kicker_ar }}{{ form.testimonials_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_heading_en.label }}</label>{{ form.testimonials_heading_en }}{{ form.testimonials_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.testimonials_heading_ar.label }}</label>{{ form.testimonials_heading_ar }}{{ form.testimonials_heading_ar.errors }}</div>
+      </div>
+    </div>
+
+    {# --- Tab 6: FAQ section header --- #}
+    <div class="tab-pane fade" id="tab-pricing-faq" role="tabpanel">
+      <p class="mb-3">
+        <a href="{% url 'about_faq_list' %}" class="btn btn-outline-primary btn-sm">
+          {% translate "Manage About FAQs" %} <i class="bi bi-arrow-right"></i>
+        </a>
+        <p class="form-text text-muted small mt-2 mb-0">{% translate "These items are shown on the About page and reused on the Pricing page." %}</p>
+      </p>
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.faq_kicker_en.label }}</label>{{ form.faq_kicker_en }}{{ form.faq_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_kicker_ar.label }}</label>{{ form.faq_kicker_ar }}{{ form.faq_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_heading_en.label }}</label>{{ form.faq_heading_en }}{{ form.faq_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_heading_ar.label }}</label>{{ form.faq_heading_ar }}{{ form.faq_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_intro_en.label }}</label>{{ form.faq_intro_en }}{{ form.faq_intro_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_intro_ar.label }}</label>{{ form.faq_intro_ar }}{{ form.faq_intro_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_view_all_label_en.label }}</label>{{ form.faq_view_all_label_en }}{{ form.faq_view_all_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_view_all_label_ar.label }}</label>{{ form.faq_view_all_label_ar }}{{ form.faq_view_all_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.faq_view_all_url.label }}</label>{{ form.faq_view_all_url }}{{ form.faq_view_all_url.errors }}</div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

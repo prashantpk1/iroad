@@ -81,15 +81,12 @@
         </div>
         <div class="col-12"><hr class="my-2"></div>
         <div class="col-12">
-          <h6 class="mb-1">{% translate "Pricing benefit lines" %}</h6>
-          <p class="form-text text-muted mb-3">{% translate "Benefit lines shown on first tier only." %}</p>
+          <h6 class="mb-1">{% translate "Pricing benefit bullets" %}</h6>
+          <p class="form-text text-muted mb-2">{% translate "Benefit icons and text are managed as a separate list (shared by home and pricing pages)." %}</p>
+          <a href="{% url 'home_pricing_benefit_list' %}" class="btn btn-outline-primary btn-sm">
+            {% translate "Manage pricing benefits" %} <i class="bi bi-arrow-right"></i>
+          </a>
         </div>
-        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_1_text_en.label }}</label>{{ form.pricing_benefit_1_text_en }}{{ form.pricing_benefit_1_text_en.errors }}</div>
-        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_1_text_ar.label }}</label>{{ form.pricing_benefit_1_text_ar }}{{ form.pricing_benefit_1_text_ar.errors }}</div>
-        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_2_text_en.label }}</label>{{ form.pricing_benefit_2_text_en }}{{ form.pricing_benefit_2_text_en.errors }}</div>
-        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_2_text_ar.label }}</label>{{ form.pricing_benefit_2_text_ar }}{{ form.pricing_benefit_2_text_ar.errors }}</div>
-        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_3_text_en.label }}</label>{{ form.pricing_benefit_3_text_en }}{{ form.pricing_benefit_3_text_en.errors }}</div>
-        <div class="col-md-6"><label class="form-label">{{ form.pricing_benefit_3_text_ar.label }}</label>{{ form.pricing_benefit_3_text_ar }}{{ form.pricing_benefit_3_text_ar.errors }}</div>
       </div>
     </div>
     <div class="form-card-footer d-flex flex-wrap gap-2 justify-content-end">

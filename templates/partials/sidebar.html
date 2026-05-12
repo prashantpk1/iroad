@@ -412,11 +412,11 @@
 
       <!-- Website CMS -->
       <li
-        class="nav-item has-submenu{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name or request.resolver_match.url_name == 'about_page_cms' or 'about_pillar' in request.resolver_match.url_name or 'about_how_step' in request.resolver_match.url_name or 'about_faq' in request.resolver_match.url_name %} open{% endif %}"
+        class="nav-item has-submenu{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_pricing_benefit' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name or request.resolver_match.url_name == 'about_page_cms' or 'about_pillar' in request.resolver_match.url_name or 'about_how_step' in request.resolver_match.url_name or 'about_faq' in request.resolver_match.url_name or request.resolver_match.url_name == 'pricing_page_cms' or 'pricing_interactive' in request.resolver_match.url_name %} open{% endif %}"
       >
         <a
           href="#"
-          class="nav-link{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name or request.resolver_match.url_name == 'about_page_cms' or 'about_pillar' in request.resolver_match.url_name or 'about_how_step' in request.resolver_match.url_name or 'about_faq' in request.resolver_match.url_name %} active{% endif %}"
+          class="nav-link{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_pricing_benefit' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name or request.resolver_match.url_name == 'about_page_cms' or 'about_pillar' in request.resolver_match.url_name or 'about_how_step' in request.resolver_match.url_name or 'about_faq' in request.resolver_match.url_name or request.resolver_match.url_name == 'pricing_page_cms' or 'pricing_interactive' in request.resolver_match.url_name %} active{% endif %}"
           data-tooltip="{% translate 'Website CMS' %}"
         >
           <i class="bi bi-layout-text-window"></i>
@@ -425,11 +425,11 @@
         </a>
         <ul class="submenu">
           <li
-            class="submenu-item has-submenu{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name %} open{% endif %}"
+            class="submenu-item has-submenu{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_pricing_benefit' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name %} open{% endif %}"
           >
             <a
               href="#"
-              class="submenu-link{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name %} active{% endif %}"
+              class="submenu-link{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_pricing_benefit' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name %} active{% endif %}"
             >
               <i class="bi bi-house"></i>
               <span>{% translate "Home Page" %}</span>
@@ -461,6 +461,15 @@
                 >
                   <i class="bi bi-tags"></i>
                   <span>{% translate "Pricing Tiers" %}</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a
+                  href="{% url 'home_pricing_benefit_list' %}"
+                  class="submenu-link{% if 'home_pricing_benefit' in request.resolver_match.url_name %} active{% endif %}"
+                >
+                  <i class="bi bi-patch-check"></i>
+                  <span>{% translate "Pricing Benefits" %}</span>
                 </a>
               </li>
               <li class="submenu-item">
@@ -529,6 +538,38 @@
                 >
                   <i class="bi bi-question-circle"></i>
                   <span>{% translate "FAQs" %}</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li
+            class="submenu-item has-submenu{% if request.resolver_match.url_name == 'pricing_page_cms' or 'pricing_interactive' in request.resolver_match.url_name %} open{% endif %}"
+          >
+            <a
+              href="#"
+              class="submenu-link{% if request.resolver_match.url_name == 'pricing_page_cms' or 'pricing_interactive' in request.resolver_match.url_name %} active{% endif %}"
+            >
+              <i class="bi bi-tag"></i>
+              <span>{% translate "Pricing Page" %}</span>
+              <i class="bi bi-chevron-right arrow"></i>
+            </a>
+            <ul class="submenu">
+              <li class="submenu-item">
+                <a
+                  href="{% url 'pricing_page_cms' %}"
+                  class="submenu-link{% if request.resolver_match.url_name == 'pricing_page_cms' %} active{% endif %}"
+                >
+                  <i class="bi bi-file-earmark-text"></i>
+                  <span>{% translate "Page content & SEO" %}</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a
+                  href="{% url 'pricing_interactive_list' %}"
+                  class="submenu-link{% if 'pricing_interactive' in request.resolver_match.url_name %} active{% endif %}"
+                >
+                  <i class="bi bi-sliders"></i>
+                  <span>{% translate "Interactive Steps" %}</span>
                 </a>
               </li>
             </ul>

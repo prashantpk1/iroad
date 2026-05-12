@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+      <p class="page-subtitle text-muted mb-0">{% translate "Bullets under pricing tiers on home and pricing pages." %}</p>
+    </div>
+    <div class="page-header-right">
+      <a href="{% url 'home_pricing_benefit_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i>
+        {% translate "Add New" %}
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="form-card">
+  <div class="form-card-body p-0">
+    {% if benefits %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" style="width: 90px">{% translate "Order" %}</th>
+              <th scope="col">{% translate "Text EN" %}</th>
+              <th scope="col">{% translate "Text AR" %}</th>
+              <th scope="col" style="width: 100px">{% translate "Active" %}</th>
+              <th scope="col" class="text-end" style="width: 200px">{% translate "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in benefits %}
+              <tr>
+                <td>{{ b.order }}</td>
+                <td>{{ b.text_en|default:"—"|truncatechars:60 }}</td>
+                <td dir="auto">{{ b.text_ar|default:"—"|truncatechars:60 }}</td>
+                <td>
+                  {% if b.is_active %}
+                    <span class="badge text-bg-success">{% translate "Yes" %}</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary">{% translate "No" %}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a href="{% url 'home_pricing_benefit_edit' b.pk %}" class="btn btn-sm btn-outline-primary">
+                    {% translate "Edit" %}
+                  </a>
+                  <form method="post" action="{% url 'home_pricing_benefit_delete' b.pk %}" class="d-inline" onsubmit="return confirm('{% translate "Delete this benefit?" %}');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger">{% translate "Delete" %}</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5 px-3">
+        <div class="text-muted mb-2"><i class="bi bi-patch-check" style="font-size: 2rem"></i></div>
+        <p class="text-muted mb-3">{% translate "No pricing benefits yet. Add one to get started." %}</p>
+        <a href="{% url 'home_pricing_benefit_create' %}" class="btn btn-primary btn-sm">
+          <i class="bi bi-plus-lg"></i> {% translate "Add New" %}
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
