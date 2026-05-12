@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+      <p class="page-subtitle text-muted mb-0">{% translate "Manage steps shown in the How It Works section on the about page." %}</p>
+    </div>
+    <div class="page-header-right">
+      <a href="{% url 'about_how_step_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i>
+        {% translate "Add New" %}
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="form-card">
+  <div class="form-card-body p-0">
+    {% if steps %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th scope="col" style="width: 90px">{% translate "Order" %}</th>
+              <th scope="col" style="width: 90px">{% translate "Step No" %}</th>
+              <th scope="col">{% translate "Title EN" %}</th>
+              <th scope="col" style="width: 100px">{% translate "Active" %}</th>
+              <th scope="col" class="text-end" style="width: 120px">{% translate "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for step in steps %}
+              <tr>
+                <td>{{ step.order }}</td>
+                <td>{{ step.step_number|default:"—" }}</td>
+                <td>{{ step.title_en|default:"—" }}</td>
+                <td>
+                  {% if step.is_active %}
+                    <span class="badge text-bg-success">{% translate "Yes" %}</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary">{% translate "No" %}</span>
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  <a href="{% url 'about_how_step_edit' step.pk %}" class="btn btn-sm btn-outline-primary">
+                    {% translate "Edit" %}
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center py-5 px-3">
+        <div class="text-muted mb-2"><i class="bi bi-list-ol" style="font-size: 2rem"></i></div>
+        <p class="text-muted mb-3">{% translate "No steps yet. Add one to get started." %}</p>
+        <a href="{% url 'about_how_step_create' %}" class="btn btn-primary btn-sm">
+          <i class="bi bi-plus-lg"></i> {% translate "Add New" %}
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item">
+    <a href="{% url 'about_how_step_list' %}">{% translate "How It Works Steps" %}</a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div class="form-card">
+    <div class="form-card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form.order.id_for_label }}">{{ form.order.label }}</label>
+          {{ form.order }}{{ form.order.errors }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="{{ form.step_number.id_for_label }}">{{ form.step_number.label }}</label>
+          {{ form.step_number }}{{ form.step_number.errors }}
+        </div>
+        <div class="col-md-4"></div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.title_en.id_for_label }}">{{ form.title_en.label }}</label>
+          {{ form.title_en }}{{ form.title_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.title_ar.id_for_label }}">{{ form.title_ar.label }}</label>
+          {{ form.title_ar }}{{ form.title_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.body_en.id_for_label }}">{{ form.body_en.label }}</label>
+          {{ form.body_en }}{{ form.body_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.body_ar.id_for_label }}">{{ form.body_ar.label }}</label>
+          {{ form.body_ar }}{{ form.body_ar.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.step_image.id_for_label }}">{{ form.step_image.label }}</label>
+          {% if step and step.step_image %}
+            <img src="{{ step.step_image.url }}" alt="" style="max-height: 120px" class="mb-2 d-block rounded border">
+          {% endif %}
+          {{ form.step_image }}{{ form.step_image.errors }}
+        </div>
+        <div class="col-12">
+          <div class="form-check">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+          </div>
+          {{ form.is_active.errors }}
+        </div>
+      </div>
+    </div>
+    <div class="form-card-footer d-flex flex-wrap gap-2 justify-content-end">
+      <a href="{% url 'about_how_step_list' %}" class="btn btn-outline-secondary">{% translate "Cancel" %}</a>
+      <button type="submit" class="btn btn-primary">{% translate "Save" %}</button>
+    </div>
+  </div>
+</form>
+{% endblock %}

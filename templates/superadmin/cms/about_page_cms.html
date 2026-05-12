@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block content %}
+<form method="post" action="" enctype="multipart/form-data" id="aboutPageCmsForm">
+  {% csrf_token %}
+
+  <div class="page-header">
+    <div class="page-header-row d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div class="page-header-left">
+        <h1 class="page-title">{{ page_title }}</h1>
+        <p class="page-subtitle text-muted mb-0">{% translate "Edit bilingual about page content." %}</p>
+      </div>
+      <div class="page-header-right d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="bi bi-check2-circle"></i> {% translate "Save Changes" %}
+        </button>
+        <a href="/about/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-lg">
+          <i class="bi bi-box-arrow-up-right"></i> {% translate "View About Page" %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {{ form.non_field_errors }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+  {% if form.errors and not form.non_field_errors %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {% translate "Please correct the errors below." %}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+
+  <ul class="nav nav-tabs flex-wrap" id="aboutCmsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="tab-about-seo-btn" data-bs-toggle="tab" data-bs-target="#tab-about-seo" type="button" role="tab">{% translate "SEO & Page Header" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-about-us-btn" data-bs-toggle="tab" data-bs-target="#tab-about-us" type="button" role="tab">{% translate "About Us Section" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-about-approach-btn" data-bs-toggle="tab" data-bs-target="#tab-about-approach" type="button" role="tab">{% translate "Our Approach" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-about-how-btn" data-bs-toggle="tab" data-bs-target="#tab-about-how" type="button" role="tab">{% translate "How It Works" %}</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-about-faq-btn" data-bs-toggle="tab" data-bs-target="#tab-about-faq" type="button" role="tab">{% translate "FAQ" %}</button>
+    </li>
+  </ul>
+
+  <div class="tab-content border border-top-0 rounded-bottom bg-white p-3 p-md-4 mb-3">
+    {# --- Tab 1: SEO & Page Header --- #}
+    <div class="tab-pane fade show active" id="tab-about-seo" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_title_en.id_for_label }}">{{ form.page_title_en.label }}</label>
+          {{ form.page_title_en }}{{ form.page_title_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_title_ar.id_for_label }}">{{ form.page_title_ar.label }}</label>
+          {{ form.page_title_ar }}{{ form.page_title_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.meta_description_en.id_for_label }}">{{ form.meta_description_en.label }}</label>
+          {{ form.meta_description_en }}{{ form.meta_description_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.meta_description_ar.id_for_label }}">{{ form.meta_description_ar.label }}</label>
+          {{ form.meta_description_ar }}{{ form.meta_description_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_header_h1_en.id_for_label }}">{{ form.page_header_h1_en.label }}</label>
+          {{ form.page_header_h1_en }}{{ form.page_header_h1_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.page_header_h1_ar.id_for_label }}">{{ form.page_header_h1_ar.label }}</label>
+          {{ form.page_header_h1_ar }}{{ form.page_header_h1_ar.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.breadcrumb_current_en.id_for_label }}">{{ form.breadcrumb_current_en.label }}</label>
+          {{ form.breadcrumb_current_en }}{{ form.breadcrumb_current_en.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="{{ form.breadcrumb_current_ar.id_for_label }}">{{ form.breadcrumb_current_ar.label }}</label>
+          {{ form.breadcrumb_current_ar }}{{ form.breadcrumb_current_ar.errors }}
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="{{ form.page_header_background.id_for_label }}">{{ form.page_header_background.label }}</label>
+          {% if about.page_header_background %}
+            <div class="mb-2">
+              <img src="{{ about.page_header_background.url }}" alt="" class="img-thumbnail" style="max-height: 120px; object-fit: cover;" />
+            </div>
+          {% endif %}
+          {{ form.page_header_background }}{{ form.page_header_background.errors }}
+          {% if form.page_header_background.help_text %}
+            <div class="form-text">{{ form.page_header_background.help_text }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# --- Tab 2: About Us Section --- #}
+    <div class="tab-pane fade" id="tab-about-us" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.about_kicker_en.label }}</label>{{ form.about_kicker_en }}{{ form.about_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_kicker_ar.label }}</label>{{ form.about_kicker_ar }}{{ form.about_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_heading_part1_en.label }}</label>{{ form.about_heading_part1_en }}{{ form.about_heading_part1_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_heading_part1_ar.label }}</label>{{ form.about_heading_part1_ar }}{{ form.about_heading_part1_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_heading_part2_en.label }}</label>{{ form.about_heading_part2_en }}{{ form.about_heading_part2_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_heading_part2_ar.label }}</label>{{ form.about_heading_part2_ar }}{{ form.about_heading_part2_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_heading_part3_en.label }}</label>{{ form.about_heading_part3_en }}{{ form.about_heading_part3_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_heading_part3_ar.label }}</label>{{ form.about_heading_part3_ar }}{{ form.about_heading_part3_ar.errors }}</div>
+        <div class="col-md-3"><label class="form-label">{{ form.about_counter_1_value.label }}</label>{{ form.about_counter_1_value }}{{ form.about_counter_1_value.errors }}</div>
+        <div class="col-md-3"><label class="form-label">{{ form.about_counter_1_label_en.label }}</label>{{ form.about_counter_1_label_en }}{{ form.about_counter_1_label_en.errors }}</div>
+        <div class="col-md-3"><label class="form-label">{{ form.about_counter_1_label_ar.label }}</label>{{ form.about_counter_1_label_ar }}{{ form.about_counter_1_label_ar.errors }}</div>
+        <div class="col-md-3"></div>
+        <div class="col-md-3"><label class="form-label">{{ form.about_counter_2_value.label }}</label>{{ form.about_counter_2_value }}{{ form.about_counter_2_value.errors }}</div>
+        <div class="col-md-3"><label class="form-label">{{ form.about_counter_2_label_en.label }}</label>{{ form.about_counter_2_label_en }}{{ form.about_counter_2_label_en.errors }}</div>
+        <div class="col-md-3"><label class="form-label">{{ form.about_counter_2_label_ar.label }}</label>{{ form.about_counter_2_label_ar }}{{ form.about_counter_2_label_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_body_en.label }}</label>{{ form.about_body_en }}{{ form.about_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_body_ar.label }}</label>{{ form.about_body_ar }}{{ form.about_body_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_list_item_1_en.label }}</label>{{ form.about_list_item_1_en }}{{ form.about_list_item_1_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_list_item_1_ar.label }}</label>{{ form.about_list_item_1_ar }}{{ form.about_list_item_1_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_list_item_2_en.label }}</label>{{ form.about_list_item_2_en }}{{ form.about_list_item_2_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_list_item_2_ar.label }}</label>{{ form.about_list_item_2_ar }}{{ form.about_list_item_2_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_explore_label_en.label }}</label>{{ form.about_explore_label_en }}{{ form.about_explore_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_explore_label_ar.label }}</label>{{ form.about_explore_label_ar }}{{ form.about_explore_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.about_explore_url.label }}</label>{{ form.about_explore_url }}{{ form.about_explore_url.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_footer_text_en.label }}</label>{{ form.about_footer_text_en }}{{ form.about_footer_text_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_footer_text_ar.label }}</label>{{ form.about_footer_text_ar }}{{ form.about_footer_text_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_footer_cta_label_en.label }}</label>{{ form.about_footer_cta_label_en }}{{ form.about_footer_cta_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.about_footer_cta_label_ar.label }}</label>{{ form.about_footer_cta_label_ar }}{{ form.about_footer_cta_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.about_footer_cta_url.label }}</label>{{ form.about_footer_cta_url }}{{ form.about_footer_cta_url.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.about_rating_value.label }}</label>{{ form.about_rating_value }}{{ form.about_rating_value.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.about_review_label_en.label }}</label>{{ form.about_review_label_en }}{{ form.about_review_label_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.about_review_label_ar.label }}</label>{{ form.about_review_label_ar }}{{ form.about_review_label_ar.errors }}</div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.about_main_image.label }}</label>
+          {% if about.about_main_image %}<img src="{{ about.about_main_image.url }}" style="max-height:80px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.about_main_image }}{{ form.about_main_image.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.about_body_image.label }}</label>
+          {% if about.about_body_image %}<img src="{{ about.about_body_image.url }}" style="max-height:80px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.about_body_image }}{{ form.about_body_image.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.about_title_image_1.label }}</label>
+          {% if about.about_title_image_1 %}<img src="{{ about.about_title_image_1.url }}" style="max-height:72px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.about_title_image_1 }}{{ form.about_title_image_1.errors }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ form.about_title_image_2.label }}</label>
+          {% if about.about_title_image_2 %}<img src="{{ about.about_title_image_2.url }}" style="max-height:72px" class="mb-2 d-block rounded border" alt="">{% endif %}
+          {{ form.about_title_image_2 }}{{ form.about_title_image_2.errors }}
+        </div>
+      </div>
+    </div>
+
+    {# --- Tab 3: Our Approach --- #}
+    <div class="tab-pane fade" id="tab-about-approach" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.approach_kicker_en.label }}</label>{{ form.approach_kicker_en }}{{ form.approach_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.approach_kicker_ar.label }}</label>{{ form.approach_kicker_ar }}{{ form.approach_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.approach_heading_en.label }}</label>{{ form.approach_heading_en }}{{ form.approach_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.approach_heading_ar.label }}</label>{{ form.approach_heading_ar }}{{ form.approach_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.approach_body_en.label }}</label>{{ form.approach_body_en }}{{ form.approach_body_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.approach_body_ar.label }}</label>{{ form.approach_body_ar }}{{ form.approach_body_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.approach_cta_label_en.label }}</label>{{ form.approach_cta_label_en }}{{ form.approach_cta_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.approach_cta_label_ar.label }}</label>{{ form.approach_cta_label_ar }}{{ form.approach_cta_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.approach_cta_url.label }}</label>{{ form.approach_cta_url }}{{ form.approach_cta_url.errors }}</div>
+        <div class="col-12">
+          <p class="text-muted small mb-2">{% translate "Mission, vision, and pillar copy are edited under Approach Pillars." %}</p>
+          <a href="{% url 'about_pillar_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-columns-gap"></i> {% translate "Manage approach pillars" %}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {# --- Tab 4: How It Works --- #}
+    <div class="tab-pane fade" id="tab-about-how" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.how_kicker_en.label }}</label>{{ form.how_kicker_en }}{{ form.how_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.how_kicker_ar.label }}</label>{{ form.how_kicker_ar }}{{ form.how_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.how_heading_en.label }}</label>{{ form.how_heading_en }}{{ form.how_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.how_heading_ar.label }}</label>{{ form.how_heading_ar }}{{ form.how_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.how_footer_text_en.label }}</label>{{ form.how_footer_text_en }}{{ form.how_footer_text_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.how_footer_text_ar.label }}</label>{{ form.how_footer_text_ar }}{{ form.how_footer_text_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.how_footer_link_label_en.label }}</label>{{ form.how_footer_link_label_en }}{{ form.how_footer_link_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.how_footer_link_label_ar.label }}</label>{{ form.how_footer_link_label_ar }}{{ form.how_footer_link_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.how_footer_link_url.label }}</label>{{ form.how_footer_link_url }}{{ form.how_footer_link_url.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.how_rating_value.label }}</label>{{ form.how_rating_value }}{{ form.how_rating_value.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.how_review_label_en.label }}</label>{{ form.how_review_label_en }}{{ form.how_review_label_en.errors }}</div>
+        <div class="col-md-4"><label class="form-label">{{ form.how_review_label_ar.label }}</label>{{ form.how_review_label_ar }}{{ form.how_review_label_ar.errors }}</div>
+        <div class="col-12">
+          <p class="text-muted small mb-2">{% translate "Individual steps and images are edited under How It Works Steps." %}</p>
+          <a href="{% url 'about_how_step_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-list-ol"></i> {% translate "Manage how it works steps" %}
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {# --- Tab 5: FAQ --- #}
+    <div class="tab-pane fade" id="tab-about-faq" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-6"><label class="form-label">{{ form.faq_kicker_en.label }}</label>{{ form.faq_kicker_en }}{{ form.faq_kicker_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_kicker_ar.label }}</label>{{ form.faq_kicker_ar }}{{ form.faq_kicker_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_heading_en.label }}</label>{{ form.faq_heading_en }}{{ form.faq_heading_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_heading_ar.label }}</label>{{ form.faq_heading_ar }}{{ form.faq_heading_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_intro_en.label }}</label>{{ form.faq_intro_en }}{{ form.faq_intro_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_intro_ar.label }}</label>{{ form.faq_intro_ar }}{{ form.faq_intro_ar.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_view_all_label_en.label }}</label>{{ form.faq_view_all_label_en }}{{ form.faq_view_all_label_en.errors }}</div>
+        <div class="col-md-6"><label class="form-label">{{ form.faq_view_all_label_ar.label }}</label>{{ form.faq_view_all_label_ar }}{{ form.faq_view_all_label_ar.errors }}</div>
+        <div class="col-12"><label class="form-label">{{ form.faq_view_all_url.label }}</label>{{ form.faq_view_all_url }}{{ form.faq_view_all_url.errors }}</div>
+        <div class="col-12">
+          <p class="text-muted small mb-2">{% translate "Accordion questions and answers are edited under About FAQs." %}</p>
+          <a href="{% url 'about_faq_list' %}" class="btn btn-outline-primary">
+            <i class="bi bi-question-circle"></i> {% translate "Manage FAQ items" %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 align-items-center">
+    <button type="submit" class="btn btn-primary btn-lg">
+      <i class="bi bi-check2-circle"></i> {% translate "Save all changes" %}
+    </button>
+    <a href="/about/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-lg">
+      <i class="bi bi-box-arrow-up-right"></i> {% translate "View About Page" %}
+    </a>
+  </div>
+</form>
+{% endblock %}

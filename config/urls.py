@@ -28,3 +28,11 @@ urlpatterns = [
     path('', include(('iroad_frontend.urls', 'iroad_frontend'), namespace='iroad_frontend')),
     path('', include('superadmin.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Serve STATIC_URL from STATICFILES_DIRS / finders (dev + django.test.Client).
+if settings.DEBUG:
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
+    urlpatterns += staticfiles_urlpatterns()
+
+handler404 = 'iroad_frontend.views.page_not_found'

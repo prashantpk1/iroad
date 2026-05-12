@@ -10924,6 +10924,10 @@ class GlobalSearchView(LoginRequiredMixin, TemplateView):
 # ── CMS: Home Page (iroad_frontend) ─────────────────────────────────
 
 from iroad_frontend.models import (
+    AboutApproachPillar,
+    AboutFaqItem,
+    AboutHowWorkStep,
+    AboutPageContent,
     HomeMapLocation,
     HomePageContent,
     HomePricingTier,
@@ -10931,6 +10935,10 @@ from iroad_frontend.models import (
     HomeTestimonial,
 )
 from iroad_frontend.cms_forms import (
+    AboutApproachPillarForm,
+    AboutFaqItemForm,
+    AboutHowWorkStepForm,
+    AboutPageContentForm,
     HomeMapLocationForm,
     HomePageContentForm,
     HomePricingTierForm,
@@ -11246,4 +11254,244 @@ class HomeMapLocationUpdateView(LoginRequiredMixin, View):
             'form': form,
             'location': loc,
             'page_title': 'Edit Map Location',
+        })
+
+
+# ── CMS: About Page (iroad_frontend) ───────────────────────────────
+
+
+class AboutPageCMSView(LoginRequiredMixin, View):
+    """
+    Singleton edit view for About Page main content.
+    """
+    template_name = 'superadmin/cms/about_page_cms.html'
+
+    def _get_about(self):
+        return AboutPageContent.get_singleton()
+
+    def get(self, request):
+        about = self._get_about()
+        form = AboutPageContentForm(instance=about)
+        return render(request, self.template_name, {
+            'form': form,
+            'about': about,
+            'page_title': 'About Page CMS',
+        })
+
+    def post(self, request):
+        about = self._get_about()
+        form = AboutPageContentForm(
+            request.POST,
+            request.FILES,
+            instance=about,
+        )
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.updated_by = (
+                f'{request.user.first_name} '
+                f'{request.user.last_name}'
+            )
+            obj.save()
+            messages.success(
+                request,
+                'About page content updated successfully.',
+            )
+            return redirect('about_page_cms')
+        return render(request, self.template_name, {
+            'form': form,
+            'about': about,
+            'page_title': 'About Page CMS',
+        })
+
+
+class AboutApproachPillarListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/about_pillar_list.html'
+
+    def get(self, request):
+        about = AboutPageContent.get_singleton()
+        pillars = about.approach_pillars.all()
+        return render(request, self.template_name, {
+            'pillars': pillars,
+            'page_title': 'Approach Pillars',
+        })
+
+
+class AboutApproachPillarCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/about_pillar_form.html'
+
+    def get(self, request):
+        form = AboutApproachPillarForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Approach Pillar',
+        })
+
+    def post(self, request):
+        form = AboutApproachPillarForm(request.POST, request.FILES)
+        if form.is_valid():
+            pillar = form.save(commit=False)
+            pillar.about = AboutPageContent.get_singleton()
+            pillar.order = _cms_next_child_order(
+                pillar.about.approach_pillars.all())
+            pillar.save()
+            messages.success(request, 'Approach pillar created.')
+            return redirect('about_pillar_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Approach Pillar',
+        })
+
+
+class AboutApproachPillarUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/about_pillar_form.html'
+
+    def get(self, request, pk):
+        pillar = get_object_or_404(AboutApproachPillar, pk=pk)
+        form = AboutApproachPillarForm(instance=pillar)
+        return render(request, self.template_name, {
+            'form': form,
+            'pillar': pillar,
+            'page_title': 'Edit Approach Pillar',
+        })
+
+    def post(self, request, pk):
+        pillar = get_object_or_404(AboutApproachPillar, pk=pk)
+        form = AboutApproachPillarForm(
+            request.POST, request.FILES, instance=pillar)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Approach pillar updated.')
+            return redirect('about_pillar_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'pillar': pillar,
+            'page_title': 'Edit Approach Pillar',
+        })
+
+
+class AboutHowWorkStepListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/about_how_step_list.html'
+
+    def get(self, request):
+        about = AboutPageContent.get_singleton()
+        steps = about.how_work_steps.all()
+        return render(request, self.template_name, {
+            'steps': steps,
+            'page_title': 'How It Works Steps',
+        })
+
+
+class AboutHowWorkStepCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/about_how_step_form.html'
+
+    def get(self, request):
+        form = AboutHowWorkStepForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add How It Works Step',
+        })
+
+    def post(self, request):
+        form = AboutHowWorkStepForm(request.POST, request.FILES)
+        if form.is_valid():
+            step = form.save(commit=False)
+            step.about = AboutPageContent.get_singleton()
+            step.order = _cms_next_child_order(
+                step.about.how_work_steps.all())
+            step.save()
+            messages.success(request, 'How it works step created.')
+            return redirect('about_how_step_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add How It Works Step',
+        })
+
+
+class AboutHowWorkStepUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/about_how_step_form.html'
+
+    def get(self, request, pk):
+        step = get_object_or_404(AboutHowWorkStep, pk=pk)
+        form = AboutHowWorkStepForm(instance=step)
+        return render(request, self.template_name, {
+            'form': form,
+            'step': step,
+            'page_title': 'Edit How It Works Step',
+        })
+
+    def post(self, request, pk):
+        step = get_object_or_404(AboutHowWorkStep, pk=pk)
+        form = AboutHowWorkStepForm(
+            request.POST, request.FILES, instance=step)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'How it works step updated.')
+            return redirect('about_how_step_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'step': step,
+            'page_title': 'Edit How It Works Step',
+        })
+
+
+class AboutFaqItemListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/about_faq_list.html'
+
+    def get(self, request):
+        about = AboutPageContent.get_singleton()
+        faqs = about.faq_items.all()
+        return render(request, self.template_name, {
+            'faqs': faqs,
+            'page_title': 'About FAQ Items',
+        })
+
+
+class AboutFaqItemCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/about_faq_form.html'
+
+    def get(self, request):
+        form = AboutFaqItemForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add About FAQ',
+        })
+
+    def post(self, request):
+        form = AboutFaqItemForm(request.POST, request.FILES)
+        if form.is_valid():
+            faq = form.save(commit=False)
+            faq.about = AboutPageContent.get_singleton()
+            faq.order = _cms_next_child_order(faq.about.faq_items.all())
+            faq.save()
+            messages.success(request, 'About FAQ item created.')
+            return redirect('about_faq_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add About FAQ',
+        })
+
+
+class AboutFaqItemUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/about_faq_form.html'
+
+    def get(self, request, pk):
+        faq = get_object_or_404(AboutFaqItem, pk=pk)
+        form = AboutFaqItemForm(instance=faq)
+        return render(request, self.template_name, {
+            'form': form,
+            'faq': faq,
+            'page_title': 'Edit About FAQ',
+        })
+
+    def post(self, request, pk):
+        faq = get_object_or_404(AboutFaqItem, pk=pk)
+        form = AboutFaqItemForm(request.POST, request.FILES, instance=faq)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'About FAQ item updated.')
+            return redirect('about_faq_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'faq': faq,
+            'page_title': 'Edit About FAQ',
         })
