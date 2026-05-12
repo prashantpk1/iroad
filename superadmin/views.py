@@ -11015,11 +11015,48 @@ class HomeServiceCardListView(LoginRequiredMixin, View):
 
     def get(self, request):
         home = HomePageContent.get_singleton()
-        cards = home.service_cards.all()
-        return render(request, self.template_name, {
-            'cards': cards,
-            'page_title': 'Service Cards',
-        })
+        qs = home.service_cards.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(title_en__icontains=search_query)
+                | Q(title_ar__icontains=search_query)
+                | Q(summary_en__icontains=search_query)
+                | Q(summary_ar__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'title': 'title_en',
+            'title_ar': 'title_ar',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        cards = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'cards': cards,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'Service Cards',
+            },
+        )
 
 
 class HomeServiceCardCreateView(LoginRequiredMixin, View):
@@ -11079,11 +11116,52 @@ class HomePricingTierListView(LoginRequiredMixin, View):
 
     def get(self, request):
         home = HomePageContent.get_singleton()
-        tiers = home.pricing_tiers.all()
-        return render(request, self.template_name, {
-            'tiers': tiers,
-            'page_title': 'Pricing Tiers',
-        })
+        qs = home.pricing_tiers.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(name_en__icontains=search_query)
+                | Q(name_ar__icontains=search_query)
+                | Q(summary_en__icontains=search_query)
+                | Q(summary_ar__icontains=search_query)
+                | Q(price_display_en__icontains=search_query)
+                | Q(price_display_ar__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'name': 'name_en',
+            'name_ar': 'name_ar',
+            'price': 'price_display_en',
+            'featured': 'is_featured',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        tiers = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'tiers': tiers,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'Pricing Tiers',
+            },
+        )
 
 
 class HomePricingTierCreateView(LoginRequiredMixin, View):
@@ -11143,11 +11221,46 @@ class HomePricingBenefitListView(LoginRequiredMixin, View):
 
     def get(self, request):
         home = HomePageContent.get_singleton()
-        benefits = home.pricing_benefits.all()
-        return render(request, self.template_name, {
-            'benefits': benefits,
-            'page_title': 'Pricing Benefits',
-        })
+        qs = home.pricing_benefits.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(text_en__icontains=search_query)
+                | Q(text_ar__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'text': 'text_en',
+            'text_ar': 'text_ar',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        benefits = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'benefits': benefits,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'Pricing Benefits',
+            },
+        )
 
 
 class HomePricingBenefitCreateView(LoginRequiredMixin, View):
@@ -11215,11 +11328,52 @@ class HomeTestimonialListView(LoginRequiredMixin, View):
 
     def get(self, request):
         home = HomePageContent.get_singleton()
-        testimonials = home.testimonials.all()
-        return render(request, self.template_name, {
-            'testimonials': testimonials,
-            'page_title': 'Testimonials',
-        })
+        qs = home.testimonials.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(author_name_en__icontains=search_query)
+                | Q(author_name_ar__icontains=search_query)
+                | Q(author_role_en__icontains=search_query)
+                | Q(author_role_ar__icontains=search_query)
+                | Q(quote_en__icontains=search_query)
+                | Q(quote_ar__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'author': 'author_name_en',
+            'author_ar': 'author_name_ar',
+            'role': 'author_role_en',
+            'role_ar': 'author_role_ar',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        testimonials = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'testimonials': testimonials,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'Testimonials',
+            },
+        )
 
 
 class HomeTestimonialCreateView(LoginRequiredMixin, View):
@@ -11280,11 +11434,50 @@ class HomeMapLocationListView(LoginRequiredMixin, View):
 
     def get(self, request):
         home = HomePageContent.get_singleton()
-        locations = home.map_locations.all()
-        return render(request, self.template_name, {
-            'locations': locations,
-            'page_title': 'Map Locations',
-        })
+        qs = home.map_locations.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(title_en__icontains=search_query)
+                | Q(title_ar__icontains=search_query)
+                | Q(subtitle_en__icontains=search_query)
+                | Q(subtitle_ar__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'title': 'title_en',
+            'title_ar': 'title_ar',
+            'subtitle': 'subtitle_en',
+            'subtitle_ar': 'subtitle_ar',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        locations = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'locations': locations,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'Map Locations',
+            },
+        )
 
 
 class HomeMapLocationCreateView(LoginRequiredMixin, View):
@@ -11391,11 +11584,50 @@ class AboutApproachPillarListView(LoginRequiredMixin, View):
 
     def get(self, request):
         about = AboutPageContent.get_singleton()
-        pillars = about.approach_pillars.all()
-        return render(request, self.template_name, {
-            'pillars': pillars,
-            'page_title': 'Approach Pillars',
-        })
+        qs = about.approach_pillars.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(title_en__icontains=search_query)
+                | Q(title_ar__icontains=search_query)
+                | Q(body_en__icontains=search_query)
+                | Q(body_ar__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'title': 'title_en',
+            'title_ar': 'title_ar',
+            'body': 'body_en',
+            'body_ar': 'body_ar',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        pillars = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'pillars': pillars,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'Approach Pillars',
+            },
+        )
 
 
 class AboutApproachPillarCreateView(LoginRequiredMixin, View):
@@ -11456,11 +11688,52 @@ class AboutHowWorkStepListView(LoginRequiredMixin, View):
 
     def get(self, request):
         about = AboutPageContent.get_singleton()
-        steps = about.how_work_steps.all()
-        return render(request, self.template_name, {
-            'steps': steps,
-            'page_title': 'How It Works Steps',
-        })
+        qs = about.how_work_steps.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(step_number__icontains=search_query)
+                | Q(title_en__icontains=search_query)
+                | Q(title_ar__icontains=search_query)
+                | Q(body_en__icontains=search_query)
+                | Q(body_ar__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'step': 'step_number',
+            'title': 'title_en',
+            'title_ar': 'title_ar',
+            'body': 'body_en',
+            'body_ar': 'body_ar',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        steps = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'steps': steps,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'How It Works Steps',
+            },
+        )
 
 
 class AboutHowWorkStepCreateView(LoginRequiredMixin, View):
@@ -11521,11 +11794,50 @@ class AboutFaqItemListView(LoginRequiredMixin, View):
 
     def get(self, request):
         about = AboutPageContent.get_singleton()
-        faqs = about.faq_items.all()
-        return render(request, self.template_name, {
-            'faqs': faqs,
-            'page_title': 'About FAQ Items',
-        })
+        qs = about.faq_items.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(question_en__icontains=search_query)
+                | Q(question_ar__icontains=search_query)
+                | Q(answer_en__icontains=search_query)
+                | Q(answer_ar__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'question': 'question_en',
+            'question_ar': 'question_ar',
+            'answer': 'answer_en',
+            'answer_ar': 'answer_ar',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        faqs = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'faqs': faqs,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'About FAQ Items',
+            },
+        )
 
 
 class AboutFaqItemCreateView(LoginRequiredMixin, View):
@@ -11631,11 +11943,53 @@ class PricingInteractiveStepListView(LoginRequiredMixin, View):
 
     def get(self, request):
         pricing = PricingPageContent.get_singleton()
-        steps = pricing.interactive_steps.all()
-        return render(request, self.template_name, {
-            'steps': steps,
-            'page_title': 'Pricing Interactive Steps',
-        })
+        qs = pricing.interactive_steps.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(title_en__icontains=search_query)
+                | Q(title_ar__icontains=search_query)
+                | Q(subtitle_en__icontains=search_query)
+                | Q(subtitle_ar__icontains=search_query)
+                | Q(body_en__icontains=search_query)
+                | Q(body_ar__icontains=search_query)
+                | Q(detail_url__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'title': 'title_en',
+            'title_ar': 'title_ar',
+            'subtitle': 'subtitle_en',
+            'subtitle_ar': 'subtitle_ar',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        steps = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'steps': steps,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'Pricing Interactive Steps',
+            },
+        )
 
 
 class PricingInteractiveStepCreateView(LoginRequiredMixin, View):
@@ -11740,22 +12094,84 @@ class ContactPageCMSView(LoginRequiredMixin, View):
 class ContactSubmissionListView(LoginRequiredMixin, View):
     template_name = 'superadmin/cms/contact_submission_list.html'
 
-    def get(self, request):
-        qs = ContactSubmission.objects.all().order_by('-submitted_at')
-        q = (request.GET.get('q') or '').strip()
+    def _list_redirect(self, request):
+        """Rebuild list URL from POST hidden fields (preserve filters / page)."""
+        params = {}
+        q = (request.POST.get('q') or '').strip()
         if q:
+            params['q'] = q
+        status = (request.POST.get('status') or 'All').strip()
+        if status not in ('', 'All'):
+            params['status'] = status
+        sort = (request.POST.get('sort') or 'submitted_at').strip()
+        dir_ = (request.POST.get('dir') or 'desc').strip()
+        if sort:
+            params['sort'] = sort
+        if dir_:
+            params['dir'] = dir_
+        page = request.POST.get('page')
+        if page and str(page).isdigit() and int(page) > 1:
+            params['page'] = page
+        base = reverse('contact_submission_list')
+        if params:
+            return redirect(f'{base}?{urlencode(params)}')
+        return redirect(base)
+
+    def get(self, request):
+        qs = ContactSubmission.objects.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'submitted_at')
+        direction = request.GET.get('dir', 'desc')
+
+        if search_query:
             qs = qs.filter(
-                Q(email__icontains=q)
-                | Q(first_name__icontains=q)
-                | Q(last_name__icontains=q),
+                Q(email__icontains=search_query)
+                | Q(first_name__icontains=search_query)
+                | Q(last_name__icontains=search_query)
+                | Q(phone__icontains=search_query)
+                | Q(message__icontains=search_query),
             )
+        if status_filter == 'Unread':
+            qs = qs.filter(is_read=False)
+        elif status_filter == 'Read':
+            qs = qs.filter(is_read=True)
+
+        sort_mapping = {
+            'id': 'pk',
+            'submitted_at': 'submitted_at',
+            'email': 'email',
+            'name': 'last_name',
+            'phone': 'phone',
+            'read': 'is_read',
+        }
+        order_field = sort_mapping.get(sort, 'submitted_at')
+        prefix = '' if direction == 'asc' else '-'
+        if order_field == 'last_name':
+            qs = qs.order_by(
+                f'{prefix}last_name',
+                f'{prefix}first_name',
+                f'{prefix}pk',
+            )
+        else:
+            qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        submissions = paginator.get_page(request.GET.get('page', 1))
         unread_count = ContactSubmission.objects.filter(is_read=False).count()
-        return render(request, self.template_name, {
-            'submissions': qs,
-            'search_query': q,
-            'unread_count': unread_count,
-            'page_title': 'Contact Submissions',
-        })
+        return render(
+            request,
+            self.template_name,
+            {
+                'submissions': submissions,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'unread_count': unread_count,
+                'page_title': 'Contact Submissions',
+            },
+        )
 
     def post(self, request):
         if request.POST.get('action') == 'mark_all_read':
@@ -11782,11 +12198,7 @@ class ContactSubmissionListView(LoginRequiredMixin, View):
                         request,
                         f'Submission marked as {state}.',
                     )
-        q = (request.POST.get('q') or '').strip()
-        base = reverse('contact_submission_list')
-        if q:
-            return redirect(f'{base}?{urlencode({"q": q})}')
-        return redirect(base)
+        return self._list_redirect(request)
 
 
 class ContactSubmissionDetailView(LoginRequiredMixin, View):

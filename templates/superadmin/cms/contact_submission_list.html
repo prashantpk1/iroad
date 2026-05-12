@@ -2,14 +2,49 @@
 {% load i18n %}
 
 {% block title %}{{ page_title }}{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
 
 {% block breadcrumb_items %}
   <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+  .eal-table th.sortable {
+    padding: 0 !important;
+  }
+  .eal-table th.sortable a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    color: inherit;
+    text-decoration: none;
+    width: 100%;
+    transition: background 0.2s;
+    gap: 10px;
+  }
+  .eal-table th.sortable a:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+  .eal-table th.sortable i {
+    font-size: 10px;
+    margin-left: 5px;
+    color: var(--primary-color);
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+  .db-table-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
-  <div class="page-header-row d-flex flex-wrap align-items-center justify-content-between gap-3">
+  <div class="page-header-row">
     <div class="page-header-left d-flex flex-wrap align-items-center gap-2">
       <h1 class="page-title mb-0">{{ page_title }}</h1>
       {% if unread_count %}
@@ -18,104 +53,198 @@
         <span class="badge rounded-pill text-bg-secondary">0 {% translate "unread" %}</span>
       {% endif %}
     </div>
-    <div class="page-header-right d-flex flex-wrap gap-2">
+    <div class="page-header-right">
       {% if unread_count %}
         <form method="post" action="" class="d-inline">
           {% csrf_token %}
           <input type="hidden" name="action" value="mark_all_read">
           {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
-          <button type="submit" class="btn btn-warning">
+          <input type="hidden" name="status" value="{{ status_filter }}">
+          <input type="hidden" name="sort" value="{{ current_sort }}">
+          <input type="hidden" name="dir" value="{{ current_dir }}">
+          {% if submissions.number > 1 %}
+            <input type="hidden" name="page" value="{{ submissions.number }}">
+          {% endif %}
+          <button type="submit" class="eal-btn eal-btn-outline">
             <i class="bi bi-envelope-check"></i> {% translate "Mark all as read" %}
           </button>
         </form>
       {% endif %}
     </div>
   </div>
-  <p class="page-subtitle text-muted mb-0 mt-2">{% translate "Demo requests from the public contact form." %}</p>
+  <p class="page-subtitle">{% translate "Demo requests from the public contact form." %}</p>
 </div>
 
-<div class="form-card mb-3">
-  <div class="form-card-body">
-    <form method="get" action="" class="row g-2 align-items-end">
-      <div class="col-md-8 col-lg-6">
-        <label class="form-label" for="q">{% translate "Search" %}</label>
-        <input type="search" name="q" id="q" class="form-control" value="{{ search_query }}" placeholder="{% translate 'Email or name' %}">
+<div class="eal-table-card">
+  <form method="get" class="eal-toolbar">
+    <div class="eal-toolbar-left" style="width:100%; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+      <div class="eal-search" style="flex:1; min-width:240px; margin-bottom: 0;">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="{% translate 'Search name, email, phone, or message' %}" />
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        <input type="hidden" name="sort" value="{{ current_sort }}">
+        <input type="hidden" name="dir" value="{{ current_dir }}">
       </div>
-      <div class="col-auto">
-        <button type="submit" class="btn btn-primary">{% translate "Search" %}</button>
-        {% if search_query %}
-          <a href="{% url 'contact_submission_list' %}" class="btn btn-outline-secondary">{% translate "Clear" %}</a>
-        {% endif %}
+      <div class="db-table-filters">
+        <a
+          href="?q={{ search_query|urlencode }}&status=All&sort={{ current_sort }}&dir={{ current_dir }}"
+          class="filter-chip {% if status_filter == 'All' %}active{% endif %}"
+        >
+          {% translate "All" %}
+        </a>
+        <a
+          href="?q={{ search_query|urlencode }}&status=Unread&sort={{ current_sort }}&dir={{ current_dir }}"
+          class="filter-chip {% if status_filter == 'Unread' %}active{% endif %}"
+        >
+          <i class="bi bi-circle-fill text-warning" style="font-size: 6px"></i>
+          {% translate "Unread" %}
+        </a>
+        <a
+          href="?q={{ search_query|urlencode }}&status=Read&sort={{ current_sort }}&dir={{ current_dir }}"
+          class="filter-chip {% if status_filter == 'Read' %}active{% endif %}"
+        >
+          <i class="bi bi-circle-fill text-secondary" style="font-size: 6px"></i>
+          {% translate "Read" %}
+        </a>
       </div>
-    </form>
-  </div>
-</div>
-
-<div class="form-card">
-  <div class="form-card-body p-0">
-    {% if submissions %}
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th scope="col" class="text-muted" style="width: 72px">#</th>
-              <th scope="col">{% translate "Name" %}</th>
-              <th scope="col">{% translate "Email" %}</th>
-              <th scope="col">{% translate "Phone" %}</th>
-              <th scope="col">{% translate "Date" %}</th>
-              <th scope="col">{% translate "Read?" %}</th>
-              <th scope="col" class="text-end" style="width: 140px">{% translate "Actions" %}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for s in submissions %}
-              <tr
-                class="contact-submission-row"
-                data-detail-url="{% url 'contact_submission_detail' s.pk %}"
-                role="button"
-                tabindex="0"
-                style="cursor: pointer;"
-              >
-                <td class="text-muted small" onclick="event.stopPropagation();">{{ s.pk }}</td>
-                <td>{{ s.first_name }} {{ s.last_name }}</td>
-                <td><a href="mailto:{{ s.email }}" onclick="event.stopPropagation();">{{ s.email }}</a></td>
-                <td>{{ s.phone }}</td>
-                <td class="text-nowrap text-muted small">{{ s.submitted_at|date:"Y-m-d H:i" }}</td>
-                <td>
-                  {% if s.is_read %}
-                    <span class="badge text-bg-secondary">{% translate "Read" %}</span>
-                  {% else %}
-                    <span class="badge text-bg-warning text-dark">{% translate "Unread" %}</span>
+      {% if search_query or status_filter != 'All' %}
+        <a href="{% url 'contact_submission_list' %}" class="eal-btn eal-btn-outline" style="border-style: dashed; color: var(--text-muted); height: 32px; padding: 0 12px; font-size: 11px">
+          <i class="bi bi-x-circle"></i>
+          <span>{% translate "Clear Filters" %}</span>
+        </a>
+      {% endif %}
+    </div>
+  </form>
+  <div class="eal-table-wrap">
+    <table class="eal-table">
+      <thead>
+        <tr>
+          <th class="sortable" style="width: 72px">
+            <a href="?q={{ search_query|urlencode }}&status={{ status_filter|urlencode }}&sort=id&dir={% if current_sort == 'id' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+              <span>#</span>
+              {% if current_sort == 'id' %}
+                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
+              {% else %}
+                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th class="sortable">
+            <a href="?q={{ search_query|urlencode }}&status={{ status_filter|urlencode }}&sort=name&dir={% if current_sort == 'name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+              <span>{% translate "Name" %}</span>
+              {% if current_sort == 'name' %}
+                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
+              {% else %}
+                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th class="sortable">
+            <a href="?q={{ search_query|urlencode }}&status={{ status_filter|urlencode }}&sort=email&dir={% if current_sort == 'email' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+              <span>{% translate "Email" %}</span>
+              {% if current_sort == 'email' %}
+                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
+              {% else %}
+                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th class="sortable">
+            <a href="?q={{ search_query|urlencode }}&status={{ status_filter|urlencode }}&sort=phone&dir={% if current_sort == 'phone' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+              <span>{% translate "Phone" %}</span>
+              {% if current_sort == 'phone' %}
+                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
+              {% else %}
+                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th class="sortable">
+            <a href="?q={{ search_query|urlencode }}&status={{ status_filter|urlencode }}&sort=submitted_at&dir={% if current_sort == 'submitted_at' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+              <span>{% translate "Date" %}</span>
+              {% if current_sort == 'submitted_at' %}
+                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
+              {% else %}
+                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th class="sortable" style="width: 110px">
+            <a href="?q={{ search_query|urlencode }}&status={{ status_filter|urlencode }}&sort=read&dir={% if current_sort == 'read' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+              <span>{% translate "Read?" %}</span>
+              {% if current_sort == 'read' %}
+                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
+              {% else %}
+                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th>{% translate "ACTIONS" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in submissions %}
+          <tr
+            class="contact-submission-row"
+            data-detail-url="{% url 'contact_submission_detail' s.pk %}"
+            role="button"
+            tabindex="0"
+            style="cursor: pointer;"
+          >
+            <td class="text-muted small" onclick="event.stopPropagation();">{{ s.pk }}</td>
+            <td>{{ s.first_name }} {{ s.last_name }}</td>
+            <td><a href="mailto:{{ s.email }}" onclick="event.stopPropagation();">{{ s.email }}</a></td>
+            <td>{{ s.phone }}</td>
+            <td class="text-nowrap text-muted small">{{ s.submitted_at|date:"Y-m-d H:i" }}</td>
+            <td>
+              {% if s.is_read %}
+                <span class="status-badge inactive">{% translate "Read" %}</span>
+              {% else %}
+                <span class="status-badge warning">{% translate "Unread" %}</span>
+              {% endif %}
+            </td>
+            <td onclick="event.stopPropagation();">
+              <div class="eal-actions-cell">
+                <a href="{% url 'contact_submission_detail' s.pk %}" class="eal-row-btn" title="{% translate 'Open' %}"><i class="bi bi-box-arrow-up-right"></i></a>
+                <form method="post" action="" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="mark_read">
+                  <input type="hidden" name="submission_id" value="{{ s.pk }}">
+                  {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+                  <input type="hidden" name="status" value="{{ status_filter }}">
+                  <input type="hidden" name="sort" value="{{ current_sort }}">
+                  <input type="hidden" name="dir" value="{{ current_dir }}">
+                  {% if submissions.number > 1 %}
+                    <input type="hidden" name="page" value="{{ submissions.number }}">
                   {% endif %}
-                </td>
-                <td class="text-end" onclick="event.stopPropagation();">
-                  <a href="{% url 'contact_submission_detail' s.pk %}" class="btn btn-sm btn-outline-primary">{% translate "Open" %}</a>
-                  <form method="post" action="" class="d-inline">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="mark_read">
-                    <input type="hidden" name="submission_id" value="{{ s.pk }}">
-                    {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
-                    <button type="submit" class="btn btn-sm btn-outline-secondary" title="{% translate 'Toggle read / unread' %}">
-                      <i class="bi bi-envelope-open"></i>
-                    </button>
-                  </form>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <div class="text-center py-5 px-3 text-muted">
-        <i class="bi bi-inbox" style="font-size: 2rem"></i>
-        {% if search_query %}
-          <p class="mb-0 mt-2">{% translate "No submissions match your search." %}</p>
-        {% else %}
-          <p class="mb-0 mt-2">{% translate "No demo requests yet." %}</p>
-        {% endif %}
-      </div>
-    {% endif %}
+                  <button type="submit" class="eal-row-btn" title="{% translate 'Toggle read / unread' %}">
+                    <i class="bi bi-envelope-open"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr class="eal-table-empty">
+            <td colspan="7">
+              <div class="notification-empty">
+                <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+                <h4 class="empty-title">{% translate "No Data Found" %}</h4>
+                <p class="empty-text">
+                  {% if search_query or status_filter != 'All' %}
+                    {% translate "No submissions match your filters." %}
+                  {% else %}
+                    {% translate "No demo requests yet." %}
+                  {% endif %}
+                </p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  {% include 'partials/pagination.html' with page_obj=submissions %}
 </div>
 
 <script>
