@@ -10937,6 +10937,7 @@ from iroad_frontend.models import (
     HomePricingTier,
     HomeServiceCard,
     HomeTestimonial,
+    PricingFaqItem,
     PricingInteractiveStep,
     PricingPageContent,
 )
@@ -10952,6 +10953,7 @@ from iroad_frontend.cms_forms import (
     HomePricingTierForm,
     HomeServiceCardForm,
     HomeTestimonialForm,
+    PricingFaqItemForm,
     PricingInteractiveStepForm,
     PricingPageContentForm,
 )
@@ -11888,6 +11890,106 @@ class AboutFaqItemUpdateView(LoginRequiredMixin, View):
             'form': form,
             'faq': faq,
             'page_title': 'Edit About FAQ',
+        })
+
+
+class PricingFaqItemListView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/pricing_faq_list.html'
+
+    def get(self, request):
+        pricing = PricingPageContent.get_singleton()
+        qs = pricing.faq_items.all()
+        search_query = request.GET.get('q', '').strip()
+        status_filter = request.GET.get('status', 'All')
+        sort = request.GET.get('sort', 'order')
+        direction = request.GET.get('dir', 'asc')
+
+        if search_query:
+            qs = qs.filter(
+                Q(question_en__icontains=search_query)
+                | Q(question_ar__icontains=search_query)
+                | Q(answer_en__icontains=search_query)
+                | Q(answer_ar__icontains=search_query),
+            )
+        if status_filter == 'Active':
+            qs = qs.filter(is_active=True)
+        elif status_filter == 'Inactive':
+            qs = qs.filter(is_active=False)
+
+        sort_mapping = {
+            'order': 'order',
+            'question': 'question_en',
+            'status': 'is_active',
+        }
+        order_field = sort_mapping.get(sort, 'order')
+        prefix = '' if direction == 'asc' else '-'
+        qs = qs.order_by(f'{prefix}{order_field}', f'{prefix}pk')
+
+        paginator = Paginator(qs, 10)
+        items = paginator.get_page(request.GET.get('page', 1))
+        return render(
+            request,
+            self.template_name,
+            {
+                'items': items,
+                'search_query': search_query,
+                'status_filter': status_filter,
+                'current_sort': sort,
+                'current_dir': direction,
+                'page_title': 'Pricing FAQ Items',
+            },
+        )
+
+
+class PricingFaqItemCreateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/pricing_faq_form.html'
+
+    def get(self, request):
+        form = PricingFaqItemForm()
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Pricing FAQ',
+        })
+
+    def post(self, request):
+        form = PricingFaqItemForm(request.POST)
+        if form.is_valid():
+            item = form.save(commit=False)
+            pricing = PricingPageContent.get_singleton()
+            item.pricing = pricing
+            item.order = _cms_next_child_order(pricing.faq_items.all())
+            item.save()
+            messages.success(request, 'Pricing FAQ item created.')
+            return redirect('pricing_faq_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'page_title': 'Add Pricing FAQ',
+        })
+
+
+class PricingFaqItemUpdateView(LoginRequiredMixin, View):
+    template_name = 'superadmin/cms/pricing_faq_form.html'
+
+    def get(self, request, pk):
+        item = get_object_or_404(PricingFaqItem, pk=pk)
+        form = PricingFaqItemForm(instance=item)
+        return render(request, self.template_name, {
+            'form': form,
+            'item': item,
+            'page_title': 'Edit Pricing FAQ',
+        })
+
+    def post(self, request, pk):
+        item = get_object_or_404(PricingFaqItem, pk=pk)
+        form = PricingFaqItemForm(request.POST, instance=item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Pricing FAQ item updated.')
+            return redirect('pricing_faq_list')
+        return render(request, self.template_name, {
+            'form': form,
+            'item': item,
+            'page_title': 'Edit Pricing FAQ',
         })
 
 

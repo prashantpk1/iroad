@@ -86,7 +86,6 @@ class PricingPageView(View):
     def get(self, request):
         pricing = PricingPageContent.get_singleton()
         home = HomePageContent.get_singleton()
-        about = AboutPageContent.get_singleton()
 
         pricing_tiers = home.pricing_tiers.filter(
             is_active=True).order_by('order')
@@ -106,7 +105,7 @@ class PricingPageView(View):
                 is_active=True).order_by('order'),
             'testimonials': testimonials,
             'map_locations': map_locations,
-            'faq_items': about.faq_items.filter(
+            'faq_items': pricing.faq_items.filter(
                 is_active=True).order_by('order'),
         }
         context.update(get_lang_context(request))

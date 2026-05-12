@@ -18,6 +18,7 @@ from iroad_frontend.models import (
     HomePricingTier,
     HomeServiceCard,
     HomeTestimonial,
+    PricingFaqItem,
     PricingInteractiveStep,
     PricingPageContent,
 )
@@ -190,6 +191,16 @@ class AboutFaqItemForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _apply_child_widgets(self, AboutFaqItem)
+
+
+class PricingFaqItemForm(ModelForm):
+    class Meta:
+        model = PricingFaqItem
+        exclude = ('pricing',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_child_widgets(self, PricingFaqItem)
 
 
 class PricingPageContentForm(ModelForm):

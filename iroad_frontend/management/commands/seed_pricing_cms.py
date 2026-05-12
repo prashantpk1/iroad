@@ -1,15 +1,13 @@
 """
-Seed Pricing Page CMS (singleton + interactive steps) from designer pricing.html.
+Seed Pricing Page CMS: singleton text, interactive steps, and pricing-scoped FAQs.
 Idempotent for child rows (order + pricing). Refreshes singleton text fields each run.
-
-FAQ accordion content is managed under About Page CMS (AboutFaqItem) and reused
-on the public Pricing page — not seeded here.
 """
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
 from iroad_frontend.models import (
+    PricingFaqItem,
     PricingInteractiveStep,
     PricingPageContent,
 )
@@ -150,8 +148,89 @@ INTERACTIVE_STEPS = [
 ]
 
 
+PRICING_FAQS = [
+    {
+        'order': 1,
+        'question_en': 'What plans does IRoad offer?',
+        'question_ar': 'ما الخطط التي يقدمها آيرواد؟',
+        'answer_en': (
+            'IRoad offers Starter, Business, and Enterprise plans to fit teams '
+            'of all sizes.'
+        ),
+        'answer_ar': (
+            'يقدم آيرواد خطط المبتدئ والأعمال والمؤسسات لتناسب فرق العمل '
+            'بجميع الأحجام.'
+        ),
+    },
+    {
+        'order': 2,
+        'question_en': 'Is there a free trial?',
+        'question_ar': 'هل توجد تجربة مجانية؟',
+        'answer_en': (
+            'Yes — all plans come with a 30-day free trial, no credit card '
+            'required.'
+        ),
+        'answer_ar': (
+            'نعم — جميع الخطط تشمل تجربة مجانية لمدة 30 يوماً دون الحاجة '
+            'لبطاقة ائتمان.'
+        ),
+    },
+    {
+        'order': 3,
+        'question_en': 'Can I change my plan later?',
+        'question_ar': 'هل يمكنني تغيير خطتي لاحقاً؟',
+        'answer_en': (
+            'Yes, you can upgrade or downgrade at any time from your account '
+            'settings.'
+        ),
+        'answer_ar': (
+            'نعم، يمكنك الترقية أو التخفيض في أي وقت من إعدادات حسابك.'
+        ),
+    },
+    {
+        'order': 4,
+        'question_en': 'Are there any hidden fees?',
+        'question_ar': 'هل توجد رسوم مخفية؟',
+        'answer_en': (
+            'No. The price you see is the price you pay — no setup fees or '
+            'hidden charges.'
+        ),
+        'answer_ar': (
+            'لا. السعر الذي تراه هو ما تدفعه — دون رسوم إعداد أو تكاليف '
+            'مخفية.'
+        ),
+    },
+    {
+        'order': 5,
+        'question_en': 'How does billing work?',
+        'question_ar': 'كيف يعمل الفوترة؟',
+        'answer_en': (
+            'Plans are billed monthly. Annual billing with a discount is '
+            'available on request.'
+        ),
+        'answer_ar': (
+            'الخطط تُفوتر شهرياً. يتوفر الفوترة السنوية بخصم عند الطلب.'
+        ),
+    },
+    {
+        'order': 6,
+        'question_en': 'Can I cancel anytime?',
+        'question_ar': 'هل يمكنني الإلغاء في أي وقت؟',
+        'answer_en': (
+            'Yes — you can cancel your subscription at any time with no '
+            'cancellation fees.'
+        ),
+        'answer_ar': (
+            'نعم — يمكنك إلغاء اشتراكك في أي وقت دون رسوم إلغاء.'
+        ),
+    },
+]
+
+
 class Command(BaseCommand):
-    help = 'Seed PricingPageContent and interactive steps (FAQs: use seed_about_cms).'
+    help = (
+        'Seed PricingPageContent, interactive steps, and PricingFaqItem rows.'
+    )
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -178,8 +257,34 @@ class Command(BaseCommand):
                 },
             )
 
+        for faq_data in PRICING_FAQS:
+            order = faq_data['order']
+            exists = PricingFaqItem.objects.filter(
+                pricing=pricing,
+                order=order,
+            ).exists()
+            if not exists:
+                PricingFaqItem.objects.create(
+                    pricing=pricing,
+                    question_en=faq_data['question_en'],
+                    question_ar=faq_data.get('question_ar', ''),
+                    answer_en=faq_data['answer_en'],
+                    answer_ar=faq_data.get('answer_ar', ''),
+                    order=order,
+                    is_active=True,
+                )
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f'Pricing FAQ created: {faq_data["question_en"]}'
+                    )
+                )
+            else:
+                self.stdout.write(
+                    f'Skipped (exists): {faq_data["question_en"]}'
+                )
+
         self.stdout.write(
             self.style.SUCCESS(
-                'Pricing CMS seeded (singleton + interactive steps).'
+                'Pricing CMS seeded (singleton + interactive steps + FAQs).'
             )
         )

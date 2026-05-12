@@ -1,0 +1,96 @@
+{% load static %}
+    <!-- Our Pricing Section Start -->
+    <div class="our-pricing-elite bg-section">
+      <div class="container">
+        <div class="row section-row">
+          <div class="col-lg-12">
+            <!-- Section Title Start -->
+            <div class="section-title section-title-center">
+              <h3>{{ section_kicker|default:"Pricing Plans" }}</h3>
+              <h2>{{ section_heading|default:"Pricing that scales with your transport team" }}</h2>
+            </div>
+            <!-- Section Title End -->
+          </div>
+        </div>
+
+        <div class="row">
+          {% for tier in pricing_tiers %}
+            <div class="col-xl-4 col-md-6">
+              <!-- Pricing Item Start -->
+              <div
+                class="pricing-item-elite wow fadeInUp"
+                {% if forloop.counter0 == 0 %}data-wow-delay="0.2s"{% elif forloop.counter0 == 1 %}data-wow-delay="0.4s"{% elif forloop.counter0 == 2 %}data-wow-delay="0.6s"{% endif %}
+              >
+                <!-- Pricing Item Header Start -->
+                <div class="pricing-item-header-elite">
+                  <!-- Pricing Header Content Start -->
+                  <div class="pricing-header-content-elite">
+                    <h3>{% if lang == 'ar' %}{{ tier.name_ar|default:tier.name_en }}{% else %}{{ tier.name_en }}{% endif %}</h3>
+                    <p>{% if lang == 'ar' %}{{ tier.summary_ar|default:tier.summary_en }}{% else %}{{ tier.summary_en }}{% endif %}</p>
+                  </div>
+                  <!-- Pricing Header Content End -->
+
+                  <!-- Pricing Price Start -->
+                  <div class="pricing-item-price-elite">
+                    <h2>{% if lang == 'ar' %}{{ tier.price_display_ar|default:tier.price_display_en|safe }}{% else %}{{ tier.price_display_en|safe }}{% endif %}</h2>
+                  </div>
+                  <!-- Pricing Price End -->
+                </div>
+                <!-- Pricing Item Header End -->
+
+                <!-- Pricing Body Start -->
+                <div class="pricing-item-list-elite">
+                  <ul>
+                    {% if lang == 'ar' %}
+                    {% if tier.bullet_1_ar|default:tier.bullet_1_en %}<li>{{ tier.bullet_1_ar|default:tier.bullet_1_en }}</li>{% endif %}
+                    {% if tier.bullet_2_ar|default:tier.bullet_2_en %}<li>{{ tier.bullet_2_ar|default:tier.bullet_2_en }}</li>{% endif %}
+                    {% if tier.bullet_3_ar|default:tier.bullet_3_en %}<li>{{ tier.bullet_3_ar|default:tier.bullet_3_en }}</li>{% endif %}
+                    {% if tier.bullet_4_ar|default:tier.bullet_4_en %}<li>{{ tier.bullet_4_ar|default:tier.bullet_4_en }}</li>{% endif %}
+                    {% else %}
+                    {% if tier.bullet_1_en %}<li>{{ tier.bullet_1_en }}</li>{% endif %}
+                    {% if tier.bullet_2_en %}<li>{{ tier.bullet_2_en }}</li>{% endif %}
+                    {% if tier.bullet_3_en %}<li>{{ tier.bullet_3_en }}</li>{% endif %}
+                    {% if tier.bullet_4_en %}<li>{{ tier.bullet_4_en }}</li>{% endif %}
+                    {% endif %}
+                  </ul>
+                </div>
+                <!-- Pricing Body End -->
+
+                <!-- Pricing Item Button Start -->
+                <div class="pricing-item-btn-elite">
+                  <a href="{{ tier.cta_url }}" class="btn-default">{% if lang == 'ar' %}{{ tier.cta_label_ar|default:tier.cta_label_en }}{% else %}{{ tier.cta_label_en }}{% endif %}</a>
+                </div>
+                <!-- Pricing Item Button End -->
+              </div>
+              <!-- Pricing Item End -->
+            </div>
+          {% endfor %}
+
+          <div class="col-lg-12">
+            <!-- Pricing Benifit List Start -->
+            <div class="pricing-benefit-list-elite wow fadeInUp" data-wow-delay="0.4s">
+              <ul>
+                {% for b in pricing_benefits %}
+                  <li>
+                    {% if b.icon %}
+                      <img src="{{ b.icon.url }}" alt="" />
+                    {% elif forloop.counter == 1 %}
+                      <img src="{% static 'landing/images/icon-pricing-benefit-1.svg' %}" alt="" />
+                    {% elif forloop.counter == 2 %}
+                      <img src="{% static 'landing/images/icon-pricing-benefit-2.svg' %}" alt="" />
+                    {% elif forloop.counter == 3 %}
+                      <img src="{% static 'landing/images/icon-pricing-benefit-3.svg' %}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/icon-pricing-benefit-1.svg' %}" alt="" />
+                    {% endif %}
+                    {% if lang == 'ar' %}{{ b.text_ar|default:b.text_en }}{% else %}{{ b.text_en }}{% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+            <!-- Pricing Benifit List End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Our Pricing Section End -->

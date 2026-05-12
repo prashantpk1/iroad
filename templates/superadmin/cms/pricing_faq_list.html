@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .eal-table th.sortable {
+    padding: 0 !important;
+  }
+  .eal-table th.sortable a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    color: inherit;
+    text-decoration: none;
+    width: 100%;
+    transition: background 0.2s;
+    gap: 10px;
+  }
+  .eal-table th.sortable a:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+  .eal-table th.sortable i {
+    font-size: 10px;
+    margin-left: 5px;
+    color: var(--primary-color);
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+  .db-table-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row">
+    <div class="page-header-left">
+      <h1 class="page-title">{{ page_title }}</h1>
+      <p class="page-subtitle">{% translate "Manage FAQ accordion items on the public pricing page." %}</p>
+    </div>
+    <div class="page-header-right">
+      <div class="eal-header-actions">
+        <a href="{% url 'pricing_faq_create' %}" class="eal-btn eal-btn-primary">{% translate "Add New" %}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="eal-table-card">
+  <form method="get" class="eal-toolbar">
+    <div class="eal-toolbar-left" style="width:100%; display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+      <div class="eal-search" style="flex:1; min-width:240px; margin-bottom: 0;">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="{% translate 'Search by question or answer' %}" />
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        <input type="hidden" name="sort" value="{{ current_sort }}">
+        <input type="hidden" name="dir" value="{{ current_dir }}">
+      </div>
+      <div class="db-table-filters">
+        <a
+          href="?q={{ search_query|urlencode }}&status=All&sort={{ current_sort }}&dir={{ current_dir }}"
+          class="filter-chip {% if status_filter == 'All' %}active{% endif %}"
+        >
+          {% translate "All Status" %}
+        </a>
+        <a
+          href="?q={{ search_query|urlencode }}&status=Active&sort={{ current_sort }}&dir={{ current_dir }}"
+          class="filter-chip {% if status_filter == 'Active' %}active{% endif %}"
+        >
+          <i class="bi bi-circle-fill text-success" style="font-size: 6px"></i>
+          {% translate "Active" %}
+        </a>
+        <a
+          href="?q={{ search_query|urlencode }}&status=Inactive&sort={{ current_sort }}&dir={{ current_dir }}"
+          class="filter-chip {% if status_filter == 'Inactive' %}active{% endif %}"
+        >
+          <i class="bi bi-circle-fill text-danger" style="font-size: 6px"></i>
+          {% translate "Inactive" %}
+        </a>
+      </div>
+      {% if search_query or status_filter != 'All' %}
+        <a href="{% url 'pricing_faq_list' %}" class="eal-btn eal-btn-outline" style="border-style: dashed; color: var(--text-muted); height: 32px; padding: 0 12px; font-size: 11px">
+          <i class="bi bi-x-circle"></i>
+          <span>{% translate "Clear Filters" %}</span>
+        </a>
+      {% endif %}
+    </div>
+  </form>
+  <div class="eal-table-wrap">
+    <table class="eal-table">
+      <thead>
+        <tr>
+          <th class="sortable" style="width: 90px">
+            <a href="?q={{ search_query|urlencode }}&status={{ status_filter|urlencode }}&sort=order&dir={% if current_sort == 'order' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+              <span>{% translate "Order" %}</span>
+              {% if current_sort == 'order' %}
+                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
+              {% else %}
+                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th class="sortable">
+            <a href="?q={{ search_query|urlencode }}&status={{ status_filter|urlencode }}&sort=question&dir={% if current_sort == 'question' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+              <span>{% translate "Question EN" %}</span>
+              {% if current_sort == 'question' %}
+                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
+              {% else %}
+                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th class="sortable" style="width: 110px">
+            <a href="?q={{ search_query|urlencode }}&status={{ status_filter|urlencode }}&sort=status&dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}">
+              <span>{% translate "Active" %}</span>
+              {% if current_sort == 'status' %}
+                <i class="bi bi-caret-{% if current_dir == 'asc' %}up{% else %}down{% endif %}-fill"></i>
+              {% else %}
+                <i class="bi bi-caret-up text-muted" style="opacity: 0.3"></i>
+              {% endif %}
+            </a>
+          </th>
+          <th>{% translate "ACTIONS" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+          <tr>
+            <td>{{ item.order }}</td>
+            <td>{{ item.question_en|default:"—"|truncatechars:80 }}</td>
+            <td>
+              {% if item.is_active %}
+                <span class="status-badge active">{% translate "Yes" %}</span>
+              {% else %}
+                <span class="status-badge inactive">{% translate "No" %}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="eal-actions-cell">
+                <a href="{% url 'pricing_faq_edit' item.pk %}" class="eal-row-btn" title="{% translate 'Edit' %}"><i class="bi bi-pencil"></i></a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr class="eal-table-empty">
+            <td colspan="4">
+              <div class="notification-empty">
+                <div class="empty-icon"><i class="bi bi-inbox"></i></div>
+                <h4 class="empty-title">{% translate "No Data Found" %}</h4>
+                <p class="empty-text">{% translate "No FAQ items match your filters." %}</p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'partials/pagination.html' with page_obj=items %}
+</div>
+{% endblock %}

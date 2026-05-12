@@ -1057,8 +1057,7 @@ class AboutHowWorkStep(models.Model):
 
 class AboutFaqItem(models.Model):
     """
-    FAQ accordion items managed under About Page CMS.
-    Reused on the public Pricing page (same rows; no duplicate FAQ table).
+    FAQ accordion items managed under About Page CMS (About page only).
     """
     about = models.ForeignKey(
         AboutPageContent,
@@ -1260,6 +1259,35 @@ class PricingPageContent(models.Model):
     def get_singleton(cls):
         obj, _created = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class PricingFaqItem(models.Model):
+    """
+    FAQ items scoped to Pricing page only.
+    Completely separate from AboutFaqItem.
+    """
+    pricing = models.ForeignKey(
+        PricingPageContent,
+        on_delete=models.CASCADE,
+        related_name='faq_items',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    question_en = models.CharField(
+        max_length=500, blank=True, default='')
+    question_ar = models.CharField(
+        max_length=500, blank=True, default='')
+    answer_en = models.TextField(blank=True, default='')
+    answer_ar = models.TextField(blank=True, default='')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_pricing_faq_item'
+        ordering = ['order']
+        verbose_name = 'Pricing FAQ Item'
+        verbose_name_plural = 'Pricing FAQ Items'
+
+    def __str__(self):
+        return f'FAQ {self.order}: {self.question_en[:60]}'
 
 
 class PricingInteractiveStep(models.Model):

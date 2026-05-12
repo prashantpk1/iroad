@@ -1,5 +1,4 @@
 from django.urls import path
-from django.views.generic import RedirectView
 
 from .views import (
     AdminSecuritySettingsView,
@@ -206,6 +205,9 @@ from .views import (
     HomeTestimonialCreateView,
     HomeTestimonialListView,
     HomeTestimonialUpdateView,
+    PricingFaqItemCreateView,
+    PricingFaqItemListView,
+    PricingFaqItemUpdateView,
     PricingInteractiveStepCreateView,
     PricingInteractiveStepListView,
     PricingInteractiveStepUpdateView,
@@ -1159,8 +1161,18 @@ urlpatterns = [
     ),
     path(
         'cms/pricing/faqs/',
-        RedirectView.as_view(pattern_name='about_faq_list', permanent=False),
+        PricingFaqItemListView.as_view(),
         name='pricing_faq_list',
+    ),
+    path(
+        'cms/pricing/faqs/create/',
+        PricingFaqItemCreateView.as_view(),
+        name='pricing_faq_create',
+    ),
+    path(
+        'cms/pricing/faqs/<int:pk>/edit/',
+        PricingFaqItemUpdateView.as_view(),
+        name='pricing_faq_edit',
     ),
     path('cms/contact/', ContactPageCMSView.as_view(), name='contact_page_cms'),
     path(

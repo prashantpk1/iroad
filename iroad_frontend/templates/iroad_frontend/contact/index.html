@@ -10,52 +10,11 @@
 {% endblock %}
 
 {% block content %}
-    <!-- Page Header Section Start -->
-    <div
-      class="page-header contact-page-header bg-section parallaxie{% if contact.page_header_background %} contact-page-header--cms-bg{% endif %}"
-      {% if contact.page_header_background %}
-      style="background-image: url('{{ contact.page_header_background.url }}');"
-      {% endif %}
-    >
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <!-- Page Header Box Start -->
-                    <div class="page-header-box">
-                        <h1>
-                          {% if lang == 'ar' %}
-                            {{ contact.page_header_h1_ar|default:contact.page_header_h1_en }}
-                          {% else %}
-                            {{ contact.page_header_h1_en }}
-                          {% endif %}
-                        </h1>
-                        <nav class="wow fadeInUp" aria-label="breadcrumb">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item">
-                                  <a href="{% url 'iroad_frontend:home' %}">
-                                    {% if lang == 'ar' %}
-                                      {{ home.nav_home_ar|default:home.nav_home_en }}
-                                    {% else %}
-                                      {{ home.nav_home_en }}
-                                    {% endif %}
-                                  </a>
-                                </li>
-                                <li class="breadcrumb-item active" aria-current="page">
-                                  {% if lang == 'ar' %}
-                                    {{ contact.breadcrumb_current_ar|default:contact.breadcrumb_current_en }}
-                                  {% else %}
-                                    {{ contact.breadcrumb_current_en }}
-                                  {% endif %}
-                                </li>
-                            </ol>
-                        </nav>
-                    </div>
-                    <!-- Page Header Box End -->
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Page Header Section End -->
+    {% if lang == 'ar' %}
+    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='contact' page_header_background=contact.page_header_background page_h1=contact.page_header_h1_ar|default:contact.page_header_h1_en breadcrumb_home_label=home.nav_home_ar|default:home.nav_home_en breadcrumb_current=contact.breadcrumb_current_ar|default:contact.breadcrumb_current_en %}
+    {% else %}
+    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='contact' page_header_background=contact.page_header_background page_h1=contact.page_header_h1_en breadcrumb_home_label=home.nav_home_en breadcrumb_current=contact.breadcrumb_current_en %}
+    {% endif %}
 
     <!-- Page Contact Us Start -->
     <div class="page-contact-us">

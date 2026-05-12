@@ -4,137 +4,17 @@
 {% block title %}{% if lang == 'ar' %}{{ pricing.page_title_ar|default:pricing.page_title_en }}{% else %}{{ pricing.page_title_en }}{% endif %}{% endblock %}
 
 {% block content %}
-    <!-- Page Header Section Start -->
-    <div
-      class="page-header pricing-page-header bg-section parallaxie{% if pricing.page_header_background %} pricing-page-header--cms-bg{% endif %}"
-      {% if pricing.page_header_background %}
-      style="background-image: url('{{ pricing.page_header_background.url }}');"
-      {% endif %}
-    >
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
-                    <!-- Page Header Box Start -->
-                    <div class="page-header-box">
-                        <h1>{% if lang == 'ar' %}{{ pricing.page_header_h1_ar|default:pricing.page_header_h1_en }}{% else %}{{ pricing.page_header_h1_en }}{% endif %}</h1>
-                        <nav class="wow fadeInUp">
-                            <ol class="breadcrumb">
-                                <li class="breadcrumb-item">
-                                  <a href="{% url 'iroad_frontend:home' %}">
-                                    {% if lang == 'ar' %}{{ home.nav_home_ar|default:home.nav_home_en }}{% else %}{{ home.nav_home_en }}{% endif %}
-                                  </a>
-                                </li>
-                                <li class="breadcrumb-item active" aria-current="page">{% if lang == 'ar' %}{{ pricing.breadcrumb_current_ar|default:pricing.breadcrumb_current_en }}{% else %}{{ pricing.breadcrumb_current_en }}{% endif %}</li>
-                            </ol>
-                        </nav>
-                    </div>
-                    <!-- Page Header Box End -->
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Page Header Section End -->
+    {% if lang == 'ar' %}
+    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='pricing' page_header_background=pricing.page_header_background page_h1=pricing.page_header_h1_ar|default:pricing.page_header_h1_en breadcrumb_home_label=home.nav_home_ar|default:home.nav_home_en breadcrumb_current=pricing.breadcrumb_current_ar|default:pricing.breadcrumb_current_en %}
+    {% else %}
+    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='pricing' page_header_background=pricing.page_header_background page_h1=pricing.page_header_h1_en breadcrumb_home_label=home.nav_home_en breadcrumb_current=pricing.breadcrumb_current_en %}
+    {% endif %}
 
-    <!-- Page Pricing Start -->
-    <div class="our-pricing-elite bg-section">
-      <div class="container">
-        <div class="row section-row">
-          <div class="col-lg-12">
-            <!-- Section Title Start -->
-            <div class="section-title section-title-center">
-              <h3>{% if lang == 'ar' %}{{ pricing.pricing_kicker_ar|default:pricing.pricing_kicker_en }}{% else %}{{ pricing.pricing_kicker_en }}{% endif %}</h3>
-              <h2>
-                {% if lang == 'ar' %}{{ pricing.pricing_heading_ar|default:pricing.pricing_heading_en }}{% else %}{{ pricing.pricing_heading_en }}{% endif %}
-              </h2>
-            </div>
-            <!-- Section Title End -->
-          </div>
-        </div>
-
-        <div class="row">
-          {% for tier in pricing_tiers %}
-          <div class="col-xl-4 col-md-6">
-            <!-- Pricing Item Start -->
-            <div
-              class="pricing-item-elite wow fadeInUp"
-              {% if forloop.counter0 == 0 %}data-wow-delay="0.2s"{% elif forloop.counter0 == 1 %}data-wow-delay="0.4s"{% elif forloop.counter0 == 2 %}data-wow-delay="0.6s"{% endif %}
-            >
-              <!-- Pricing Item Header Start -->
-              <div class="pricing-item-header-elite">
-                <!-- Pricing Header Content Start -->
-                <div class="pricing-header-content-elite">
-                  <h3>{% if lang == 'ar' %}{{ tier.name_ar|default:tier.name_en }}{% else %}{{ tier.name_en }}{% endif %}</h3>
-                  <p>{% if lang == 'ar' %}{{ tier.summary_ar|default:tier.summary_en }}{% else %}{{ tier.summary_en }}{% endif %}</p>
-                </div>
-                <!-- Pricing Header Content End -->
-
-                <!-- Pricing Price Start -->
-                <div class="pricing-item-price-elite">
-                  <h2>{% if lang == 'ar' %}{{ tier.price_display_ar|default:tier.price_display_en|safe }}{% else %}{{ tier.price_display_en|safe }}{% endif %}</h2>
-                </div>
-                <!-- Pricing Price End -->
-              </div>
-              <!-- Pricing Item Header End -->
-
-              <!-- Pricing Body Start -->
-              <div class="pricing-item-list-elite">
-                <ul>
-                  {% if lang == 'ar' %}
-                  {% if tier.bullet_1_ar|default:tier.bullet_1_en %}<li>{{ tier.bullet_1_ar|default:tier.bullet_1_en }}</li>{% endif %}
-                  {% if tier.bullet_2_ar|default:tier.bullet_2_en %}<li>{{ tier.bullet_2_ar|default:tier.bullet_2_en }}</li>{% endif %}
-                  {% if tier.bullet_3_ar|default:tier.bullet_3_en %}<li>{{ tier.bullet_3_ar|default:tier.bullet_3_en }}</li>{% endif %}
-                  {% if tier.bullet_4_ar|default:tier.bullet_4_en %}<li>{{ tier.bullet_4_ar|default:tier.bullet_4_en }}</li>{% endif %}
-                  {% else %}
-                  {% if tier.bullet_1_en %}<li>{{ tier.bullet_1_en }}</li>{% endif %}
-                  {% if tier.bullet_2_en %}<li>{{ tier.bullet_2_en }}</li>{% endif %}
-                  {% if tier.bullet_3_en %}<li>{{ tier.bullet_3_en }}</li>{% endif %}
-                  {% if tier.bullet_4_en %}<li>{{ tier.bullet_4_en }}</li>{% endif %}
-                  {% endif %}
-                </ul>
-              </div>
-              <!-- Pricing Body End -->
-
-              <!-- Pricing Item Button Start -->
-              <div class="pricing-item-btn-elite">
-                <a href="{{ tier.cta_url }}" class="btn-default">{% if lang == 'ar' %}{{ tier.cta_label_ar|default:tier.cta_label_en }}{% else %}{{ tier.cta_label_en }}{% endif %}</a>
-              </div>
-              <!-- Pricing Item Button End -->
-            </div>
-            <!-- Pricing Item End -->
-          </div>
-          {% endfor %}
-
-          <div class="col-lg-12">
-            <!-- Pricing Benifit List Start -->
-            <div
-              class="pricing-benefit-list-elite wow fadeInUp"
-              data-wow-delay="0.4s"
-            >
-              <ul>
-                {% for b in pricing_benefits %}
-                  <li>
-                    {% if b.icon %}
-                      <img src="{{ b.icon.url }}" alt="" />
-                    {% elif forloop.counter == 1 %}
-                      <img src="{% static 'landing/images/icon-pricing-benefit-1.svg' %}" alt="" />
-                    {% elif forloop.counter == 2 %}
-                      <img src="{% static 'landing/images/icon-pricing-benefit-2.svg' %}" alt="" />
-                    {% elif forloop.counter == 3 %}
-                      <img src="{% static 'landing/images/icon-pricing-benefit-3.svg' %}" alt="" />
-                    {% else %}
-                      <img src="{% static 'landing/images/icon-pricing-benefit-1.svg' %}" alt="" />
-                    {% endif %}
-                    {% if lang == 'ar' %}{{ b.text_ar|default:b.text_en }}{% else %}{{ b.text_en }}{% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            </div>
-            <!-- Pricing Benifit List End -->
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Page Pricing End -->
+    {% if lang == 'ar' %}
+    {% include 'iroad_frontend/partials/components/pricing_tiers_section.html' with pricing_tiers=pricing_tiers pricing_benefits=pricing_benefits section_kicker=pricing.pricing_kicker_ar|default:pricing.pricing_kicker_en section_heading=pricing.pricing_heading_ar|default:pricing.pricing_heading_en %}
+    {% else %}
+    {% include 'iroad_frontend/partials/components/pricing_tiers_section.html' with pricing_tiers=pricing_tiers pricing_benefits=pricing_benefits section_kicker=pricing.pricing_kicker_en section_heading=pricing.pricing_heading_en %}
+    {% endif %}
 
     {% if pricing.interactive_kicker_en or pricing.interactive_heading_en %}
     <div class="container">
@@ -411,177 +291,15 @@
     </div>
     <!-- Our Partner Section End -->
 
-    <!-- Our Testimonials Section Start -->
-    <div class="our-testimonials bg-section">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-5">
-                    <!-- Testimonial Image Box Start -->
-                    <div class="testimonial-image-box wow fadeInUp" data-wow-delay="0.2s">
-                        <!-- Testimonial Image Start -->
-                        <div class="testimonial-image">
-                            <figure class="image-anime">
-                                {% if home.testimonials_hero_image %}
-                                <img src="{{ home.testimonials_hero_image.url }}" alt="">
-                                {% else %}
-                                <img src="{% static 'landing/images/testimonial-image.jpg' %}" alt="">
-                                {% endif %}
-                            </figure>
-                        </div>
-                        <!-- Testimonial Image End -->
+    {% if lang == 'ar' %}
+    {% include 'iroad_frontend/partials/components/testimonials_section.html' with testimonials=testimonials t_kicker=pricing.testimonials_kicker_ar|default:pricing.testimonials_kicker_en t_heading=pricing.testimonials_heading_ar|default:pricing.testimonials_heading_en t_hero_image=home.testimonials_hero_image t_happy_count=home.testimonials_happy_count t_happy_label=home.testimonials_happy_label_ar|default:home.testimonials_happy_label_en %}
+    {% else %}
+    {% include 'iroad_frontend/partials/components/testimonials_section.html' with testimonials=testimonials t_kicker=pricing.testimonials_kicker_en t_heading=pricing.testimonials_heading_en t_hero_image=home.testimonials_hero_image t_happy_count=home.testimonials_happy_count t_happy_label=home.testimonials_happy_label_en %}
+    {% endif %}
 
-                        <!-- Happy Customer Box Start -->
-                        <div class="happy-customer-box">
-                            <!-- Satisfy Client Images Start -->
-                            <div class="satisfy-client-images">
-                                <div class="satisfy-client-image">
-                                    <figure class="image-anime">
-                                        <img src="{% static 'landing/images/author-1.jpg' %}" alt="">
-                                    </figure>
-                                </div>
-                                <div class="satisfy-client-image">
-                                    <figure class="image-anime">
-                                        <img src="{% static 'landing/images/author-2.jpg' %}" alt="">
-                                    </figure>
-                                </div>
-                                <div class="satisfy-client-image">
-                                    <figure class="image-anime">
-                                        <img src="{% static 'landing/images/author-3.jpg' %}" alt="">
-                                    </figure>
-                                </div>
-                                <div class="satisfy-client-image add-more">
-                                    <h3>{{ home.testimonials_happy_count }}</h3>
-                                </div>
-                            </div>
-                            <!-- Satisfy Client Images End -->
-
-                            <!-- Review Content Start -->
-                            <div class="happy-customer-content">
-                            <p>{{ home.testimonials_happy_label_en }}</p>
-                            </div>
-                            <!-- Review Content End -->
-                        </div>
-                        <!-- Happy Customer Box End -->
-                    </div>
-                    <!-- Testimonial Image Box End -->
-                </div>
-
-                <div class="col-xl-7">
-                    <!-- Testimonial Content Box Start -->
-                    <div class="testimonial-content-box">
-                        <!-- Section Title Start -->
-                        <div class="section-title">
-                            <h3>{{ pricing.testimonials_kicker_en }}</h3>
-                            <h2>{{ pricing.testimonials_heading_en }}</h2>
-                        </div>
-                        <!-- Section Title End -->
-
-                        <!-- Testimonial Slider Start -->
-                        <div class="testimonial-slider">
-                            <div class="swiper">
-                                <div class="swiper-wrapper" data-cursor-text="Drag">
-                                    {% for t in testimonials %}
-                                    <!-- Testimonial Slide Start -->
-                                    <div class="swiper-slide">
-                                        <div class="testimonial-item">
-                                            <div class="testimonial-company-logo">
-                                                {% if t.company_logo %}
-                                                <img src="{{ t.company_logo.url }}" alt="">
-                                                {% else %}
-                                                <img src="{% static 'landing/images/company-logo-1.svg' %}" alt="">
-                                                {% endif %}
-                                            </div>
-                                            <div class="testimonial-content">
-                                                <p>"{{ t.quote_en }}"</p>
-                                            </div>
-                                            <div class="testimonial-author">
-                                                <div class="author-content">
-                                                    <h3>{{ t.author_name_en }}</h3>
-                                                    <p>{{ t.author_role_en }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Testimonial Slide End -->
-                                    {% empty %}
-                                    <div class="swiper-slide">
-                                        <div class="testimonial-item">
-                                            <div class="testimonial-company-logo">
-                                                <img src="{% static 'landing/images/company-logo-1.svg' %}" alt="">
-                                            </div>
-                                            <div class="testimonial-content">
-                                                <p>&nbsp;</p>
-                                            </div>
-                                            <div class="testimonial-author">
-                                                <div class="author-content">
-                                                    <h3>&nbsp;</h3>
-                                                    <p>&nbsp;</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                                <div class="testimonial-pagination"></div>
-                            </div>
-                        </div>
-                        <!-- Testimonial Slider End -->
-                    </div>
-                    <!-- Testimonial Content Box End -->
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Our Testimonials Section End -->
-
-    <!-- Our Faqs Section Start -->
-    <div class="our-faqs">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-6">
-                    <!-- Faqs Content Start -->
-                    <div class="faqs-content">
-                        <!-- Section Title Start -->
-                        <div class="section-title">
-                            <h3>{% if lang == 'ar' %}{{ pricing.faq_kicker_ar|default:pricing.faq_kicker_en }}{% else %}{{ pricing.faq_kicker_en }}{% endif %}</h3>
-                            <h2>{% if lang == 'ar' %}{{ pricing.faq_heading_ar|default:pricing.faq_heading_en }}{% else %}{{ pricing.faq_heading_en }}{% endif %}</h2>
-                            <p class="wow fadeInUp" data-wow-delay="0.2s">{% if lang == 'ar' %}{{ pricing.faq_intro_ar|default:pricing.faq_intro_en }}{% else %}{{ pricing.faq_intro_en }}{% endif %}</p>
-                        </div>
-                        <!-- Section Title End -->
-
-                        <!-- Faqs Button Start -->
-                        <div class="faqs-btn wow fadeInUp" data-wow-delay="0.4s">
-                            <a href="{{ pricing.faq_view_all_url }}" class="btn-default">{% if lang == 'ar' %}{{ pricing.faq_view_all_label_ar|default:pricing.faq_view_all_label_en }}{% else %}{{ pricing.faq_view_all_label_en }}{% endif %}</a>
-                        </div>
-                        <!-- Faqs Button End -->
-                    </div>
-                    <!-- Faqs Content End -->
-                </div>
-
-                <div class="col-xl-6">
-                    <!-- FAQ Accordion Start -->
-                    <div class="faq-accordion our-faq-accordion" id="accordionPricing">
-                        {% for item in faq_items %}
-                        <!-- FAQ Item Start -->
-                        <div class="accordion-item wow fadeInUp"{% if forloop.counter0 == 1 %} data-wow-delay="0.2s"{% elif forloop.counter0 == 2 %} data-wow-delay="0.4s"{% elif forloop.counter0 == 3 %} data-wow-delay="0.6s"{% elif forloop.counter0 == 4 %} data-wow-delay="0.8s"{% elif forloop.counter0 == 5 %} data-wow-delay="1s"{% endif %}>
-                            <h2 class="accordion-header" id="headingPricing{{ forloop.counter }}">
-                                <button class="accordion-button{% if not forloop.first %} collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePricing{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="collapsePricing{{ forloop.counter }}">
-                                    {% if lang == 'ar' %}{{ item.question_ar|default:item.question_en }}{% else %}{{ item.question_en }}{% endif %}
-                                </button>
-                            </h2>
-                            <div id="collapsePricing{{ forloop.counter }}" class="accordion-collapse collapse{% if forloop.first %} show{% endif %}" aria-labelledby="headingPricing{{ forloop.counter }}" data-bs-parent="#accordionPricing">
-                                <div class="accordion-body">
-                                    <p>{% if lang == 'ar' %}{{ item.answer_ar|default:item.answer_en }}{% else %}{{ item.answer_en }}{% endif %}</p>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- FAQ Item End -->
-                        {% endfor %}
-                    </div>
-                    <!-- FAQ Accordion End -->
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Our Faqs Section End -->
+    {% if lang == 'ar' %}
+    {% include 'iroad_frontend/partials/components/faq_accordion.html' with faq_items=faq_items faq_kicker=pricing.faq_kicker_ar|default:pricing.faq_kicker_en faq_heading=pricing.faq_heading_ar|default:pricing.faq_heading_en faq_intro=pricing.faq_intro_ar|default:pricing.faq_intro_en faq_view_all_label=pricing.faq_view_all_label_ar|default:pricing.faq_view_all_label_en faq_view_all_url=pricing.faq_view_all_url faq_accordion_id='accordionPricing' faq_heading_suffix='Pricing' %}
+    {% else %}
+    {% include 'iroad_frontend/partials/components/faq_accordion.html' with faq_items=faq_items faq_kicker=pricing.faq_kicker_en faq_heading=pricing.faq_heading_en faq_intro=pricing.faq_intro_en faq_view_all_label=pricing.faq_view_all_label_en faq_view_all_url=pricing.faq_view_all_url faq_accordion_id='accordionPricing' faq_heading_suffix='Pricing' %}
+    {% endif %}
 {% endblock %}

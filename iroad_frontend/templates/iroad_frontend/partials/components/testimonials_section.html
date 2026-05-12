@@ -1,0 +1,123 @@
+{% load static %}
+    <!-- Our Testimonials Section Start -->
+    <div class="our-testimonials bg-section">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-5">
+            <!-- Testimonial Image Box Start -->
+            <div class="testimonial-image-box wow fadeInUp" data-wow-delay="0.2s">
+              <!-- Testimonial Image Start -->
+              <div class="testimonial-image">
+                <figure class="image-anime">
+                  {% if t_hero_image %}
+                    <img src="{{ t_hero_image.url }}" alt="" />
+                  {% else %}
+                    <img src="{% static 'landing/images/testimonial-image.jpg' %}" alt="" />
+                  {% endif %}
+                </figure>
+              </div>
+              <!-- Testimonial Image End -->
+
+              <!-- Happy Customer Box Start -->
+              <div class="happy-customer-box">
+                <!-- Satisfy Client Images Start -->
+                <div class="satisfy-client-images">
+                  <div class="satisfy-client-image">
+                    <figure class="image-anime">
+                      <img src="{% static 'landing/images/author-1.jpg' %}" alt="" />
+                    </figure>
+                  </div>
+                  <div class="satisfy-client-image">
+                    <figure class="image-anime">
+                      <img src="{% static 'landing/images/author-2.jpg' %}" alt="" />
+                    </figure>
+                  </div>
+                  <div class="satisfy-client-image">
+                    <figure class="image-anime">
+                      <img src="{% static 'landing/images/author-3.jpg' %}" alt="" />
+                    </figure>
+                  </div>
+                  <div class="satisfy-client-image add-more">
+                    <h3>{{ t_happy_count }}</h3>
+                  </div>
+                </div>
+                <!-- Satisfy Client Images End -->
+
+                <!-- Review Content Start -->
+                <div class="happy-customer-content">
+                  <p>{{ t_happy_label }}</p>
+                </div>
+                <!-- Review Content End -->
+              </div>
+              <!-- Happy Customer Box End -->
+            </div>
+            <!-- Testimonial Image Box End -->
+          </div>
+
+          <div class="col-xl-7">
+            <!-- Testimonial Content Box Start -->
+            <div class="testimonial-content-box">
+              <!-- Section Title Start -->
+              <div class="section-title">
+                <h3>{{ t_kicker }}</h3>
+                <h2 data-cursor="-opaque">{{ t_heading }}</h2>
+              </div>
+              <!-- Section Title End -->
+
+              <!-- Testimonial Slider Start -->
+              <div class="testimonial-slider">
+                <div class="swiper">
+                  <div class="swiper-wrapper" data-cursor-text="Drag">
+                    {% for t in testimonials %}
+                      <!-- Testimonial Slide Start -->
+                      <div class="swiper-slide">
+                        <div class="testimonial-item">
+                          <div class="testimonial-company-logo">
+                            {% if t.company_logo %}
+                              <img src="{{ t.company_logo.url }}" alt="" />
+                            {% else %}
+                              <img src="{% static 'landing/images/company-logo-1.svg' %}" alt="" />
+                            {% endif %}
+                          </div>
+                          <div class="testimonial-content">
+                            <p>"{% if lang == 'ar' %}{{ t.quote_ar|default:t.quote_en }}{% else %}{{ t.quote_en }}{% endif %}"</p>
+                          </div>
+                          <div class="testimonial-author">
+                            <div class="author-content">
+                              <h3>{% if lang == 'ar' %}{{ t.author_name_ar|default:t.author_name_en }}{% else %}{{ t.author_name_en }}{% endif %}</h3>
+                              <p>{% if lang == 'ar' %}{{ t.author_role_ar|default:t.author_role_en }}{% else %}{{ t.author_role_en }}{% endif %}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- Testimonial Slide End -->
+                    {% empty %}
+                      <div class="swiper-slide">
+                        <div class="testimonial-item">
+                          <div class="testimonial-company-logo">
+                            <img src="{% static 'landing/images/company-logo-1.svg' %}" alt="" />
+                          </div>
+                          <div class="testimonial-content">
+                            <p>&nbsp;</p>
+                          </div>
+                          <div class="testimonial-author">
+                            <div class="author-content">
+                              <h3>&nbsp;</h3>
+                              <p>&nbsp;</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                  <div class="testimonial-pagination"></div>
+                </div>
+              </div>
+              <!-- Testimonial Slider End -->
+            </div>
+            <!-- Testimonial Content Box End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Our Testimonials Section End -->

@@ -413,11 +413,11 @@
       <!-- Website CMS -->
       {% with u=request.resolver_match.url_name %}
       <li
-        class="nav-item has-submenu{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or u == 'contact_page_cms' or 'contact_submission' in u %} open{% endif %}"
+        class="nav-item has-submenu{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or 'pricing_faq' in u or u == 'contact_page_cms' or 'contact_submission' in u %} open{% endif %}"
       >
         <a
           href="#"
-          class="nav-link{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or u == 'contact_page_cms' or 'contact_submission' in u %} active{% endif %}"
+          class="nav-link{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or 'pricing_faq' in u or u == 'contact_page_cms' or 'contact_submission' in u %} active{% endif %}"
           data-tooltip="{% translate 'Website CMS' %}"
         >
           <i class="bi bi-layout-text-window"></i>
@@ -533,6 +533,14 @@
               class="submenu-link{% if 'pricing_interactive' in u %} active{% endif %}"
             >
               <i class="bi bi-sliders"></i><span>{% translate "Interactive Steps" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'pricing_faq_list' %}"
+              class="submenu-link{% if 'pricing_faq' in u %} active{% endif %}"
+            >
+              <i class="bi bi-question-circle"></i><span>{% translate "Pricing FAQs" %}</span>
             </a>
           </li>
 

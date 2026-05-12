@@ -1,0 +1,69 @@
+{% load static %}
+    <!-- Our Faqs Section Start -->
+    <div class="our-faqs">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-6">
+            <!-- Faqs Content Start -->
+            <div class="faqs-content">
+              <!-- Section Title Start -->
+              <div class="section-title">
+                <h3>{{ faq_kicker|default:"FAQs" }}</h3>
+                <h2>
+                  {{ faq_heading|default:"Answers to common questions about IRoad TMS" }}
+                </h2>
+                <p class="wow fadeInUp" data-wow-delay="0.2s">
+                  {{ faq_intro|default:"Learn how IRoad helps transport companies automate workflows, manage fleets, and improve operational visibility." }}
+                </p>
+              </div>
+              <!-- Section Title End -->
+
+              <!-- Faqs Button Start -->
+              <div class="faqs-btn wow fadeInUp" data-wow-delay="0.4s">
+                <a href="{{ faq_view_all_url|default:'#' }}" class="btn-default">{{ faq_view_all_label|default:"View all FAQ's" }}</a>
+              </div>
+              <!-- Faqs Button End -->
+            </div>
+            <!-- Faqs Content End -->
+          </div>
+
+          <div class="col-xl-6">
+            <!-- FAQ Accordion Start -->
+            <div class="faq-accordion our-faq-accordion" id="{{ faq_accordion_id|default:'accordion' }}">
+              {% for item in faq_items %}
+              <!-- FAQ Item Start -->
+              <div class="accordion-item wow fadeInUp"{% if forloop.counter0 == 1 %} data-wow-delay="0.2s"{% elif forloop.counter0 == 2 %} data-wow-delay="0.4s"{% elif forloop.counter0 == 3 %} data-wow-delay="0.6s"{% elif forloop.counter0 == 4 %} data-wow-delay="0.8s"{% elif forloop.counter0 == 5 %} data-wow-delay="1s"{% endif %}>
+                <h2 class="accordion-header" id="heading{{ faq_heading_suffix|default:'' }}{{ forloop.counter }}">
+                  <button
+                    class="accordion-button{% if not forloop.first %} collapsed{% endif %}"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ faq_heading_suffix|default:'' }}{{ forloop.counter }}"
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-controls="collapse{{ faq_heading_suffix|default:'' }}{{ forloop.counter }}"
+                  >
+                    {% if lang == 'ar' %}{{ item.question_ar|default:item.question_en }}{% else %}{{ item.question_en }}{% endif %}
+                  </button>
+                </h2>
+                <div
+                  id="collapse{{ faq_heading_suffix|default:'' }}{{ forloop.counter }}"
+                  class="accordion-collapse collapse{% if forloop.first %} show{% endif %}"
+                  aria-labelledby="heading{{ faq_heading_suffix|default:'' }}{{ forloop.counter }}"
+                  data-bs-parent="#{{ faq_accordion_id|default:'accordion' }}"
+                >
+                  <div class="accordion-body">
+                    <p>
+                      {% if lang == 'ar' %}{{ item.answer_ar|default:item.answer_en }}{% else %}{{ item.answer_en }}{% endif %}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <!-- FAQ Item End -->
+              {% endfor %}
+            </div>
+            <!-- FAQ Accordion End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Our Faqs Section End -->

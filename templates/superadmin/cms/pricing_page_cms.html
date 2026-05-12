@@ -210,12 +210,12 @@
 
     {# --- Tab 6: FAQ section header --- #}
     <div class="tab-pane fade" id="tab-pricing-faq" role="tabpanel">
-      <p class="mb-3">
-        <a href="{% url 'about_faq_list' %}" class="btn btn-outline-primary btn-sm">
-          {% translate "Manage About FAQs" %} <i class="bi bi-arrow-right"></i>
+      <div class="mb-3">
+        <a href="{% url 'pricing_faq_list' %}" class="btn btn-outline-primary btn-sm">
+          {% translate "Manage Pricing FAQs" %} <i class="bi bi-arrow-right"></i>
         </a>
-        <p class="form-text text-muted small mt-2 mb-0">{% translate "These items are shown on the About page and reused on the Pricing page." %}</p>
-      </p>
+        <p class="form-text text-muted small mt-2 mb-0">{% translate "These items appear only on the public pricing page (separate from About FAQs)." %}</p>
+      </div>
       <div class="row g-3">
         <div class="col-md-6"><label class="form-label">{{ form.faq_kicker_en.label }}</label>{{ form.faq_kicker_en }}{{ form.faq_kicker_en.errors }}</div>
         <div class="col-md-6"><label class="form-label">{{ form.faq_kicker_ar.label }}</label>{{ form.faq_kicker_ar }}{{ form.faq_kicker_ar.errors }}</div>
