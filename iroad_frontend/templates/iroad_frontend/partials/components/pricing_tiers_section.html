@@ -9,6 +9,9 @@
               {% if use_cms_home_titles %}
               <h3>{% cms_txt home 'pricing_kicker' %}</h3>
               <h2>{% cms_txt home 'pricing_heading' %}</h2>
+              {% elif use_cms_pricing_titles %}
+              <h3>{% cms_txt pricing_page 'pricing_kicker' %}</h3>
+              <h2>{% cms_txt pricing_page 'pricing_heading' %}</h2>
               {% else %}
               <h3>{{ section_kicker|default:"Pricing Plans" }}</h3>
               <h2>{{ section_heading|default:"Pricing that scales with your transport team" }}</h2>

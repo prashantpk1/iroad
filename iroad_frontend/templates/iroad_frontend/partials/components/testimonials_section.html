@@ -45,7 +45,11 @@
 
                 <!-- Review Content Start -->
                 <div class="happy-customer-content">
-                  <p>{% if use_cms_home_titles %}{% cms_txt home 'testimonials_happy_label' %}{% else %}{{ t_happy_label }}{% endif %}</p>
+                  <p>
+                    {% if use_cms_pricing_testimonials %}{% cms_txt home 'testimonials_happy_label' %}
+                    {% elif use_cms_home_titles %}{% cms_txt home 'testimonials_happy_label' %}
+                    {% else %}{{ t_happy_label }}{% endif %}
+                  </p>
                 </div>
                 <!-- Review Content End -->
               </div>
@@ -59,8 +63,16 @@
             <div class="testimonial-content-box">
               <!-- Section Title Start -->
               <div class="section-title">
-                <h3>{% if use_cms_home_titles %}{% cms_txt home 'testimonials_kicker' %}{% else %}{{ t_kicker }}{% endif %}</h3>
-                <h2 data-cursor="-opaque">{% if use_cms_home_titles %}{% cms_txt home 'testimonials_heading' %}{% else %}{{ t_heading }}{% endif %}</h2>
+                <h3>
+                  {% if use_cms_pricing_testimonials %}{% cms_txt pricing_page 'testimonials_kicker' %}
+                  {% elif use_cms_home_titles %}{% cms_txt home 'testimonials_kicker' %}
+                  {% else %}{{ t_kicker }}{% endif %}
+                </h3>
+                <h2 data-cursor="-opaque">
+                  {% if use_cms_pricing_testimonials %}{% cms_txt pricing_page 'testimonials_heading' %}
+                  {% elif use_cms_home_titles %}{% cms_txt home 'testimonials_heading' %}
+                  {% else %}{{ t_heading }}{% endif %}
+                </h2>
               </div>
               <!-- Section Title End -->
 
@@ -80,12 +92,12 @@
                             {% endif %}
                           </div>
                           <div class="testimonial-content">
-                            <p>"{% if lang == 'ar' %}{{ t.quote_ar|default:t.quote_en }}{% else %}{{ t.quote_en }}{% endif %}"</p>
+                            <p>"{% cms_txt t 'quote' %}"</p>
                           </div>
                           <div class="testimonial-author">
                             <div class="author-content">
-                              <h3>{% if lang == 'ar' %}{{ t.author_name_ar|default:t.author_name_en }}{% else %}{{ t.author_name_en }}{% endif %}</h3>
-                              <p>{% if lang == 'ar' %}{{ t.author_role_ar|default:t.author_role_en }}{% else %}{{ t.author_role_en }}{% endif %}</p>
+                              <h3>{% cms_txt t 'author_name' %}</h3>
+                              <p>{% cms_txt t 'author_role' %}</p>
                             </div>
                           </div>
                         </div>

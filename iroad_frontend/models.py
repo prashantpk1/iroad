@@ -1175,6 +1175,8 @@ class PricingPageContent(models.Model):
         max_length=500, blank=True, default='#')
     partner_email_label_en = models.CharField(
         max_length=100, blank=True, default='Email')
+    partner_email_label_ar = models.CharField(
+        max_length=100, blank=True, default='البريد الإلكتروني')
     partner_email_value = models.CharField(
         max_length=200, blank=True, default='support@iroad.com')
     partner_platform_label_en = models.CharField(

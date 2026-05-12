@@ -1,20 +1,12 @@
 {% extends 'iroad_frontend/base.html' %}
 {% load static cms_locale %}
 
-{% block title %}{% if lang == 'ar' %}{{ pricing.page_title_ar|default:pricing.page_title_en }}{% else %}{{ pricing.page_title_en }}{% endif %}{% endblock %}
+{% block title %}{% cms_txt pricing 'page_title' %}{% endblock %}
 
 {% block content %}
-    {% if lang == 'ar' %}
-    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='pricing' page_header_background=pricing.page_header_background page_h1=pricing.page_header_h1_ar|default:pricing.page_header_h1_en breadcrumb_home_label=home.nav_home_ar|default:home.nav_home_en breadcrumb_current=pricing.breadcrumb_current_ar|default:pricing.breadcrumb_current_en %}
-    {% else %}
-    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='pricing' page_header_background=pricing.page_header_background page_h1=pricing.page_header_h1_en breadcrumb_home_label=home.nav_home_en breadcrumb_current=pricing.breadcrumb_current_en %}
-    {% endif %}
+    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='pricing' page_header_background=pricing.page_header_background cms_pricing_header=True pricing=pricing home=home %}
 
-    {% if lang == 'ar' %}
-    {% include 'iroad_frontend/partials/components/pricing_tiers_section.html' with pricing_tiers=pricing_tiers pricing_benefits=pricing_benefits section_kicker=pricing.pricing_kicker_ar|default:pricing.pricing_kicker_en section_heading=pricing.pricing_heading_ar|default:pricing.pricing_heading_en %}
-    {% else %}
-    {% include 'iroad_frontend/partials/components/pricing_tiers_section.html' with pricing_tiers=pricing_tiers pricing_benefits=pricing_benefits section_kicker=pricing.pricing_kicker_en section_heading=pricing.pricing_heading_en %}
-    {% endif %}
+    {% include 'iroad_frontend/partials/components/pricing_tiers_section.html' with pricing_tiers=pricing_tiers pricing_benefits=pricing_benefits use_cms_pricing_titles=True pricing_page=pricing %}
 
     {% if pricing.interactive_kicker_en or pricing.interactive_kicker_ar or pricing.interactive_heading_en or pricing.interactive_heading_ar %}
     <div class="container">
@@ -106,9 +98,9 @@
                     <div class="our-partner-content">
                         <!-- Section Title Start -->
                         <div class="section-title">
-                            <h3>{{ pricing.partner_kicker_en }}</h3>
-                            <h2>{{ pricing.partner_heading_en }}</h2>
-                            <p class="wow fadeInUp" data-wow-delay="0.2s">{{ pricing.partner_body_en }}</p>
+                            <h3>{% cms_txt pricing 'partner_kicker' %}</h3>
+                            <h2>{% cms_txt pricing 'partner_heading' %}</h2>
+                            <p class="wow fadeInUp" data-wow-delay="0.2s">{% cms_txt pricing 'partner_body' %}</p>
                         </div>
                         <!-- Section Title End -->
 
@@ -124,8 +116,8 @@
 
                                 <!-- Partner Contact Info Content Start -->
                                 <div class="partner-contact-info-content">
-                                    <p>{{ pricing.partner_cta_label_en }}</p>
-                                    <h3><a href="{{ pricing.partner_cta_url }}">{{ pricing.partner_cta_label_en }}</a></h3>
+                                    <p>{% cms_txt pricing 'partner_cta_label' %}</p>
+                                    <h3><a href="{{ pricing.partner_cta_url }}">{% cms_txt pricing 'partner_cta_label' %}</a></h3>
                                 </div>
                                 <!-- Partner Contact Info Content End -->
                             </div>
@@ -141,7 +133,7 @@
 
                                 <!-- Partner Contact Info Content Start -->
                                 <div class="partner-contact-info-content">
-                                    <p>{{ pricing.partner_email_label_en }}</p>
+                                    <p>{% cms_txt pricing 'partner_email_label' %}</p>
                                     <h3><a href="mailto:{{ pricing.partner_email_value }}">{{ pricing.partner_email_value }}</a></h3>
                                 </div>
                                 <!-- Partner Contact Info Content End -->
@@ -158,8 +150,8 @@
 
                                 <!-- Partner Contact Info Content Start -->
                                 <div class="partner-contact-info-content">
-                                    <p>{{ pricing.partner_platform_label_en }}</p>
-                                    <h3>{{ pricing.partner_platform_label_en }}</h3>
+                                    <p>{% cms_txt pricing 'partner_platform_label' %}</p>
+                                    <h3>{% cms_txt pricing 'partner_platform_label' %}</h3>
                                 </div>
                                 <!-- Partner Contact Info Content End -->
                             </div>
@@ -208,8 +200,8 @@
                                         </figure>
                                     </div>
                                     <div class="world-map-card-content" dir="auto">
-                                        <h3>{{ loc.title_en }}</h3>
-                                        <p>{{ loc.subtitle_en }}</p>
+                                        <h3>{% cms_txt loc 'title' %}</h3>
+                                        <p>{% cms_txt loc 'subtitle' %}</p>
                                     </div>
                                 </div>
                                 <!-- World Map Card Body End -->
@@ -232,7 +224,7 @@
                             </div>
                             <div class="world-map-counter-content">
                                 <h2>{{ pricing.counter_1_value }}</h2>
-                                <p>{{ pricing.counter_1_label_en }}</p>
+                                <p>{% cms_txt pricing 'counter_1_label' %}</p>
                             </div>
                         </div>
                         <!-- World Map Counter Item End -->
@@ -244,7 +236,7 @@
                             </div>
                             <div class="world-map-counter-content">
                                 <h2>{{ pricing.counter_2_value }}</h2>
-                                <p>{{ pricing.counter_2_label_en }}</p>
+                                <p>{% cms_txt pricing 'counter_2_label' %}</p>
                             </div>
                         </div>
                         <!-- World Map Counter Item End -->
@@ -256,7 +248,7 @@
                             </div>
                             <div class="world-map-counter-content">
                                 <h2>{{ pricing.counter_3_value }}</h2>
-                                <p>{{ pricing.counter_3_label_en }}</p>
+                                <p>{% cms_txt pricing 'counter_3_label' %}</p>
                             </div>
                         </div>
                         <!-- World Map Counter Item End -->
@@ -268,7 +260,7 @@
                             </div>
                             <div class="world-map-counter-content">
                                 <h2>{{ pricing.counter_4_value }}</h2>
-                                <p>{{ pricing.counter_4_label_en }}</p>
+                                <p>{% cms_txt pricing 'counter_4_label' %}</p>
                             </div>
                         </div>
                         <!-- World Map Counter Item End -->
@@ -280,7 +272,7 @@
                             </div>
                             <div class="world-map-counter-content">
                                 <h2>{{ pricing.counter_5_value }}</h2>
-                                <p>{{ pricing.counter_5_label_en }}</p>
+                                <p>{% cms_txt pricing 'counter_5_label' %}</p>
                             </div>
                         </div>
                         <!-- World Map Counter Item End -->
@@ -292,11 +284,7 @@
     </div>
     <!-- Our Partner Section End -->
 
-    {% if lang == 'ar' %}
-    {% include 'iroad_frontend/partials/components/testimonials_section.html' with testimonials=testimonials t_kicker=pricing.testimonials_kicker_ar|default:pricing.testimonials_kicker_en t_heading=pricing.testimonials_heading_ar|default:pricing.testimonials_heading_en t_hero_image=home.testimonials_hero_image t_happy_count=home.testimonials_happy_count t_happy_label=home.testimonials_happy_label_ar|default:home.testimonials_happy_label_en %}
-    {% else %}
-    {% include 'iroad_frontend/partials/components/testimonials_section.html' with testimonials=testimonials t_kicker=pricing.testimonials_kicker_en t_heading=pricing.testimonials_heading_en t_hero_image=home.testimonials_hero_image t_happy_count=home.testimonials_happy_count t_happy_label=home.testimonials_happy_label_en %}
-    {% endif %}
+    {% include 'iroad_frontend/partials/components/testimonials_section.html' with testimonials=testimonials use_cms_pricing_testimonials=True pricing_page=pricing t_hero_image=home.testimonials_hero_image t_happy_count=home.testimonials_happy_count %}
 
     {% include 'iroad_frontend/partials/components/faq_accordion.html' with faq_items=faq_items use_cms_faq_section=True faq_cms=pricing faq_view_all_url=pricing.faq_view_all_url faq_accordion_id='accordionPricing' faq_heading_suffix='Pricing' %}
 {% endblock %}
