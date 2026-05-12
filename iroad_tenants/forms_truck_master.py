@@ -21,6 +21,7 @@ class TruckMasterForm(forms.ModelForm):
             'is_vendor_same_as_owner',
             'owner_id',
             'owner_name',
+            'operational_status',
             'plate_number',
             'saudi_plate_number',
             'saudi_english_letters',
@@ -31,7 +32,6 @@ class TruckMasterForm(forms.ModelForm):
             'chassis_number_vin',
             'serial_number',
             'color',
-            'vehicle_registration_image',
             'axle_count',
             'tires_count',
             'tare_weight_ton',
@@ -42,28 +42,104 @@ class TruckMasterForm(forms.ModelForm):
         ]
         widgets = {
             'status': forms.Select(attrs={'class': 'form-select'}),
-            'sourcing_mode': forms.Select(attrs={'class': 'form-select'}),
-            'vendor_account_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'sourcing_mode': forms.HiddenInput(),
+            'vendor_account_id': forms.HiddenInput(),
             'is_vendor_same_as_owner': forms.CheckboxInput(),
-            'owner_id': forms.TextInput(attrs={'class': 'form-control'}),
-            'owner_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'plate_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'saudi_plate_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'saudi_english_letters': forms.TextInput(attrs={'class': 'form-control'}),
-            'saudi_arabic_letters': forms.TextInput(attrs={'class': 'form-control'}),
-            'non_saudi_plate_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'plate_image': forms.FileInput(attrs={'class': 'form-control'}),
+            'owner_id': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': _('Owner identifier')}
+            ),
+            'owner_name': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': _('Owner or company name')}
+            ),
+            'plate_number': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': _('Full plate as displayed')}
+            ),
+            'saudi_plate_number': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': _('Numeric part')}
+            ),
+            'saudi_english_letters': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'e.g. ABC',
+                    'maxlength': '3',
+                }
+            ),
+            'saudi_arabic_letters': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'حروف عربية',
+                    'dir': 'rtl',
+                }
+            ),
+            'non_saudi_plate_number': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': _('For non-KSA registered vehicles'),
+                }
+            ),
+            'plate_image': forms.ClearableFileInput(
+                attrs={'class': 'form-control', 'accept': 'image/*'}
+            ),
             'truck_type': forms.Select(attrs={'class': 'form-select'}),
-            'chassis_number_vin': forms.TextInput(attrs={'class': 'form-control'}),
-            'serial_number': forms.TextInput(attrs={'class': 'form-control'}),
-            'color': forms.TextInput(attrs={'class': 'form-control'}),
-            'vehicle_registration_image': forms.FileInput(attrs={'class': 'form-control'}),
-            'axle_count': forms.NumberInput(attrs={'class': 'form-control'}),
-            'tires_count': forms.NumberInput(attrs={'class': 'form-control'}),
-            'tare_weight_ton': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'payload_capacity_ton': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'gross_weight_ton': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'volume_m3': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'chassis_number_vin': forms.TextInput(
+                attrs={'class': 'form-control', 'maxlength': '17', 'placeholder': '17-character VIN'}
+            ),
+            'serial_number': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': _('Manufacturer serial')}
+            ),
+            'color': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': _('e.g. White, Blue')}
+            ),
+            'axle_count': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'e.g. 2, 3',
+                    'min': '1',
+                    'max': '10',
+                    'step': '1',
+                }
+            ),
+            'tires_count': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'e.g. 6, 10',
+                    'min': '1',
+                    'max': '22',
+                    'step': '1',
+                }
+            ),
+            'tare_weight_ton': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'step': '0.1',
+                    'min': '0',
+                    'placeholder': 'e.g. 8.5',
+                }
+            ),
+            'payload_capacity_ton': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'step': '0.1',
+                    'min': '0',
+                    'placeholder': 'e.g. 20',
+                }
+            ),
+            'gross_weight_ton': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'step': '0.1',
+                    'min': '0',
+                    'placeholder': 'e.g. 40',
+                }
+            ),
+            'volume_m3': forms.NumberInput(
+                attrs={
+                    'class': 'form-control',
+                    'step': '0.1',
+                    'min': '0',
+                    'placeholder': 'e.g. 60',
+                }
+            ),
             'default_driver_id': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
@@ -77,7 +153,7 @@ class TruckMasterForm(forms.ModelForm):
             country_fk_attr='registration_country_id',
             choices=country_pairs,
             required=True,
-            label=_('Registration country'),
+            label=_('Registration Country'),
             widget=forms.Select(attrs={'class': 'form-select'}),
         )
         cid_val = getattr(self.instance, 'registration_country_id', None)
@@ -85,9 +161,30 @@ class TruckMasterForm(forms.ModelForm):
             self.fields['registration_country'].initial = cid_val
 
         tt = self.fields['truck_type']
-        tt.queryset = TruckTypeMaster.active_objects.all()
-        tt.empty_label = _('— Select Truck Type —')
-        tt.required = False
+        # Truck Type Master: only Active types in the dropdown (new trucks).
+        # Editing: if this truck already uses an inactive type, keep that row visible.
+        base_qs = TruckTypeMaster.active_objects.order_by('english_label', 'truck_type_code')
+        instance_tt = getattr(self.instance, 'truck_type', None)
+        if instance_tt and instance_tt.pk and instance_tt.status != TruckTypeMaster.Status.ACTIVE:
+            tt.queryset = (
+                TruckTypeMaster.objects.filter(pk=instance_tt.pk) | base_qs
+            ).distinct().order_by('english_label', 'truck_type_code')
+        else:
+            tt.queryset = base_qs
+        tt.empty_label = _('-Select type-')
+        tt.required = True
+        tt.label = _('Truck Type')
+
+        def _truck_type_choice_label(obj: TruckTypeMaster) -> str:
+            text = f'{obj.truck_type_code} — {obj.english_label}'
+            if obj.status != TruckTypeMaster.Status.ACTIVE:
+                text = f'{text} ({_("Inactive")})'
+            return text
+
+        tt.label_from_instance = _truck_type_choice_label
+
+        self.fields['chassis_number_vin'].label = _('Chassis Number (VIN)')
+        self.fields['serial_number'].label = _('Serial Number')
 
         # Link Truck -> Driver module: pick a driver from Driver Master.
         # If the truck currently points to an inactive driver, still include it in the dropdown.
@@ -102,14 +199,45 @@ class TruckMasterForm(forms.ModelForm):
         self.fields['default_driver_id'] = forms.ModelChoiceField(
             queryset=queryset.order_by('driver_code'),
             required=False,
-            label=_('Default driver'),
+            label=_('Default Driver'),
             empty_label=_('— Select Driver —'),
             widget=forms.Select(attrs={'class': 'form-select'}),
         )
         if instance_driver and instance_driver.pk:
             self.fields['default_driver_id'].initial = instance_driver.pk
 
+        # Sourcing / vendor are not shown on the tenant form UI; keep DB compatibility.
+        self.fields['sourcing_mode'].required = True
+        if not self.instance.pk:
+            self.fields['sourcing_mode'].initial = TruckMaster.SourcingMode.IN_SOURCE
+
         self.fields['vendor_account_id'].required = False
+
+        self.fields.pop('operational_status', None)
+        self.fields['operational_status'] = forms.ChoiceField(
+            choices=[('', _('-Select status-'))]
+            + list(TruckMaster.OperationalStatus.choices),
+            required=False,
+            label=_('Operational Status'),
+            widget=forms.Select(attrs={'class': 'form-select'}),
+        )
+        if self.instance.pk:
+            self.fields['operational_status'].initial = (
+                self.instance.operational_status or ''
+            )
+
+        self.fields['owner_id'].label = _('Owner ID')
+        self.fields['owner_name'].label = _('Owner Name')
+        self.fields['is_vendor_same_as_owner'].label = _(
+            'Is Company info as same Owner Info'
+        )
+
+        self.fields['axle_count'].label = _('Axle Count')
+        self.fields['tires_count'].label = _('Tires Count')
+        self.fields['tare_weight_ton'].label = _('Tare Weight (Ton)')
+        self.fields['payload_capacity_ton'].label = _('Payload Capacity (Ton)')
+        self.fields['gross_weight_ton'].label = _('Gross Weight (Ton)')
+        self.fields['volume_m3'].label = _('Volume (m³)')
 
         for name in (
             'saudi_plate_number',
@@ -131,7 +259,7 @@ class TruckMasterForm(forms.ModelForm):
             else:
                 qs = Country.objects.filter(is_active=True).order_by('name_en')
             rows = list(qs)
-        return [('', _('Select country...'))] + [
+        return [('', _('-Select country-'))] + [
             (c.country_code, f'{c.country_code} — {c.name_en}') for c in rows
         ]
 

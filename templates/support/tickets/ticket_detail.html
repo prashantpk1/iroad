@@ -115,14 +115,14 @@
             {{ reply_form.is_internal }}
           </div>
 
-          <div class="form-actions-bar mt-3">
+          <div class="form-actions-bar mt-3 ticket-reply-actions">
             <div class="form-actions-left"></div>
             <div class="form-actions-right d-flex gap-2">
-              <button type="button" id="submitInternalBtn" class="eal-btn eal-btn-outline" style="border-color: var(--warning-color); color: var(--warning-color); min-width: 160px;">
+              <button type="button" id="submitInternalBtn" class="eal-btn eal-btn-outline ticket-btn ticket-btn-internal">
                 <i class="bi bi-eye-slash"></i>
                 <span>{% translate "Internal Note" %}</span>
               </button>
-              <button type="submit" id="submitReplyBtn" class="eal-btn eal-btn-primary" style="min-width: 150px;">
+              <button type="submit" id="submitReplyBtn" class="eal-btn eal-btn-primary ticket-btn">
                 <i class="bi bi-send"></i>
                 <span>{% translate "Send Reply" %}</span>
               </button>
@@ -142,9 +142,9 @@
             <form method="post" action="{% url 'ticket_assign' ticket.ticket_no %}">
               {% csrf_token %}
               <label class="form-label small fw-bold">{% translate "Change Assignee" %}</label>
-              <div class="d-flex gap-2">
+              <div class="ticket-admin-actions">
                 {{ assign_form.assigned_to }}
-                <button class="eal-btn eal-btn-primary btn-sm" type="submit">{% translate "Assign" %}</button>
+                <button class="eal-btn eal-btn-primary ticket-btn ticket-btn-sm" type="submit">{% translate "Assign" %}</button>
               </div>
             </form>
           </div>
@@ -152,9 +152,9 @@
             <form method="post" action="{% url 'ticket_priority' ticket.ticket_no %}">
               {% csrf_token %}
               <label class="form-label small fw-bold">{% translate "Override Priority" %}</label>
-              <div class="d-flex gap-2">
+              <div class="ticket-admin-actions">
                 {{ priority_form.priority }}
-                <button class="eal-btn eal-btn-outline btn-sm" type="submit">{% translate "Apply" %}</button>
+                <button class="eal-btn eal-btn-outline ticket-btn ticket-btn-sm" type="submit">{% translate "Apply" %}</button>
               </div>
             </form>
           </div>
@@ -164,7 +164,7 @@
           <div class="border-top pt-3 mt-3">
             <form id="forceCloseForm" method="post" action="{% url 'ticket_close' ticket.ticket_no %}">
               {% csrf_token %}
-              <button type="submit" class="eal-btn eal-btn-outline w-100" style="border-color: var(--danger-color); color: var(--danger-color);">
+              <button type="submit" class="eal-btn eal-btn-outline w-100 ticket-btn ticket-btn-danger">
                 <i class="bi bi-lock"></i>
                 <span>{% translate "Force Close Ticket" %}</span>
               </button>
@@ -214,6 +214,80 @@
 <style>
   #replyForm textarea {
     min-height: 140px;
+  }
+
+  .ticket-btn {
+    min-width: 150px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 14px;
+  }
+
+  .ticket-btn-sm {
+    min-width: 96px;
+    height: 38px;
+  }
+
+  .ticket-btn-internal {
+    min-width: 160px;
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+  }
+
+  .ticket-btn-danger {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+    height: 38px;
+  }
+
+  .ticket-reply-actions .form-actions-right {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .ticket-admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .ticket-admin-actions select,
+  .ticket-admin-actions .form-select {
+    flex: 1;
+    min-width: 0;
+    height: 38px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-light);
+    padding: 0 12px;
+    font-size: 13px;
+    color: var(--text-dark);
+    background-color: var(--bg-white);
+  }
+
+  .form-card .form-label.small.fw-bold {
+    margin-bottom: 8px;
+    color: var(--text-dark);
+  }
+
+  .form-card .border-top.pt-3.mt-3 {
+    margin-top: 16px !important;
+    padding-top: 16px !important;
+  }
+
+  @media (max-width: 767.98px) {
+    .ticket-admin-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .ticket-btn,
+    .ticket-btn-sm {
+      width: 100%;
+      min-width: 0;
+    }
   }
 </style>
 {% endblock %}

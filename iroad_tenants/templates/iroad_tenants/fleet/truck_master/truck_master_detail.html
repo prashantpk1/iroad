@@ -22,6 +22,9 @@
     </div>
     <div class="page-header-right">
       <div class="eal-header-actions">
+        <a href="{% url 'iroad_tenants:tenant_truck_print' truck.truck_id %}" class="eal-btn eal-btn-outline" target="_blank" rel="noopener">
+          <i class="bi bi-printer"></i><span>Print</span>
+        </a>
         <a href="{% url 'iroad_tenants:truck_master' %}" class="eal-btn eal-btn-outline">
           <i class="bi bi-arrow-left"></i><span>Back to list</span>
         </a>
@@ -160,7 +163,13 @@
               <span class="cd-field-value">{{ truck.owner_name|default:"—" }}</span>
             </div>
             <div class="cd-field">
-              <span class="cd-field-label">Is Vendor Same as Owner</span>
+              <span class="cd-field-label">Operational Status</span>
+              <span class="cd-field-value">{% if truck.operational_status %}{{ truck.get_operational_status_display }}{% else %}—{% endif %}</span>
+            </div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Is Company info as same Owner Info</span>
               <span class="cd-field-value">
                 {% if truck.is_vendor_same_as_owner %}
                 <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">Yes</span>

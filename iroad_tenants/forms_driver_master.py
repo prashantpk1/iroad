@@ -152,6 +152,8 @@ class DriverMasterForm(forms.ModelForm):
             ).distinct().order_by('full_name')
         else:
             users_qs = base_users_qs.order_by('full_name')
+        # Materialize once to avoid lazy server-side cursor issues at template render time.
+        list(users_qs)
         self.fields['user_account_id'] = forms.ModelChoiceField(
             required=True,
             label=_('User account'),
@@ -167,8 +169,11 @@ class DriverMasterForm(forms.ModelForm):
             self.fields['user_account_id'].initial = instance_user.pk
 
         # Truck assignment lookup (optional, managed in view layer)
+        trucks_qs = TruckMaster.active_objects.all().order_by('truck_code')
+        # Materialize once to avoid lazy server-side cursor issues at template render time.
+        list(trucks_qs)
         self.fields['default_truck_id'] = forms.ModelChoiceField(
-            queryset=TruckMaster.active_objects.all().order_by('truck_code'),
+            queryset=trucks_qs,
             required=False,
             label=_('Default truck'),
             empty_label=_('— Select Truck —'),

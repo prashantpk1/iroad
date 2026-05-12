@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ shipment.shipment_no }}</title>
+  <style>
+    @page { size: A4; margin: 0.2cm; }
+    body { font-family: Tahoma, Arial, sans-serif; direction: rtl; font-size: 11px; color: #111; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    thead { display: table-header-group; } tr { page-break-inside: avoid; }
+    th, td { border: 1px solid #d1d5db; padding: 5px; text-align: right; }
+    th { background: #f3f4f6; } .block { page-break-inside: avoid; margin-top: 10px; }
+    .num { direction: ltr; text-align: left; unicode-bidi: embed; }
+  </style>
+</head>
+<body>
+  <h2>بوليصة شحن / Shipment</h2>
+  <div class="block">
+    <table>
+      <tbody>
+        <tr><th>Shipment No</th><td>{{ shipment.shipment_no }}</td><th>Status</th><td>{{ shipment.shipment_status }}</td></tr>
+        <tr><th>Date</th><td>{{ shipment.shipment_date|date:'Y-m-d' }}</td><th>Order Type</th><td>{{ shipment.order_type|default:'-' }}</td></tr>
+        <tr><th>Booking Ref</th><td>{{ shipment.booking_no }}</td><th>Booking Item</th><td>{{ shipment.booking_item_ref }}</td></tr>
+        <tr><th>Route</th><td>{{ shipment.route_display|default:'-' }}</td><th>Trip Type</th><td>{{ shipment.trip_type|default:'-' }}</td></tr>
+        <tr><th>Client Snapshot</th><td>{{ shipment.client_account_ref|default:'-' }}</td><th>COD Amount</th><td class="num">{{ shipment.cod_amount }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="block"><strong>Signature</strong><div style="height:64px;border-top:1px dashed #9ca3af;margin-top:6px;"></div></div>
+  <script>window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 250); });</script>
+</body>
+</html>

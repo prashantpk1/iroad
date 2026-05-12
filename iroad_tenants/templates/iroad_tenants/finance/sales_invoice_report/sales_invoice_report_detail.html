@@ -25,6 +25,7 @@
         {% if report.status != 'Converted' %}
         <a href="{% url 'iroad_tenants:sales_invoice_report_edit' report.report_id %}" class="eal-btn eal-btn-primary"><i class="bi bi-pencil"></i><span>Edit</span></a>
         {% endif %}
+        <a href="{% url 'iroad_tenants:sales_invoice_report_print' report.report_id %}" class="eal-btn eal-btn-outline" target="_blank" rel="noopener"><i class="bi bi-printer"></i><span>Print</span></a>
         <a href="{% url 'iroad_tenants:sales_invoice_report_list' %}" class="eal-btn eal-btn-outline"><i class="bi bi-arrow-left"></i><span>Back</span></a>
       </div>
     </div>

@@ -197,7 +197,7 @@
             <td><span class="ticket-hours-old" data-created="{{ ticket.created_at|date:'c' }}">-</span></td>
             <td>
               <div class="eal-actions-cell">
-                <a href="{% url 'ticket_detail' pk=ticket.ticket_id %}" class="eal-row-btn" title="{% translate 'View Detail' %}"><i class="bi bi-eye"></i></a>
+                <a href="{% url 'ticket_detail' ticket_no=ticket.ticket_no %}" class="eal-row-btn" title="{% translate 'View Detail' %}"><i class="bi bi-eye"></i></a>
               </div>
             </td>
           </tr>

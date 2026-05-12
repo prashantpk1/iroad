@@ -7,8 +7,6 @@ listed in ``TENANT_APPS`` and is migrated per tenant via django-tenants.
 import os
 import re
 import uuid
-import secrets
-import string
 from datetime import date
 from decimal import Decimal
 
@@ -35,6 +33,137 @@ class TenantSchemaVersion(models.Model):
 
     def __str__(self):
         return f'tenant workspace v{self.schema_version}'
+
+
+def _prefixed_upload_name(folder, prefix, identifier, filename):
+    ext = os.path.splitext(filename or '')[1].lower() or '.bin'
+    entity_id = str(identifier or '').strip() or str(uuid.uuid4())
+    entity_id = entity_id.replace('-', '_')
+    return f'{folder}/{prefix}_{entity_id}{ext}'
+
+
+def _random_prefixed_stored_name(folder, prefix, filename):
+    """Store as ``{folder}/{prefix}_{32_hex}.ext`` (unique name per upload)."""
+    ext = os.path.splitext(filename or '')[1].lower() or '.bin'
+    return f'{folder}/{prefix}_{uuid.uuid4().hex}{ext}'
+
+
+def organization_logo_upload_to(instance, filename):
+    return _prefixed_upload_name(
+        'tenant/organization_logos',
+        'ORG',
+        getattr(instance, 'id', None),
+        filename,
+    )
+
+
+def client_attachment_upload_to(instance, filename):
+    return _prefixed_upload_name(
+        'tenant/client_attachments',
+        'CA',
+        getattr(instance, 'attachment_id', None),
+        filename,
+    )
+
+
+def truck_plate_image_upload_to(instance, filename):
+    return _random_prefixed_stored_name('trucks/plates', 'TP', filename)
+
+
+def truck_registration_image_upload_to(instance, filename):
+    return _prefixed_upload_name(
+        'trucks/registration',
+        'TR',
+        getattr(instance, 'truck_id', None),
+        filename,
+    )
+
+
+def truck_image_upload_to(instance, filename):
+    return _random_prefixed_stored_name('trucks/images', 'TI', filename)
+
+
+def truck_attachment_upload_to(instance, filename):
+    """Store as: TA_<attachment_id>.<ext>."""
+    return _prefixed_upload_name(
+        'trucks/attachments',
+        'TA',
+        getattr(instance, 'attachment_id', None),
+        filename,
+    )
+
+
+def driver_attachment_upload_to(instance, filename):
+    """
+    Store as: DA_<attachment_id>.<ext>.
+    """
+    return _prefixed_upload_name(
+        'drivers/attachments',
+        'DA',
+        getattr(instance, 'attachment_id', None),
+        filename,
+    )
+
+
+def driver_id_upload_to(instance, filename):
+    driver_id = getattr(instance, 'driver_id', None)
+    if not driver_id:
+        driver_id = uuid.uuid4()
+        setattr(instance, 'driver_id', driver_id)
+    return _prefixed_upload_name(
+        'drivers/id',
+        'DI',
+        driver_id,
+        filename,
+    )
+
+
+def driver_passport_upload_to(instance, filename):
+    driver_id = getattr(instance, 'driver_id', None)
+    if not driver_id:
+        driver_id = uuid.uuid4()
+        setattr(instance, 'driver_id', driver_id)
+    return _prefixed_upload_name(
+        'drivers/passport',
+        'DP',
+        driver_id,
+        filename,
+    )
+
+
+def driver_license_upload_to(instance, filename):
+    driver_id = getattr(instance, 'driver_id', None)
+    if not driver_id:
+        driver_id = uuid.uuid4()
+        setattr(instance, 'driver_id', driver_id)
+    return _prefixed_upload_name(
+        'drivers/license',
+        'DL',
+        driver_id,
+        filename,
+    )
+
+
+def driver_card_upload_to(instance, filename):
+    driver_id = getattr(instance, 'driver_id', None)
+    if not driver_id:
+        driver_id = uuid.uuid4()
+        setattr(instance, 'driver_id', driver_id)
+    return _prefixed_upload_name(
+        'drivers/card',
+        'DC',
+        driver_id,
+        filename,
+    )
+
+
+def cargo_master_attachment_upload_to(instance, filename):
+    return _prefixed_upload_name(
+        'tenant/cargo_master_attachments',
+        'CGA',
+        getattr(instance, 'attachment_id', None),
+        filename,
+    )
 
 
 class AutoNumberConfiguration(models.Model):
@@ -107,7 +236,7 @@ class OrganizationProfile(models.Model):
     tax_number = models.CharField(max_length=50, blank=True, default='')
     owner_user_id = models.CharField(max_length=64, blank=True, default='')
     logo_file = models.ImageField(
-        upload_to='tenant/organization_logos/',
+        upload_to=organization_logo_upload_to,
         null=True,
         blank=True,
     )
@@ -298,7 +427,7 @@ class TenantClientAttachment(models.Model):
         choices=Status.choices,
         default=Status.DOES_NOT_EXPIRE,
     )
-    attachment_file = models.FileField(upload_to='tenant/client_attachments/')
+    attachment_file = models.FileField(upload_to=client_attachment_upload_to)
     file_notes = models.TextField(blank=True, default='')
     created_by_label = models.CharField(max_length=200, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -367,6 +496,18 @@ class TenantClientContact(models.Model):
         return self.name
 
 
+def client_contract_upload_to(instance, filename):
+    """
+    Store contract attachment as: tenant/client_contracts/CD_<contract_id>.<ext>
+    """
+    return _prefixed_upload_name(
+        'tenant/client_contracts',
+        'CD',
+        getattr(instance, 'contract_id', None),
+        filename,
+    )
+
+
 class TenantClientContract(models.Model):
     """Tenant-scoped single contract per client account."""
 
@@ -386,7 +527,7 @@ class TenantClientContract(models.Model):
         default=Status.UPCOMING,
     )
     notes = models.TextField(blank=True, default='')
-    contract_attachment = models.FileField(upload_to='tenant/client_contracts/')
+    contract_attachment = models.FileField(upload_to=client_contract_upload_to)
     created_by_label = models.CharField(max_length=200, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -733,16 +874,32 @@ class TruckMaster(models.Model):
     )
     # TODO: Replace with FK to VendorAccount when that module is built
     vendor_account_id = models.CharField(max_length=64, blank=True, default='')
-    is_vendor_same_as_owner = models.BooleanField(default=False)
+    is_vendor_same_as_owner = models.BooleanField(
+        default=False,
+        verbose_name=_('Is Company info as same Owner Info'),
+    )
     owner_id = models.CharField(max_length=100, blank=True, default='')
     owner_name = models.CharField(max_length=200, blank=True, default='')
+
+    class OperationalStatus(models.TextChoices):
+        AVAILABLE = 'Available', _('Available')
+        LOADED = 'Loaded', _('Loaded')
+        SUSPENDED = 'Suspended', _('Suspended')
+
+    operational_status = models.CharField(
+        max_length=20,
+        choices=OperationalStatus.choices,
+        blank=True,
+        default='',
+        verbose_name=_('Operational status'),
+    )
 
     plate_number = models.CharField(max_length=100)
     saudi_plate_number = models.CharField(max_length=50, blank=True, default='')
     saudi_english_letters = models.CharField(max_length=10, blank=True, default='')
     saudi_arabic_letters = models.CharField(max_length=10, blank=True, default='')
     non_saudi_plate_number = models.CharField(max_length=100, blank=True, default='')
-    plate_image = models.ImageField(upload_to='trucks/plates/', blank=True, null=True)
+    plate_image = models.ImageField(upload_to=truck_plate_image_upload_to, blank=True, null=True)
 
     truck_type = models.ForeignKey(
         TruckTypeMaster,
@@ -753,7 +910,7 @@ class TruckMaster(models.Model):
     serial_number = models.CharField(max_length=100, blank=True, default='')
     color = models.CharField(max_length=50, blank=True, default='')
     vehicle_registration_image = models.ImageField(
-        upload_to='trucks/registration/',
+        upload_to=truck_registration_image_upload_to,
         blank=True,
         null=True,
     )
@@ -943,7 +1100,7 @@ class TruckImage(models.Model):
         on_delete=models.CASCADE,
         related_name='truck_images',
     )
-    image = models.ImageField(upload_to='trucks/images/', max_length=500)
+    image = models.ImageField(upload_to=truck_image_upload_to, max_length=500)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -954,30 +1111,6 @@ class TruckImage(models.Model):
 
     def __str__(self):
         return f'Image for {self.truck.truck_code}'
-
-
-def truck_attachment_upload_to(instance, filename):
-    """Store as: TA-0001abc.ext (attachment_no + 3 random chars)."""
-    ext = os.path.splitext(filename or '')[1].lower() or '.bin'
-    base = (getattr(instance, 'attachment_no', '') or 'ATT').strip()
-    suffix = ''.join(
-        secrets.choice(string.ascii_lowercase + string.digits)
-        for _ in range(3)
-    )
-    return f'trucks/attachments/{base}{suffix}{ext}'
-
-
-def driver_attachment_upload_to(instance, filename):
-    """
-    Store as: DA-0001abc.ext (attachment_no + 3 random chars).
-    """
-    ext = os.path.splitext(filename or '')[1].lower() or '.bin'
-    base = (getattr(instance, 'attachment_no', '') or 'DA').strip()
-    suffix = ''.join(
-        secrets.choice(string.ascii_lowercase + string.digits)
-        for _ in range(3)
-    )
-    return f'drivers/attachments/{base}{suffix}{ext}'
 
 
 class TruckAttachment(models.Model):
@@ -1257,7 +1390,7 @@ class DriverMaster(models.Model):
     )
     id_expiry_date = models.DateField(null=True, blank=True)
     id_image = models.FileField(
-        upload_to='drivers/id/',
+        upload_to=driver_id_upload_to,
         blank=True,
         null=True,
         max_length=500,
@@ -1271,7 +1404,7 @@ class DriverMaster(models.Model):
     )
     passport_expiry_date = models.DateField(null=True, blank=True)
     passport_image = models.FileField(
-        upload_to='drivers/passport/',
+        upload_to=driver_passport_upload_to,
         blank=True,
         null=True,
         max_length=500,
@@ -1285,7 +1418,7 @@ class DriverMaster(models.Model):
     )
     dl_expiry_date = models.DateField(null=True, blank=True)
     dl_image = models.FileField(
-        upload_to='drivers/license/',
+        upload_to=driver_license_upload_to,
         blank=True,
         null=True,
         max_length=500,
@@ -1299,7 +1432,7 @@ class DriverMaster(models.Model):
     )
     card_expiry_date = models.DateField(null=True, blank=True)
     card_image = models.FileField(
-        upload_to='drivers/card/',
+        upload_to=driver_card_upload_to,
         blank=True,
         null=True,
         max_length=500,
@@ -2019,7 +2152,7 @@ class TenantCargoMasterAttachment(models.Model):
         on_delete=models.CASCADE,
         related_name='attachments',
     )
-    file = models.FileField(upload_to='tenant/cargo_master_attachments/')
+    file = models.FileField(upload_to=cargo_master_attachment_upload_to)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -48,32 +48,44 @@
 </div>
 
 <div class="eal-table-card">
-  <form method="get" class="eal-toolbar">
+  <form method="get" class="eal-toolbar eal-toolbar--inline-filters">
     <div class="eal-toolbar-left w-100">
       <div class="eal-toolbar-filters-row flex-wrap gap-2">
         <div class="eal-search eal-search--toolbar-grow">
           <i class="bi bi-search"></i>
           <input type="text" name="q" value="{{ search_q }}" placeholder="Search sales invoice reports..." />
         </div>
-        <select class="form-select form-select-sm" name="status">
-          <option value="">All Status</option>
-          <option value="Draft" {% if status_filter == 'Draft' %}selected{% endif %}>Draft</option>
-          <option value="Verified" {% if status_filter == 'Verified' %}selected{% endif %}>Verified</option>
-          <option value="Converted" {% if status_filter == 'Converted' %}selected{% endif %}>Converted</option>
-        </select>
-        <select class="form-select form-select-sm" name="client">
-          <option value="">All Clients</option>
-          {% for c in client_choices %}
-          <option value="{{ c.account_id }}" {% if client_filter == c.account_id|stringformat:'s' %}selected{% endif %}>{{ c.account_no }} - {{ c.display_name }}</option>
-          {% endfor %}
-        </select>
-        <input class="form-control form-control-sm" type="date" name="date_from" value="{{ date_from }}" />
-        <input class="form-control form-control-sm" type="date" name="date_to" value="{{ date_to }}" />
-        <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+        <div class="eal-toolbar-filter-pair">
+          <label class="form-label mb-0 small text-nowrap text-muted" for="sirStatus">Status</label>
+          <select class="form-select form-select-sm" id="sirStatus" name="status">
+            <option value="">All Status</option>
+            <option value="Draft" {% if status_filter == 'Draft' %}selected{% endif %}>Draft</option>
+            <option value="Verified" {% if status_filter == 'Verified' %}selected{% endif %}>Verified</option>
+            <option value="Converted" {% if status_filter == 'Converted' %}selected{% endif %}>Converted</option>
+          </select>
+        </div>
+        <div class="eal-toolbar-filter-pair">
+          <label class="form-label mb-0 small text-nowrap text-muted" for="sirClient">Client</label>
+          <select class="form-select form-select-sm" id="sirClient" name="client">
+            <option value="">All Clients</option>
+            {% for c in client_choices %}
+            <option value="{{ c.account_id }}" {% if client_filter == c.account_id|stringformat:'s' %}selected{% endif %}>{{ c.account_no }} - {{ c.display_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="eal-toolbar-filter-pair">
+          <label class="form-label mb-0 small text-nowrap text-muted" for="sirFromDate">From</label>
+          <input class="form-control form-control-sm" id="sirFromDate" type="date" name="date_from" value="{{ date_from }}" />
+        </div>
+        <div class="eal-toolbar-filter-pair">
+          <label class="form-label mb-0 small text-nowrap text-muted" for="sirToDate">To</label>
+          <input class="form-control form-control-sm" id="sirToDate" type="date" name="date_to" value="{{ date_to }}" />
+        </div>
+        <button class="btn btn-sm btn-primary eal-toolbar-apply" type="submit">Apply</button>
         <a href="{% url 'iroad_tenants:sales_invoice_report_list' %}" class="btn btn-sm btn-outline-secondary">Reset</a>
       </div>
     </div>
-  </div>
+  </form>
 
   <div class="eal-table-wrap">
     <table class="eal-table">
@@ -113,6 +125,7 @@
           </td>
           <td>
             <a href="{% url 'iroad_tenants:sales_invoice_report_detail' r.report_id %}" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
+            <a href="{% url 'iroad_tenants:sales_invoice_report_print' r.report_id %}" class="eal-row-btn" title="Print" target="_blank" rel="noopener"><i class="bi bi-printer"></i></a>
             {% if r.status != 'Converted' %}
             <a href="{% url 'iroad_tenants:sales_invoice_report_edit' r.report_id %}" class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></a>
             {% endif %}

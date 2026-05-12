@@ -36,7 +36,7 @@
   </div>
 </div>
 
-<div class="eal-stats-row eal-stats-row--dm">
+<div class="eal-stats-row">
   <div class="eal-stat-card">
     <div class="eal-stat-icon purple">
       <i class="bi bi-person-badge"></i>
@@ -56,30 +56,21 @@
     </div>
   </div>
   <div class="eal-stat-card">
-    <div class="eal-stat-icon slate">
-      <i class="bi bi-dash-circle"></i>
+    <div class="eal-stat-icon amber">
+      <i class="bi bi-hourglass-split"></i>
     </div>
     <div>
-      <div class="eal-stat-value">{{ stats.inactive_count }}</div>
-      <div class="eal-stat-label">Inactive</div>
+      <div class="eal-stat-value">{{ stats.on_leave_count }}</div>
+      <div class="eal-stat-label">On Leave</div>
     </div>
   </div>
   <div class="eal-stat-card">
     <div class="eal-stat-icon blue">
-      <i class="bi bi-box-arrow-in-right"></i>
+      <i class="bi bi-x-octagon"></i>
     </div>
     <div>
-      <div class="eal-stat-value">{{ stats.in_source_count }}</div>
-      <div class="eal-stat-label">In-Source</div>
-    </div>
-  </div>
-  <div class="eal-stat-card">
-    <div class="eal-stat-icon orange">
-      <i class="bi bi-box-arrow-up-right"></i>
-    </div>
-    <div>
-      <div class="eal-stat-value">{{ stats.out_source_count }}</div>
-      <div class="eal-stat-label">Out-Source</div>
+      <div class="eal-stat-value">{{ stats.inactive_count }}</div>
+      <div class="eal-stat-label">Inactive</div>
     </div>
   </div>
 </div>
@@ -87,28 +78,11 @@
 <div class="eal-table-card">
   <form method="get" class="eal-toolbar eal-toolbar--inline-filters">
     <div class="eal-toolbar-left w-100">
-      <div class="eal-toolbar-filters-row flex-wrap gap-2">
+      <div class="eal-toolbar-filters-row">
         <div class="eal-search eal-search--toolbar-grow">
           <i class="bi bi-search"></i>
           <input type="text" name="q" value="{{ search_q }}" placeholder="Search driver code, names, mobile…" />
         </div>
-        <div class="eal-toolbar-filter-pair">
-          <label class="form-label mb-0 small text-nowrap text-muted" for="dmListStatus">Status</label>
-          <select name="status" id="dmListStatus" class="form-select form-select-sm">
-            <option value="active" {% if filter_status == '' or filter_status == 'active' %}selected{% endif %}>Active</option>
-            <option value="all" {% if filter_status == 'all' %}selected{% endif %}>All</option>
-            <option value="inactive" {% if filter_status == 'inactive' %}selected{% endif %}>Inactive</option>
-          </select>
-        </div>
-        <div class="eal-toolbar-filter-pair">
-          <label class="form-label mb-0 small text-nowrap text-muted" for="dmListSource">Source</label>
-          <select name="driver_source" id="dmListSource" class="form-select form-select-sm">
-            <option value="all" {% if filter_driver_source == 'all' %}selected{% endif %}>All</option>
-            <option value="in_source" {% if filter_driver_source == 'in_source' %}selected{% endif %}>In-Source</option>
-            <option value="out_source" {% if filter_driver_source == 'out_source' %}selected{% endif %}>Out-Source</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-sm btn-primary eal-toolbar-apply">Apply</button>
       </div>
     </div>
   </form>
@@ -224,36 +198,42 @@
             {% endif %}
           </td>
           <td>
-            <div class="dropdown eal-actions-cell" onclick="event.stopPropagation();">
-              <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
-                <i class="bi bi-three-dots-vertical"></i>
+            <div class="eal-actions-cell">
+              <a
+                href="{% url 'iroad_tenants:driver_master_detail' row.driver_id %}"
+                class="eal-row-btn text-decoration-none"
+                title="View"
+              >
+                <i class="bi bi-eye"></i>
+              </a>
+              <a
+                href="{% url 'iroad_tenants:driver_master_edit' row.driver_id %}"
+                class="eal-row-btn text-decoration-none"
+                title="Edit"
+              >
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% if row.driver_status == 'Active' %}
+              <button
+                type="button"
+                class="eal-row-btn danger dm-status-trigger"
+                title="Deactivate"
+                data-driver-id="{{ row.driver_id }}"
+                data-new-status="Inactive"
+              >
+                <i class="bi bi-trash3"></i>
               </button>
-              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
-                <li>
-                  <a href="{% url 'iroad_tenants:driver_master_detail' row.driver_id %}" class="dropdown-item">
-                    <i class="bi bi-eye me-2 text-info"></i>View
-                  </a>
-                </li>
-                <li>
-                  <a href="{% url 'iroad_tenants:driver_master_edit' row.driver_id %}" class="dropdown-item">
-                    <i class="bi bi-pencil me-2 text-primary"></i>Edit
-                  </a>
-                </li>
-                {% if row.driver_status == 'Active' %}
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                  <button type="button" class="dropdown-item text-danger dm-status-trigger" data-driver-id="{{ row.driver_id }}" data-new-status="Inactive">
-                    <i class="bi bi-pause-circle me-2"></i>Deactivate
-                  </button>
-                </li>
-                {% else %}
-                <li>
-                  <button type="button" class="dropdown-item text-success dm-status-trigger" data-driver-id="{{ row.driver_id }}" data-new-status="Active">
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>Activate
-                  </button>
-                </li>
-                {% endif %}
-              </ul>
+              {% else %}
+              <button
+                type="button"
+                class="eal-row-btn danger dm-status-trigger"
+                title="Activate"
+                data-driver-id="{{ row.driver_id }}"
+                data-new-status="Active"
+              >
+                <i class="bi bi-trash3"></i>
+              </button>
+              {% endif %}
             </div>
           </td>
         </tr>
@@ -325,20 +305,10 @@
 </div>
 
 <style>
-  .eal-stats-row--dm {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
+  .eal-stats-row {
     margin-bottom: 1rem;
   }
-  .eal-stats-row--dm .eal-stat-card {
-    min-height: 92px;
-    padding: 14px 16px;
-  }
-  .eal-stats-row--dm .eal-stat-value { font-size: 1.6rem; line-height: 1.1; }
-  .eal-stats-row--dm .eal-stat-label { font-size: 0.92rem; }
   .eal-stat-icon.slate { background: #64748b; color: #fff; }
-  .eal-stat-icon.orange { background: #fd7e14; color: #fff; }
   .status-badge.dm-source-in {
     background: #0d6efd;
     color: #fff;

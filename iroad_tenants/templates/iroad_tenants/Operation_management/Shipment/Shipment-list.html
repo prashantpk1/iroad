@@ -233,6 +233,7 @@
                       <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
                         <li><a class="dropdown-item" href="#"><i class="bi bi-pencil text-primary me-2"></i> Edit</a></li>
                         <li><a class="dropdown-item" href="#"><i class="bi bi-eye text-info me-2"></i> View</a></li>
+                        <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_shipment_print' shipment.shipment_id %}" target="_blank" rel="noopener"><i class="bi bi-printer me-2"></i> Print</a></li>
                         <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-repeat text-secondary me-2"></i> Update</a></li>
                       </ul>
                     </div>

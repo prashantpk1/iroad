@@ -1,8 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
+from django.conf import settings
 from django.db import connection
 from django.db.models import Q
 from django.shortcuts import redirect
+from django.urls import NoReverseMatch, reverse
 
 
 class TenantApiSchemaMiddleware:
@@ -56,16 +58,34 @@ class TenantApiSchemaMiddleware:
 
 
 class SessionTimeoutMiddleware:
-    EXEMPT_URLS = [
-        "/login/",
-        "/logout/",
-        "/set-password/",
-        "/reset-password/",
-        "/new-password/",
-    ]
+    EXEMPT_ROUTE_NAMES = (
+        "login",
+        "logout",
+        "set_password",
+        "reset_password",
+        "new_password",
+    )
 
     def __init__(self, get_response):
         self.get_response = get_response
+
+    def _resolved_exempt_paths(self):
+        paths = []
+        for route_name in self.EXEMPT_ROUTE_NAMES:
+            try:
+                paths.append(reverse(route_name))
+            except NoReverseMatch:
+                continue
+        return tuple(paths)
+
+    def _login_url(self):
+        configured = (getattr(settings, "LOGIN_URL", "") or "").strip()
+        if configured:
+            return configured
+        try:
+            return reverse("login")
+        except NoReverseMatch:
+            return "/login/"
 
     def __call__(self, request):
         # Skip for non-authenticated users
@@ -73,7 +93,8 @@ class SessionTimeoutMiddleware:
             return self.get_response(request)
 
         # Skip for exempt URLs
-        if any(request.path.startswith(url) for url in self.EXEMPT_URLS):
+        exempt_paths = self._resolved_exempt_paths()
+        if exempt_paths and request.path.startswith(exempt_paths):
             return self.get_response(request)
 
         # Skip static and media files
@@ -96,7 +117,7 @@ class SessionTimeoutMiddleware:
                     request,
                     "Your session has expired. Please login again.",
                 )
-                return redirect("/login/")
+                return redirect(self._login_url())
 
             # Check Redis and refresh TTL
             session_alive = refresh_admin_session(jti, timeout_minutes)
@@ -108,7 +129,7 @@ class SessionTimeoutMiddleware:
                     request,
                     "Your session has expired. Please login again.",
                 )
-                return redirect("/login/")
+                return redirect(self._login_url())
 
         except Exception:
             # If Redis is down — fail safe, allow request

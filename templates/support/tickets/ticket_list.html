@@ -86,7 +86,7 @@
           <th>{% translate "Assigned To" %}</th>
           <th>{% translate "Created By" %}</th>
           <th>{% translate "Status" %}</th>
-          <th>{% translate "Actions" %}</th>
+          <th style="width: 140px">{% translate "Actions" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -127,22 +127,13 @@
               {% endif %}
             </td>
             <td>
-              <div class="dropdown eal-actions-cell">
-                <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{% translate 'Actions' %}">
-                  <i class="bi bi-three-dots-vertical"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
-                  <li>
-                    <a class="dropdown-item" href="{% url 'ticket_detail' ticket.ticket_no %}">
-                      <i class="bi bi-eye text-info me-2"></i> {% translate "View" %}
-                    </a>
-                  </li>
-                  <li>
-                    <a class="dropdown-item" href="{% url 'ticket_detail' ticket.ticket_no %}#reply-section">
-                      <i class="bi bi-reply text-success me-2"></i> {% translate "Reply" %}
-                    </a>
-                  </li>
-                </ul>
+              <div class="eal-actions-cell">
+                <a href="{% url 'ticket_detail' ticket.ticket_no %}" class="eal-row-btn" title="{% translate 'View' %}">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="{% url 'ticket_detail' ticket.ticket_no %}#reply-section" class="eal-row-btn" title="{% translate 'Reply' %}">
+                  <i class="bi bi-reply"></i>
+                </a>
               </div>
             </td>
           </tr>

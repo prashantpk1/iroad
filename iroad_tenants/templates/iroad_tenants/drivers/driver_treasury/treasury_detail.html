@@ -22,6 +22,9 @@
     </div>
     <div class="page-header-right">
       <div class="eal-header-actions">
+        <a href="{% url 'iroad_tenants:tenant_treasury_print' treasury.treasury_id %}" class="eal-btn eal-btn-outline" target="_blank" rel="noopener">
+          <i class="bi bi-printer"></i><span>Print</span>
+        </a>
         <a href="{% url 'iroad_tenants:driver_treasury_edit' treasury.treasury_id %}" class="eal-btn eal-btn-primary">
           <i class="bi bi-pencil-square"></i><span>Edit</span>
         </a>

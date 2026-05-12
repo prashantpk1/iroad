@@ -134,7 +134,7 @@
         {% for item in price_lists_page %}
         <tr
           class="price-list-master-row"
-          data-edit-url="{% url 'iroad_tenants:tenant_price_list_master_edit' item.price_list_id %}"
+          data-edit-url="{% url 'iroad_tenants:tenant_price_list_master_edit' item.price_list_code %}"
           data-price-list-code="{{ item.price_list_code|escape }}"
           data-price-list-name="{{ item.price_list_name|escape }}"
           data-client-label="{{ item.client_account.account_no|escape }} - {{ item.client_account.display_name|escape }}"
@@ -147,7 +147,7 @@
         >
           <td class="text-muted">{{ forloop.counter0|add:price_lists_page.start_index }}</td>
           <td>
-            <a href="{% url 'iroad_tenants:tenant_price_list_master_detail' item.price_list_id %}" class="eal-entity-id text-decoration-none" onclick="event.stopPropagation();">{{ item.price_list_code }}</a>
+            <a href="{% url 'iroad_tenants:tenant_price_list_master_detail' item.price_list_code %}" class="eal-entity-id text-decoration-none" onclick="event.stopPropagation();">{{ item.price_list_code }}</a>
           </td>
           <td><span class="eal-name-text">{{ item.price_list_name }}</span></td>
           <td>{{ item.client_account.account_no }} - {{ item.client_account.display_name }}</td>
@@ -170,12 +170,12 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0; min-width: 180px;">
                 <li>
-                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_price_list_master_edit' item.price_list_id %}">
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_price_list_master_edit' item.price_list_code %}">
                     <i class="bi bi-pencil text-primary me-2"></i>{% translate "Edit" %}
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_price_list_master_detail' item.price_list_id %}">
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_price_list_master_detail' item.price_list_code %}">
                     <i class="bi bi-eye text-info me-2"></i>{% translate "View" %}
                   </a>
                 </li>
@@ -183,7 +183,7 @@
                 <li>
                   <form
                     method="post"
-                    action="{% url 'iroad_tenants:tenant_price_list_master_delete' item.price_list_id %}"
+                    action="{% url 'iroad_tenants:tenant_price_list_master_delete' item.price_list_code %}"
                     class="d-inline"
                     onsubmit="return confirm('{% translate "Delete price list" %} {{ item.price_list_code|escapejs }}? {% translate "This cannot be undone." %}');"
                   >
