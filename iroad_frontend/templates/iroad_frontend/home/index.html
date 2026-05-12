@@ -623,24 +623,21 @@
             <!-- Pricing Benifit List Start -->
             <div class="pricing-benefit-list-elite wow fadeInUp" data-wow-delay="0.4s">
               <ul>
-                {% for tier in pricing_tiers %}
-                  {% if forloop.first %}
-                    {% if tier.pricing_benefit_1_text_en %}
-                      <li>
-                        <img src="{% static 'landing/images/icon-pricing-benefit-1.svg' %}" alt="" />{{ tier.pricing_benefit_1_text_en }}
-                      </li>
+                {% for b in pricing_benefits %}
+                  <li>
+                    {% if b.icon %}
+                      <img src="{{ b.icon.url }}" alt="" />
+                    {% elif forloop.counter == 1 %}
+                      <img src="{% static 'landing/images/icon-pricing-benefit-1.svg' %}" alt="" />
+                    {% elif forloop.counter == 2 %}
+                      <img src="{% static 'landing/images/icon-pricing-benefit-2.svg' %}" alt="" />
+                    {% elif forloop.counter == 3 %}
+                      <img src="{% static 'landing/images/icon-pricing-benefit-3.svg' %}" alt="" />
+                    {% else %}
+                      <img src="{% static 'landing/images/icon-pricing-benefit-1.svg' %}" alt="" />
                     {% endif %}
-                    {% if tier.pricing_benefit_2_text_en %}
-                      <li>
-                        <img src="{% static 'landing/images/icon-pricing-benefit-2.svg' %}" alt="" />{{ tier.pricing_benefit_2_text_en }}
-                      </li>
-                    {% endif %}
-                    {% if tier.pricing_benefit_3_text_en %}
-                      <li>
-                        <img src="{% static 'landing/images/icon-pricing-benefit-3.svg' %}" alt="" />{{ tier.pricing_benefit_3_text_en }}
-                      </li>
-                    {% endif %}
-                  {% endif %}
+                    {% if lang == 'ar' %}{{ b.text_ar|default:b.text_en }}{% else %}{{ b.text_en }}{% endif %}
+                  </li>
                 {% endfor %}
               </ul>
             </div>

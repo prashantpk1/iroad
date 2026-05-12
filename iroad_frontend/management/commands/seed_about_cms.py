@@ -1,7 +1,7 @@
 """
 Seed default About Page CMS (singleton + repeaters) from designer about.html.
 Idempotent: skips child rows that already exist for the same about + order.
-Always refreshes AboutPageContent text fields to the seed defaults.
+Always refreshes AboutPageContent text fields to the seed defaults (EN + AR).
 """
 
 from django.core.management.base import BaseCommand
@@ -14,67 +14,115 @@ from iroad_frontend.models import (
     AboutPageContent,
 )
 
-# Designer about.html — English copy (ellipsis in comments = full text below).
-
 
 def _about_singleton_text():
     return {
         'page_title_en': (
             'About IRoad - Transport Management SaaS Platform'
         ),
+        'page_title_ar': 'عن آيرواد - منصة SaaS لإدارة النقل',
+        'meta_description_en': (
+            'Learn how IRoad helps transport companies digitize operations, '
+            'manage fleet and drivers, and gain full visibility.'
+        ),
+        'meta_description_ar': (
+            'تعرّف على كيف تساعد آيرواد شركات النقل على رقمنة العمليات وإدارة '
+            'الأسطول والسائقين وتحقيق رؤية كاملة.'
+        ),
         'page_header_h1_en': 'About IRoad',
+        'page_header_h1_ar': 'عن آيرواد',
         'breadcrumb_current_en': 'About IRoad',
+        'breadcrumb_current_ar': 'عن آيرواد',
         'about_kicker_en': 'About IRoad',
+        'about_kicker_ar': 'عن آيرواد',
         'about_heading_part1_en': 'Driving Transport Efficiency Through',
+        'about_heading_part1_ar': 'نقود كفاءة النقل عبر',
         'about_heading_part2_en': 'Smart SaaS Technology',
+        'about_heading_part2_ar': 'تقنية SaaS ذكية',
         'about_heading_part3_en': 'for modern logistics teams.',
+        'about_heading_part3_ar': 'لفرق اللوجستيات الحديثة.',
         'about_counter_1_value': '24/7',
         'about_counter_1_label_en': 'System Availability',
+        'about_counter_1_label_ar': 'توفر النظام',
         'about_counter_2_value': '100+',
         'about_counter_2_label_en': 'Companies Using IRoad',
+        'about_counter_2_label_ar': 'شركة تستخدم آيرواد',
         'about_body_en': (
             'We provide a complete digital ecosystem for transport '
             'companies to manage workflows efficiently and scale '
             'operations.'
         ),
+        'about_body_ar': (
+            'نوفر نظاماً رقمياً متكاملاً لشركات النقل لإدارة سير العمل '
+            'بكفاءة وتوسيع العمليات.'
+        ),
         'about_list_item_1_en': 'End-to-End Workflow Automation',
+        'about_list_item_1_ar': 'أتمتة سير العمل من البداية للنهاية',
         'about_list_item_2_en': 'Real-Time Tracking & Insights',
+        'about_list_item_2_ar': 'تتبع ورؤى لحظية',
         'about_explore_label_en': 'Explore Platform',
+        'about_explore_label_ar': 'استكشف المنصة',
         'about_explore_url': '/about/',
         'about_footer_text_en': (
             'IRoad is a modern transport management system designed to help '
             'logistics companies streamline operations, manage fleet, and '
             'gain full business visibility.'
         ),
+        'about_footer_text_ar': (
+            'آيرواد نظام حديث لإدارة النقل يُساعد شركات اللوجستيات على تبسيط '
+            'العمليات وإدارة الأسطول وتحقيق رؤية كاملة للأعمال.'
+        ),
         'about_footer_cta_label_en': 'Book a Demo',
+        'about_footer_cta_label_ar': 'احجز عرضاً',
         'about_footer_cta_url': '/contact/',
         'about_rating_value': '4.9/5',
         'about_review_label_en': '4,200+ reviews',
+        'about_review_label_ar': '+4,200 تقييم',
         'approach_kicker_en': 'Our Approach',
+        'approach_kicker_ar': 'نهجنا',
         'approach_heading_en': 'How IRoad Transforms Transport Operations',
+        'approach_heading_ar': 'كيف تحوّل آيرواد عمليات النقل',
         'approach_body_en': (
             'We focus on automation, visibility, and control to simplify '
             'complex logistics workflows.'
         ),
+        'approach_body_ar': (
+            'نركز على الأتمتة والرؤية والتحكم لتبسيط سير عمل اللوجستيات المعقد.'
+        ),
         'approach_cta_label_en': 'Book a Demo',
+        'approach_cta_label_ar': 'احجز عرضاً',
         'approach_cta_url': '/contact/',
         'how_kicker_en': 'How It Works',
+        'how_kicker_ar': 'كيف يعمل',
         'how_heading_en': 'How IRoad streamlines your transport workflows',
+        'how_heading_ar': 'كيف تبسّط آيرواد سير عمل النقل لديك',
         'how_footer_text_en': (
             'Automate operations, improve visibility, and scale with '
             'confidence using IRoad.'
         ),
+        'how_footer_text_ar': (
+            'أتمتة العمليات وتحسين الرؤية والتوسع بثقة مع آيرواد.'
+        ),
         'how_footer_link_label_en': 'Start Free Trial',
+        'how_footer_link_label_ar': 'ابدأ مجاناً',
         'how_footer_link_url': '/contact/',
         'how_rating_value': '4.9/5',
         'how_review_label_en': '4,200+ reviews',
+        'how_review_label_ar': '+4,200 تقييم',
         'faq_kicker_en': 'FAQs',
+        'faq_kicker_ar': 'الأسئلة الشائعة',
         'faq_heading_en': 'Answers to common questions about IRoad TMS',
+        'faq_heading_ar': 'إجابات عن أسئلة شائعة حول نظام آيرواد لإدارة النقل',
         'faq_intro_en': (
             'Learn how IRoad helps transport companies automate workflows, '
             'manage fleets, and improve operational visibility.'
         ),
+        'faq_intro_ar': (
+            'تعرّف على كيف تساعد آيرواد شركات النقل على أتمتة سير العمل وإدارة '
+            'الأساطيل وتحسين الرؤية التشغيلية.'
+        ),
         'faq_view_all_label_en': "View all FAQ's",
+        'faq_view_all_label_ar': 'عرض كل الأسئلة الشائعة',
         'faq_view_all_url': '#',
         'updated_by': 'seed_about_cms',
     }
@@ -84,24 +132,36 @@ APPROACH_PILLARS = [
     {
         'order': 1,
         'title_en': 'Our Mission',
+        'title_ar': 'مهمتنا',
         'body_en': (
             'To simplify transport operations through powerful and '
             'easy-to-use SaaS solutions.'
+        ),
+        'body_ar': (
+            'تبسيط عمليات النقل عبر حلول SaaS قوية وسهلة الاستخدام.'
         ),
     },
     {
         'order': 2,
         'title_en': 'Our Vision',
+        'title_ar': 'رؤيتنا',
         'body_en': (
             'To become the leading digital platform for transport and '
             'logistics management.'
+        ),
+        'body_ar': (
+            'أن نكون المنصة الرقمية الرائدة لإدارة النقل واللوجستيات.'
         ),
     },
     {
         'order': 3,
         'title_en': 'Core Value',
+        'title_ar': 'قيمتنا الأساسية',
         'body_en': (
             'Efficiency, transparency, scalability, and innovation.'
+        ),
+        'body_ar': (
+            'الكفاءة والشفافية وقابلية التوسع والابتكار.'
         ),
     },
 ]
@@ -111,25 +171,33 @@ HOW_WORK_STEPS = [
         'order': 1,
         'step_number': '01',
         'title_en': 'Create Order',
+        'title_ar': 'إنشاء الطلب',
         'body_en': 'Add and manage transport orders.',
+        'body_ar': 'إضافة وإدارة طلبات النقل.',
     },
     {
         'order': 2,
         'step_number': '02',
         'title_en': 'Assign Fleet & Driver',
+        'title_ar': 'تعيين الأسطول والسائق',
         'body_en': 'Allocate vehicles and drivers efficiently.',
+        'body_ar': 'تخصيص المركبات والسائقين بكفاءة.',
     },
     {
         'order': 3,
         'step_number': '03',
         'title_en': 'Track Shipment',
+        'title_ar': 'تتبع الشحنة',
         'body_en': 'Monitor real-time shipment status.',
+        'body_ar': 'مراقبة حالة الشحنة لحظياً.',
     },
     {
         'order': 4,
         'step_number': '04',
         'title_en': 'Delivery & POD',
+        'title_ar': 'التسليم وإثبات التسليم',
         'body_en': 'Complete delivery with proof and updates.',
+        'body_ar': 'إتمام التسليم مع الإثبات والتحديثات.',
     },
 ]
 
@@ -137,53 +205,83 @@ FAQ_ITEMS = [
     {
         'order': 1,
         'question_en': 'Q1. What is IRoad TMS?',
+        'question_ar': 'س1. ما هو نظام آيرواد لإدارة النقل؟',
         'answer_en': (
             'IRoad is a SaaS-based transport management system that '
             'helps companies manage orders, booking, fleet, drivers, '
             'finance, POD, and reports in one platform.'
         ),
+        'answer_ar': (
+            'آيرواد نظام SaaS لإدارة النقل يساعد الشركات على إدارة الطلبات '
+            'والحجز والأسطول والسائقين والمالية وإثبات التسليم والتقارير في منصة واحدة.'
+        ),
     },
     {
         'order': 2,
         'question_en': 'Q2. Can I manage fleet and drivers?',
+        'question_ar': 'س2. هل يمكنني إدارة الأسطول والسائقين؟',
         'answer_en': (
             'Yes. IRoad includes fleet and driver management tools for '
             'allocation, availability tracking, and assignment control.'
+        ),
+        'answer_ar': (
+            'نعم. تتضمن آيرواد أدوات لإدارة الأسطول والسائقين للتخصيص وتتبع '
+            'التوفر والتحكم في التعيينات.'
         ),
     },
     {
         'order': 3,
         'question_en': 'Q3. Does it support invoicing & payments?',
+        'question_ar': 'س3. هل يدعم الفوترة والمدفوعات؟',
         'answer_en': (
             'Yes. IRoad includes integrated finance features for '
             'invoicing, payments, and transport-related financial '
             'tracking.'
         ),
+        'answer_ar': (
+            'نعم. تتضمن آيرواد ميزات مالية متكاملة للفوترة والمدفوعات '
+            'والتتبع المالي المرتبط بالنقل.'
+        ),
     },
     {
         'order': 4,
         'question_en': 'Q4. Is it suitable for small transport companies?',
+        'question_ar': 'س4. هل يناسب شركات النقل الصغيرة؟',
         'answer_en': (
             'Absolutely. IRoad is designed for businesses of different '
             'sizes, from small teams to multi-branch transport '
             'operations.'
         ),
+        'answer_ar': (
+            'بالتأكيد. صُممت آيرواد لأعمال بأحجام مختلفة من الفرق الصغيرة '
+            'إلى عمليات نقل متعددة الفروع.'
+        ),
     },
     {
         'order': 5,
         'question_en': 'Q5. Can I track shipments in real-time?',
+        'question_ar': 'س5. هل يمكنني تتبع الشحنات لحظياً؟',
         'answer_en': (
             'Yes. IRoad provides real-time shipment tracking and status '
             'updates from booking through delivery and POD.'
+        ),
+        'answer_ar': (
+            'نعم. توفر آيرواد تتبعاً لحظياً للشحنات وتحديثات الحالة من الحجز '
+            'حتى التسليم وإثبات التسليم.'
         ),
     },
     {
         'order': 6,
         'question_en': 'Q6. Is data secure?',
+        'question_ar': 'س6. هل البيانات آمنة؟',
         'answer_en': (
             'Yes. IRoad uses secure, role-based access and '
             'platform-level safeguards to protect operational and '
             'financial data.'
+        ),
+        'answer_ar': (
+            'نعم. تستخدم آيرواد وصولاً آمناً حسب الدور وضمانات على مستوى المنصة '
+            'لحماية البيانات التشغيلية والمالية.'
         ),
     },
 ]
@@ -233,9 +331,9 @@ class Command(BaseCommand):
                 about=about,
                 order=order,
                 title_en=row['title_en'],
-                title_ar='',
+                title_ar=row.get('title_ar', ''),
                 body_en=row['body_en'],
-                body_ar='',
+                body_ar=row.get('body_ar', ''),
                 is_active=True,
             )
             self.stdout.write(
@@ -262,9 +360,9 @@ class Command(BaseCommand):
                 order=order,
                 step_number=row['step_number'],
                 title_en=row['title_en'],
-                title_ar='',
+                title_ar=row.get('title_ar', ''),
                 body_en=row['body_en'],
-                body_ar='',
+                body_ar=row.get('body_ar', ''),
                 is_active=True,
             )
             self.stdout.write(
@@ -287,9 +385,9 @@ class Command(BaseCommand):
                 about=about,
                 order=order,
                 question_en=row['question_en'],
-                question_ar='',
+                question_ar=row.get('question_ar', ''),
                 answer_en=row['answer_en'],
-                answer_ar='',
+                answer_ar=row.get('answer_ar', ''),
                 is_active=True,
             )
             self.stdout.write(

@@ -13,9 +13,12 @@ from iroad_frontend.models import (
     AboutPageContent,
     HomeMapLocation,
     HomePageContent,
+    HomePricingBenefit,
     HomePricingTier,
     HomeServiceCard,
     HomeTestimonial,
+    PricingInteractiveStep,
+    PricingPageContent,
 )
 
 _CTRL = {'class': 'form-control'}
@@ -52,6 +55,18 @@ def _apply_about_page_widgets(form):
     """About singleton: TextInput / Textarea / FileInput by field type."""
     for name, field in form.fields.items():
         mf = AboutPageContent._meta.get_field(name)
+        if isinstance(mf, dj_models.TextField):
+            field.widget = Textarea(attrs=_TEXTAREA_ATTRS.copy())
+        elif isinstance(mf, dj_models.FileField):
+            field.widget = FileInput(attrs=_CTRL.copy())
+        elif isinstance(mf, dj_models.CharField):
+            field.widget = TextInput(attrs=_CTRL.copy())
+
+
+def _apply_pricing_page_widgets(form):
+    """Pricing singleton: same widget rules as about page CMS."""
+    for name, field in form.fields.items():
+        mf = PricingPageContent._meta.get_field(name)
         if isinstance(mf, dj_models.TextField):
             field.widget = Textarea(attrs=_TEXTAREA_ATTRS.copy())
         elif isinstance(mf, dj_models.FileField):
@@ -112,6 +127,16 @@ class HomeMapLocationForm(ModelForm):
         _apply_child_widgets(self, HomeMapLocation)
 
 
+class HomePricingBenefitForm(ModelForm):
+    class Meta:
+        model = HomePricingBenefit
+        exclude = ('home',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_child_widgets(self, HomePricingBenefit)
+
+
 class AboutPageContentForm(ModelForm):
     """Singleton about page — same widget rules as home CMS."""
 
@@ -152,3 +177,37 @@ class AboutFaqItemForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _apply_child_widgets(self, AboutFaqItem)
+
+
+class PricingPageContentForm(ModelForm):
+    """Singleton pricing page — same widget rules as about page CMS."""
+
+    class Meta:
+        model = PricingPageContent
+        exclude = ('updated_at', 'updated_by')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_pricing_page_widgets(self)
+
+
+class PricingInteractiveStepForm(ModelForm):
+    class Meta:
+        model = PricingInteractiveStep
+        fields = (
+            'order',
+            'title_en',
+            'title_ar',
+            'subtitle_en',
+            'subtitle_ar',
+            'body_en',
+            'body_ar',
+            'icon',
+            'bg_image',
+            'detail_url',
+            'is_active',
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_child_widgets(self, PricingInteractiveStep)

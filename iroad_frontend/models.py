@@ -654,20 +654,6 @@ class HomePricingTier(models.Model):
         help_text='Highlighted plan (e.g. Business)')
     is_active = models.BooleanField(default=True)
 
-    # Pricing benefits (stored on tier 1 for simplicity)
-    pricing_benefit_1_text_en = models.CharField(
-        max_length=200, blank=True, default='')
-    pricing_benefit_1_text_ar = models.CharField(
-        max_length=200, blank=True, default='')
-    pricing_benefit_2_text_en = models.CharField(
-        max_length=200, blank=True, default='')
-    pricing_benefit_2_text_ar = models.CharField(
-        max_length=200, blank=True, default='')
-    pricing_benefit_3_text_en = models.CharField(
-        max_length=200, blank=True, default='')
-    pricing_benefit_3_text_ar = models.CharField(
-        max_length=200, blank=True, default='')
-
     class Meta:
         db_table = 'iroad_frontend_home_pricing_tier'
         ordering = ['order']
@@ -676,6 +662,37 @@ class HomePricingTier(models.Model):
 
     def __str__(self):
         return f'Plan {self.order}: {self.name_en}'
+
+
+class HomePricingBenefit(models.Model):
+    """
+    Repeater: benefit bullets under pricing tiers (Home + Pricing pages).
+    Icons and EN/AR text are fully CMS-managed.
+    """
+    home = models.ForeignKey(
+        HomePageContent,
+        on_delete=models.CASCADE,
+        related_name='pricing_benefits',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    text_en = models.CharField(max_length=300, blank=True, default='')
+    text_ar = models.CharField(max_length=300, blank=True, default='')
+    icon = models.FileField(
+        upload_to=home_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_home_pricing_benefit'
+        ordering = ['order']
+        verbose_name = 'Pricing Benefit'
+        verbose_name_plural = 'Pricing Benefits'
+
+    def __str__(self):
+        return f'Benefit {self.order}: {self.text_en[:40]}'
 
 
 # ── Testimonials (repeater) ───────────────────────────────────────
@@ -1040,8 +1057,8 @@ class AboutHowWorkStep(models.Model):
 
 class AboutFaqItem(models.Model):
     """
-    FAQ items for About page accordion.
-    Scoped to About page — separate from any Pricing FAQs.
+    FAQ accordion items managed under About Page CMS.
+    Reused on the public Pricing page (same rows; no duplicate FAQ table).
     """
     about = models.ForeignKey(
         AboutPageContent,
@@ -1065,3 +1082,225 @@ class AboutFaqItem(models.Model):
 
     def __str__(self):
         return f'FAQ {self.order}: {self.question_en[:60]}'
+
+
+# ── Pricing Page CMS ──────────────────────────────────────────────
+
+
+def pricing_upload_path(instance, filename):
+    return f'marketing/pricing/{filename}'
+
+
+class PricingPageContent(models.Model):
+    """
+    Singleton CMS for Pricing Page.
+    Reuses HomePricingTier, HomeTestimonial, HomeMapLocation from
+    HomePageContent (same home=get_singleton()).
+    """
+
+    # ── SEO ──────────────────────────────────────────────────────
+    page_title_en = models.CharField(
+        max_length=200, blank=True,
+        default='IRoad Pricing Plans')
+    page_title_ar = models.CharField(
+        max_length=200, blank=True, default='أسعار آيروود')
+    meta_description_en = models.TextField(blank=True, default='')
+    meta_description_ar = models.TextField(blank=True, default='')
+
+    # ── Page Header ───────────────────────────────────────────────
+    page_header_h1_en = models.CharField(
+        max_length=300, blank=True,
+        default='IRoad - SaaS Transport Management System Pricing Page')
+    page_header_h1_ar = models.CharField(
+        max_length=300, blank=True, default='صفحة أسعار آيروود')
+    breadcrumb_current_en = models.CharField(
+        max_length=100, blank=True, default='Pricing plans')
+    breadcrumb_current_ar = models.CharField(
+        max_length=100, blank=True, default='خطط الأسعار')
+    page_header_background = models.FileField(
+        upload_to=pricing_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+        verbose_name='Page header background image',
+        help_text=(
+            'Optional background for the pricing page header. '
+            'If empty, a solid theme fallback is used (no stock photo).'
+        ),
+    )
+
+    # ── Pricing Section Header ────────────────────────────────────
+    pricing_kicker_en = models.CharField(
+        max_length=200, blank=True, default='Pricing Plans')
+    pricing_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='خطط الأسعار')
+    pricing_heading_en = models.CharField(
+        max_length=300, blank=True,
+        default='Flexible pricing designed for your team')
+    pricing_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+
+    # ── Interactive Process Section ───────────────────────────────
+    interactive_kicker_en = models.CharField(
+        max_length=200, blank=True, default='')
+    interactive_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    interactive_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    interactive_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+
+    # ── Partner / Map Section ─────────────────────────────────────
+    partner_kicker_en = models.CharField(
+        max_length=200, blank=True, default='Trusted by…')
+    partner_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='موثوق به من قبل...')
+    partner_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    partner_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    partner_body_en = models.TextField(blank=True, default='')
+    partner_body_ar = models.TextField(blank=True, default='')
+    partner_cta_label_en = models.CharField(
+        max_length=100, blank=True, default='Book a Demo')
+    partner_cta_label_ar = models.CharField(
+        max_length=100, blank=True, default='احجز عرضاً')
+    partner_cta_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    partner_email_label_en = models.CharField(
+        max_length=100, blank=True, default='Email')
+    partner_email_value = models.CharField(
+        max_length=200, blank=True, default='support@iroad.com')
+    partner_platform_label_en = models.CharField(
+        max_length=200, blank=True,
+        default='Cloud-Based Platform - Accessible Worldwide')
+    partner_platform_label_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    partner_map_image = models.FileField(
+        upload_to=pricing_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    counter_1_value = models.CharField(
+        max_length=20, blank=True, default='10+')
+    counter_1_label_en = models.CharField(
+        max_length=100, blank=True, default='Modules')
+    counter_1_label_ar = models.CharField(
+        max_length=100, blank=True, default='وحدات')
+    counter_2_value = models.CharField(
+        max_length=20, blank=True, default='99.9%')
+    counter_2_label_en = models.CharField(
+        max_length=100, blank=True, default='Uptime')
+    counter_2_label_ar = models.CharField(
+        max_length=100, blank=True, default='وقت التشغيل')
+    counter_3_value = models.CharField(
+        max_length=20, blank=True, default='100+')
+    counter_3_label_en = models.CharField(
+        max_length=100, blank=True, default='Companies')
+    counter_3_label_ar = models.CharField(
+        max_length=100, blank=True, default='شركة')
+    counter_4_value = models.CharField(
+        max_length=20, blank=True, default='10K+')
+    counter_4_label_en = models.CharField(
+        max_length=100, blank=True, default='Orders Managed')
+    counter_4_label_ar = models.CharField(
+        max_length=100, blank=True, default='طلب مُدار')
+    counter_5_value = models.CharField(
+        max_length=20, blank=True, default='24/7')
+    counter_5_label_en = models.CharField(
+        max_length=100, blank=True, default='Access')
+    counter_5_label_ar = models.CharField(
+        max_length=100, blank=True, default='وصول')
+
+    # ── Testimonials Section Header ───────────────────────────────
+    testimonials_kicker_en = models.CharField(
+        max_length=200, blank=True,
+        default='Trusted by transport teams worldwide')
+    testimonials_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    testimonials_heading_en = models.CharField(
+        max_length=300, blank=True,
+        default='What transport teams say about IRoad')
+    testimonials_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+
+    # ── FAQ Section ───────────────────────────────────────────────
+    faq_kicker_en = models.CharField(
+        max_length=200, blank=True, default='FAQs')
+    faq_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='الأسئلة الشائعة')
+    faq_heading_en = models.CharField(
+        max_length=300, blank=True,
+        default='Answers to common questions about IRoad')
+    faq_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    faq_intro_en = models.TextField(blank=True, default='')
+    faq_intro_ar = models.TextField(blank=True, default='')
+    faq_view_all_label_en = models.CharField(
+        max_length=100, blank=True, default='View all FAQs')
+    faq_view_all_label_ar = models.CharField(
+        max_length=100, blank=True, default='عرض كل الأسئلة')
+    faq_view_all_url = models.CharField(
+        max_length=500, blank=True, default='#')
+
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(
+        max_length=200, blank=True, default='')
+
+    class Meta:
+        db_table = 'iroad_frontend_pricing_content'
+        verbose_name = 'Pricing Page Content'
+        verbose_name_plural = 'Pricing Page Content'
+
+    def __str__(self):
+        return 'Pricing Page Content'
+
+    @classmethod
+    def get_singleton(cls):
+        obj, _created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class PricingInteractiveStep(models.Model):
+    """
+    4 interactive process items on pricing page.
+    """
+    pricing = models.ForeignKey(
+        PricingPageContent,
+        on_delete=models.CASCADE,
+        related_name='interactive_steps',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    title_en = models.CharField(max_length=200, blank=True, default='')
+    title_ar = models.CharField(max_length=200, blank=True, default='')
+    subtitle_en = models.CharField(
+        max_length=200, blank=True, default='')
+    subtitle_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    body_en = models.TextField(blank=True, default='')
+    body_ar = models.TextField(blank=True, default='')
+    icon = models.FileField(
+        upload_to=pricing_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    bg_image = models.FileField(
+        upload_to=pricing_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    detail_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_pricing_interactive_step'
+        ordering = ['order']
+        verbose_name = 'Interactive Step'
+        verbose_name_plural = 'Interactive Steps'
+
+    def __str__(self):
+        return f'Step {self.order}: {self.title_en}'

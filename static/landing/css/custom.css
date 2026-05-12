@@ -2607,6 +2607,17 @@ header.main-header .header-sticky.active {
   background-repeat: no-repeat;
 }
 
+/* Pricing page (Django CMS): optional header image from model — not global page-header-bg.jpg */
+.page-header.pricing-page-header {
+  background: none;
+  background-color: var(--secondary-color, #1a1d24);
+}
+.page-header.pricing-page-header.pricing-page-header--cms-bg {
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
 .page-header .container {
   position: relative;
   z-index: 2;

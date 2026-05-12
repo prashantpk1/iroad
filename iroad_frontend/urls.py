@@ -5,5 +5,6 @@ app_name = 'iroad_frontend'
 
 urlpatterns = [
     path('about/', views.AboutPageView.as_view(), name='about'),
+    path('pricing/', views.PricingPageView.as_view(), name='pricing'),
     path('', views.HomePageView.as_view(), name='home'),
 ]
