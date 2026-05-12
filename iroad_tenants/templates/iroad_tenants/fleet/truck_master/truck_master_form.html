@@ -96,7 +96,7 @@
         <div class="fields-grid cols-1">
           <div class="field">
             <label class="form-label" for="{{ form.registration_country.id_for_label }}">
-              {{ form.registration_country.label }}
+              {{ form.registration_country.label }} <span class="required">*</span>
             </label>
             {{ form.registration_country }}
             {% if form.registration_country.errors %}<div class="text-danger small">{{ form.registration_country.errors }}</div>{% endif %}

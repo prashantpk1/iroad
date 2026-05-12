@@ -17,7 +17,7 @@
   </nav>
   <div class="page-header-row">
     <div class="page-header-left">
-      <h1 class="page-title"><span class="text-body-secondary fw-normal">{{ treasury.treasury_code }}</span> — <span dir="rtl" lang="ar">{{ treasury.driver.arabic_name }}</span></h1>
+      <h1 class="page-title"><span class="text-body-secondary fw-normal">{{ treasury.treasury_code }}</span> — {% if treasury.driver.english_name %}<span>{{ treasury.driver.english_name }}</span>{% else %}<span dir="rtl" lang="ar">{{ treasury.driver.arabic_name }}</span>{% endif %}</h1>
       <p class="page-subtitle">View treasury profile and latest transactions.</p>
     </div>
     <div class="page-header-right">
@@ -42,7 +42,8 @@
       <div class="ch-logo"><i class="bi bi-wallet2"></i></div>
       <div>
         <h2 class="ch-title mb-0">{{ treasury.treasury_code }}</h2>
-        <div class="text-muted small mt-1" dir="rtl">{{ treasury.driver.arabic_name }}</div>
+        <div class="text-muted small mt-1">{% if treasury.driver.english_name %}{{ treasury.driver.english_name }}{% else %}<span dir="rtl" lang="ar">{{ treasury.driver.arabic_name }}</span>{% endif %}</div>
+        {% if treasury.driver.english_name and treasury.driver.arabic_name %}<div class="text-muted small" dir="rtl" lang="ar">{{ treasury.driver.arabic_name }}</div>{% endif %}
         <div class="text-muted small">{{ treasury.driver.driver_code }}</div>
       </div>
     </div>

@@ -35,6 +35,7 @@
 
 <form id="driverMasterForm" method="post" enctype="multipart/form-data" novalidate>
   {% csrf_token %}
+  {{ form.vendor_account_id }}
 
   {% if not is_edit %}
   <div class="alert alert-info small" role="alert">
@@ -59,7 +60,7 @@
       </div>
       <div class="form-card-header-text">
         <h2 class="form-card-title">Basic Information</h2>
-        <p class="form-card-desc">Driver source, vendor link (when outsourced), status, and type.</p>
+        <p class="form-card-desc">Driver source and operational status.</p>
       </div>
     </div>
     <div class="form-card-body">
@@ -86,15 +87,6 @@
         </div>
       </div>
       <div class="fields-grid cols-3">
-        <div class="field d-none" id="dmVendorAccountWrap">
-          <label class="form-label" for="{{ form.vendor_account_id.id_for_label }}">
-            {{ form.vendor_account_id.label }}
-            <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem;">Coming Soon</span>
-          </label>
-          <small class="text-muted d-block mb-1">Vendor lookup will replace manual entry.</small>
-          {{ form.vendor_account_id }}
-          {% if form.vendor_account_id.errors %}<div class="text-danger small">{{ form.vendor_account_id.errors }}</div>{% endif %}
-        </div>
         <div class="field">
           <label class="form-label" for="{{ form.driver_status.id_for_label }}">{{ form.driver_status.label }}</label>
           {{ form.driver_status }}
@@ -415,8 +407,6 @@
 {{ block.super }}
 <script>
 (function () {
-  var OUT = "Out-Source";
-  var IN = "In-Source";
 
   function deriveDocStatus(numStr, expiryStr) {
     if (!numStr || !String(numStr).trim()) return "Not Provided";
@@ -455,26 +445,10 @@
     refresh();
   }
 
-  var sourceEl = document.getElementById("{{ form.driver_source.id_for_label }}");
-  var vendorWrap = document.getElementById("dmVendorAccountWrap");
-  var vendorInput = document.getElementById("{{ form.vendor_account_id.id_for_label }}");
   var sameEl = document.getElementById("{{ form.whatsapp_same_as_mobile.id_for_label }}");
   var mobileEl = document.getElementById("{{ form.mobile_number.id_for_label }}");
   var waEl = document.getElementById("{{ form.whatsapp_number.id_for_label }}");
   var waLabel = document.querySelector(".js-dm-wa-toggle-label");
-
-  function applySource(isInitial) {
-    var v = sourceEl && sourceEl.value;
-    var out = v === OUT;
-    if (vendorWrap) vendorWrap.classList.toggle("d-none", !out);
-    if (vendorInput) {
-      if (out) vendorInput.setAttribute("required", "required");
-      else {
-        vendorInput.removeAttribute("required");
-        if (!isInitial) vendorInput.value = "";
-      }
-    }
-  }
 
   function syncWhatsApp() {
     if (!waEl || !mobileEl) return;
@@ -487,11 +461,9 @@
     if (waLabel) waLabel.textContent = sameEl && sameEl.checked ? "Yes" : "No";
   }
 
-  if (sourceEl) sourceEl.addEventListener("change", function () { applySource(false); });
   if (sameEl) sameEl.addEventListener("change", syncWhatsApp);
   if (mobileEl) mobileEl.addEventListener("input", function () { if (sameEl && sameEl.checked) syncWhatsApp(); });
 
-  applySource(true);
   syncWhatsApp();
 
   wireDocPreview("{{ form.id_number.id_for_label }}", "{{ form.id_expiry_date.id_for_label }}", "dmBadgeId");

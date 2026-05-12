@@ -182,7 +182,7 @@
                 <td>{{ ticket.category.name_en }}</td>
                 <td><span class="status-badge pending">{{ ticket.priority }}</span></td>
                 <td>{{ ticket.assigned_to.get_full_name|default:"-" }}</td>
-                <td>{{ ticket.created_by }}</td>
+                <td>{{ ticket.created_by_display }}</td>
                 <td><span class="status-badge {% if ticket.status == 'Closed' %}inactive{% elif ticket.status == 'In_Progress' %}in-transit{% else %}active{% endif %}">{{ ticket.get_status_display }}</span></td>
                 <td>
                   <div class="dropdown eal-actions-cell">

@@ -114,7 +114,7 @@
                 &mdash;
               {% endif %}
             </td>
-            <td>{{ ticket.created_by|default:"-" }}</td>
+            <td>{{ ticket.created_by_display }}</td>
             <td>
               {% if ticket.status == 'New' %}
                 <span class="status-badge active">{% translate "Open" %}</span>

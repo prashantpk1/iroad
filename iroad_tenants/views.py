@@ -69,6 +69,7 @@ from superadmin.tenant_portal_auth import (
     get_tenant_portal_cookie_payload,
 )
 from superadmin.communication_helpers import send_named_notification_email
+from superadmin.support_ticket_display import support_ticket_created_by_display_map
 from tenant_workspace.models import (
     AutoNumberConfiguration,
     AutoNumberSequence,
@@ -345,18 +346,6 @@ def _validate_support_attachment_upload(upload, *, allow_empty=True):
     if ext not in SUPPORT_ATTACHMENT_ALLOWED_EXT:
         return 'Attachment must be Image, PDF, or LOG file.'
     return ''
-
-
-def _normalize_support_attachment_name(upload, row_id):
-    """Rename support attachment file to <id>.<ext> before model save."""
-    if not upload:
-        return upload
-    name = (getattr(upload, 'name', None) or '').lower()
-    ext = os.path.splitext(name)[1]
-    if not ext:
-        ext = '.bin'
-    upload.name = f'{row_id}{ext}'
-    return upload
 
 
 def _validate_client_attachment_upload(upload):
@@ -740,6 +729,7 @@ class TenantSupportTicketListView(View):
         ).select_related(
             'category',
             'assigned_to',
+            'tenant',
         ).order_by('-created_at')
 
         if q:
@@ -750,6 +740,11 @@ class TenantSupportTicketListView(View):
             )
         if status:
             tickets_qs = tickets_qs.filter(status=status)
+
+        tickets_list = list(tickets_qs)
+        created_by_labels = support_ticket_created_by_display_map(tickets_list)
+        for ticket in tickets_list:
+            ticket.created_by_display = created_by_labels.get(ticket.pk, '-')
 
         total_count = SupportTicket.objects.filter(tenant=tenant).count()
         open_count = SupportTicket.objects.filter(
@@ -766,7 +761,7 @@ class TenantSupportTicketListView(View):
         ).count()
 
         context.update({
-            'tickets': tickets_qs,
+            'tickets': tickets_list,
             'search_q': q,
             'status_filter': status,
             'status_choices': SupportTicket.STATUS_CHOICES,
@@ -850,10 +845,7 @@ class TenantSupportTicketCreateView(View):
             is_internal=False,
         )
         if attachment:
-            first_reply.attachment = _normalize_support_attachment_name(
-                attachment,
-                first_reply.reply_id,
-            )
+            first_reply.attachment = attachment
         first_reply.save()
 
         messages.success(
@@ -936,10 +928,7 @@ class TenantSupportTicketDetailView(View):
             is_internal=False,
         )
         if attachment:
-            reply.attachment = _normalize_support_attachment_name(
-                attachment,
-                reply.reply_id,
-            )
+            reply.attachment = attachment
         reply.save()
         ticket.status = 'In_Progress'
         ticket.save(update_fields=['status'])
@@ -10931,7 +10920,10 @@ class DriverMasterDetailView(View):
 
         try:
             driver = (
-                DriverMaster.objects.select_related('nationality_country')
+                DriverMaster.objects.select_related(
+                    'nationality_country',
+                    'user_account_id',
+                )
                 .filter(pk=driver_id)
                 .first()
             )

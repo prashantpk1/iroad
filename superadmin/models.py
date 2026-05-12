@@ -3,7 +3,16 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from decimal import Decimal
+import os
 import uuid
+
+
+def ticket_reply_attachment_upload_to(instance, filename):
+    """Stored as support_attachments/TRP_<reply_id>.<ext> (reply_id, hyphens as underscores)."""
+    ext = os.path.splitext(filename or '')[1].lower() or '.bin'
+    rid = getattr(instance, 'reply_id', None) or uuid.uuid4()
+    rid_str = str(rid).replace('-', '_')
+    return f'support_attachments/TRP_{rid_str}{ext}'
 
 
 class AdminUserManager(BaseUserManager):
@@ -2409,7 +2418,7 @@ class TicketReply(models.Model):
     )
     message_body = models.TextField()
     attachment = models.FileField(
-        upload_to='support_attachments/',
+        upload_to=ticket_reply_attachment_upload_to,
         null=True,
         blank=True,
     )

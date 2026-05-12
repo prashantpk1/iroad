@@ -52,9 +52,7 @@ class DriverMasterForm(forms.ModelForm):
             'driver_source': forms.Select(
                 attrs={'class': 'form-select'}
             ),
-            'vendor_account_id': forms.TextInput(
-                attrs={'class': 'form-control'}
-            ),
+            'vendor_account_id': forms.HiddenInput(),
             'driver_status': forms.Select(
                 attrs={'class': 'form-select'}
             ),
@@ -195,9 +193,25 @@ class DriverMasterForm(forms.ModelForm):
             self.fields['nationality_country'].initial = nid
 
         self.fields['vendor_account_id'].required = False
+        self.fields['vendor_account_id'].initial = ''
+
+        # Tenant UI: in-source only (no outsourced drivers in this product slice).
+        self.fields['driver_source'].choices = [
+            (DriverMaster.DriverSource.IN_SOURCE, _('In-Source')),
+        ]
+        self.fields['driver_source'].initial = DriverMaster.DriverSource.IN_SOURCE
         self.fields['arabic_name'].required = True
         self.fields['mobile_number'].required = True
         self.fields['driver_type'].required = False
+        if self.instance.pk and getattr(self.instance, 'driver_type', '') == DriverMaster.DriverType.VENDOR:
+            self.instance.driver_type = ''
+        self.fields['driver_type'].choices = [
+            ('', _('---------')),
+        ] + [
+            (value, label)
+            for value, label in DriverMaster.DriverType.choices
+            if value != DriverMaster.DriverType.VENDOR
+        ]
         self.fields['english_name'].required = False
         self.fields['birth_date'].required = False
 
@@ -249,16 +263,6 @@ class DriverMasterForm(forms.ModelForm):
                 errors['user_account_id'] = _(
                     'This user account is already linked to another driver.'
                 )
-
-        vendor_raw = (cleaned.get('vendor_account_id') or '').strip()
-        if (
-            cleaned.get('driver_source')
-            == DriverMaster.DriverSource.OUT_SOURCE
-            and not vendor_raw
-        ):
-            errors['vendor_account_id'] = _(
-                'Vendor account is required for Out-Source drivers'
-            )
 
         mobile = (cleaned.get('mobile_number') or '').strip()
         if mobile and not re.match(r'^\d+$', mobile):
@@ -342,5 +346,11 @@ class DriverMasterForm(forms.ModelForm):
 
         if errors:
             raise ValidationError(errors)
+
+        cleaned['driver_source'] = DriverMaster.DriverSource.IN_SOURCE
+        cleaned['vendor_account_id'] = ''
+
+        if (cleaned.get('driver_type') or '').strip() == DriverMaster.DriverType.VENDOR:
+            cleaned['driver_type'] = ''
 
         return cleaned

@@ -10,26 +10,23 @@
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
       <li class="breadcrumb-item">Operations</li>
-      <li class="breadcrumb-item">Drivers Management</li>
-      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:driver_master' %}">Driver Master</a></li>
+      <li class="breadcrumb-item">Fleet Management</li>
+      <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:driver_master' %}">Driver Master List</a></li>
       <li class="breadcrumb-item active" aria-current="page">Driver Details</li>
     </ol>
   </nav>
   <div class="page-header-row">
     <div class="page-header-left">
-      <h1 class="page-title"><span class="text-body-secondary fw-normal">{{ driver.driver_code }}</span> — <span dir="rtl" lang="ar">{{ driver.arabic_name }}</span></h1>
-      <p class="page-subtitle">View driver profile, documents, and attachments.</p>
+      <h1 class="page-title">Driver Details</h1>
+      <p class="page-subtitle">View comprehensive profile, trip history, and documentation for the driver.</p>
     </div>
     <div class="page-header-right">
       <div class="eal-header-actions">
         <a href="{% url 'iroad_tenants:tenant_driver_print' driver.driver_id %}" class="eal-btn eal-btn-outline" target="_blank" rel="noopener">
           <i class="bi bi-printer"></i><span>Print</span>
         </a>
-        <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}" class="eal-btn eal-btn-primary">
-          <i class="bi bi-pencil-square"></i><span>Edit</span>
-        </a>
         <a href="{% url 'iroad_tenants:driver_master' %}" class="eal-btn eal-btn-outline">
-          <i class="bi bi-arrow-left"></i><span>Back to List</span>
+          <i class="bi bi-arrow-left"></i><span>Back to list</span>
         </a>
       </div>
     </div>
@@ -39,25 +36,39 @@
 <div class="ch-header-card">
   <div class="ch-left">
     <div class="ch-title-row">
-      <div class="ch-logo"><i class="bi bi-person-badge"></i></div>
-      <div>
-        <h2 class="ch-title mb-0" dir="rtl" lang="ar">{{ driver.arabic_name }}</h2>
-        {% if driver.english_name %}<div class="text-muted small mt-1">{{ driver.english_name }}</div>{% endif %}
+      <div class="ch-avatar" aria-hidden="true">
+        <img src="https://ui-avatars.com/api/?name={{ driver.english_name|default:driver.driver_code|urlencode }}&background=e8ecf9&color=2563eb&size=128" alt="" />
+      </div>
+      <div class="ch-title-block">
+        <h2 class="ch-title mb-0">{% if driver.english_name %}{{ driver.english_name }}{% else %}<span dir="rtl" lang="ar">{{ driver.arabic_name }}</span>{% endif %}</h2>
+        {% if driver.english_name and driver.arabic_name %}<div class="ch-title-ar" dir="rtl" lang="ar">{{ driver.arabic_name }}</div>{% endif %}
       </div>
     </div>
     <div class="ch-badges">
-      <div class="ch-badge"><i class="bi bi-hash"></i><span>{{ driver.driver_code }}</span></div>
+      <div class="ch-badge">
+        <i class="bi bi-truck-flatbed"></i>
+        <span>{% if driver.dl_number %}Heavy License{% else %}No DL on file{% endif %}</span>
+      </div>
+      <div class="ch-badge">
+        <i class="bi bi-building"></i>
+        <span>
+          {% if driver.driver_source == 'Out-Source' and driver.vendor_account_id %}
+            {{ driver.vendor_account_id }}
+          {% elif driver.driver_type %}
+            {{ driver.get_driver_type_display }}
+          {% else %}
+            —
+          {% endif %}
+        </span>
+      </div>
+      <div class="ch-badge">
+        <i class="bi bi-person-check"></i>
+        <span>{% if driver.driver_source == 'In-Source' %}Direct Hire{% elif driver.driver_source == 'Out-Source' %}Vendor / Out-Source{% else %}{{ driver.driver_source }}{% endif %}</span>
+      </div>
       {% if driver.driver_status == 'Active' %}
-      <div class="ch-badge"><i class="bi bi-check2-circle"></i><span class="status-badge dm-driver-active d-inline border-0">Active</span></div>
+      <div class="ch-badge"><i class="bi bi-check2-circle"></i><span class="dm-chip dm-chip--success">Active</span></div>
       {% else %}
-      <div class="ch-badge"><i class="bi bi-dash-circle"></i><span class="status-badge dm-driver-inactive d-inline border-0">Inactive</span></div>
-      {% endif %}
-      {% if driver.driver_source == 'In-Source' %}
-      <div class="ch-badge"><i class="bi bi-box-arrow-in-right"></i><span class="status-badge dm-source-in d-inline border-0">In-Source</span></div>
-      {% elif driver.driver_source == 'Out-Source' %}
-      <div class="ch-badge"><i class="bi bi-box-arrow-up-right"></i><span class="status-badge dm-source-out d-inline border-0">Out-Source</span></div>
-      {% else %}
-      <div class="ch-badge"><i class="bi bi-diagram-3"></i><span>{{ driver.driver_source }}</span></div>
+      <div class="ch-badge"><i class="bi bi-dash-circle"></i><span class="dm-chip dm-chip--muted">Inactive</span></div>
       {% endif %}
     </div>
   </div>
@@ -83,30 +94,36 @@
 <div class="ch-actions">
   <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-pencil-square"></i> Edit</a>
   <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}?section=driving-license" class="ch-action-btn">
-    <i class="bi bi-card-heading"></i> Update Licenses
+    <i class="bi bi-card-checklist"></i> Update Licenses
   </a>
   <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
-    <i class="bi bi-wallet2"></i> Add Wallet Transaction
+    <i class="bi bi-wallet"></i> Add Wallet Transaction
   </button>
-  <a href="{% url 'iroad_tenants:driver_attachment_create' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-paperclip"></i> Upload Attachment</a>
-  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
-    <i class="bi bi-slash-circle"></i> Suspend Driver
+  {% if driver.driver_status == 'Active' %}
+  <button type="button" class="ch-action-btn text-danger border-danger dm-detail-status-trigger" data-driver-id="{{ driver.driver_id }}" data-new-status="Inactive">
+    <i class="bi bi-person-x"></i> Suspend Driver
   </button>
+  {% else %}
+  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Driver is already inactive">
+    <i class="bi bi-person-x"></i> Suspend Driver
+  </button>
+  {% endif %}
+  {% if driver.driver_status != 'Active' %}
+  <button type="button" class="ch-action-btn text-success border-success dm-detail-status-trigger" data-driver-id="{{ driver.driver_id }}" data-new-status="Active">
+    <i class="bi bi-person-check"></i> Activate Driver
+  </button>
+  {% else %}
+  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Driver is already active">
+    <i class="bi bi-person-check"></i> Activate Driver
+  </button>
+  {% endif %}
   <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
-    <i class="bi bi-shield-lock"></i> Suspend App Access
+    <i class="bi bi-phone-slash"></i> Suspend App Access
   </button>
   <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
     <i class="bi bi-key"></i> Reset Password
   </button>
-  {% if driver.driver_status == 'Active' %}
-  <button type="button" class="ch-action-btn text-danger border-danger dm-detail-status-trigger" data-driver-id="{{ driver.driver_id }}" data-new-status="Inactive">
-    <i class="bi bi-pause-circle"></i> Deactivate
-  </button>
-  {% else %}
-  <button type="button" class="ch-action-btn text-success border-success dm-detail-status-trigger" data-driver-id="{{ driver.driver_id }}" data-new-status="Active">
-    <i class="bi bi-arrow-counterclockwise"></i> Activate
-  </button>
-  {% endif %}
+  <a href="{% url 'iroad_tenants:driver_attachment_create' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-paperclip"></i> Upload Attachment</a>
 </div>
 
 <div class="cd-main-card">
@@ -142,15 +159,15 @@
           <div class="cd-grid-row">
             <div class="cd-field">
               <span class="cd-field-label">Driver Code</span>
-              <span class="cd-field-value">{{ driver.driver_code }}</span>
+              <span class="cd-field-value cd-field-value--code">{{ driver.driver_code }}</span>
             </div>
             <div class="cd-field">
               <span class="cd-field-label">Status</span>
               <span class="cd-field-value">
                 {% if driver.driver_status == 'Active' %}
-                <span class="status-badge dm-driver-active"><i class="bi bi-check2-circle"></i> Active</span>
+                <span class="dm-chip dm-chip--success"><i class="bi bi-check2-circle me-1"></i>Active</span>
                 {% else %}
-                <span class="status-badge dm-driver-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
+                <span class="dm-chip dm-chip--muted"><i class="bi bi-dash-circle me-1"></i>Inactive</span>
                 {% endif %}
               </span>
             </div>
@@ -168,7 +185,7 @@
           <div class="cd-grid-row">
             <div class="cd-field">
               <span class="cd-field-label">Date of Birth</span>
-              <span class="cd-field-value">{{ driver.birth_date|default:"—" }}</span>
+              <span class="cd-field-value">{% if driver.birth_date %}{{ driver.birth_date|date:"j M Y" }}{% else %}—{% endif %}</span>
             </div>
             <div class="cd-field">
               <span class="cd-field-label">Nationality</span>
@@ -178,7 +195,7 @@
         </div>
       </div>
 
-      <div class="cd-details-section mb-0">
+      <div class="cd-details-section mb-4">
         <div class="cd-details-header">Contact Details</div>
         <div class="cd-details-body">
           <div class="cd-grid-row">
@@ -187,26 +204,86 @@
               <span class="cd-field-value">{{ driver.mobile_number }}</span>
             </div>
             <div class="cd-field">
-              <span class="cd-field-label">WhatsApp Number</span>
+              <span class="cd-field-label">Secondary Mobile</span>
               <span class="cd-field-value">
-                {% if driver.whatsapp_number %}{{ driver.whatsapp_number }}{% else %}<span class="cd-pending">Under development</span>{% endif %}
+                {% if driver.whatsapp_same_as_mobile %}
+                  Same as mobile
+                {% elif driver.whatsapp_number %}
+                  {{ driver.whatsapp_number }}
+                {% else %}
+                  —
+                {% endif %}
               </span>
             </div>
           </div>
           <div class="cd-grid-row">
             <div class="cd-field">
-              <span class="cd-field-label">WhatsApp Same as Mobile</span>
+              <span class="cd-field-label">Email Address</span>
               <span class="cd-field-value">
-                {% if driver.whatsapp_same_as_mobile %}
-                <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">Yes</span>
+                {% if driver.user_account_id and driver.user_account_id.email %}
+                <a href="mailto:{{ driver.user_account_id.email }}" class="dm-link-mail">{{ driver.user_account_id.email }}</a>
                 {% else %}
-                <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">No</span>
+                —
                 {% endif %}
               </span>
             </div>
             <div class="cd-field">
-              <span class="cd-field-label">Secondary Mobile / Email / Emergency Contact</span>
-              <span class="cd-field-value"><span class="cd-pending">Under development</span></span>
+              <span class="cd-field-label">Emergency Contact</span>
+              <span class="cd-field-value">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cd-details-section mb-0">
+        <div class="cd-details-header">Employment Details</div>
+        <div class="cd-details-body">
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Vendor / Company</span>
+              <span class="cd-field-value">
+                {% if driver.driver_source == 'Out-Source' and driver.vendor_account_id %}
+                  {{ driver.vendor_account_id }}
+                {% elif driver.driver_type %}
+                  {{ driver.get_driver_type_display }}
+                {% else %}
+                  —
+                {% endif %}
+              </span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Employment Type</span>
+              <span class="cd-field-value">
+                {% if driver.driver_source == 'In-Source' %}Direct Hire{% elif driver.driver_source == 'Out-Source' %}Vendor / Out-Source{% else %}{{ driver.driver_source }}{% endif %}
+              </span>
+            </div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">Joining Date</span>
+              <span class="cd-field-value">{{ driver.created_at|date:"j M Y" }}</span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">License Type</span>
+              <span class="cd-field-value">{% if driver.dl_number %}Heavy Vehicle License{% else %}—{% endif %}</span>
+            </div>
+          </div>
+          <div class="cd-grid-row">
+            <div class="cd-field">
+              <span class="cd-field-label">App Access</span>
+              <span class="cd-field-value">
+                {% if driver.user_account_id and driver.user_account_id.status == 'Active' %}
+                <span class="dm-chip dm-chip--success">Enabled</span>
+                {% elif driver.user_account_id %}
+                <span class="dm-chip dm-chip--muted">Disabled</span>
+                {% else %}
+                <span class="dm-chip dm-chip--muted">No app user</span>
+                {% endif %}
+              </span>
+            </div>
+            <div class="cd-field">
+              <span class="cd-field-label">Created By</span>
+              <span class="cd-field-value">—</span>
             </div>
           </div>
         </div>
@@ -474,12 +551,12 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p class="mb-0 d-none" id="dmDetailMsgDeact">Deactivate this driver?</p>
-          <p class="mb-0 d-none" id="dmDetailMsgAct">Activate this driver?</p>
+          <p class="mb-0 d-none" id="dmDetailMsgDeact">Suspend this driver? They will be marked inactive.</p>
+          <p class="mb-0 d-none" id="dmDetailMsgAct">Activate this driver? They will be marked active.</p>
         </div>
         <div class="modal-footer gap-2">
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-danger px-4" id="dmDetailConfirmSubmit">Deactivate</button>
+          <button type="submit" class="btn btn-danger px-4" id="dmDetailConfirmSubmit">Suspend</button>
         </div>
       </form>
     </div>
@@ -495,17 +572,50 @@
     justify-content: space-between;
     align-items: flex-start;
     border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
     gap: 20px;
     flex-wrap: wrap;
     margin-bottom: 0;
   }
   .ch-left { display: flex; flex-direction: column; gap: 16px; }
-  .ch-title-row { display: flex; align-items: center; gap: 16px; }
-  .ch-logo {
-    width: 48px; height: 48px; background: #ebecfa; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.25rem;
+  .ch-title-row { display: flex; align-items: center; gap: 18px; }
+  .ch-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(145deg, #eef0fb 0%, #e0e4fa 100%);
+    border: 2px solid rgba(59, 130, 246, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+  .ch-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ch-title-block { min-width: 0; }
+  .ch-title-ar { font-size: 0.95rem; color: #64748b; margin-top: 4px; font-weight: 500; }
   .ch-title { font-size: 1.4rem; font-weight: 700; margin: 0; color: #1a1a1a; }
+  .dm-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+  .dm-chip--success {
+    background: #e6f8ef;
+    color: #0d894f;
+    border: 1px solid rgba(13, 137, 79, 0.2);
+  }
+  .dm-chip--muted {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+  }
+  .dm-link-mail { font-weight: 600; text-decoration: none; color: #2563eb; }
+  .dm-link-mail:hover { text-decoration: underline; color: #1d4ed8; }
+  .cd-field-value--code { font-weight: 600; letter-spacing: 0.02em; }
   .ch-badges { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .ch-badge {
     display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px;
@@ -535,7 +645,11 @@
     border-color: #e2e8f0;
   }
   .cd-main-card {
-    background: #fff; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.08); padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    padding: 20px;
   }
   .cd-tabs-container { background: #f4f5fc; border-radius: 8px; padding: 6px; margin-bottom: 24px; }
   .cd-tabs-list { display: flex; gap: 6px; flex-wrap: nowrap; overflow-x: auto; padding: 0; margin: 0; list-style: none; }
@@ -601,9 +715,9 @@
       var deact = newStatus === "Inactive";
       document.getElementById("dmDetailMsgDeact").classList.toggle("d-none", !deact);
       document.getElementById("dmDetailMsgAct").classList.toggle("d-none", deact);
-      document.getElementById("driverDetailStatusTitle").textContent = deact ? "Deactivate driver" : "Activate driver";
+      document.getElementById("driverDetailStatusTitle").textContent = deact ? "Suspend driver" : "Activate driver";
       var sub = document.getElementById("dmDetailConfirmSubmit");
-      sub.textContent = deact ? "Deactivate" : "Activate";
+      sub.textContent = deact ? "Suspend" : "Activate";
       sub.className = "btn px-4 " + (deact ? "btn-danger" : "btn-success");
       modal.show();
     });

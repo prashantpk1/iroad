@@ -94,9 +94,7 @@ def truck_attachment_upload_to(instance, filename):
 
 
 def driver_attachment_upload_to(instance, filename):
-    """
-    Store as: DA_<attachment_id>.<ext>.
-    """
+    """``drivers/attachments/DA_<attachment_id>.<ext>`` (id segment uses underscores, not hyphens)."""
     return _prefixed_upload_name(
         'drivers/attachments',
         'DA',
@@ -963,9 +961,6 @@ class TruckMaster(models.Model):
 
         def add(field: str, message):
             errors.setdefault(field, []).append(message)
-
-        if self.registration_country_id is None:
-            add('registration_country', _('Registration country is required.'))
 
         if self.sourcing_mode == self.SourcingMode.OUT_SOURCE:
             if not (self.vendor_account_id or '').strip():

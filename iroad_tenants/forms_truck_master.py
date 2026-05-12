@@ -207,7 +207,9 @@ class TruckMasterForm(forms.ModelForm):
             self.fields['default_driver_id'].initial = instance_driver.pk
 
         # Sourcing / vendor are not shown on the tenant form UI; keep DB compatibility.
-        self.fields['sourcing_mode'].required = True
+        # Hidden field: do not use required=True — a missing POST key surfaces as an orphan
+        # "This field is required." above the layout. Default is applied in clean().
+        self.fields['sourcing_mode'].required = False
         if not self.instance.pk:
             self.fields['sourcing_mode'].initial = TruckMaster.SourcingMode.IN_SOURCE
 
@@ -265,6 +267,12 @@ class TruckMasterForm(forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
+        sm = cleaned.get('sourcing_mode')
+        if sm in (None, ''):
+            cleaned['sourcing_mode'] = TruckMaster.SourcingMode.IN_SOURCE
+        else:
+            cleaned['sourcing_mode'] = str(sm).strip()
+
         country = cleaned.get('registration_country')
         vendor_raw = cleaned.get('vendor_account_id')
 
@@ -350,9 +358,5 @@ class TruckMasterForm(forms.ModelForm):
                         )
                     }
                 )
-
-        truck_type = cleaned.get('truck_type')
-        if truck_type is None:
-            raise ValidationError({'truck_type': _('Select a truck type.')})
 
         return cleaned
