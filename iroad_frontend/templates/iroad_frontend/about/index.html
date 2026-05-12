@@ -1,0 +1,401 @@
+{% extends 'iroad_frontend/base.html' %}
+{% load static %}
+
+{% block title %}
+  {% if lang == 'ar' %}
+    {{ about.page_title_ar|default:about.page_title_en }}
+  {% else %}
+    {{ about.page_title_en }}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+    <!-- Page Header Section Start -->
+    <div
+      class="page-header about-page-header bg-section parallaxie{% if about.page_header_background %} about-page-header--cms-bg{% endif %}"
+      {% if about.page_header_background %}
+      style="background-image: url('{{ about.page_header_background.url }}');"
+      {% endif %}
+    >
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12">
+            <!-- Page Header Box Start -->
+            <div class="page-header-box">
+              <h1>
+                {% if lang == 'ar' %}
+                  {{ about.page_header_h1_ar|default:about.page_header_h1_en|default:"عن آيروود" }}
+                {% else %}
+                  {{ about.page_header_h1_en|default:"About IRoad" }}
+                {% endif %}
+              </h1>
+              <nav class="wow fadeInUp" aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item">
+                    <a href="{% url 'iroad_frontend:home' %}">
+                      {% if lang == 'ar' %}
+                        {{ home.nav_home_ar|default:home.nav_home_en|default:"الرئيسية" }}
+                      {% else %}
+                        {{ home.nav_home_en|default:"Home" }}
+                      {% endif %}
+                    </a>
+                  </li>
+                  <li class="breadcrumb-item active" aria-current="page">
+                    {% if lang == 'ar' %}
+                      {{ about.breadcrumb_current_ar|default:about.breadcrumb_current_en|default:"عن آيروود" }}
+                    {% else %}
+                      {{ about.breadcrumb_current_en|default:"About IRoad" }}
+                    {% endif %}
+                  </li>
+                </ol>
+              </nav>
+            </div>
+            <!-- Page Header Box End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Page Header Section End -->
+
+    <!-- About Us Section Start -->
+    <div class="about-us">
+      <div class="container">
+        <div class="row section-row">
+          <div class="col-lg-12">
+            <!-- Section Title Start -->
+            <div class="section-title section-title-center">
+              <h3>{{ about.about_kicker_en|default:"About IRoad" }}</h3>
+              <h2 data-cursor="-opaque">
+                {{ about.about_heading_part1_en|default:"Driving Transport Efficiency Through Smart SaaS Technology" }}
+                <span class="about-us-title-image-1"
+                  >{% if about.about_title_image_1 %}
+                  <img src="{{ about.about_title_image_1.url }}" alt=""
+                />{% else %}
+                  <img src="{% static 'landing/images/about-us-title-image-1.jpg' %}" alt=""
+                />{% endif %}</span>
+                {{ about.about_heading_part2_en|default:"for modern" }}
+                <span class="about-us-title-image-2"
+                  >{% if about.about_title_image_2 %}
+                  <img src="{{ about.about_title_image_2.url }}" alt=""
+                />{% else %}
+                  <img src="{% static 'landing/images/about-us-title-image-2.jpg' %}" alt=""
+                />{% endif %}</span>
+                {{ about.about_heading_part3_en|default:"logistics teams." }}
+              </h2>
+            </div>
+            <!-- Section Title End -->
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-xl-4 col-md-6">
+            <!-- About Us Image Box Start -->
+            <div class="about-us-image-box wow fadeInUp">
+              <div class="about-us-image">
+                <figure class="image-anime">
+                  {% if about.about_main_image %}
+                  <img src="{{ about.about_main_image.url }}" alt="" />
+                  {% else %}
+                  <img src="{% static 'landing/images/about-us-image.jpg' %}" alt="" />
+                  {% endif %}
+                </figure>
+              </div>
+              <div class="about-counter-box">
+                <h2><span>{{ about.about_counter_1_value|default:"24/7" }}</span></h2>
+                <p>{{ about.about_counter_1_label_en|default:"System Availability" }}</p>
+              </div>
+            </div>
+            <!-- About Us Image Box End -->
+          </div>
+
+          <div class="col-xl-4 col-md-6">
+            <!-- About Us Item Start -->
+            <div class="about-us-item wow fadeInUp" data-wow-delay="0.2s">
+              <div class="about-us-item-content">
+                <h3>Built for Modern Transport Businesses</h3>
+                <p>
+                  IRoad connects operations, fleet, finance, and reporting into
+                  a single unified system.
+                </p>
+              </div>
+              <div class="about-us-body">
+                <div class="about-counter-box">
+                  <h2><span>{{ about.about_counter_2_value|default:"100+" }}</span></h2>
+                  <p>{{ about.about_counter_2_label_en|default:"Companies Using IRoad" }}</p>
+                </div>
+                <div class="about-us-body-image">
+                  <figure>
+                    {% if about.about_body_image %}
+                    <img src="{{ about.about_body_image.url }}" alt="" />
+                    {% else %}
+                    <img src="{% static 'landing/images/about-us-body-image.png' %}" alt="" />
+                    {% endif %}
+                  </figure>
+                </div>
+              </div>
+            </div>
+            <!-- About Us Item End -->
+          </div>
+
+          <div class="col-xl-4 col-md-6">
+            <!-- About Us Item Start -->
+            <div
+              class="about-us-item highlighted-box wow fadeInUp"
+              data-wow-delay="0.4s"
+            >
+              <div class="about-us-item-content">
+                <p>
+                  {{ about.about_body_en|default:"We provide a complete digital ecosystem for transport companies to manage workflows efficiently and scale operations." }}
+                </p>
+              </div>
+              <div class="about-us-list-btn">
+                <div class="about-us-item-list">
+                  <ul>
+                    <li>{{ about.about_list_item_1_en|default:"End-to-End Workflow Automation" }}</li>
+                    <li>{{ about.about_list_item_2_en|default:"Real-Time Tracking & Insights" }}</li>
+                  </ul>
+                </div>
+                <div class="about-us-item-btn">
+                  <a href="{{ about.about_explore_url|default:'#' }}" class="btn-default btn-highlighted"
+                    >{{ about.about_explore_label_en|default:"Explore Platform" }}</a
+                  >
+                </div>
+              </div>
+            </div>
+            <!-- About Us Item End -->
+          </div>
+
+          <div class="col-lg-12">
+            <!-- Section Footer Text Start -->
+            <div class="section-footer-text wow fadeInUp" data-wow-delay="0.4s">
+              <p>
+                {{ about.about_footer_text_en|default:"IRoad is a modern transport management system designed to help logistics companies streamline operations, manage fleet, and gain full business visibility." }}
+                <a href="{{ about.about_footer_cta_url|default:'#' }}">{{ about.about_footer_cta_label_en|default:"Book a Demo" }}</a>
+              </p>
+              <ul>
+                <li><span>{{ about.about_rating_value|default:"4.9/5" }}</span></li>
+                <li>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                </li>
+                <li>{{ about.about_review_label_en|default:"4,200+ reviews" }}</li>
+              </ul>
+            </div>
+            <!-- Section Footer Text End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- About Us Section End -->
+
+    <!-- Our Approach Section Start -->
+    <div class="our-approach bg-section">
+      <div class="container">
+        <div class="row align-items-center justify-content-between mb-5">
+          <div class="col-lg-8">
+            <!-- Approach Content Start -->
+            <div class="approach-content">
+              <!-- Section Title Start -->
+              <div class="section-title">
+                <h3>{{ about.approach_kicker_en|default:"Our Approach" }}</h3>
+                <h2>
+                  {{ about.approach_heading_en|default:"How IRoad Transforms Transport Operations" }}
+                </h2>
+                <p class="wow fadeInUp" data-wow-delay="0.2s">
+                  {{ about.approach_body_en|default:"We focus on automation, visibility, and control to simplify complex logistics workflows." }}
+                </p>
+              </div>
+              <!-- Section Title End -->
+            </div>
+            <!-- Approach Content End -->
+          </div>
+          <div class="col-lg-4 text-lg-end">
+            <div class="apptroch-btn wow fadeInUp" data-wow-delay="0.4s">
+              <a href="{{ about.approach_cta_url|default:'#' }}" class="btn-default">{{ about.approach_cta_label_en|default:"Book a Demo" }}</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          {% for pillar in pillars %}
+          <div class="col-xl-4 col-md-6">
+            <!-- Approach Item Start -->
+            <div class="approach-item wow fadeInUp"{% if forloop.counter0 == 1 %} data-wow-delay="0.2s"{% elif forloop.counter0 == 2 %} data-wow-delay="0.4s"{% endif %}>
+              <div class="approach-item-header">
+                <div class="icon-box">
+                  {% if pillar.icon %}
+                  <img src="{{ pillar.icon.url }}" alt="" />
+                  {% elif forloop.counter == 1 %}
+                  <img src="{% static 'landing/images/icon-mission.svg' %}" alt="" />
+                  {% elif forloop.counter == 2 %}
+                  <img src="{% static 'landing/images/icon-vision.svg' %}" alt="" />
+                  {% else %}
+                  <img src="{% static 'landing/images/icon-value.svg' %}" alt="" />
+                  {% endif %}
+                </div>
+                <div class="approach-item-title">
+                  <h3>{{ pillar.title_en }}</h3>
+                </div>
+              </div>
+              <div class="approach-item-body">
+                <p>
+                  {{ pillar.body_en }}
+                </p>
+              </div>
+            </div>
+            <!-- Approach Item End -->
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <!-- Our Approach Section End -->
+
+    <!-- How It Work Section Start -->
+    <div class="how-it-work">
+      <div class="container">
+        <div class="row section-row">
+          <div class="col-lg-12">
+            <!-- Section Title Start -->
+            <div class="section-title section-title-center">
+              <h3>{{ about.how_kicker_en|default:"How It Works" }}</h3>
+              <h2>
+                {{ about.how_heading_en|default:"How IRoad streamlines your transport workflows" }}
+              </h2>
+            </div>
+            <!-- Section Title End -->
+          </div>
+        </div>
+
+        <div class="row">
+          {% for step in how_steps %}
+          <div class="col-xl-3 col-md-6">
+            <!-- How Work Item Start -->
+            <div class="how-work-item wow fadeInUp"{% if forloop.counter0 == 1 %} data-wow-delay="0.2s"{% elif forloop.counter0 == 2 %} data-wow-delay="0.4s"{% elif forloop.counter0 == 3 %} data-wow-delay="0.6s"{% endif %}>
+              <div class="how-work-item-header">
+                <div class="how-work-item-image">
+                  <figure class="image-anime">
+                    {% if step.step_image %}
+                    <img src="{{ step.step_image.url }}" alt="" />
+                    {% elif forloop.counter == 1 %}
+                    <img src="{% static 'landing/images/how-work-image-1.jpg' %}" alt="" />
+                    {% elif forloop.counter == 2 %}
+                    <img src="{% static 'landing/images/how-work-image-2.jpg' %}" alt="" />
+                    {% elif forloop.counter == 3 %}
+                    <img src="{% static 'landing/images/how-work-image-3.jpg' %}" alt="" />
+                    {% else %}
+                    <img src="{% static 'landing/images/how-work-image-4.jpg' %}" alt="" />
+                    {% endif %}
+                  </figure>
+                </div>
+                <div class="how-work-item-no">
+                  <h3>{{ step.step_number }}</h3>
+                </div>
+              </div>
+              <div class="how-work-item-content">
+                <h3>{{ step.title_en }}</h3>
+                <p>{{ step.body_en }}</p>
+              </div>
+            </div>
+            <!-- How Work Item End -->
+          </div>
+          {% endfor %}
+
+          <div class="col-lg-12">
+            <!-- Section Footer Text Start -->
+            <div class="section-footer-text wow fadeInUp" data-wow-delay="0.4s">
+              <p>
+                {{ about.how_footer_text_en|default:"Automate operations, improve visibility, and scale with confidence using IRoad." }}
+                <a href="{{ about.how_footer_link_url|default:'#' }}">{{ about.how_footer_link_label_en|default:"Start Free Trial" }}</a>
+              </p>
+              <ul>
+                <li><span>{{ about.how_rating_value|default:"4.9/5" }}</span></li>
+                <li>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                  <i class="fa-solid fa-star"></i>
+                </li>
+                <li>{{ about.how_review_label_en|default:"4,200+ reviews" }}</li>
+              </ul>
+            </div>
+            <!-- Section Footer Text End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- How It Work Section End -->
+
+    <!-- Our Faqs Section Start -->
+    <div class="our-faqs">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-6">
+            <!-- Faqs Content Start -->
+            <div class="faqs-content">
+              <!-- Section Title Start -->
+              <div class="section-title">
+                <h3>{{ about.faq_kicker_en|default:"FAQs" }}</h3>
+                <h2>
+                  {{ about.faq_heading_en|default:"Answers to common questions about IRoad TMS" }}
+                </h2>
+                <p class="wow fadeInUp" data-wow-delay="0.2s">
+                  {{ about.faq_intro_en|default:"Learn how IRoad helps transport companies automate workflows, manage fleets, and improve operational visibility." }}
+                </p>
+              </div>
+              <!-- Section Title End -->
+
+              <!-- Faqs Button Start -->
+              <div class="faqs-btn wow fadeInUp" data-wow-delay="0.4s">
+                <a href="{{ about.faq_view_all_url|default:'#' }}" class="btn-default">{{ about.faq_view_all_label_en|default:"View all FAQ's" }}</a>
+              </div>
+              <!-- Faqs Button End -->
+            </div>
+            <!-- Faqs Content End -->
+          </div>
+
+          <div class="col-xl-6">
+            <!-- FAQ Accordion Start -->
+            <div class="faq-accordion our-faq-accordion" id="accordion">
+              {% for item in faq_items %}
+              <!-- FAQ Item Start -->
+              <div class="accordion-item wow fadeInUp"{% if forloop.counter0 == 1 %} data-wow-delay="0.2s"{% elif forloop.counter0 == 2 %} data-wow-delay="0.4s"{% elif forloop.counter0 == 3 %} data-wow-delay="0.6s"{% elif forloop.counter0 == 4 %} data-wow-delay="0.8s"{% elif forloop.counter0 == 5 %} data-wow-delay="1s"{% endif %}>
+                <h2 class="accordion-header" id="heading{{ forloop.counter }}">
+                  <button
+                    class="accordion-button{% if not forloop.first %} collapsed{% endif %}"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#collapse{{ forloop.counter }}"
+                    aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
+                    aria-controls="collapse{{ forloop.counter }}"
+                  >
+                    {{ item.question_en }}
+                  </button>
+                </h2>
+                <div
+                  id="collapse{{ forloop.counter }}"
+                  class="accordion-collapse collapse{% if forloop.first %} show{% endif %}"
+                  aria-labelledby="heading{{ forloop.counter }}"
+                  data-bs-parent="#accordion"
+                >
+                  <div class="accordion-body">
+                    <p>
+                      {{ item.answer_en }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <!-- FAQ Item End -->
+              {% endfor %}
+            </div>
+            <!-- FAQ Accordion End -->
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Our Faqs Section End -->
+{% endblock %}

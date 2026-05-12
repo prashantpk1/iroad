@@ -7,6 +7,10 @@ from django.db import models as dj_models
 from django.forms import ModelForm, TextInput, Textarea, FileInput, CheckboxInput
 
 from iroad_frontend.models import (
+    AboutApproachPillar,
+    AboutFaqItem,
+    AboutHowWorkStep,
+    AboutPageContent,
     HomeMapLocation,
     HomePageContent,
     HomePricingTier,
@@ -41,6 +45,18 @@ def _apply_child_widgets(form, model):
         elif isinstance(mf, dj_models.CharField):
             field.widget = TextInput(attrs=_CTRL.copy())
         elif isinstance(mf, dj_models.PositiveSmallIntegerField):
+            field.widget = TextInput(attrs=_CTRL.copy())
+
+
+def _apply_about_page_widgets(form):
+    """About singleton: TextInput / Textarea / FileInput by field type."""
+    for name, field in form.fields.items():
+        mf = AboutPageContent._meta.get_field(name)
+        if isinstance(mf, dj_models.TextField):
+            field.widget = Textarea(attrs=_TEXTAREA_ATTRS.copy())
+        elif isinstance(mf, dj_models.FileField):
+            field.widget = FileInput(attrs=_CTRL.copy())
+        elif isinstance(mf, dj_models.CharField):
             field.widget = TextInput(attrs=_CTRL.copy())
 
 
@@ -94,3 +110,45 @@ class HomeMapLocationForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _apply_child_widgets(self, HomeMapLocation)
+
+
+class AboutPageContentForm(ModelForm):
+    """Singleton about page — same widget rules as home CMS."""
+
+    class Meta:
+        model = AboutPageContent
+        exclude = ('updated_at', 'updated_by')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_about_page_widgets(self)
+
+
+class AboutApproachPillarForm(ModelForm):
+    class Meta:
+        model = AboutApproachPillar
+        exclude = ('about',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_child_widgets(self, AboutApproachPillar)
+
+
+class AboutHowWorkStepForm(ModelForm):
+    class Meta:
+        model = AboutHowWorkStep
+        exclude = ('about',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_child_widgets(self, AboutHowWorkStep)
+
+
+class AboutFaqItemForm(ModelForm):
+    class Meta:
+        model = AboutFaqItem
+        exclude = ('about',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_child_widgets(self, AboutFaqItem)

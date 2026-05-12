@@ -2596,6 +2596,17 @@ header.main-header .header-sticky.active {
   z-index: 1;
 }
 
+/* About page (Django CMS): header image from model only — not global page-header-bg.jpg */
+.page-header.about-page-header {
+  background: none;
+  background-color: var(--secondary-color, #1a1d24);
+}
+.page-header.about-page-header.about-page-header--cms-bg {
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
 .page-header .container {
   position: relative;
   z-index: 2;

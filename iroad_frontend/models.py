@@ -756,3 +756,312 @@ class HomeMapLocation(models.Model):
 
     def __str__(self):
         return f'Location {self.order}: {self.title_en}'
+
+
+# ── About Page CMS ────────────────────────────────────────────────
+
+
+def about_upload_path(instance, filename):
+    return f'marketing/about/{filename}'
+
+
+class AboutPageContent(models.Model):
+    """
+    Singleton CMS for About Page.
+    One record only — get_singleton() pattern.
+    """
+
+    # ── SEO ──────────────────────────────────────────────────────
+    page_title_en = models.CharField(
+        max_length=200, blank=True,
+        default='About IRoad - Transport Management SaaS')
+    page_title_ar = models.CharField(
+        max_length=200, blank=True, default='عن آيروود')
+    meta_description_en = models.TextField(blank=True, default='')
+    meta_description_ar = models.TextField(blank=True, default='')
+
+    # ── Page Header / Breadcrumb ──────────────────────────────────
+    page_header_h1_en = models.CharField(
+        max_length=300, blank=True, default='About IRoad')
+    page_header_h1_ar = models.CharField(
+        max_length=300, blank=True, default='عن آيروود')
+    breadcrumb_current_en = models.CharField(
+        max_length=100, blank=True, default='About IRoad')
+    breadcrumb_current_ar = models.CharField(
+        max_length=100, blank=True, default='عن آيروود')
+    page_header_background = models.FileField(
+        upload_to=about_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+        verbose_name='Page header background image',
+        help_text=(
+            'Optional hero background for the about page header. '
+            'If empty, a solid theme fallback is used (no stock photo).'
+        ),
+    )
+
+    # ── About Us Section ──────────────────────────────────────────
+    about_kicker_en = models.CharField(
+        max_length=200, blank=True, default='About IRoad')
+    about_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='عن آيروود')
+    about_heading_part1_en = models.CharField(
+        max_length=300, blank=True, default='')
+    about_heading_part1_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    about_heading_part2_en = models.CharField(
+        max_length=200, blank=True, default='')
+    about_heading_part2_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    about_heading_part3_en = models.CharField(
+        max_length=200, blank=True, default='')
+    about_heading_part3_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    about_counter_1_value = models.CharField(
+        max_length=20, blank=True, default='24/7')
+    about_counter_1_label_en = models.CharField(
+        max_length=100, blank=True, default='System Availability')
+    about_counter_1_label_ar = models.CharField(
+        max_length=100, blank=True, default='توفر النظام')
+    about_counter_2_value = models.CharField(
+        max_length=20, blank=True, default='100+')
+    about_counter_2_label_en = models.CharField(
+        max_length=100, blank=True,
+        default='Companies Using IRoad')
+    about_counter_2_label_ar = models.CharField(
+        max_length=100, blank=True,
+        default='شركات تستخدم آيروود')
+    about_body_en = models.TextField(blank=True, default='')
+    about_body_ar = models.TextField(blank=True, default='')
+    about_list_item_1_en = models.CharField(
+        max_length=200, blank=True,
+        default='End-to-End Workflow Automation')
+    about_list_item_1_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    about_list_item_2_en = models.CharField(
+        max_length=200, blank=True,
+        default='Real-Time Tracking & Insights')
+    about_list_item_2_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    about_explore_label_en = models.CharField(
+        max_length=100, blank=True, default='Explore Platform')
+    about_explore_label_ar = models.CharField(
+        max_length=100, blank=True, default='استكشف المنصة')
+    about_explore_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    about_footer_text_en = models.TextField(blank=True, default='')
+    about_footer_text_ar = models.TextField(blank=True, default='')
+    about_footer_cta_label_en = models.CharField(
+        max_length=100, blank=True, default='Book a Demo')
+    about_footer_cta_label_ar = models.CharField(
+        max_length=100, blank=True, default='احجز عرضاً')
+    about_footer_cta_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    about_rating_value = models.CharField(
+        max_length=20, blank=True, default='4.9/5')
+    about_review_label_en = models.CharField(
+        max_length=100, blank=True, default='4,200+ reviews')
+    about_review_label_ar = models.CharField(
+        max_length=100, blank=True, default='+4,200 تقييم')
+    about_main_image = models.FileField(
+        upload_to=about_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    about_body_image = models.FileField(
+        upload_to=about_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    about_title_image_1 = models.FileField(
+        upload_to=about_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    about_title_image_2 = models.FileField(
+        upload_to=about_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+
+    # ── Our Approach Section ──────────────────────────────────────
+    approach_kicker_en = models.CharField(
+        max_length=200, blank=True, default='Our Approach')
+    approach_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='نهجنا')
+    approach_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    approach_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    approach_body_en = models.TextField(blank=True, default='')
+    approach_body_ar = models.TextField(blank=True, default='')
+    approach_cta_label_en = models.CharField(
+        max_length=100, blank=True, default='Book a Demo')
+    approach_cta_label_ar = models.CharField(
+        max_length=100, blank=True, default='احجز عرضاً')
+    approach_cta_url = models.CharField(
+        max_length=500, blank=True, default='#')
+
+    # ── How It Works Section ──────────────────────────────────────
+    how_kicker_en = models.CharField(
+        max_length=200, blank=True, default='How It Works')
+    how_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='كيف يعمل')
+    how_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    how_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    how_footer_text_en = models.TextField(blank=True, default='')
+    how_footer_text_ar = models.TextField(blank=True, default='')
+    how_footer_link_label_en = models.CharField(
+        max_length=100, blank=True, default='Start Free Trial')
+    how_footer_link_label_ar = models.CharField(
+        max_length=100, blank=True, default='ابدأ مجاناً')
+    how_footer_link_url = models.CharField(
+        max_length=500, blank=True, default='#')
+    how_rating_value = models.CharField(
+        max_length=20, blank=True, default='4.9/5')
+    how_review_label_en = models.CharField(
+        max_length=100, blank=True, default='4,200+ reviews')
+    how_review_label_ar = models.CharField(
+        max_length=100, blank=True, default='+4,200 تقييم')
+
+    # ── FAQ Section ───────────────────────────────────────────────
+    faq_kicker_en = models.CharField(
+        max_length=200, blank=True, default='FAQs')
+    faq_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='الأسئلة الشائعة')
+    faq_heading_en = models.CharField(
+        max_length=300, blank=True, default='')
+    faq_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    faq_intro_en = models.TextField(blank=True, default='')
+    faq_intro_ar = models.TextField(blank=True, default='')
+    faq_view_all_label_en = models.CharField(
+        max_length=100, blank=True, default="View all FAQ's")
+    faq_view_all_label_ar = models.CharField(
+        max_length=100, blank=True, default='عرض كل الأسئلة')
+    faq_view_all_url = models.CharField(
+        max_length=500, blank=True, default='#')
+
+    # ── Audit ─────────────────────────────────────────────────────
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(
+        max_length=200, blank=True, default='')
+
+    class Meta:
+        db_table = 'iroad_frontend_about_content'
+        verbose_name = 'About Page Content'
+        verbose_name_plural = 'About Page Content'
+
+    def __str__(self):
+        return 'About Page Content'
+
+    @classmethod
+    def get_singleton(cls):
+        obj, _created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class AboutApproachPillar(models.Model):
+    """
+    3 approach pillars: Mission, Vision, Core Value.
+    """
+    about = models.ForeignKey(
+        AboutPageContent,
+        on_delete=models.CASCADE,
+        related_name='approach_pillars',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    body_en = models.TextField(blank=True, default='')
+    body_ar = models.TextField(blank=True, default='')
+    icon = models.FileField(
+        upload_to=about_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_about_approach_pillar'
+        ordering = ['order']
+        verbose_name = 'Approach Pillar'
+        verbose_name_plural = 'Approach Pillars'
+
+    def __str__(self):
+        return f'Pillar {self.order}: {self.title_en}'
+
+
+class AboutHowWorkStep(models.Model):
+    """
+    4 how-it-works steps.
+    """
+    about = models.ForeignKey(
+        AboutPageContent,
+        on_delete=models.CASCADE,
+        related_name='how_work_steps',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    step_number = models.CharField(
+        max_length=10, blank=True, default='01')
+    title_en = models.CharField(
+        max_length=200, blank=True, default='')
+    title_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    body_en = models.TextField(blank=True, default='')
+    body_ar = models.TextField(blank=True, default='')
+    step_image = models.FileField(
+        upload_to=about_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_about_how_work_step'
+        ordering = ['order']
+        verbose_name = 'How Work Step'
+        verbose_name_plural = 'How Work Steps'
+
+    def __str__(self):
+        return f'Step {self.step_number}: {self.title_en}'
+
+
+class AboutFaqItem(models.Model):
+    """
+    FAQ items for About page accordion.
+    Scoped to About page — separate from any Pricing FAQs.
+    """
+    about = models.ForeignKey(
+        AboutPageContent,
+        on_delete=models.CASCADE,
+        related_name='faq_items',
+    )
+    order = models.PositiveSmallIntegerField(default=0)
+    question_en = models.CharField(
+        max_length=500, blank=True, default='')
+    question_ar = models.CharField(
+        max_length=500, blank=True, default='')
+    answer_en = models.TextField(blank=True, default='')
+    answer_ar = models.TextField(blank=True, default='')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_about_faq_item'
+        ordering = ['order']
+        verbose_name = 'About FAQ Item'
+        verbose_name_plural = 'About FAQ Items'
+
+    def __str__(self):
+        return f'FAQ {self.order}: {self.question_en[:60]}'
