@@ -1,20 +1,10 @@
 {% extends 'iroad_frontend/base.html' %}
-{% load static %}
+{% load static cms_locale %}
 
-{% block title %}
-  {% if lang == 'ar' %}
-    {{ contact.page_title_ar|default:contact.page_title_en }}
-  {% else %}
-    {{ contact.page_title_en }}
-  {% endif %}
-{% endblock %}
+{% block title %}{% cms_txt contact 'page_title' %}{% endblock %}
 
 {% block content %}
-    {% if lang == 'ar' %}
-    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='contact' page_header_background=contact.page_header_background page_h1=contact.page_header_h1_ar|default:contact.page_header_h1_en breadcrumb_home_label=home.nav_home_ar|default:home.nav_home_en breadcrumb_current=contact.breadcrumb_current_ar|default:contact.breadcrumb_current_en %}
-    {% else %}
-    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='contact' page_header_background=contact.page_header_background page_h1=contact.page_header_h1_en breadcrumb_home_label=home.nav_home_en breadcrumb_current=contact.breadcrumb_current_en %}
-    {% endif %}
+    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='contact' page_header_background=contact.page_header_background cms_contact_header=True contact=contact home=home %}
 
     <!-- Page Contact Us Start -->
     <div class="page-contact-us">
@@ -23,8 +13,8 @@
                 <div class="col-lg-12">
                     <!-- Section Title Start -->
                     <div class="section-title section-title-center">
-                        <h3>{{ contact.section_kicker_en }}</h3>
-                        <h2>{{ contact.section_heading_en }}</h2>
+                        <h3>{% cms_txt contact 'section_kicker' %}</h3>
+                        <h2>{% cms_txt contact 'section_heading' %}</h2>
                     </div>
                     <!-- Section Title End -->
                 </div>
@@ -36,7 +26,7 @@
                     <div class="contact-us-form">
                         <!-- Section Title Start -->
                         <div class="section-title section-title-center">
-                            <h2>{{ contact.form_title_en }}</h2>
+                            <h2>{% cms_txt contact 'form_title' %}</h2>
                         </div>
                         <!-- Section Title End -->
 
@@ -44,52 +34,52 @@
                         <div class="contact-form">
                             {% if form_success %}
                             <div class="alert alert-success">
-                              Thank you! We will be in touch shortly.
+                              {% if lang == 'ar' %}شكراً لك! سنتواصل معك قريباً.{% else %}Thank you! We will be in touch shortly.{% endif %}
                             </div>
                             {% endif %}
                             {% if form_error %}
                             <div class="alert alert-danger">
-                              Please fill in all required fields.
+                              {% if lang == 'ar' %}يرجى تعبئة جميع الحقول المطلوبة.{% else %}Please fill in all required fields.{% endif %}
                             </div>
                             {% endif %}
                             <form id="contactForm" action="{{ contact.form_action_url }}" method="POST" data-toggle="validator" class="wow fadeInUp">
                                 {% csrf_token %}
                                 <div class="row">
                                     <div class="form-group col-md-6 mb-4">
-                                        <input type="text" name="first_name" class="form-control" id="fname" placeholder="{{ contact.form_fname_placeholder_en }}" required>
+                                        <input type="text" name="first_name" class="form-control" id="fname" placeholder="{% cms_txt contact 'form_fname_placeholder' %}" required>
                                         <div class="help-block with-errors"></div>
                                     </div>
             
                                     <div class="form-group col-md-6 mb-4">
-                                        <input type="text" name="last_name" class="form-control" id="lname" placeholder="{{ contact.form_lname_placeholder_en }}" required>
+                                        <input type="text" name="last_name" class="form-control" id="lname" placeholder="{% cms_txt contact 'form_lname_placeholder' %}" required>
                                         <div class="help-block with-errors"></div>
                                     </div>
                                     
                                     <div class="form-group col-md-6 mb-4">
-                                        <input type="text" name="phone" class="form-control" id="phone" placeholder="{{ contact.form_phone_placeholder_en }}" required>
+                                        <input type="text" name="phone" class="form-control" id="phone" placeholder="{% cms_txt contact 'form_phone_placeholder' %}" required>
                                         <div class="help-block with-errors"></div>
                                     </div>
 
                                     <div class="form-group col-md-6 mb-4">
-                                        <input type="email" name="email" class="form-control" id="email" placeholder="{{ contact.form_email_placeholder_en }}" required>
+                                        <input type="email" name="email" class="form-control" id="email" placeholder="{% cms_txt contact 'form_email_placeholder' %}" required>
                                         <div class="help-block with-errors"></div>
                                     </div>
             
                                     <div class="form-group col-md-12 mb-5">
-                                        <textarea name="message" class="form-control" id="message" rows="5" placeholder="{{ contact.form_message_placeholder_en }}"></textarea>
+                                        <textarea name="message" class="form-control" id="message" rows="5" placeholder="{% cms_txt contact 'form_message_placeholder' %}"></textarea>
                                         <div class="help-block with-errors"></div>
                                     </div>
 
                                     <div class="col-md-12 mb-4">
                                         <div class="policy-checkbox">
                                             <input type="checkbox" id="consent" name="consent" value="on">
-                                            <label class="form-label" for="consent">{{ contact.form_consent_label_en }}</label>
+                                            <label class="form-label" for="consent">{% cms_txt contact 'form_consent_label' %}</label>
                                         </div>
                                     </div>
             
                                     <div class="col-lg-12">
                                         <div class="contact-form-btn">
-                                            <button type="submit" class="btn-default"><span>{{ contact.form_submit_label_en }}</span></button>
+                                            <button type="submit" class="btn-default"><span>{% cms_txt contact 'form_submit_label' %}</span></button>
                                             <div id="msgSubmit" class="h3 hidden"></div>
                                         </div>
                                     </div>
@@ -118,16 +108,16 @@
                          <div class="contact-us-body">
                             <!-- Section Title Start -->
                             <div class="section-title">
-                                <h2>{{ contact.sidebar_heading_en }}</h2>
+                                <h2>{% cms_txt contact 'sidebar_heading' %}</h2>
                             </div>
                             <!-- Section Title End -->
 
                             <!-- Opening Hour Box Start -->
                             <div class="opening-hour-box">
-                                <h3>{{ contact.support_label_en }}</h3>
+                                <h3>{% cms_txt contact 'support_label' %}</h3>
                                 <ul>
-                                    <li><span>{{ contact.support_hours_en }}</span></li>
-                                    <li><span>{{ contact.support_online_label_en }}</span></li>
+                                    <li><span>{% cms_txt contact 'support_hours' %}</span></li>
+                                    <li><span>{% cms_txt contact 'support_online_label' %}</span></li>
                                 </ul>
                             </div>
                             <!-- Opening Hour Box End -->
@@ -145,7 +135,7 @@
                                 <img src="{% static 'landing/images/icon-phone-white.svg' %}" alt="">
                             </div>
                             <div class="contact-info-item-content">
-                                <h3>{{ contact.info_book_label_en }}</h3>
+                                <h3>{% cms_txt contact 'info_book_label' %}</h3>
                                 <p><a href="tel:{{ contact.info_phone_1|cut:' ' }}">{{ contact.info_phone_1 }}</a></p>
                                 <p><a href="tel:{{ contact.info_phone_2|cut:' ' }}">{{ contact.info_phone_2 }}</a></p>
                             </div>
@@ -158,7 +148,7 @@
                                 <img src="{% static 'landing/images/icon-mail-white.svg' %}" alt="">
                             </div>
                             <div class="contact-info-item-content">
-                                <h3>{{ contact.info_email_label_en }}</h3>
+                                <h3>{% cms_txt contact 'info_email_label' %}</h3>
                                 <p><a href="mailto:{{ contact.info_email_1 }}">{{ contact.info_email_1 }}</a></p>
                                 <p><a href="mailto:{{ contact.info_email_2 }}">{{ contact.info_email_2 }}</a></p>
                             </div>
@@ -171,8 +161,8 @@
                                 <img src="{% static 'landing/images/icon-location-white.svg' %}" alt="">
                             </div>
                             <div class="contact-info-item-content">
-                                <h3>{{ contact.info_platform_label_en }}</h3>
-                                <p>{{ contact.info_platform_label_en }}</p>
+                                <h3>{% cms_txt contact 'info_platform_label' %}</h3>
+                                <p>{% cms_txt contact 'info_platform_label' %}</p>
                             </div>
                         </div>
                         <!-- Contact Info Item End  -->
@@ -182,6 +172,6 @@
             </div>
         </div>
     </div>
-    <!-- Page Contact Us Emd -->
+    <!-- Page Contact Us End -->
 
 {% endblock %}

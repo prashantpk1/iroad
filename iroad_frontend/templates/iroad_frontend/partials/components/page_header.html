@@ -14,19 +14,21 @@
               <h1>
                 {% if cms_about_header %}{% cms_txt about 'page_header_h1' %}
                 {% elif cms_pricing_header %}{% cms_txt pricing 'page_header_h1' %}
+                {% elif cms_contact_header %}{% cms_txt contact 'page_header_h1' %}
                 {% else %}{{ page_h1 }}{% endif %}
               </h1>
               <nav class="wow fadeInUp" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                   <li class="breadcrumb-item">
                     <a href="{% url 'iroad_frontend:home' %}">
-                      {% if cms_about_header or cms_pricing_header %}{% cms_txt home 'nav_home' %}
+                      {% if cms_about_header or cms_pricing_header or cms_contact_header %}{% cms_txt home 'nav_home' %}
                       {% else %}{{ breadcrumb_home_label }}{% endif %}
                     </a>
                   </li>
                   <li class="breadcrumb-item active" aria-current="page">
                     {% if cms_about_header %}{% cms_txt about 'breadcrumb_current' %}
                     {% elif cms_pricing_header %}{% cms_txt pricing 'breadcrumb_current' %}
+                    {% elif cms_contact_header %}{% cms_txt contact 'breadcrumb_current' %}
                     {% else %}{{ breadcrumb_current }}{% endif %}
                   </li>
                 </ol>
