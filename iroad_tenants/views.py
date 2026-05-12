@@ -266,6 +266,9 @@ PRICE_LIST_CREATE_PREFILL_CLIENT_SESSION_KEY = 'tenant_price_list_prefill_client
 SALES_INVOICE_REPORT_AUTO_FORM_CODE = 'sales-invoice-report'
 SALES_INVOICE_REPORT_AUTO_FORM_LABEL = 'Sales Invoice Report'
 SALES_INVOICE_REPORT_REF_PREFIX = 'SIR'
+BOOKING_AUTO_FORM_CODE = 'booking'
+BOOKING_AUTO_FORM_LABEL = 'Booking'
+BOOKING_REF_PREFIX = 'BK'
 SHIPMENT_AUTO_FORM_CODE = 'shipment'
 SHIPMENT_AUTO_FORM_LABEL = 'Shipment'
 SHIPMENT_REF_PREFIX = 'SH'
@@ -5107,7 +5110,22 @@ class TenantOperationBookingCreateView(View):
         if not context.get('is_tenant_admin') and not context.get('can_view_booking'):
             messages.error(request, 'You do not have permission to view Booking.', extra_tags='tenant')
             return _tenant_redirect(request, 'iroad_tenants:tenant_dashboard')
-        return render(request, self.template_name, context)
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            context['booking_creation_date'] = timezone.now().date()
+            context['preview_booking_no'] = _preview_next_auto_number_for_form(
+                form_code=BOOKING_AUTO_FORM_CODE,
+                form_label=BOOKING_AUTO_FORM_LABEL,
+                prefix=BOOKING_REF_PREFIX,
+            )
+            context['tenant_schema_name'] = tenant_registry.schema_name
+            return render(request, self.template_name, context)
+        finally:
+            connection.set_schema_to_public()
 
 
 class TenantOperationBookingListView(View):
@@ -10171,7 +10189,7 @@ class TruckMasterDetailView(View):
 
             doc_att_qs = truck.attachments.filter(is_deleted=False).order_by('-attachment_date', '-created_at')
             document_attachment_count = doc_att_qs.count()
-            document_attachments_preview = list(doc_att_qs[:3])
+            document_attachments = list(doc_att_qs[:200])
             assignments_qs = truck.driver_assignments.select_related('driver').order_by(
                 '-assigned_from', '-created_at'
             )
@@ -10192,14 +10210,70 @@ class TruckMasterDetailView(View):
                     if cobj:
                         reg_country_display = f'{cobj.country_code} — {cobj.name_en}'
 
+            truck_ref_q = Q(truck_ref=truck.truck_code) | Q(truck_ref=str(truck.truck_id))
+            movement_log_rows = list(
+                TenantTruckMovementLog.objects.filter(truck_ref_q).order_by(
+                    '-movement_date', '-created_at'
+                )[:100]
+            )
+
+            truck_location_display = '—'
+            for m in movement_log_rows:
+                if m.status == TenantTruckMovementLog.Status.IN_PROGRESS:
+                    a = (m.from_location or '').strip()
+                    b = (m.to_location or '').strip()
+                    if a and b:
+                        truck_location_display = f'{a} → {b}'
+                    elif b:
+                        truck_location_display = b
+                    elif a:
+                        truck_location_display = a
+                    break
+            if truck_location_display == '—':
+                for m in movement_log_rows:
+                    if m.status == TenantTruckMovementLog.Status.COMPLETED:
+                        loc = (m.to_location or m.from_location or '').strip()
+                        if loc:
+                            truck_location_display = loc
+                            break
+
+            truck_shipment_rows = []
+            for s in TenantShipment.objects.filter(truck=truck).order_by(
+                '-shipment_date', '-created_at'
+            )[:100]:
+                route = (s.route_display or '').strip()
+                if not route:
+                    fl = (s.from_location or '').strip()
+                    tl = (s.to_location or '').strip()
+                    if fl and tl:
+                        route = f'{fl} → {tl}'
+                    elif fl or tl:
+                        route = fl or tl
+                    else:
+                        route = '—'
+                truck_shipment_rows.append({'shipment': s, 'route': route})
+
+            default_driver_display = '—'
+            dd = truck.default_driver_id
+            if dd:
+                nm = (dd.english_name or dd.arabic_name or '').strip()
+                default_driver_display = f'{dd.driver_code} — {nm}' if nm else dd.driver_code
+
+            vendor_account_display = (truck.vendor_account_id or '').strip() or '—'
+
             context.update(
                 {
                     'truck': truck,
                     'truck_images': list(truck.truck_images.all()),
                     'document_attachment_count': document_attachment_count,
-                    'document_attachments_preview': document_attachments_preview,
+                    'document_attachments': document_attachments,
                     'assigned_drivers_rows': assigned_drivers_rows,
                     'reg_country_display': reg_country_display,
+                    'movement_log_rows': movement_log_rows,
+                    'truck_shipment_rows': truck_shipment_rows,
+                    'truck_location_display': truck_location_display,
+                    'default_driver_display': default_driver_display,
+                    'vendor_account_display': vendor_account_display,
                     'page_title': truck.truck_code,
                     'tenant_schema_name': getattr(tenant_registry, 'schema_name', ''),
                 }
@@ -10931,12 +11005,10 @@ class DriverMasterDetailView(View):
                 messages.error(request, 'Driver not found.', extra_tags='tenant')
                 return _tenant_redirect(request, 'iroad_tenants:driver_master')
 
-            attachments_count = driver.attachments.count()
-            attachments_preview = list(
-                driver.attachments.order_by(
-                    '-attachment_date', '-created_at'
-                )[:3]
-            )
+            att_qs = driver.attachments.order_by('-attachment_date', '-created_at')
+            attachments_count = att_qs.count()
+            driver_attachments = list(att_qs[:200])
+
             assigned_trucks_qs = (
                 TruckDriverAssignmentHistory.objects.select_related(
                     'truck',
@@ -10954,12 +11026,84 @@ class DriverMasterDetailView(View):
                 }
                 for row in assigned_trucks_qs
             ]
+            current_codes = [
+                r['truck'].truck_code
+                for r in assigned_trucks_rows
+                if r['status'] == 'Current' and r.get('truck')
+            ]
+            if current_codes:
+                assigned_trucks_display = ', '.join(dict.fromkeys(current_codes))
+            elif assigned_trucks_rows:
+                assigned_trucks_display = assigned_trucks_rows[0]['truck'].truck_code
+            else:
+                assigned_trucks_display = '—'
+
+            driver_ref_q = Q(driver_ref=driver.driver_code) | Q(
+                driver_ref=str(driver.driver_id)
+            )
+            driver_shipment_rows = []
+            for s in (
+                TenantShipment.objects.filter(driver_ref_q)
+                .select_related('truck')
+                .order_by('-shipment_date', '-created_at')[:100]
+            ):
+                route = (s.route_display or '').strip()
+                if not route:
+                    fl = (s.from_location or '').strip()
+                    tl = (s.to_location or '').strip()
+                    if fl and tl:
+                        route = f'{fl} → {tl}'
+                    elif fl or tl:
+                        route = fl or tl
+                    else:
+                        route = '—'
+                driver_shipment_rows.append({'shipment': s, 'route': route})
+
+            driver_movement_rows = list(
+                TenantTruckMovementLog.objects.filter(driver_ref_q).order_by(
+                    '-movement_date', '-created_at'
+                )[:100]
+            )
+
+            primary_treasury = (
+                DriverTreasury.objects.filter(
+                    driver=driver, status=DriverTreasury.Status.ACTIVE
+                )
+                .order_by('-created_at')
+                .first()
+            )
+            if primary_treasury is None:
+                primary_treasury = (
+                    DriverTreasury.objects.filter(driver=driver)
+                    .order_by('-created_at')
+                    .first()
+                )
+            if primary_treasury:
+                wallet_transactions = list(
+                    primary_treasury.transactions.select_related(
+                        'driver_treasury'
+                    ).order_by('-transaction_date', '-created_at')[:75]
+                )
+            else:
+                wallet_transactions = list(
+                    DriverTreasuryTransaction.objects.filter(
+                        driver_treasury__driver=driver
+                    )
+                    .select_related('driver_treasury')
+                    .order_by('-transaction_date', '-created_at')[:75]
+                )
+
             context.update(
                 {
                     'driver': driver,
                     'attachments_count': attachments_count,
-                    'attachments_preview': attachments_preview,
+                    'driver_attachments': driver_attachments,
                     'assigned_trucks_rows': assigned_trucks_rows,
+                    'assigned_trucks_display': assigned_trucks_display,
+                    'driver_shipment_rows': driver_shipment_rows,
+                    'driver_movement_rows': driver_movement_rows,
+                    'primary_treasury': primary_treasury,
+                    'wallet_transactions': wallet_transactions,
                     'id_document_status': driver.id_status,
                     'passport_document_status': driver.passport_status,
                     'dl_document_status': driver.dl_status,
@@ -12110,7 +12254,7 @@ class DriverAttachmentCreateView(View):
                     ).order_by('driver_code')
                 )
 
-            form = DriverAttachmentForm()
+            form = DriverAttachmentForm(initial={'record_status': ''})
             context.update(
                 {
                     'form': form,
@@ -12629,7 +12773,7 @@ class TruckAttachmentCreateView(View):
                     ).order_by('truck_code')
                 )
 
-            form = TruckAttachmentForm()
+            form = TruckAttachmentForm(initial={'record_status': ''})
             context.update(
                 {
                     'form': form,
@@ -13361,6 +13505,7 @@ class TenantAutoNumberConfigurationView(View):
         SERVICE_ITEM_MASTER_AUTO_FORM_CODE: SERVICE_ITEM_MASTER_AUTO_FORM_LABEL,
         PRICE_LIST_MASTER_AUTO_FORM_CODE: PRICE_LIST_MASTER_AUTO_FORM_LABEL,
         SALES_INVOICE_REPORT_AUTO_FORM_CODE: SALES_INVOICE_REPORT_AUTO_FORM_LABEL,
+        BOOKING_AUTO_FORM_CODE: BOOKING_AUTO_FORM_LABEL,
         SHIPMENT_AUTO_FORM_CODE: SHIPMENT_AUTO_FORM_LABEL,
     }
 
@@ -13384,6 +13529,7 @@ class TenantAutoNumberConfigurationView(View):
         SERVICE_ITEM_MASTER_AUTO_FORM_CODE: SERVICE_ITEM_MASTER_REF_PREFIX,
         PRICE_LIST_MASTER_AUTO_FORM_CODE: PRICE_LIST_MASTER_REF_PREFIX,
         SALES_INVOICE_REPORT_AUTO_FORM_CODE: SALES_INVOICE_REPORT_REF_PREFIX,
+        BOOKING_AUTO_FORM_CODE: BOOKING_REF_PREFIX,
         SHIPMENT_AUTO_FORM_CODE: SHIPMENT_REF_PREFIX,
     }
 
@@ -13396,6 +13542,44 @@ class TenantAutoNumberConfigurationView(View):
         if not s:
             return ''
         return s.replace('_', '-').lower()
+
+    def _resolve_auto_number_form_code_from_get(self, request):
+        """
+        Resolve ``form_code`` from the query string.
+
+        Django's ``QueryDict.get('form_code')`` returns only the *last* value when the
+        parameter is repeated. Some clients or redirects can produce
+        ``?form_code=booking&form_code=organization-profile``, which would incorrectly
+        open Organization Profile. We therefore consider every value in order and
+        prefer the last *recognized* code that is not the default Organization Profile
+        when at least one such code exists.
+        """
+        raw_list = request.GET.getlist('form_code')
+        ordered_normalized = []
+        seen = set()
+        for raw in raw_list:
+            n = self._normalize_form_code(raw)
+            if n and n not in seen:
+                seen.add(n)
+                ordered_normalized.append(n)
+        if not ordered_normalized:
+            return self.ORGANIZATION_FORM_CODE
+
+        recognized = [c for c in ordered_normalized if c in self.FORM_LABELS]
+        if not recognized:
+            hint = raw_list[0] if raw_list else ''
+            if str(hint).strip():
+                messages.warning(
+                    request,
+                    f'Unknown auto number form "{hint}". Showing Organization Profile instead.',
+                    extra_tags='tenant',
+                )
+            return self.ORGANIZATION_FORM_CODE
+
+        non_default = [c for c in recognized if c != self.ORGANIZATION_FORM_CODE]
+        if non_default:
+            return non_default[-1]
+        return recognized[-1]
 
     def _auto_number_list_url(self, request, form_code):
         q = {'form_code': form_code}
@@ -13425,13 +13609,7 @@ class TenantAutoNumberConfigurationView(View):
             clear_tenant_portal_cookie(response, request=request)
             return response
         try:
-            raw_form = request.GET.get('form_code')
-            if raw_form is None or not str(raw_form).strip():
-                requested_form_code = self.ORGANIZATION_FORM_CODE
-            else:
-                requested_form_code = self._normalize_form_code(raw_form)
-                if requested_form_code not in self.FORM_LABELS:
-                    requested_form_code = self.ORGANIZATION_FORM_CODE
+            requested_form_code = self._resolve_auto_number_form_code_from_get(request)
             config = self._load_config(requested_form_code)
             sequence = AutoNumberSequence.objects.filter(form_code=requested_form_code).first()
             base_next_number = sequence.next_number if sequence else 1

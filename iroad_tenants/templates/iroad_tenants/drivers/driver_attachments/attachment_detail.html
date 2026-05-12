@@ -121,6 +121,16 @@
 
       <div class="field">
         <span class="field-hint d-block mb-1">Status</span>
+        {% if attachment.record_status == 'Active' %}
+        <span class="status-badge da-att-valid"><i class="bi bi-check2-circle"></i> Active</span>
+        {% elif attachment.record_status == 'Inactive' %}
+        <span class="status-badge da-driver-inactive"><i class="bi bi-dash-circle"></i> Inactive</span>
+        {% else %}
+        <span class="status-badge da-att-pending"><i class="bi bi-hourglass-split"></i> Pending</span>
+        {% endif %}
+      </div>
+      <div class="field">
+        <span class="field-hint d-block mb-1">Validity</span>
         {% if attachment.status == 'Valid' %}
         <span class="status-badge da-att-valid"><i class="bi bi-check2-circle"></i> Valid</span>
         {% elif attachment.status == 'Expired' %}
@@ -270,6 +280,7 @@
   .status-badge.da-att-valid { background: #e9f8ef; color: #0f8a43; border: 1px solid #c7efd5; }
   .status-badge.da-att-expired { background: #ffecec; color: #c73535; border: 1px solid #ffd2d2; }
   .status-badge.da-att-dne { background: #edf4ff; color: #2f6fd8; border: 1px solid #d6e5ff; }
+  .status-badge.da-att-pending { background: #fff8e6; color: #b45309; border: 1px solid #ffe4a8; }
   .da-compact-pill {
     display: inline-flex !important;
     align-items: center;

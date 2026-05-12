@@ -21,6 +21,14 @@ class TruckAttachmentForm(forms.ModelForm):
                 'Upload to replace it.'
             )
 
+        rs = self.fields['record_status']
+        rs.choices = [
+            ('', '-Select status-'),
+        ] + list(TruckAttachment.RecordStatus.choices)
+        rs.required = True
+        rs.widget.attrs.setdefault('class', 'form-select')
+        rs.help_text = 'Current status of the attachment'
+
     class Meta:
         model = TruckAttachment
         fields = [
@@ -30,6 +38,7 @@ class TruckAttachmentForm(forms.ModelForm):
             'attachment_date',
             'is_expiry_applicable',
             'expiry_date',
+            'record_status',
             'attachment_file',
             'file_notes',
         ]
@@ -60,6 +69,9 @@ class TruckAttachmentForm(forms.ModelForm):
             'expiry_date': forms.DateInput(
                 attrs={'type': 'date', 'class': 'form-control has-icon'},
             ),
+            'record_status': forms.Select(
+                attrs={'class': 'form-select'},
+            ),
             'attachment_file': forms.FileInput(attrs={'class': 'form-control'}),
             'file_notes': forms.Textarea(
                 attrs={
@@ -72,6 +84,15 @@ class TruckAttachmentForm(forms.ModelForm):
                 },
             ),
         }
+
+    def clean_record_status(self):
+        value = (self.cleaned_data.get('record_status') or '').strip()
+        if not value:
+            raise ValidationError('Please select a status.')
+        valid = {c[0] for c in TruckAttachment.RecordStatus.choices}
+        if value not in valid:
+            raise ValidationError('Invalid status.')
+        return value
 
     def clean_file_notes(self):
         notes = (self.cleaned_data.get('file_notes') or '').strip()

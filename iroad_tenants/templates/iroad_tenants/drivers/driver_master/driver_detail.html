@@ -33,11 +33,12 @@
   </div>
 </div>
 
+<div class="container-fluid pb-4">
 <div class="ch-header-card">
   <div class="ch-left">
     <div class="ch-title-row">
       <div class="ch-avatar" aria-hidden="true">
-        <img src="https://ui-avatars.com/api/?name={{ driver.english_name|default:driver.driver_code|urlencode }}&background=e8ecf9&color=2563eb&size=128" alt="" />
+        <img src="https://ui-avatars.com/api/?name={{ driver.english_name|default:driver.arabic_name|default:driver.driver_code|urlencode }}&background=5051f9&color=fff&size=128" alt="" />
       </div>
       <div class="ch-title-block">
         <h2 class="ch-title mb-0">{% if driver.english_name %}{{ driver.english_name }}{% else %}<span dir="rtl" lang="ar">{{ driver.arabic_name }}</span>{% endif %}</h2>
@@ -80,25 +81,22 @@
     <div class="ch-contact-item">
       <div class="ch-contact-icon"><i class="bi bi-truck"></i></div>
       <div class="ch-contact-text">
-        Assigned:
-        {% if assigned_trucks_rows %}
-          {{ assigned_trucks_rows.0.truck.truck_code }}
-        {% else %}
-          —
-        {% endif %}
+        Assigned: {{ assigned_trucks_display }}
       </div>
     </div>
   </div>
 </div>
 
 <div class="ch-actions">
-  <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-pencil-square"></i> Edit</a>
+  <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-pencil"></i> Edit</a>
   <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}?section=driving-license" class="ch-action-btn">
     <i class="bi bi-card-checklist"></i> Update Licenses
   </a>
-  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
-    <i class="bi bi-wallet"></i> Add Wallet Transaction
-  </button>
+  {% if primary_treasury %}
+  <a href="{% url 'iroad_tenants:driver_transaction_create' %}?treasury_id={{ primary_treasury.treasury_id }}" class="ch-action-btn"><i class="bi bi-wallet"></i> Add Wallet Transaction</a>
+  {% else %}
+  <a href="{% url 'iroad_tenants:driver_treasury_create' %}" class="ch-action-btn" title="Create a treasury for this driver first"><i class="bi bi-wallet"></i> Add Wallet Transaction</a>
+  {% endif %}
   {% if driver.driver_status == 'Active' %}
   <button type="button" class="ch-action-btn text-danger border-danger dm-detail-status-trigger" data-driver-id="{{ driver.driver_id }}" data-new-status="Inactive">
     <i class="bi bi-person-x"></i> Suspend Driver
@@ -117,13 +115,13 @@
     <i class="bi bi-person-check"></i> Activate Driver
   </button>
   {% endif %}
-  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
-    <i class="bi bi-phone-slash"></i> Suspend App Access
-  </button>
-  <button type="button" class="ch-action-btn ch-action-btn--disabled" disabled title="Under development">
+  <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}" class="ch-action-btn" title="Manage linked app user in Basic Information">
+    <i class="bi bi-phone-vibrate"></i> Suspend App Access
+  </a>
+  <a href="{% url 'iroad_tenants:driver_master_edit' driver.driver_id %}" class="ch-action-btn" title="Change linked user account in Basic Information">
     <i class="bi bi-key"></i> Reset Password
-  </button>
-  <a href="{% url 'iroad_tenants:driver_attachment_create' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-paperclip"></i> Upload Attachment</a>
+  </a>
+  <a href="{% url 'iroad_tenants:driver_attachment_create' driver.driver_id %}" class="ch-action-btn"><i class="bi bi-file-earmark-plus"></i> Upload Attachment</a>
 </div>
 
 <div class="cd-main-card">
@@ -133,7 +131,7 @@
         <button class="cd-tab active" id="tab-overview" data-bs-toggle="tab" data-bs-target="#pane-overview" type="button" role="tab" aria-controls="pane-overview" aria-selected="true">Overview</button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="cd-tab" id="tab-documents" data-bs-toggle="tab" data-bs-target="#pane-documents" type="button" role="tab" aria-controls="pane-documents" aria-selected="false">Licenses &amp; Documents</button>
+        <button class="cd-tab" id="tab-licenses-docs" data-bs-toggle="tab" data-bs-target="#pane-licenses-docs" type="button" role="tab" aria-controls="pane-licenses-docs" aria-selected="false">Licenses &amp; Documents</button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="cd-tab" id="tab-assigned-trucks" data-bs-toggle="tab" data-bs-target="#pane-assigned-trucks" type="button" role="tab" aria-controls="pane-assigned-trucks" aria-selected="false">Assigned Trucks</button>
@@ -142,7 +140,7 @@
         <button class="cd-tab" id="tab-shipments" data-bs-toggle="tab" data-bs-target="#pane-shipments" type="button" role="tab" aria-controls="pane-shipments" aria-selected="false">Shipments</button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="cd-tab" id="tab-movements" data-bs-toggle="tab" data-bs-target="#pane-movements" type="button" role="tab" aria-controls="pane-movements" aria-selected="false">Movements Log</button>
+        <button class="cd-tab" id="tab-movements-log" data-bs-toggle="tab" data-bs-target="#pane-movements-log" type="button" role="tab" aria-controls="pane-movements-log" aria-selected="false">Movements Log</button>
       </li>
       <li class="nav-item" role="presentation">
         <button class="cd-tab" id="tab-wallet" data-bs-toggle="tab" data-bs-target="#pane-wallet" type="button" role="tab" aria-controls="pane-wallet" aria-selected="false">Wallet Statement</button>
@@ -291,15 +289,15 @@
     </div>
 
     <!-- TAB 2 — Licenses & Documents -->
-    <div class="tab-pane fade" id="pane-documents" role="tabpanel" aria-labelledby="tab-documents">
+    <div class="tab-pane fade" id="pane-licenses-docs" role="tabpanel" aria-labelledby="tab-licenses-docs">
       <div class="row row-cols-1 row-cols-md-2 g-3">
         <div class="col">
           <div class="cd-details-section mb-0 h-100">
-            <div class="cd-details-header">ID / IQAMA</div>
+            <div class="cd-details-header">ID / IQAMA Card</div>
             <div class="cd-details-body">
               <div class="cd-grid-row">
-                <div class="cd-field"><span class="cd-field-label">ID Number</span><span class="cd-field-value">{{ driver.id_number|default:"—" }}</span></div>
-                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{{ driver.id_expiry_date|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">ID Number</span><span class="cd-field-value dm-doc-num-emphasis">{{ driver.id_number|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{% if driver.id_expiry_date %}{{ driver.id_expiry_date|date:"j M Y" }}{% else %}—{% endif %}</span></div>
               </div>
               <div class="cd-grid-row">
                 <div class="cd-field">
@@ -307,11 +305,11 @@
                   <span class="cd-field-value">{% include 'iroad_tenants/drivers/driver_master/partials/driver_doc_status_badge.html' with status=id_document_status only %}</span>
                 </div>
                 <div class="cd-field">
-                  {% if driver.id_image %}
                   <span class="cd-field-label d-block mb-2">ID Image</span>
+                  {% if driver.id_image %}
                   <a href="{{ driver.id_image.url }}" target="_blank" rel="noopener" class="d-inline-block"><img src="{{ driver.id_image.url }}" alt="" class="dm-doc-thumb rounded border" /></a>
                   {% else %}
-                  <span class="cd-field-label">ID Image</span><span class="cd-field-value">—</span>
+                  <div class="dm-doc-placeholder" title="No image uploaded"><i class="bi bi-image"></i></div>
                   {% endif %}
                 </div>
               </div>
@@ -320,11 +318,11 @@
         </div>
         <div class="col">
           <div class="cd-details-section mb-0 h-100">
-            <div class="cd-details-header">Passport</div>
+            <div class="cd-details-header">Passport Card</div>
             <div class="cd-details-body">
               <div class="cd-grid-row">
-                <div class="cd-field"><span class="cd-field-label">Passport Number</span><span class="cd-field-value">{{ driver.passport_number|default:"—" }}</span></div>
-                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{{ driver.passport_expiry_date|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Passport Number</span><span class="cd-field-value dm-doc-num-emphasis">{{ driver.passport_number|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{% if driver.passport_expiry_date %}{{ driver.passport_expiry_date|date:"j M Y" }}{% else %}—{% endif %}</span></div>
               </div>
               <div class="cd-grid-row">
                 <div class="cd-field">
@@ -332,11 +330,11 @@
                   <span class="cd-field-value">{% include 'iroad_tenants/drivers/driver_master/partials/driver_doc_status_badge.html' with status=passport_document_status only %}</span>
                 </div>
                 <div class="cd-field">
-                  {% if driver.passport_image %}
                   <span class="cd-field-label d-block mb-2">Passport Image</span>
+                  {% if driver.passport_image %}
                   <a href="{{ driver.passport_image.url }}" target="_blank" rel="noopener"><img src="{{ driver.passport_image.url }}" alt="" class="dm-doc-thumb rounded border" /></a>
                   {% else %}
-                  <span class="cd-field-label">Passport Image</span><span class="cd-field-value">—</span>
+                  <div class="dm-doc-placeholder" title="No image uploaded"><i class="bi bi-image"></i></div>
                   {% endif %}
                 </div>
               </div>
@@ -345,11 +343,11 @@
         </div>
         <div class="col">
           <div class="cd-details-section mb-0 h-100">
-            <div class="cd-details-header">Driving License</div>
+            <div class="cd-details-header">Driving License Card</div>
             <div class="cd-details-body">
               <div class="cd-grid-row">
-                <div class="cd-field"><span class="cd-field-label">DL Number</span><span class="cd-field-value">{{ driver.dl_number|default:"—" }}</span></div>
-                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{{ driver.dl_expiry_date|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">DL Number</span><span class="cd-field-value dm-doc-num-emphasis">{{ driver.dl_number|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{% if driver.dl_expiry_date %}{{ driver.dl_expiry_date|date:"j M Y" }}{% else %}—{% endif %}</span></div>
               </div>
               <div class="cd-grid-row">
                 <div class="cd-field">
@@ -357,11 +355,11 @@
                   <span class="cd-field-value">{% include 'iroad_tenants/drivers/driver_master/partials/driver_doc_status_badge.html' with status=dl_document_status only %}</span>
                 </div>
                 <div class="cd-field">
-                  {% if driver.dl_image %}
                   <span class="cd-field-label d-block mb-2">DL Image</span>
+                  {% if driver.dl_image %}
                   <a href="{{ driver.dl_image.url }}" target="_blank" rel="noopener"><img src="{{ driver.dl_image.url }}" alt="" class="dm-doc-thumb rounded border" /></a>
                   {% else %}
-                  <span class="cd-field-label">DL Image</span><span class="cd-field-value">—</span>
+                  <div class="dm-doc-placeholder" title="No image uploaded"><i class="bi bi-image"></i></div>
                   {% endif %}
                 </div>
               </div>
@@ -373,8 +371,8 @@
             <div class="cd-details-header">Driver Card</div>
             <div class="cd-details-body">
               <div class="cd-grid-row">
-                <div class="cd-field"><span class="cd-field-label">Card Number</span><span class="cd-field-value">{{ driver.card_number|default:"—" }}</span></div>
-                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{{ driver.card_expiry_date|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Card Number</span><span class="cd-field-value dm-doc-num-emphasis">{{ driver.card_number|default:"—" }}</span></div>
+                <div class="cd-field"><span class="cd-field-label">Expiry Date</span><span class="cd-field-value">{% if driver.card_expiry_date %}{{ driver.card_expiry_date|date:"j M Y" }}{% else %}—{% endif %}</span></div>
               </div>
               <div class="cd-grid-row">
                 <div class="cd-field">
@@ -382,11 +380,11 @@
                   <span class="cd-field-value">{% include 'iroad_tenants/drivers/driver_master/partials/driver_doc_status_badge.html' with status=card_document_status only %}</span>
                 </div>
                 <div class="cd-field">
-                  {% if driver.card_image %}
                   <span class="cd-field-label d-block mb-2">Card Image</span>
+                  {% if driver.card_image %}
                   <a href="{{ driver.card_image.url }}" target="_blank" rel="noopener"><img src="{{ driver.card_image.url }}" alt="" class="dm-doc-thumb rounded border" /></a>
                   {% else %}
-                  <span class="cd-field-label">Card Image</span><span class="cd-field-value">—</span>
+                  <div class="dm-doc-placeholder" title="No image uploaded"><i class="bi bi-image"></i></div>
                   {% endif %}
                 </div>
               </div>
@@ -403,45 +401,50 @@
           </a>
         </div>
         <div class="cd-details-body p-0">
-          {% if attachments_preview %}
+          {% if driver_attachments %}
           <div class="eal-table-wrap" style="box-shadow: none; border-radius: 0">
             <table class="eal-table mb-0">
               <thead>
                 <tr>
-                  <th>No</th>
-                  <th>Date</th>
-                  <th>Expiry Applicable</th>
-                  <th>Expiry Date</th>
-                  <th>Status</th>
-                  <th>File</th>
+                  <th>NO</th>
+                  <th>DATE</th>
+                  <th>EXPIRY APPLICABLE</th>
+                  <th>EXPIRY DATE</th>
+                  <th>STATUS</th>
+                  <th>FILE</th>
+                  <th class="text-end">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
-                {% for a in attachments_preview %}
+                {% for a in driver_attachments %}
                 <tr>
-                  <td><span class="eal-entity-id">{{ a.attachment_no|default:forloop.counter }}</span></td>
-                  <td>{{ a.attachment_date }}</td>
-                  <td>
-                    {% if a.is_expiry_applicable %}
-                    <span class="badge rounded-pill bg-success bg-opacity-10 text-success">Yes</span>
-                    {% else %}
-                    <span class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary">No</span>
-                    {% endif %}
+                  <td><span class="eal-entity-id">{{ a.attachment_no|default:a.attachment_id }}</span></td>
+                  <td>{{ a.attachment_date|date:"M j, Y" }}</td>
+                  <td class="text-center">
+                    {% if a.is_expiry_applicable %}<i class="bi bi-check-lg text-success" title="Yes"></i>{% else %}<i class="bi bi-x-lg text-secondary" title="No"></i>{% endif %}
                   </td>
-                  <td>{% if a.is_expiry_applicable and a.expiry_date %}{{ a.expiry_date }}{% else %}—{% endif %}</td>
+                  <td>{% if a.is_expiry_applicable and a.expiry_date %}{% if a.status == 'Expired' %}<span class="text-danger fw-bold">{{ a.expiry_date|date:"M j, Y" }}</span>{% else %}<span class="text-success fw-bold">{{ a.expiry_date|date:"M j, Y" }}</span>{% endif %}{% else %}<span class="text-muted">—</span>{% endif %}</td>
                   <td>
                     {% if a.status == 'Valid' %}
                     <span class="status-badge dm-doc-valid">Valid</span>
                     {% elif a.status == 'Expired' %}
                     <span class="status-badge dm-doc-expired">Expired</span>
                     {% else %}
-                    <span class="status-badge dm-doc-none">{{ a.status|default:"—" }}</span>
+                    <span class="status-badge dm-doc-none">Does Not Expire</span>
                     {% endif %}
                   </td>
                   <td>
                     {% if a.attachment_file %}
-                    <a href="{{ a.attachment_file.url }}" target="_blank" rel="noopener">{{ a.attachment_file.name|truncatechars:44 }}</a>
+                    <a href="{{ a.attachment_file.url }}" target="_blank" rel="noopener" class="small">{{ a.attachment_file.name|truncatechars:48 }}</a>
                     {% else %}—{% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="eal-actions-cell justify-content-end pt-0 pb-0 w-100">
+                      {% if a.attachment_file %}
+                      <a class="eal-row-btn" href="{{ a.attachment_file.url }}" target="_blank" rel="noopener" title="Download"><i class="bi bi-download"></i></a>
+                      {% endif %}
+                      <a class="eal-row-btn" href="{% url 'iroad_tenants:driver_attachment_detail' driver_id=driver.driver_id attachment_id=a.attachment_id %}" title="View"><i class="bi bi-eye"></i></a>
+                    </div>
                   </td>
                 </tr>
                 {% endfor %}
@@ -491,9 +494,9 @@
                     {% endif %}
                   </td>
                   <td class="text-end">
-                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'iroad_tenants:truck_master_detail' row.truck.truck_id %}" title="View Truck">
-                      <i class="bi bi-eye"></i>
-                    </a>
+                    <div class="eal-actions-cell justify-content-end pt-0 pb-0 w-100">
+                      <a class="eal-row-btn" href="{% url 'iroad_tenants:truck_master_detail' row.truck.truck_id %}" title="View Truck"><i class="bi bi-eye"></i></a>
+                    </div>
                   </td>
                 </tr>
                 {% endfor %}
@@ -510,30 +513,214 @@
     </div>
 
     <div class="tab-pane fade" id="pane-shipments" role="tabpanel" aria-labelledby="tab-shipments">
-      <div class="cd-empty">
-        <strong>Under development:</strong> Shipment linkage for driver history is pending backend connection.
+      <div class="cd-details-section mb-0">
+        <div class="cd-details-header">Shipment History</div>
+        <div class="cd-details-body p-0">
+          {% if driver_shipment_rows %}
+          <div class="eal-table-wrap" style="box-shadow:none;border-radius:0;">
+            <table class="eal-table mb-0">
+              <thead>
+                <tr>
+                  <th>Shipment ID</th>
+                  <th>Date</th>
+                  <th>Route</th>
+                  <th>Client</th>
+                  <th>Truck</th>
+                  <th>Cargo Type</th>
+                  <th>Status</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in driver_shipment_rows %}
+                {% with s=row.shipment %}
+                <tr>
+                  <td><span class="eal-entity-id">{{ s.shipment_no }}</span></td>
+                  <td>{{ s.shipment_date|date:"d M Y" }}</td>
+                  <td>{{ row.route }}</td>
+                  <td>{{ s.client_account_ref|default:"—" }}</td>
+                  <td>{% if s.truck %}{{ s.truck.truck_code }}{% else %}—{% endif %}</td>
+                  <td>{{ s.booking_item_type|default:"—" }}</td>
+                  <td>
+                    {% if s.shipment_status == 'In Transit' %}
+                    <span class="status-badge dm-ship-transit">In Transit</span>
+                    {% elif s.shipment_status == 'Delivered' %}
+                    <span class="status-badge dm-ship-delivered">Delivered</span>
+                    {% elif s.shipment_status == 'Created' %}
+                    <span class="status-badge dm-ship-created">Created</span>
+                    {% elif s.shipment_status == 'Closed' %}
+                    <span class="status-badge dm-ship-closed">Closed</span>
+                    {% elif s.shipment_status == 'Cancelled' %}
+                    <span class="status-badge dm-ship-cancelled">Cancelled</span>
+                    {% else %}
+                    <span class="status-badge dm-ship-default">{{ s.shipment_status|default:"—" }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="eal-actions-cell justify-content-end pt-0 pb-0 w-100">
+                      <a class="eal-row-btn" href="{% url 'iroad_tenants:tenant_operation_shipment_list' %}" title="Open shipment list"><i class="bi bi-eye"></i></a>
+                    </div>
+                  </td>
+                </tr>
+                {% endwith %}
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="cd-empty m-3"><strong>No shipments linked to this driver yet.</strong> Shipments appear when the shipment driver reference matches this driver code or id.</div>
+          {% endif %}
+        </div>
       </div>
     </div>
 
-    <div class="tab-pane fade" id="pane-movements" role="tabpanel" aria-labelledby="tab-movements">
-      <div class="cd-empty">
-        <strong>Under development:</strong> Movements log module linkage is pending backend connection.
+    <div class="tab-pane fade" id="pane-movements-log" role="tabpanel" aria-labelledby="tab-movements-log">
+      <div class="cd-details-section mb-0">
+        <div class="cd-details-header">Truck Movements Log</div>
+        <div class="cd-details-body p-0">
+          {% if driver_movement_rows %}
+          <div class="eal-table-wrap" style="box-shadow:none;border-radius:0;">
+            <table class="eal-table mb-0">
+              <thead>
+                <tr>
+                  <th>Movement ID</th>
+                  <th>Date &amp; Time</th>
+                  <th>Truck</th>
+                  <th>From Location</th>
+                  <th>To Location</th>
+                  <th>KM Covered</th>
+                  <th>Movement Type</th>
+                  <th>Status</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in driver_movement_rows %}
+                <tr>
+                  <td><span class="eal-entity-id">{{ m.movement_no }}</span></td>
+                  <td>{% if m.start_time %}{{ m.start_time|date:"j M Y, g:i A" }}{% else %}{{ m.movement_date|date:"j M Y" }}{% endif %}</td>
+                  <td>{{ m.truck_ref|default:"—" }}</td>
+                  <td>{{ m.from_location|default:"—" }}</td>
+                  <td>{{ m.to_location|default:"—" }}</td>
+                  <td style="font-weight:600">{% if m.distance_km %}{{ m.distance_km|floatformat:0 }}&nbsp;km{% else %}—{% endif %}</td>
+                  <td>
+                    {% if m.shipment_ref %}
+                    <span class="status-badge dm-mov-loaded">Loaded trip</span>
+                    {% elif m.empty_move_reason %}
+                    <span class="status-badge dm-mov-empty">{{ m.empty_move_reason }}</span>
+                    {% elif m.movement_source %}
+                    <span class="status-badge dm-mov-source">{{ m.movement_source }}</span>
+                    {% else %}
+                    <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if m.status == 'In Progress' %}
+                    <span class="status-badge dm-mov-inprog">In Progress</span>
+                    {% elif m.status == 'Completed' %}
+                    <span class="status-badge dm-mov-done">Completed</span>
+                    {% elif m.status == 'Scheduled' %}
+                    <span class="status-badge dm-mov-sched">Scheduled</span>
+                    {% elif m.status == 'Cancelled' %}
+                    <span class="status-badge dm-mov-cancel">Cancelled</span>
+                    {% else %}
+                    <span class="status-badge dm-ship-default">{{ m.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-end">
+                    <div class="eal-actions-cell justify-content-end pt-0 pb-0 w-100">
+                      <a class="eal-row-btn" href="{% url 'iroad_tenants:tenant_operation_truck_movement_log_list' %}" title="Open movement log"><i class="bi bi-eye"></i></a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="cd-empty m-3"><strong>No movement log rows for this driver yet.</strong> Rows match when driver reference equals this driver code or id.</div>
+          {% endif %}
+        </div>
       </div>
     </div>
 
     <div class="tab-pane fade" id="pane-wallet" role="tabpanel" aria-labelledby="tab-wallet">
-      <div class="cd-empty">
-        <strong>Under development:</strong> Wallet statement and transactions are pending backend connection.
+      <div class="cd-details-section mb-4">
+        <div class="cd-details-header">Wallet Balance Overview</div>
+        <div class="cd-details-body p-4 d-flex gap-4 flex-wrap">
+          <div class="dm-wallet-stat flex-grow-1">
+            <div class="dm-wallet-stat-label">Current wallet balance</div>
+            <div class="dm-wallet-stat-value dm-wallet-stat-value--green">
+              {% if primary_treasury %}SAR {{ primary_treasury.current_balance|floatformat:2 }}{% else %}—{% endif %}
+            </div>
+            {% if primary_treasury %}<div class="small text-muted mt-1">{{ primary_treasury.treasury_code }}</div>{% endif %}
+          </div>
+          <div class="dm-wallet-stat flex-grow-1">
+            <div class="dm-wallet-stat-label">Treasury status</div>
+            <div class="dm-wallet-stat-value" style="color:#1e293b;">
+              {% if primary_treasury %}{{ primary_treasury.status }}{% else %}No treasury{% endif %}
+            </div>
+            {% if not primary_treasury %}
+            <a href="{% url 'iroad_tenants:driver_treasury_create' %}" class="btn btn-sm btn-primary mt-2">Create treasury</a>
+            {% else %}
+            <a href="{% url 'iroad_tenants:driver_treasury_detail' primary_treasury.treasury_id %}" class="btn btn-sm btn-outline-primary mt-2">Treasury detail</a>
+            {% endif %}
+          </div>
+        </div>
       </div>
-      <div class="mt-3">
-        <a href="{% url 'iroad_tenants:driver_treasury_list' %}?q={{ driver.driver_code }}"
-           class="btn btn-outline-primary btn-sm">
-          <i class="bi bi-wallet2 me-1"></i>
-          View Driver Treasuries
-        </a>
+      <div class="cd-details-section mb-0">
+        <div class="cd-details-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <span>Wallet Transactions</span>
+          <a href="{% if primary_treasury %}{% url 'iroad_tenants:driver_treasury_detail' primary_treasury.treasury_id %}{% else %}{% url 'iroad_tenants:driver_treasury_list' %}?q={{ driver.driver_code|urlencode }}{% endif %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-list-ul"></i> Treasury &amp; activity</a>
+        </div>
+        <div class="cd-details-body p-0">
+          {% if wallet_transactions %}
+          <div class="eal-table-wrap" style="box-shadow:none;border-radius:0;">
+            <table class="eal-table mb-0">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Reference</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th class="text-end">Amount</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for t in wallet_transactions %}
+                <tr>
+                  <td>{{ t.transaction_date|date:"j M Y, g:i A" }}</td>
+                  <td><span class="eal-entity-id">{{ t.transaction_no }}</span></td>
+                  <td>
+                    {% if t.transaction_type == 'Credit' %}
+                    <span class="status-badge dm-tx-credit">Credit</span>
+                    {% else %}
+                    <span class="status-badge dm-tx-debit">Debit</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ t.transaction_category }}</td>
+                  <td class="small">{{ t.description|default:"—"|truncatechars:64 }}</td>
+                  <td class="text-end fw-semibold {% if t.transaction_type == 'Credit' %}text-success{% else %}text-danger{% endif %}">
+                    {% if t.transaction_type == 'Credit' %}+{% else %}-{% endif %}{{ t.amount|floatformat:2 }}
+                  </td>
+                  <td class="text-end">
+                    <a class="eal-row-btn" href="{% url 'iroad_tenants:driver_transaction_detail' t.transaction_id %}" title="View"><i class="bi bi-eye"></i></a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="cd-empty m-3"><strong>No wallet transactions yet.</strong> Use Add Wallet Transaction when a treasury exists.</div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <!-- POST: set driver status (same as list) -->
@@ -586,7 +773,7 @@
     overflow: hidden;
     flex-shrink: 0;
     background: linear-gradient(145deg, #eef0fb 0%, #e0e4fa 100%);
-    border: 2px solid rgba(59, 130, 246, 0.15);
+    border: 2px solid rgba(80, 81, 249, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -613,8 +800,8 @@
     color: #64748b;
     border: 1px solid #e2e8f0;
   }
-  .dm-link-mail { font-weight: 600; text-decoration: none; color: #2563eb; }
-  .dm-link-mail:hover { text-decoration: underline; color: #1d4ed8; }
+  .dm-link-mail { font-weight: 600; text-decoration: none; color: #5051f9; }
+  .dm-link-mail:hover { text-decoration: underline; color: #3b3dd9; }
   .cd-field-value--code { font-weight: 600; letter-spacing: 0.02em; }
   .ch-badges { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .ch-badge {
@@ -627,15 +814,15 @@
     display: flex; align-items: stretch; background: #f4f5f9; border-radius: 6px; overflow: hidden;
     font-size: 0.85rem; border: 1px solid rgba(0, 0, 0, 0.04);
   }
-  .ch-contact-icon { padding: 8px 12px; background: #e4e6fb; color: #3b82f6; display: flex; align-items: center; justify-content: center; }
+  .ch-contact-icon { padding: 8px 12px; background: #e4e6fb; color: #5051f9; display: flex; align-items: center; justify-content: center; }
   .ch-contact-text { padding: 8px 16px; flex: 1; display: flex; align-items: center; color: #1a1a1a; font-weight: 500; }
   .ch-actions { display: flex; align-items: center; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
   .ch-action-btn {
     display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
-    border: 1px solid #c2c4fa; border-radius: 8px; background: #fff; color: #3b82f6;
+    border: 1px solid #c2c4fa; border-radius: 8px; background: #fff; color: #5051f9;
     font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s; text-decoration: none; border-width: 1px;
   }
-  .ch-action-btn:hover { background: #f4f5fc; color: #3b82f6; }
+  .ch-action-btn:hover { background: #f4f5fc; color: #5051f9; }
   .ch-action-btn--disabled,
   .ch-action-btn--disabled:hover {
     opacity: 0.55;
@@ -658,7 +845,7 @@
     border: none; background: transparent; padding: 8px 20px; font-size: 0.85rem; color: #6b6b6b;
     cursor: pointer; border-radius: 6px; font-weight: 500; white-space: nowrap; transition: all 0.2s;
   }
-  .cd-tab.active { background: #3b82f6; color: #fff; box-shadow: 0 2px 4px rgba(80, 81, 249, 0.2); }
+  .cd-tab.active { background: #5051f9; color: #fff; box-shadow: 0 2px 4px rgba(80, 81, 249, 0.2); }
   .cd-tab:hover:not(.active) { color: #1a1a1a; }
   .cd-details-section { border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 8px; overflow: hidden; margin-bottom: 1rem; }
   .cd-details-header {
@@ -679,6 +866,32 @@
   }
   .cd-pending { color: #b45309; font-weight: 600; }
   .dm-doc-thumb { max-width: 120px; max-height: 120px; object-fit: contain; display: block; }
+  .dm-doc-num-emphasis { font-weight: 600; font-size: 1.05rem; }
+  .dm-doc-placeholder {
+    width: 120px; height: 80px; background: #f4f5fc; border: 1px dashed #c2c4fa; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; color: #5051f9; font-size: 1.5rem;
+  }
+  .dm-wallet-stat {
+    background: #f8f9fa; border-radius: 8px; padding: 1.5rem; text-align: center; border: 1px solid #e2e8f0; min-width: 200px;
+  }
+  .dm-wallet-stat-label { font-size: 0.9rem; color: #64748b; font-weight: 500; margin-bottom: 0.5rem; }
+  .dm-wallet-stat-value { font-size: 1.65rem; font-weight: 700; color: #1e293b; }
+  .dm-wallet-stat-value--green { color: #0d894f; }
+  .status-badge.dm-ship-transit { background:#eef2ff; color:#4f46e5; border:1px solid #c7d2fe; }
+  .status-badge.dm-ship-delivered { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+  .status-badge.dm-ship-created { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
+  .status-badge.dm-ship-closed { background:#e8e8e8; color:#525252; border:1px solid #d4d4d4; }
+  .status-badge.dm-ship-cancelled { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
+  .status-badge.dm-ship-default { background:#f4f4f5; color:#52525b; border:1px solid #e4e4e7; }
+  .status-badge.dm-mov-loaded { background:#eef2ff; color:#4f46e5; border:0; }
+  .status-badge.dm-mov-empty { background:#f1f5f9; color:#475569; border:0; }
+  .status-badge.dm-mov-source { background:#ecfeff; color:#0e7490; border:0; }
+  .status-badge.dm-mov-inprog { background:#fffbeb; color:#b45309; border:1px solid #fde68a; }
+  .status-badge.dm-mov-done { background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; }
+  .status-badge.dm-mov-sched { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+  .status-badge.dm-mov-cancel { background:#fafafa; color:#737373; border:1px solid #e5e5e5; }
+  .status-badge.dm-tx-credit { background:#e6f8ef; color:#0d894f; border:1px solid #bfe7cf; }
+  .status-badge.dm-tx-debit { background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; }
   .status-badge.dm-source-in { background: #0d6efd; color: #fff; border: 0; }
   .status-badge.dm-source-out { background: #fd7e14; color: #fff; border: 0; }
   .status-badge.dm-driver-active { background: #198754; color: #fff; border: 0; }

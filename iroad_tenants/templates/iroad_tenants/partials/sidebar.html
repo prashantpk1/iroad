@@ -552,9 +552,15 @@
             </a>
             <ul class="submenu">
               <li class="submenu-item">
-                <a href="{% url 'iroad_tenants:tenant_auto_number_configuration' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_auto_number_configuration' %} active{% endif %}">
+                <a href="{% url 'iroad_tenants:tenant_auto_number_configuration' %}" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_auto_number_configuration' %}{% if request.GET.form_code == 'booking' %}{% else %} active{% endif %}{% endif %}">
                   <i class="bi bi-gear"></i>
                   <span>Auto Number Configuration</span>
+                </a>
+              </li>
+              <li class="submenu-item">
+                <a href="{% url 'iroad_tenants:tenant_auto_number_configuration' %}?form_code=booking" class="submenu-link{% if request.resolver_match and request.resolver_match.url_name == 'tenant_auto_number_configuration' and request.GET.form_code == 'booking' %} active{% endif %}">
+                  <i class="bi bi-journal-bookmark"></i>
+                  <span>Booking auto-number</span>
                 </a>
               </li>
             </ul>

@@ -21,6 +21,7 @@ class DriverAttachmentForm(forms.ModelForm):
             'attachment_date',
             'is_expiry_applicable',
             'expiry_date',
+            'record_status',
             'attachment_file',
             'file_notes',
         ]
@@ -57,6 +58,9 @@ class DriverAttachmentForm(forms.ModelForm):
                     'type': 'date',
                 }
             ),
+            'record_status': forms.Select(
+                attrs={'class': 'form-select'},
+            ),
             'attachment_file': forms.FileInput(
                 attrs={'class': 'form-control'}
             ),
@@ -83,6 +87,14 @@ class DriverAttachmentForm(forms.ModelForm):
                 ].help_text = (
                     'Leave empty to keep current file.'
                 )
+
+        rs = self.fields['record_status']
+        rs.choices = [
+            ('', '-Select status-'),
+        ] + list(DriverAttachment.RecordStatus.choices)
+        rs.required = True
+        rs.widget.attrs.setdefault('class', 'form-select')
+        rs.help_text = 'Current status of the attachment'
 
     def clean_file_notes(self):
         notes = self.cleaned_data.get(
@@ -115,6 +127,15 @@ class DriverAttachmentForm(forms.ModelForm):
             )
         return file
 
+    def clean_record_status(self):
+        value = (self.cleaned_data.get('record_status') or '').strip()
+        if not value:
+            raise ValidationError('Please select a status.')
+        valid = {c[0] for c in DriverAttachment.RecordStatus.choices}
+        if value not in valid:
+            raise ValidationError('Invalid status.')
+        return value
+
     def clean(self):
         cleaned = super().clean()
         is_expiry = cleaned.get('is_expiry_applicable')
@@ -134,26 +155,12 @@ class DriverSettingsForm(forms.ModelForm):
         model = DriverSettings
         fields = [
             'default_driver_status',
-            'notification_audience',
-            'license_expiry_alert_days',
             'document_expiry_alert_days',
-            'medical_expiry_alert_days',
             'driver_assignment_required',
-            'document_upload_mandatory',
         ]
         widgets = {
             'default_driver_status': forms.Select(
                 attrs={'class': 'form-select'}
-            ),
-            'notification_audience': forms.Select(
-                attrs={'class': 'form-select'}
-            ),
-            'license_expiry_alert_days': forms.NumberInput(
-                attrs={
-                    'class': 'form-control has-icon',
-                    'min': 0,
-                    'max': 180,
-                }
             ),
             'document_expiry_alert_days': forms.NumberInput(
                 attrs={
@@ -162,40 +169,12 @@ class DriverSettingsForm(forms.ModelForm):
                     'max': 180,
                 }
             ),
-            'medical_expiry_alert_days': forms.NumberInput(
-                attrs={
-                    'class': 'form-control has-icon',
-                    'min': 0,
-                    'max': 180,
-                }
-            ),
             'driver_assignment_required': forms.CheckboxInput(),
-            'document_upload_mandatory': forms.CheckboxInput(),
         }
-
-    def clean_license_expiry_alert_days(self):
-        val = self.cleaned_data.get(
-            'license_expiry_alert_days'
-        )
-        if val is not None and (val < 0 or val > 180):
-            raise ValidationError(
-                'Must be between 0 and 180'
-            )
-        return val
 
     def clean_document_expiry_alert_days(self):
         val = self.cleaned_data.get(
             'document_expiry_alert_days'
-        )
-        if val is not None and (val < 0 or val > 180):
-            raise ValidationError(
-                'Must be between 0 and 180'
-            )
-        return val
-
-    def clean_medical_expiry_alert_days(self):
-        val = self.cleaned_data.get(
-            'medical_expiry_alert_days'
         )
         if val is not None and (val < 0 or val > 180):
             raise ValidationError(

@@ -1111,13 +1111,19 @@ class TruckImage(models.Model):
 class TruckAttachment(models.Model):
     """TR-ATT-001 Truck attachment (tenant schema).
 
-    ``status`` is derived from ``is_expiry_applicable`` and ``expiry_date`` only — not stored in DB.
+    ``status`` (property) is derived from ``is_expiry_applicable`` and ``expiry_date`` only.
+    ``record_status`` is the user-editable lifecycle status (Active / Inactive / Pending).
     """
 
     class Status(models.TextChoices):
         VALID = 'Valid', 'Valid'
         EXPIRED = 'Expired', 'Expired'
         DOES_NOT_EXPIRE = 'Does Not Expire', 'Does Not Expire'
+
+    class RecordStatus(models.TextChoices):
+        ACTIVE = 'Active', _('Active')
+        INACTIVE = 'Inactive', _('Inactive')
+        PENDING = 'Pending', _('Pending')
 
     _ALLOWED_ATTACHMENT_EXTENSIONS = frozenset(
         {'.pdf', '.jpg', '.jpeg', '.png', '.doc', '.docx'},
@@ -1145,6 +1151,13 @@ class TruckAttachment(models.Model):
     attachment_date = models.DateField(default=date.today)
     is_expiry_applicable = models.BooleanField(default=False)
     expiry_date = models.DateField(blank=True, null=True)
+    record_status = models.CharField(
+        max_length=20,
+        choices=RecordStatus.choices,
+        default=RecordStatus.ACTIVE,
+        verbose_name=_('Status'),
+        help_text=_('Current status of the attachment'),
+    )
     attachment_file = models.FileField(upload_to=truck_attachment_upload_to, max_length=500)
     file_notes = models.TextField(
         help_text=_('Notes about this attachment document'),
@@ -1613,10 +1626,21 @@ class DriverMaster(models.Model):
 
 
 class DriverAttachment(models.Model):
+    """Driver document attachment.
+
+    ``status`` (property) reflects expiry only. ``record_status`` is the
+    user-editable lifecycle status (Active / Inactive / Pending).
+    """
+
     class Status(models.TextChoices):
         VALID = 'Valid', 'Valid'
         EXPIRED = 'Expired', 'Expired'
         DOES_NOT_EXPIRE = 'Does Not Expire', 'Does Not Expire'
+
+    class RecordStatus(models.TextChoices):
+        ACTIVE = 'Active', _('Active')
+        INACTIVE = 'Inactive', _('Inactive')
+        PENDING = 'Pending', _('Pending')
 
     _ALLOWED_EXTENSIONS = {
         '.pdf', '.jpg', '.jpeg',
@@ -1651,6 +1675,13 @@ class DriverAttachment(models.Model):
     attachment_date = models.DateField(default=date.today)
     is_expiry_applicable = models.BooleanField(default=False)
     expiry_date = models.DateField(null=True, blank=True)
+    record_status = models.CharField(
+        max_length=20,
+        choices=RecordStatus.choices,
+        default=RecordStatus.ACTIVE,
+        verbose_name=_('Status'),
+        help_text=_('Current status of the attachment'),
+    )
     attachment_file = models.FileField(
         upload_to=driver_attachment_upload_to,
         max_length=500,
@@ -1735,13 +1766,7 @@ class DriverSettings(models.Model):
     """
     Singleton tenant-level driver configuration.
     Not per-driver — applies to the whole tenant.
-    From Driver-settings.html designer page.
     """
-
-    class NotificationAudience(models.TextChoices):
-        SYSTEM_ADMIN = 'System Admin', 'System Admin'
-        FLEET_MANAGER = 'Fleet Manager', 'Fleet Manager'
-        BOTH = 'Both', 'Both'
 
     class DefaultStatus(models.TextChoices):
         ACTIVE = 'Active', 'Active'
@@ -1757,26 +1782,24 @@ class DriverSettings(models.Model):
         max_length=20,
         choices=DefaultStatus.choices,
         default=DefaultStatus.ACTIVE,
-    )
-    notification_audience = models.CharField(
-        max_length=30,
-        choices=NotificationAudience.choices,
-        default=NotificationAudience.SYSTEM_ADMIN,
-    )
-    license_expiry_alert_days = models.PositiveIntegerField(
-        default=30,
+        verbose_name=_('Default Driver Status'),
+        help_text=_('Status assigned to newly created driver records.'),
     )
     document_expiry_alert_days = models.PositiveIntegerField(
         default=30,
-    )
-    medical_expiry_alert_days = models.PositiveIntegerField(
-        default=30,
+        verbose_name=_('Document Expiry Reminder Days'),
+        help_text=_('Days before document expiry alerts.'),
     )
     driver_assignment_required = models.BooleanField(
         default=False,
+        verbose_name=_('Driver Assignment Required for Truck'),
+        help_text=_('Truck cannot be dispatched without an assigned driver.'),
     )
     document_upload_mandatory = models.BooleanField(
         default=False,
+        help_text=_(
+            'If enabled, drivers cannot be set to Active without core identity documents.'
+        ),
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

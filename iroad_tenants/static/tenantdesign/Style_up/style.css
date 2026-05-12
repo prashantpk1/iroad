@@ -6515,6 +6515,17 @@ a.eal-row-btn {
   font-weight: 500;
 }
 
+.auto-number-form-list > li.auto-number-nav-item {
+  padding: 0;
+  list-style: none;
+}
+
+.auto-number-form-list > li.auto-number-nav-item > a.form-list-item {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
 /* ── Right Panel: Auto Numbering Content ────── */
 .auto-number-content {
   flex: 1;

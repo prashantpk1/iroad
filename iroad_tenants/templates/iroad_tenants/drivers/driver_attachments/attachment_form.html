@@ -99,7 +99,7 @@
               value="{% if is_edit and attachment.attachment_no %}{{ attachment.attachment_no }}{% else %}{{ attachment_no_preview|default:'Auto-generated' }}{% endif %}"
               aria-readonly="true"
             />
-            <span class="field-hint">Auto-generated reference number</span>
+            <span class="field-hint">Unique attachment reference.</span>
           </div>
           <div class="field">
             <label class="form-label" for="{{ form.doc_ref_number.id_for_label }}">Doc Ref Number</label>
@@ -131,7 +131,7 @@
             <label class="form-label">Driver <span class="required">*</span></label>
             {% if show_driver_selector %}
             <select class="form-select" name="driver_id" required>
-              <option value="">— Select driver —</option>
+              <option value="">-Select driver-</option>
               {% for d in drivers_for_select %}
               <option value="{{ d.driver_id }}" {% if selected_driver_id == d.driver_id|stringformat:'s' %}selected{% endif %}>
                 {{ d.driver_code }} — {{ d.arabic_name }}
@@ -139,7 +139,7 @@
               {% endfor %}
             </select>
             {% if driver_error %}<div class="text-danger small">{{ driver_error }}</div>{% endif %}
-            <span class="field-hint">Only active drivers are listed.</span>
+            <span class="field-hint">Select the driver this attachment belongs to.</span>
             {% else %}
             <p class="form-control-plaintext mb-0 fw-semibold">
               <span class="eal-entity-id">{{ driver.driver_code }}</span>
@@ -155,6 +155,7 @@
             </label>
             {{ form.attachment_date }}
             {% if form.attachment_date.errors %}<div class="text-danger small">{{ form.attachment_date.errors }}</div>{% endif %}
+            <span class="field-hint">Date when the document was attached.</span>
           </div>
         </div>
       </div>
@@ -167,7 +168,7 @@
         <div class="setting-row">
           <div class="setting-row-info">
             <span class="form-label d-block">{{ form.is_expiry_applicable.label }}</span>
-            <span class="field-hint">Turn on if this document expires on a fixed date.</span>
+            <span class="field-hint">Enable this if the attached document has an expiration date.</span>
           </div>
           <label class="setting-toggle">
             {{ form.is_expiry_applicable }}
@@ -182,7 +183,24 @@
             <label class="form-label" for="{{ form.expiry_date.id_for_label }}">{{ form.expiry_date.label }}</label>
             {{ form.expiry_date }}
             {% if form.expiry_date.errors %}<div class="text-danger small">{{ form.expiry_date.errors }}</div>{% endif %}
-            <span class="field-hint">Required when expiry is applicable.</span>
+            <span class="field-hint">Expiration date of the attached document.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <h3 class="field-group-title">
+          <i class="bi bi-toggles"></i>
+          Status
+        </h3>
+        <div class="fields-grid cols-1">
+          <div class="field">
+            <label class="form-label" for="{{ form.record_status.id_for_label }}">
+              {{ form.record_status.label }} <span class="required">*</span>
+            </label>
+            {{ form.record_status }}
+            {% if form.record_status.errors %}<div class="text-danger small">{{ form.record_status.errors }}</div>{% endif %}
+            <span class="field-hint">Current status of the attachment</span>
           </div>
         </div>
       </div>

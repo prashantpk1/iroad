@@ -28,7 +28,11 @@
       <i class="bi bi-search"></i>
       <input type="text" id="formSearchInput" placeholder="Search forms..." />
     </div>
-    <ul class="auto-number-form-list" id="formNameList">
+    <ul
+      class="auto-number-form-list"
+      id="formNameList"
+      data-auto-number-path="{% url 'iroad_tenants:tenant_auto_number_configuration' %}"
+    >
       <li class="form-list-section">Client</li>
       <li class="form-list-item {% if auto_number_form_code == 'client-account' %}active{% endif %}" data-form="client-account">Client Account</li>
       <li class="form-list-item {% if auto_number_form_code == 'client-contract' %}active{% endif %}" data-form="client-contract">Client Contract</li>
@@ -150,7 +154,13 @@
       <li class="form-list-item" data-form="document-handover">
         Document Handover
       </li>
-      <li class="form-list-item {% if auto_number_form_code == 'booking' %}active{% endif %}" data-form="booking">Booking</li>
+      <li class="auto-number-nav-item">
+        <a
+          class="form-list-item {% if auto_number_form_code == 'booking' %}active{% endif %}"
+          href="{% url 'iroad_tenants:tenant_auto_number_configuration' %}?form_code=booking"
+          data-form="booking"
+        >Booking</a>
+      </li>
       <li class="form-list-item" data-form="operation-actions">
         Operation Actions
       </li>
@@ -349,9 +359,13 @@
 {% endblock %}
 
 {% block extra_js %}
+{{ auto_number_enabled_form_codes|json_script:"auto-number-enabled-form-codes" }}
 <script>
   (function () {
-    const formItems = document.querySelectorAll(".form-list-item");
+    const formList = document.getElementById("formNameList");
+    const formItems = formList
+      ? formList.querySelectorAll(".form-list-item")
+      : document.querySelectorAll("#formNameList .form-list-item");
     const searchInput = document.getElementById("formSearchInput");
     const titleEl = document.getElementById("autoNumberFormTitle");
     const descEl = document.getElementById("autoNumberFormDesc");
@@ -362,29 +376,19 @@
     const nextNumberEl = document.getElementById("nextNumber");
     const baseNextNumberEl = document.getElementById("baseNextNumber");
     const prefixEl = document.getElementById("autoNumberPrefix");
-    const ENABLED_FORM_CODES = new Set([
-      "organization-profile",
-      "users-administration",
-      "client-account",
-      "client-contract",
-      "address-master",
-      "truck-master",
-      "truck-type-master",
-      "truck-attachment",
-      "driver-master",
-      "driver-attachment",
-      "driver-treasury",
-      "driver-treasury-transaction",
-      "cargo-master",
-      "cargo-category",
-      "location-master",
-      "route-master",
-      "service-item-master",
-      "price-list-master",
-      "booking",
-      "shipment",
-      "sales-invoice-report",
-    ]);
+    var enabledCodesRaw = [];
+    try {
+      var enabledEl = document.getElementById("auto-number-enabled-form-codes");
+      if (enabledEl && enabledEl.textContent) {
+        enabledCodesRaw = JSON.parse(enabledEl.textContent);
+      }
+    } catch (e) {
+      enabledCodesRaw = [];
+    }
+    if (!Array.isArray(enabledCodesRaw)) {
+      enabledCodesRaw = [];
+    }
+    const ENABLED_FORM_CODES = new Set(enabledCodesRaw);
 
     function toAlpha(num) {
       let n = Math.max(1, num);
@@ -429,20 +433,35 @@
       });
     }
 
+    function navigateToAutoNumberForm(selectedCode) {
+      var basePath =
+        (formList && formList.getAttribute("data-auto-number-path")) || "";
+      var nextUrl;
+      if (basePath) {
+        nextUrl = new URL(basePath, window.location.origin);
+      } else {
+        nextUrl = new URL(window.location.pathname, window.location.origin);
+      }
+      nextUrl.searchParams.set("form_code", selectedCode);
+      window.location.assign(nextUrl.toString());
+    }
+
     formItems.forEach(function (item) {
-      item.addEventListener("click", function () {
-        const selectedCode = item.dataset.form || "";
+      item.addEventListener("click", function (e) {
+        var selectedCode = item.dataset.form || "";
         if (ENABLED_FORM_CODES.has(selectedCode)) {
-          const nextUrl = new URL(window.location.href);
-          nextUrl.searchParams.set("form_code", selectedCode);
-          window.location.href = nextUrl.toString();
+          e.preventDefault();
+          navigateToAutoNumberForm(selectedCode);
+          return;
+        }
+        if (item.tagName === "A" && item.getAttribute("href")) {
           return;
         }
         formItems.forEach(function (i) {
           i.classList.remove("active");
         });
         item.classList.add("active");
-        const name = item.textContent.trim();
+        var name = item.textContent.trim();
         selectedFormCodeEl.value = selectedCode;
         titleEl.textContent = name + " Auto Numbering";
         descEl.textContent = "Backend save is not enabled for this form yet.";
@@ -475,10 +494,13 @@
         var next = sec.nextElementSibling;
         var hasVisible = false;
         while (next && !next.classList.contains("form-list-section")) {
-          if (
-            next.classList.contains("form-list-item") &&
-            next.style.display !== "none"
-          ) {
+          var row =
+            next.classList.contains("form-list-item")
+              ? next
+              : next.querySelector
+                ? next.querySelector(".form-list-item")
+                : null;
+          if (row && row.style.display !== "none") {
             hasVisible = true;
           }
           next = next.nextElementSibling;
