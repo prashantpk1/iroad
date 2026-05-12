@@ -1,7 +1,7 @@
 """
 Seed default About Page CMS (singleton + repeaters) from designer about.html.
-Idempotent: skips child rows that already exist for the same about + order.
-Always refreshes AboutPageContent text fields to the seed defaults (EN + AR).
+Idempotent: approach pillars, how-work steps, and FAQ items are upserted each
+run so EN/AR stays in sync. Always refreshes AboutPageContent text fields.
 """
 
 from django.core.management.base import BaseCommand
@@ -47,6 +47,15 @@ def _about_singleton_text():
         'about_counter_2_value': '100+',
         'about_counter_2_label_en': 'Companies Using IRoad',
         'about_counter_2_label_ar': 'شركة تستخدم آيرواد',
+        'about_mid_title_en': 'Built for Modern Transport Businesses',
+        'about_mid_title_ar': 'مُصمَّم لشركات النقل الحديثة',
+        'about_mid_body_en': (
+            'IRoad connects operations, fleet, finance, and reporting into '
+            'a single unified system.'
+        ),
+        'about_mid_body_ar': (
+            'تربط آيرواد العمليات والأسطول والمالية والتقارير في نظام موحّد.'
+        ),
         'about_body_en': (
             'We provide a complete digital ecosystem for transport '
             'companies to manage workflows efficiently and scale '
@@ -319,27 +328,21 @@ class Command(BaseCommand):
         about = AboutPageContent.get_singleton()
         for row in APPROACH_PILLARS:
             order = row['order']
-            if AboutApproachPillar.objects.filter(
-                about=about, order=order
-            ).exists():
-                self.stdout.write(
-                    f'  AboutApproachPillar order={order}: '
-                    'already exists, skipped.'
-                )
-                continue
-            AboutApproachPillar.objects.create(
+            AboutApproachPillar.objects.update_or_create(
                 about=about,
                 order=order,
-                title_en=row['title_en'],
-                title_ar=row.get('title_ar', ''),
-                body_en=row['body_en'],
-                body_ar=row.get('body_ar', ''),
-                is_active=True,
+                defaults={
+                    'title_en': row['title_en'],
+                    'title_ar': row.get('title_ar', ''),
+                    'body_en': row['body_en'],
+                    'body_ar': row.get('body_ar', ''),
+                    'is_active': True,
+                },
             )
             self.stdout.write(
                 self.style.SUCCESS(
                     f'  AboutApproachPillar order={order} '
-                    f'({row["title_en"]}): created.'
+                    f'({row["title_en"]}): upserted.'
                 )
             )
 
@@ -347,28 +350,22 @@ class Command(BaseCommand):
         about = AboutPageContent.get_singleton()
         for row in HOW_WORK_STEPS:
             order = row['order']
-            if AboutHowWorkStep.objects.filter(
-                about=about, order=order
-            ).exists():
-                self.stdout.write(
-                    f'  AboutHowWorkStep order={order}: '
-                    'already exists, skipped.'
-                )
-                continue
-            AboutHowWorkStep.objects.create(
+            AboutHowWorkStep.objects.update_or_create(
                 about=about,
                 order=order,
-                step_number=row['step_number'],
-                title_en=row['title_en'],
-                title_ar=row.get('title_ar', ''),
-                body_en=row['body_en'],
-                body_ar=row.get('body_ar', ''),
-                is_active=True,
+                defaults={
+                    'step_number': row['step_number'],
+                    'title_en': row['title_en'],
+                    'title_ar': row.get('title_ar', ''),
+                    'body_en': row['body_en'],
+                    'body_ar': row.get('body_ar', ''),
+                    'is_active': True,
+                },
             )
             self.stdout.write(
                 self.style.SUCCESS(
                     f'  AboutHowWorkStep order={order} '
-                    f'({row["title_en"]}): created.'
+                    f'({row["title_en"]}): upserted.'
                 )
             )
 
@@ -376,22 +373,19 @@ class Command(BaseCommand):
         about = AboutPageContent.get_singleton()
         for row in FAQ_ITEMS:
             order = row['order']
-            if AboutFaqItem.objects.filter(about=about, order=order).exists():
-                self.stdout.write(
-                    f'  AboutFaqItem order={order}: already exists, skipped.'
-                )
-                continue
-            AboutFaqItem.objects.create(
+            AboutFaqItem.objects.update_or_create(
                 about=about,
                 order=order,
-                question_en=row['question_en'],
-                question_ar=row.get('question_ar', ''),
-                answer_en=row['answer_en'],
-                answer_ar=row.get('answer_ar', ''),
-                is_active=True,
+                defaults={
+                    'question_en': row['question_en'],
+                    'question_ar': row.get('question_ar', ''),
+                    'answer_en': row['answer_en'],
+                    'answer_ar': row.get('answer_ar', ''),
+                    'is_active': True,
+                },
             )
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'  AboutFaqItem order={order}: created.'
+                    f'  AboutFaqItem order={order}: upserted.'
                 )
             )

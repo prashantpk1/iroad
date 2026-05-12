@@ -1,4 +1,4 @@
-{% load static %}
+{% load static cms_locale %}
     <!-- Our Faqs Section Start -->
     <div class="our-faqs">
       <div class="container">
@@ -8,6 +8,15 @@
             <div class="faqs-content">
               <!-- Section Title Start -->
               <div class="section-title">
+                {% if use_cms_faq_section %}
+                <h3>{% cms_txt faq_cms 'faq_kicker' %}</h3>
+                <h2>
+                  {% cms_txt faq_cms 'faq_heading' %}
+                </h2>
+                <p class="wow fadeInUp" data-wow-delay="0.2s">
+                  {% cms_txt faq_cms 'faq_intro' %}
+                </p>
+                {% else %}
                 <h3>{{ faq_kicker|default:"FAQs" }}</h3>
                 <h2>
                   {{ faq_heading|default:"Answers to common questions about IRoad TMS" }}
@@ -15,12 +24,13 @@
                 <p class="wow fadeInUp" data-wow-delay="0.2s">
                   {{ faq_intro|default:"Learn how IRoad helps transport companies automate workflows, manage fleets, and improve operational visibility." }}
                 </p>
+                {% endif %}
               </div>
               <!-- Section Title End -->
 
               <!-- Faqs Button Start -->
               <div class="faqs-btn wow fadeInUp" data-wow-delay="0.4s">
-                <a href="{{ faq_view_all_url|default:'#' }}" class="btn-default">{{ faq_view_all_label|default:"View all FAQ's" }}</a>
+                <a href="{{ faq_view_all_url|default:'#' }}" class="btn-default">{% if use_cms_faq_section %}{% cms_txt faq_cms 'faq_view_all_label' %}{% else %}{{ faq_view_all_label|default:"View all FAQ's" }}{% endif %}</a>
               </div>
               <!-- Faqs Button End -->
             </div>
@@ -42,7 +52,7 @@
                     aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}"
                     aria-controls="collapse{{ faq_heading_suffix|default:'' }}{{ forloop.counter }}"
                   >
-                    {% if lang == 'ar' %}{{ item.question_ar|default:item.question_en }}{% else %}{{ item.question_en }}{% endif %}
+                    {% cms_txt item 'question' %}
                   </button>
                 </h2>
                 <div
@@ -53,7 +63,7 @@
                 >
                   <div class="accordion-body">
                     <p>
-                      {% if lang == 'ar' %}{{ item.answer_ar|default:item.answer_en }}{% else %}{{ item.answer_en }}{% endif %}
+                      {% cms_txt item 'answer' %}
                     </p>
                   </div>
                 </div>

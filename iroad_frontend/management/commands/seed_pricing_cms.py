@@ -1,15 +1,17 @@
 """
-Seed Pricing Page CMS: singleton text, interactive steps, pricing-scoped FAQs,
-HomeServiceCard, HomePricingTier, and HomeTestimonial rows (EN/AR) used on the
-marketing site.
+Seed Pricing Page CMS: singleton text, pricing interactive steps, pricing FAQs,
+About page how-it-work steps (EN/AR), HomeServiceCard, HomePricingTier, and
+HomeTestimonial rows used on the marketing site.
 
-Idempotent for FAQs (create-if-missing). Refreshes singleton, interactive steps,
-service cards, pricing tiers, and testimonials each run.
+Idempotent for pricing FAQs (create-if-missing). Refreshes singleton, pricing
+interactive steps, about how-work steps, service cards, pricing tiers, and
+testimonials each run.
 """
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
+from iroad_frontend.management.commands.seed_about_cms import HOW_WORK_STEPS
 from iroad_frontend.management.commands.seed_home_cms import (
     PRICING_TIERS,
     SERVICE_CARDS,
@@ -18,6 +20,8 @@ from iroad_frontend.management.commands.seed_home_cms import (
     TESTIMONIAL_QUOTE_EN,
 )
 from iroad_frontend.models import (
+    AboutHowWorkStep,
+    AboutPageContent,
     HomePageContent,
     HomePricingTier,
     HomeServiceCard,
@@ -244,9 +248,9 @@ PRICING_FAQS = [
 
 class Command(BaseCommand):
     help = (
-        'Seed PricingPageContent, interactive steps, PricingFaqItem rows, '
-        'HomeServiceCard, HomePricingTier, and HomeTestimonial (bilingual) on '
-        'HomePageContent.'
+        'Seed PricingPageContent, pricing interactive steps, PricingFaqItem, '
+        'AboutHowWorkStep (bilingual), HomeServiceCard, HomePricingTier, and '
+        'HomeTestimonial on shared CMS records.'
     )
 
     @transaction.atomic
@@ -272,6 +276,33 @@ class Command(BaseCommand):
                     'detail_url': spec.get('detail_url', '#'),
                     'is_active': True,
                 },
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f'PricingInteractiveStep order={order} '
+                    f'({spec["title_en"]}): upserted.'
+                )
+            )
+
+        about = AboutPageContent.get_singleton()
+        for row in HOW_WORK_STEPS:
+            order = row['order']
+            AboutHowWorkStep.objects.update_or_create(
+                about=about,
+                order=order,
+                defaults={
+                    'step_number': row['step_number'],
+                    'title_en': row['title_en'],
+                    'title_ar': row.get('title_ar', ''),
+                    'body_en': row['body_en'],
+                    'body_ar': row.get('body_ar', ''),
+                    'is_active': True,
+                },
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f'AboutHowWorkStep order={order} ({row["title_en"]}): upserted.'
+                )
             )
 
         for faq_data in PRICING_FAQS:
@@ -380,7 +411,8 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                'Pricing CMS seeded (singleton + interactive steps + FAQs + '
-                'service cards + pricing tiers + testimonials EN/AR).'
+                'Pricing CMS seeded (singleton + pricing interactive steps + '
+                'about how-work steps + FAQs + service cards + pricing tiers + '
+                'testimonials EN/AR).'
             )
         )

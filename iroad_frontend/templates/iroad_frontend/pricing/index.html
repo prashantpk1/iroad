@@ -1,5 +1,5 @@
 {% extends 'iroad_frontend/base.html' %}
-{% load static %}
+{% load static cms_locale %}
 
 {% block title %}{% if lang == 'ar' %}{{ pricing.page_title_ar|default:pricing.page_title_en }}{% else %}{{ pricing.page_title_en }}{% endif %}{% endblock %}
 
@@ -16,13 +16,13 @@
     {% include 'iroad_frontend/partials/components/pricing_tiers_section.html' with pricing_tiers=pricing_tiers pricing_benefits=pricing_benefits section_kicker=pricing.pricing_kicker_en section_heading=pricing.pricing_heading_en %}
     {% endif %}
 
-    {% if pricing.interactive_kicker_en or pricing.interactive_heading_en %}
+    {% if pricing.interactive_kicker_en or pricing.interactive_kicker_ar or pricing.interactive_heading_en or pricing.interactive_heading_ar %}
     <div class="container">
         <div class="row section-row">
           <div class="col-lg-12">
             <div class="section-title section-title-center">
-              <h3>{{ pricing.interactive_kicker_en }}</h3>
-              <h2>{{ pricing.interactive_heading_en }}</h2>
+              <h3>{% cms_txt pricing 'interactive_kicker' %}</h3>
+              <h2>{% cms_txt pricing 'interactive_heading' %}</h2>
             </div>
           </div>
         </div>
@@ -56,8 +56,8 @@
                                         {% endif %}
                                     </div>
                                     <div class="interactive-process-item-content-wap">
-                                        <h3><a href="{{ step.detail_url }}">{{ step.title_en }}</a></h3>
-                                        <p>{% firstof step.body_en step.subtitle_en %}</p>
+                                        <h3><a href="{{ step.detail_url }}">{% cms_txt step 'title' %}</a></h3>
+                                        <p>{% if step.body_en or step.body_ar %}{% cms_txt step 'body' %}{% else %}{% cms_txt step 'subtitle' %}{% endif %}</p>
                                     </div>
                                 </div>
                             </div>
@@ -298,9 +298,5 @@
     {% include 'iroad_frontend/partials/components/testimonials_section.html' with testimonials=testimonials t_kicker=pricing.testimonials_kicker_en t_heading=pricing.testimonials_heading_en t_hero_image=home.testimonials_hero_image t_happy_count=home.testimonials_happy_count t_happy_label=home.testimonials_happy_label_en %}
     {% endif %}
 
-    {% if lang == 'ar' %}
-    {% include 'iroad_frontend/partials/components/faq_accordion.html' with faq_items=faq_items faq_kicker=pricing.faq_kicker_ar|default:pricing.faq_kicker_en faq_heading=pricing.faq_heading_ar|default:pricing.faq_heading_en faq_intro=pricing.faq_intro_ar|default:pricing.faq_intro_en faq_view_all_label=pricing.faq_view_all_label_ar|default:pricing.faq_view_all_label_en faq_view_all_url=pricing.faq_view_all_url faq_accordion_id='accordionPricing' faq_heading_suffix='Pricing' %}
-    {% else %}
-    {% include 'iroad_frontend/partials/components/faq_accordion.html' with faq_items=faq_items faq_kicker=pricing.faq_kicker_en faq_heading=pricing.faq_heading_en faq_intro=pricing.faq_intro_en faq_view_all_label=pricing.faq_view_all_label_en faq_view_all_url=pricing.faq_view_all_url faq_accordion_id='accordionPricing' faq_heading_suffix='Pricing' %}
-    {% endif %}
+    {% include 'iroad_frontend/partials/components/faq_accordion.html' with faq_items=faq_items use_cms_faq_section=True faq_cms=pricing faq_view_all_url=pricing.faq_view_all_url faq_accordion_id='accordionPricing' faq_heading_suffix='Pricing' %}
 {% endblock %}

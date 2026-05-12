@@ -905,6 +905,13 @@ class AboutPageContent(models.Model):
         null=True,
         validators=_CMS_UPLOAD_VALIDATORS,
     )
+    # Middle column (3-col about hero): title + body under counter 2
+    about_mid_title_en = models.CharField(
+        max_length=300, blank=True, default='')
+    about_mid_title_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    about_mid_body_en = models.TextField(blank=True, default='')
+    about_mid_body_ar = models.TextField(blank=True, default='')
 
     # ── Our Approach Section ──────────────────────────────────────
     approach_kicker_en = models.CharField(

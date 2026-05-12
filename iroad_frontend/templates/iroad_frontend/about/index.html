@@ -1,20 +1,10 @@
 {% extends 'iroad_frontend/base.html' %}
-{% load static %}
+{% load static cms_locale %}
 
-{% block title %}
-  {% if lang == 'ar' %}
-    {{ about.page_title_ar|default:about.page_title_en }}
-  {% else %}
-    {{ about.page_title_en }}
-  {% endif %}
-{% endblock %}
+{% block title %}{% cms_txt about 'page_title' %}{% endblock %}
 
 {% block content %}
-    {% if lang == 'ar' %}
-    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='about' page_header_background=about.page_header_background page_h1=about.page_header_h1_ar|default:about.page_header_h1_en|default:"عن آيروود" breadcrumb_home_label=home.nav_home_ar|default:home.nav_home_en|default:"الرئيسية" breadcrumb_current=about.breadcrumb_current_ar|default:about.breadcrumb_current_en|default:"عن آيروود" %}
-    {% else %}
-    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='about' page_header_background=about.page_header_background page_h1=about.page_header_h1_en|default:"About IRoad" breadcrumb_home_label=home.nav_home_en|default:"Home" breadcrumb_current=about.breadcrumb_current_en|default:"About IRoad" %}
-    {% endif %}
+    {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='about' page_header_background=about.page_header_background cms_about_header=True about=about home=home %}
 
     <!-- About Us Section Start -->
     <div class="about-us">
@@ -23,23 +13,23 @@
           <div class="col-lg-12">
             <!-- Section Title Start -->
             <div class="section-title section-title-center">
-              <h3>{{ about.about_kicker_en|default:"About IRoad" }}</h3>
+              <h3>{% cms_txt about 'about_kicker' %}</h3>
               <h2 data-cursor="-opaque">
-                {{ about.about_heading_part1_en|default:"Driving Transport Efficiency Through Smart SaaS Technology" }}
+                {% cms_txt about 'about_heading_part1' %}
                 <span class="about-us-title-image-1"
                   >{% if about.about_title_image_1 %}
                   <img src="{{ about.about_title_image_1.url }}" alt=""
                 />{% else %}
                   <img src="{% static 'landing/images/about-us-title-image-1.jpg' %}" alt=""
                 />{% endif %}</span>
-                {{ about.about_heading_part2_en|default:"for modern" }}
+                {% cms_txt about 'about_heading_part2' %}
                 <span class="about-us-title-image-2"
                   >{% if about.about_title_image_2 %}
                   <img src="{{ about.about_title_image_2.url }}" alt=""
                 />{% else %}
                   <img src="{% static 'landing/images/about-us-title-image-2.jpg' %}" alt=""
                 />{% endif %}</span>
-                {{ about.about_heading_part3_en|default:"logistics teams." }}
+                {% cms_txt about 'about_heading_part3' %}
               </h2>
             </div>
             <!-- Section Title End -->
@@ -61,7 +51,7 @@
               </div>
               <div class="about-counter-box">
                 <h2><span>{{ about.about_counter_1_value|default:"24/7" }}</span></h2>
-                <p>{{ about.about_counter_1_label_en|default:"System Availability" }}</p>
+                <p>{% cms_txt about 'about_counter_1_label' %}</p>
               </div>
             </div>
             <!-- About Us Image Box End -->
@@ -71,16 +61,13 @@
             <!-- About Us Item Start -->
             <div class="about-us-item wow fadeInUp" data-wow-delay="0.2s">
               <div class="about-us-item-content">
-                <h3>Built for Modern Transport Businesses</h3>
-                <p>
-                  IRoad connects operations, fleet, finance, and reporting into
-                  a single unified system.
-                </p>
+                <h3>{% cms_txt about 'about_mid_title' %}</h3>
+                <p>{% cms_txt about 'about_mid_body' %}</p>
               </div>
               <div class="about-us-body">
                 <div class="about-counter-box">
                   <h2><span>{{ about.about_counter_2_value|default:"100+" }}</span></h2>
-                  <p>{{ about.about_counter_2_label_en|default:"Companies Using IRoad" }}</p>
+                  <p>{% cms_txt about 'about_counter_2_label' %}</p>
                 </div>
                 <div class="about-us-body-image">
                   <figure>
@@ -104,19 +91,19 @@
             >
               <div class="about-us-item-content">
                 <p>
-                  {{ about.about_body_en|default:"We provide a complete digital ecosystem for transport companies to manage workflows efficiently and scale operations." }}
+                  {% cms_txt about 'about_body' %}
                 </p>
               </div>
               <div class="about-us-list-btn">
                 <div class="about-us-item-list">
                   <ul>
-                    <li>{{ about.about_list_item_1_en|default:"End-to-End Workflow Automation" }}</li>
-                    <li>{{ about.about_list_item_2_en|default:"Real-Time Tracking & Insights" }}</li>
+                    {% if about.about_list_item_1_en or about.about_list_item_1_ar %}<li>{% cms_txt about 'about_list_item_1' %}</li>{% endif %}
+                    {% if about.about_list_item_2_en or about.about_list_item_2_ar %}<li>{% cms_txt about 'about_list_item_2' %}</li>{% endif %}
                   </ul>
                 </div>
                 <div class="about-us-item-btn">
                   <a href="{{ about.about_explore_url|default:'#' }}" class="btn-default btn-highlighted"
-                    >{{ about.about_explore_label_en|default:"Explore Platform" }}</a
+                    >{% cms_txt about 'about_explore_label' %}</a
                   >
                 </div>
               </div>
@@ -128,8 +115,8 @@
             <!-- Section Footer Text Start -->
             <div class="section-footer-text wow fadeInUp" data-wow-delay="0.4s">
               <p>
-                {{ about.about_footer_text_en|default:"IRoad is a modern transport management system designed to help logistics companies streamline operations, manage fleet, and gain full business visibility." }}
-                <a href="{{ about.about_footer_cta_url|default:'#' }}">{{ about.about_footer_cta_label_en|default:"Book a Demo" }}</a>
+                {% cms_txt about 'about_footer_text' %}
+                <a href="{{ about.about_footer_cta_url|default:'#' }}">{% cms_txt about 'about_footer_cta_label' %}</a>
               </p>
               <ul>
                 <li><span>{{ about.about_rating_value|default:"4.9/5" }}</span></li>
@@ -140,7 +127,7 @@
                   <i class="fa-solid fa-star"></i>
                   <i class="fa-solid fa-star"></i>
                 </li>
-                <li>{{ about.about_review_label_en|default:"4,200+ reviews" }}</li>
+                <li>{% cms_txt about 'about_review_label' %}</li>
               </ul>
             </div>
             <!-- Section Footer Text End -->
@@ -159,12 +146,12 @@
             <div class="approach-content">
               <!-- Section Title Start -->
               <div class="section-title">
-                <h3>{{ about.approach_kicker_en|default:"Our Approach" }}</h3>
+                <h3>{% cms_txt about 'approach_kicker' %}</h3>
                 <h2>
-                  {{ about.approach_heading_en|default:"How IRoad Transforms Transport Operations" }}
+                  {% cms_txt about 'approach_heading' %}
                 </h2>
                 <p class="wow fadeInUp" data-wow-delay="0.2s">
-                  {{ about.approach_body_en|default:"We focus on automation, visibility, and control to simplify complex logistics workflows." }}
+                  {% cms_txt about 'approach_body' %}
                 </p>
               </div>
               <!-- Section Title End -->
@@ -173,7 +160,7 @@
           </div>
           <div class="col-lg-4 text-lg-end">
             <div class="apptroch-btn wow fadeInUp" data-wow-delay="0.4s">
-              <a href="{{ about.approach_cta_url|default:'#' }}" class="btn-default">{{ about.approach_cta_label_en|default:"Book a Demo" }}</a>
+              <a href="{{ about.approach_cta_url|default:'#' }}" class="btn-default">{% cms_txt about 'approach_cta_label' %}</a>
             </div>
           </div>
         </div>
@@ -196,12 +183,12 @@
                   {% endif %}
                 </div>
                 <div class="approach-item-title">
-                  <h3>{{ pillar.title_en }}</h3>
+                  <h3>{% cms_txt pillar 'title' %}</h3>
                 </div>
               </div>
               <div class="approach-item-body">
                 <p>
-                  {{ pillar.body_en }}
+                  {% cms_txt pillar 'body' %}
                 </p>
               </div>
             </div>
@@ -220,9 +207,9 @@
           <div class="col-lg-12">
             <!-- Section Title Start -->
             <div class="section-title section-title-center">
-              <h3>{{ about.how_kicker_en|default:"How It Works" }}</h3>
+              <h3>{% cms_txt about 'how_kicker' %}</h3>
               <h2>
-                {{ about.how_heading_en|default:"How IRoad streamlines your transport workflows" }}
+                {% cms_txt about 'how_heading' %}
               </h2>
             </div>
             <!-- Section Title End -->
@@ -255,8 +242,8 @@
                 </div>
               </div>
               <div class="how-work-item-content">
-                <h3>{{ step.title_en }}</h3>
-                <p>{{ step.body_en }}</p>
+                <h3>{% cms_txt step 'title' %}</h3>
+                <p>{% cms_txt step 'body' %}</p>
               </div>
             </div>
             <!-- How Work Item End -->
@@ -267,8 +254,8 @@
             <!-- Section Footer Text Start -->
             <div class="section-footer-text wow fadeInUp" data-wow-delay="0.4s">
               <p>
-                {{ about.how_footer_text_en|default:"Automate operations, improve visibility, and scale with confidence using IRoad." }}
-                <a href="{{ about.how_footer_link_url|default:'#' }}">{{ about.how_footer_link_label_en|default:"Start Free Trial" }}</a>
+                {% cms_txt about 'how_footer_text' %}
+                <a href="{{ about.how_footer_link_url|default:'#' }}">{% cms_txt about 'how_footer_link_label' %}</a>
               </p>
               <ul>
                 <li><span>{{ about.how_rating_value|default:"4.9/5" }}</span></li>
@@ -279,7 +266,7 @@
                   <i class="fa-solid fa-star"></i>
                   <i class="fa-solid fa-star"></i>
                 </li>
-                <li>{{ about.how_review_label_en|default:"4,200+ reviews" }}</li>
+                <li>{% cms_txt about 'how_review_label' %}</li>
               </ul>
             </div>
             <!-- Section Footer Text End -->
@@ -289,9 +276,5 @@
     </div>
     <!-- How It Work Section End -->
 
-    {% if lang == 'ar' %}
-    {% include 'iroad_frontend/partials/components/faq_accordion.html' with faq_items=faq_items faq_kicker=about.faq_kicker_ar|default:about.faq_kicker_en faq_heading=about.faq_heading_ar|default:about.faq_heading_en faq_intro=about.faq_intro_ar|default:about.faq_intro_en faq_view_all_label=about.faq_view_all_label_ar|default:about.faq_view_all_label_en faq_view_all_url=about.faq_view_all_url %}
-    {% else %}
-    {% include 'iroad_frontend/partials/components/faq_accordion.html' with faq_items=faq_items faq_kicker=about.faq_kicker_en faq_heading=about.faq_heading_en faq_intro=about.faq_intro_en faq_view_all_label=about.faq_view_all_label_en faq_view_all_url=about.faq_view_all_url %}
-    {% endif %}
+    {% include 'iroad_frontend/partials/components/faq_accordion.html' with faq_items=faq_items use_cms_faq_section=True faq_cms=about faq_view_all_url=about.faq_view_all_url faq_accordion_id='accordionAbout' faq_heading_suffix='About' %}
 {% endblock %}
