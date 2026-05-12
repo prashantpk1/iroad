@@ -1,0 +1,228 @@
+{% extends 'iroad_frontend/base.html' %}
+{% load static %}
+
+{% block title %}
+  {% if lang == 'ar' %}
+    {{ contact.page_title_ar|default:contact.page_title_en }}
+  {% else %}
+    {{ contact.page_title_en }}
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+    <!-- Page Header Section Start -->
+    <div
+      class="page-header contact-page-header bg-section parallaxie{% if contact.page_header_background %} contact-page-header--cms-bg{% endif %}"
+      {% if contact.page_header_background %}
+      style="background-image: url('{{ contact.page_header_background.url }}');"
+      {% endif %}
+    >
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <!-- Page Header Box Start -->
+                    <div class="page-header-box">
+                        <h1>
+                          {% if lang == 'ar' %}
+                            {{ contact.page_header_h1_ar|default:contact.page_header_h1_en }}
+                          {% else %}
+                            {{ contact.page_header_h1_en }}
+                          {% endif %}
+                        </h1>
+                        <nav class="wow fadeInUp" aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                  <a href="{% url 'iroad_frontend:home' %}">
+                                    {% if lang == 'ar' %}
+                                      {{ home.nav_home_ar|default:home.nav_home_en }}
+                                    {% else %}
+                                      {{ home.nav_home_en }}
+                                    {% endif %}
+                                  </a>
+                                </li>
+                                <li class="breadcrumb-item active" aria-current="page">
+                                  {% if lang == 'ar' %}
+                                    {{ contact.breadcrumb_current_ar|default:contact.breadcrumb_current_en }}
+                                  {% else %}
+                                    {{ contact.breadcrumb_current_en }}
+                                  {% endif %}
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <!-- Page Header Box End -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Page Header Section End -->
+
+    <!-- Page Contact Us Start -->
+    <div class="page-contact-us">
+        <div class="container">
+            <div class="row section-row">
+                <div class="col-lg-12">
+                    <!-- Section Title Start -->
+                    <div class="section-title section-title-center">
+                        <h3>{{ contact.section_kicker_en }}</h3>
+                        <h2>{{ contact.section_heading_en }}</h2>
+                    </div>
+                    <!-- Section Title End -->
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-7">
+                    <!-- Contact Us Form Start -->
+                    <div class="contact-us-form">
+                        <!-- Section Title Start -->
+                        <div class="section-title section-title-center">
+                            <h2>{{ contact.form_title_en }}</h2>
+                        </div>
+                        <!-- Section Title End -->
+
+                        <!-- Contact Form Start -->
+                        <div class="contact-form">
+                            {% if form_success %}
+                            <div class="alert alert-success">
+                              Thank you! We will be in touch shortly.
+                            </div>
+                            {% endif %}
+                            {% if form_error %}
+                            <div class="alert alert-danger">
+                              Please fill in all required fields.
+                            </div>
+                            {% endif %}
+                            <form id="contactForm" action="{{ contact.form_action_url }}" method="POST" data-toggle="validator" class="wow fadeInUp">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="form-group col-md-6 mb-4">
+                                        <input type="text" name="first_name" class="form-control" id="fname" placeholder="{{ contact.form_fname_placeholder_en }}" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+            
+                                    <div class="form-group col-md-6 mb-4">
+                                        <input type="text" name="last_name" class="form-control" id="lname" placeholder="{{ contact.form_lname_placeholder_en }}" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+                                    
+                                    <div class="form-group col-md-6 mb-4">
+                                        <input type="text" name="phone" class="form-control" id="phone" placeholder="{{ contact.form_phone_placeholder_en }}" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+
+                                    <div class="form-group col-md-6 mb-4">
+                                        <input type="email" name="email" class="form-control" id="email" placeholder="{{ contact.form_email_placeholder_en }}" required>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+            
+                                    <div class="form-group col-md-12 mb-5">
+                                        <textarea name="message" class="form-control" id="message" rows="5" placeholder="{{ contact.form_message_placeholder_en }}"></textarea>
+                                        <div class="help-block with-errors"></div>
+                                    </div>
+
+                                    <div class="col-md-12 mb-4">
+                                        <div class="policy-checkbox">
+                                            <input type="checkbox" id="consent" name="consent" value="on">
+                                            <label class="form-label" for="consent">{{ contact.form_consent_label_en }}</label>
+                                        </div>
+                                    </div>
+            
+                                    <div class="col-lg-12">
+                                        <div class="contact-form-btn">
+                                            <button type="submit" class="btn-default"><span>{{ contact.form_submit_label_en }}</span></button>
+                                            <div id="msgSubmit" class="h3 hidden"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <!-- Contact Form End -->
+                    </div>
+                    <!-- Contact Us Form End -->
+                </div>
+
+                <div class="col-lg-5">
+                    <!-- Contact Us Content Start -->
+                    <div class="contact-us-content dark-section wow fadeInUp" data-wow-delay="0.2s">
+                        <!-- Contact Us Image Start -->
+                        <div class="contact-us-image">
+                            <figure class="image-anime">
+                                {% if contact.contact_image %}
+                                <img src="{{ contact.contact_image.url }}" alt="">
+                                {% else %}
+                                <img src="{% static 'landing/images/contact-us-image.jpg' %}" alt="">
+                                {% endif %}
+                            </figure>
+                        </div>
+                        <!-- Contact Us Image End -->
+                         <div class="contact-us-body">
+                            <!-- Section Title Start -->
+                            <div class="section-title">
+                                <h2>{{ contact.sidebar_heading_en }}</h2>
+                            </div>
+                            <!-- Section Title End -->
+
+                            <!-- Opening Hour Box Start -->
+                            <div class="opening-hour-box">
+                                <h3>{{ contact.support_label_en }}</h3>
+                                <ul>
+                                    <li><span>{{ contact.support_hours_en }}</span></li>
+                                    <li><span>{{ contact.support_online_label_en }}</span></li>
+                                </ul>
+                            </div>
+                            <!-- Opening Hour Box End -->
+                         </div>
+                    </div>
+                    <!-- Contact Us Content End -->
+                </div>
+
+                <div class="col-lg-12">
+                    <!-- Contact Info List Start -->
+                    <div class="contact-info-list">
+                        <!-- Contact Info Item Start  -->
+                        <div class="contact-info-item wow fadeInUp">
+                            <div class="icon-box">
+                                <img src="{% static 'landing/images/icon-phone-white.svg' %}" alt="">
+                            </div>
+                            <div class="contact-info-item-content">
+                                <h3>{{ contact.info_book_label_en }}</h3>
+                                <p><a href="tel:{{ contact.info_phone_1|cut:' ' }}">{{ contact.info_phone_1 }}</a></p>
+                                <p><a href="tel:{{ contact.info_phone_2|cut:' ' }}">{{ contact.info_phone_2 }}</a></p>
+                            </div>
+                        </div>
+                        <!-- Contact Info Item End  -->
+
+                        <!-- Contact Info Item Start  -->
+                        <div class="contact-info-item wow fadeInUp" data-wow-delay="0.2s">
+                            <div class="icon-box">
+                                <img src="{% static 'landing/images/icon-mail-white.svg' %}" alt="">
+                            </div>
+                            <div class="contact-info-item-content">
+                                <h3>{{ contact.info_email_label_en }}</h3>
+                                <p><a href="mailto:{{ contact.info_email_1 }}">{{ contact.info_email_1 }}</a></p>
+                                <p><a href="mailto:{{ contact.info_email_2 }}">{{ contact.info_email_2 }}</a></p>
+                            </div>
+                        </div>
+                        <!-- Contact Info Item End  -->
+
+                        <!-- Contact Info Item Start  -->
+                        <div class="contact-info-item wow fadeInUp" data-wow-delay="0.4s">
+                            <div class="icon-box">
+                                <img src="{% static 'landing/images/icon-location-white.svg' %}" alt="">
+                            </div>
+                            <div class="contact-info-item-content">
+                                <h3>{{ contact.info_platform_label_en }}</h3>
+                                <p>{{ contact.info_platform_label_en }}</p>
+                            </div>
+                        </div>
+                        <!-- Contact Info Item End  -->
+                    </div>
+                    <!-- Contact Info List End -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Page Contact Us Emd -->
+
+{% endblock %}

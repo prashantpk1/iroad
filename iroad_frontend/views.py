@@ -1,8 +1,14 @@
-from django.shortcuts import render
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_ipv46_address
+from django.shortcuts import redirect, render
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.csrf import csrf_protect
 
 from iroad_frontend.models import (
     AboutPageContent,
+    ContactPageContent,
+    ContactSubmission,
     HomePageContent,
     PricingPageContent,
 )
@@ -90,6 +96,73 @@ class PricingPageView(View):
             'iroad_frontend/pricing/index.html',
             context,
         )
+
+
+class ContactPageView(View):
+    def get(self, request):
+        contact = ContactPageContent.get_singleton()
+        home = HomePageContent.get_singleton()
+        context = {
+            'contact': contact,
+            'home': home,
+            'lang': 'en',
+            'dir': 'ltr',
+            'form_success': request.GET.get('success') == '1',
+            'form_error': request.GET.get('error') == '1',
+        }
+        return render(
+            request,
+            'iroad_frontend/contact/index.html',
+            context,
+        )
+
+
+def _client_ip_for_submission(request):
+    x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded:
+        ip = x_forwarded.split(',')[0].strip()
+    else:
+        ip = (request.META.get('REMOTE_ADDR') or '').strip()
+    if not ip:
+        return None
+    try:
+        validate_ipv46_address(ip)
+    except ValidationError:
+        return None
+    return ip
+
+
+@method_decorator(csrf_protect, name='dispatch')
+class ContactFormSubmitView(View):
+    """
+    Handles demo request form POST.
+    Saves ContactSubmission and redirects.
+    """
+
+    def post(self, request):
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        email = request.POST.get('email', '').strip()
+        message = request.POST.get('message', '').strip()
+        consent = request.POST.get('consent', '') == 'on'
+
+        if not email or not first_name:
+            return redirect('/contact/?error=1')
+
+        ip = _client_ip_for_submission(request)
+
+        ContactSubmission.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+            email=email,
+            message=message,
+            consent_given=consent,
+            ip_address=ip,
+        )
+
+        return redirect('/contact/?success=1')
 
 
 def page_not_found(request, exception=None):

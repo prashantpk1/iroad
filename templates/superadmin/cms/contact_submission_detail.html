@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block breadcrumb_items %}
+  <li class="breadcrumb-item"><a href="{% url 'contact_submission_list' %}">{% translate "Contact Submissions" %}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">#{{ submission.pk }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-row d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div class="page-header-left d-flex flex-wrap align-items-center gap-2">
+      <h1 class="page-title mb-0">{% translate "Demo request" %} #{{ submission.pk }}</h1>
+      {% if submission.is_read %}
+        <span class="badge text-bg-secondary">{% translate "Read" %}</span>
+      {% else %}
+        <span class="badge text-bg-warning text-dark">{% translate "Unread" %}</span>
+      {% endif %}
+    </div>
+    <div class="page-header-right">
+      <a href="{% url 'contact_submission_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> {% translate "Back" %}
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">{% translate "First Name" %}</div>
+      <div class="card-body">{{ submission.first_name }}</div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">{% translate "Last Name" %}</div>
+      <div class="card-body">{{ submission.last_name }}</div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">{% translate "Email" %}</div>
+      <div class="card-body"><a href="mailto:{{ submission.email }}">{{ submission.email }}</a></div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">{% translate "Phone" %}</div>
+      <div class="card-body">{{ submission.phone }}</div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">{% translate "Message" %}</div>
+      <div class="card-body">
+        <pre class="mb-0" style="white-space: pre-wrap; font-family: inherit;">{{ submission.message }}</pre>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">{% translate "Consent" %}</div>
+      <div class="card-body">
+        {% if submission.consent_given %}
+          <span class="badge text-bg-success">{% translate "Yes" %}</span>
+        {% else %}
+          <span class="badge text-bg-secondary">{% translate "No" %}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card h-100 border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">{% translate "Submitted At" %}</div>
+      <div class="card-body">{{ submission.submitted_at|date:"Y-m-d H:i:s" }}</div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-light fw-semibold">{% translate "IP Address" %}</div>
+      <div class="card-body">{{ submission.ip_address|default:"—" }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

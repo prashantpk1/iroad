@@ -1304,3 +1304,184 @@ class PricingInteractiveStep(models.Model):
 
     def __str__(self):
         return f'Step {self.order}: {self.title_en}'
+
+
+def contact_upload_path(instance, filename):
+    return f'marketing/contact/{filename}'
+
+
+class ContactPageContent(models.Model):
+    """
+    Singleton CMS for Contact Page.
+    Manages all labels, info, and form field labels.
+    """
+
+    # ── SEO ──────────────────────────────────────────────────────
+    page_title_en = models.CharField(
+        max_length=200, blank=True, default='Contact IRoad')
+    page_title_ar = models.CharField(
+        max_length=200, blank=True, default='تواصل مع آيروود')
+    meta_description_en = models.TextField(blank=True, default='')
+    meta_description_ar = models.TextField(blank=True, default='')
+
+    # ── Page Header ───────────────────────────────────────────────
+    page_header_h1_en = models.CharField(
+        max_length=300, blank=True, default='Contact IRoad')
+    page_header_h1_ar = models.CharField(
+        max_length=300, blank=True, default='تواصل مع آيروود')
+    breadcrumb_current_en = models.CharField(
+        max_length=100, blank=True, default='Contact')
+    breadcrumb_current_ar = models.CharField(
+        max_length=100, blank=True, default='تواصل')
+    page_header_background = models.FileField(
+        upload_to=contact_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+        verbose_name='Page header background image',
+        help_text=(
+            'Optional hero background for the contact page header. '
+            'If empty, a solid theme fallback is used (no stock photo).'
+        ),
+    )
+
+    # ── Contact Section ───────────────────────────────────────────
+    section_kicker_en = models.CharField(
+        max_length=200, blank=True, default='contact Us')
+    section_kicker_ar = models.CharField(
+        max_length=200, blank=True, default='تواصل معنا')
+    section_heading_en = models.CharField(
+        max_length=300, blank=True,
+        default='Get in touch with our team to explore IRoad')
+    section_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    contact_image = models.ImageField(
+        upload_to=contact_upload_path,
+        blank=True,
+        null=True,
+    )
+
+    # ── Form Labels ───────────────────────────────────────────────
+    form_title_en = models.CharField(
+        max_length=200, blank=True, default='Request a Demo')
+    form_title_ar = models.CharField(
+        max_length=200, blank=True, default='اطلب عرضاً')
+    form_fname_placeholder_en = models.CharField(
+        max_length=100, blank=True, default='First Name')
+    form_fname_placeholder_ar = models.CharField(
+        max_length=100, blank=True, default='الاسم الأول')
+    form_lname_placeholder_en = models.CharField(
+        max_length=100, blank=True, default='Last Name')
+    form_lname_placeholder_ar = models.CharField(
+        max_length=100, blank=True, default='اسم العائلة')
+    form_phone_placeholder_en = models.CharField(
+        max_length=100, blank=True, default='Phone Number')
+    form_phone_placeholder_ar = models.CharField(
+        max_length=100, blank=True, default='رقم الهاتف')
+    form_email_placeholder_en = models.CharField(
+        max_length=100, blank=True, default='Email Address')
+    form_email_placeholder_ar = models.CharField(
+        max_length=100, blank=True, default='البريد الإلكتروني')
+    form_message_placeholder_en = models.TextField(
+        blank=True,
+        default='Tell us about your transport business or requirements')
+    form_message_placeholder_ar = models.TextField(
+        blank=True, default='أخبرنا عن متطلباتك')
+    form_consent_label_en = models.CharField(
+        max_length=500, blank=True,
+        default=(
+            'I agree to receive communication regarding product updates and '
+            'demo scheduling.'))
+    form_consent_label_ar = models.CharField(
+        max_length=500, blank=True, default='')
+    form_submit_label_en = models.CharField(
+        max_length=100, blank=True, default='Book Demo')
+    form_submit_label_ar = models.CharField(
+        max_length=100, blank=True, default='احجز عرضاً')
+    form_action_url = models.CharField(
+        max_length=500, blank=True, default='/contact/submit/')
+
+    # ── Sidebar Info ──────────────────────────────────────────────
+    sidebar_heading_en = models.CharField(
+        max_length=300, blank=True,
+        default='Start your digital transport journey with IRoad')
+    sidebar_heading_ar = models.CharField(
+        max_length=300, blank=True, default='')
+    support_label_en = models.CharField(
+        max_length=100, blank=True, default='Our Support')
+    support_label_ar = models.CharField(
+        max_length=100, blank=True, default='الدعم')
+    support_hours_en = models.CharField(
+        max_length=200, blank=True,
+        default='Monday - Friday : 9:00 AM - 6:00 PM')
+    support_hours_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    support_online_label_en = models.CharField(
+        max_length=200, blank=True,
+        default='24/7 Email Support Available')
+    support_online_label_ar = models.CharField(
+        max_length=200, blank=True, default='')
+    info_book_label_en = models.CharField(
+        max_length=100, blank=True, default='Book a Demo')
+    info_book_label_ar = models.CharField(
+        max_length=100, blank=True, default='احجز عرضاً')
+    info_phone_1 = models.CharField(
+        max_length=50, blank=True, default='+91 98765 43210')
+    info_phone_2 = models.CharField(
+        max_length=50, blank=True, default='+91 91234 56789')
+    info_email_label_en = models.CharField(
+        max_length=100, blank=True, default='Email')
+    info_email_label_ar = models.CharField(
+        max_length=100, blank=True, default='البريد')
+    info_email_1 = models.CharField(
+        max_length=200, blank=True, default='support@iroad.com')
+    info_email_2 = models.CharField(
+        max_length=200, blank=True, default='sales@iroad.com')
+    info_platform_label_en = models.CharField(
+        max_length=200, blank=True,
+        default='Cloud-Based Platform - Accessible Worldwide')
+    info_platform_label_ar = models.CharField(
+        max_length=200, blank=True, default='')
+
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(
+        max_length=200, blank=True, default='')
+
+    class Meta:
+        db_table = 'iroad_frontend_contact_content'
+        verbose_name = 'Contact Page Content'
+        verbose_name_plural = 'Contact Page Content'
+
+    def __str__(self):
+        return 'Contact Page Content'
+
+    @classmethod
+    def get_singleton(cls):
+        obj, _created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class ContactSubmission(models.Model):
+    """
+    Stores demo request form submissions.
+    Viewable from superadmin CMS.
+    """
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    phone = models.CharField(max_length=30)
+    email = models.EmailField()
+    message = models.TextField()
+    consent_given = models.BooleanField(default=False)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    ip_address = models.GenericIPAddressField(
+        null=True, blank=True)
+
+    class Meta:
+        db_table = 'iroad_frontend_contact_submission'
+        ordering = ['-submitted_at']
+        verbose_name = 'Contact Submission'
+        verbose_name_plural = 'Contact Submissions'
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name} — {self.email}'

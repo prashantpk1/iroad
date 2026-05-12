@@ -11,6 +11,7 @@ from iroad_frontend.models import (
     AboutFaqItem,
     AboutHowWorkStep,
     AboutPageContent,
+    ContactPageContent,
     HomeMapLocation,
     HomePageContent,
     HomePricingBenefit,
@@ -67,6 +68,18 @@ def _apply_pricing_page_widgets(form):
     """Pricing singleton: same widget rules as about page CMS."""
     for name, field in form.fields.items():
         mf = PricingPageContent._meta.get_field(name)
+        if isinstance(mf, dj_models.TextField):
+            field.widget = Textarea(attrs=_TEXTAREA_ATTRS.copy())
+        elif isinstance(mf, dj_models.FileField):
+            field.widget = FileInput(attrs=_CTRL.copy())
+        elif isinstance(mf, dj_models.CharField):
+            field.widget = TextInput(attrs=_CTRL.copy())
+
+
+def _apply_contact_page_widgets(form):
+    """Contact singleton: TextInput / Textarea / FileInput (ImageField is FileField subclass)."""
+    for name, field in form.fields.items():
+        mf = ContactPageContent._meta.get_field(name)
         if isinstance(mf, dj_models.TextField):
             field.widget = Textarea(attrs=_TEXTAREA_ATTRS.copy())
         elif isinstance(mf, dj_models.FileField):
@@ -189,6 +202,18 @@ class PricingPageContentForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _apply_pricing_page_widgets(self)
+
+
+class ContactPageContentForm(ModelForm):
+    """Singleton contact page — bilingual labels, form copy, sidebar info."""
+
+    class Meta:
+        model = ContactPageContent
+        exclude = ('updated_at', 'updated_by')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        _apply_contact_page_widgets(self)
 
 
 class PricingInteractiveStepForm(ModelForm):
