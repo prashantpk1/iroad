@@ -1,6 +1,8 @@
 """
 Seed default Home Page CMS content (singleton + repeaters) from designer index.
-Idempotent: skips child rows that already exist for the same home + order.
+Idempotent: most repeaters skip if already present; service cards, pricing
+tiers, pricing benefits, and testimonials are upserted each run so EN/AR copy
+stays in sync with seed data.
 Always refreshes HomePageContent text fields (not images) to designer defaults
 with matching Arabic (_ar) copy alongside English.
 """
@@ -532,63 +534,58 @@ class Command(BaseCommand):
         home = HomePageContent.get_singleton()
         for row in SERVICE_CARDS:
             order = row['order']
-            if HomeServiceCard.objects.filter(home=home, order=order).exists():
-                self.stdout.write(
-                    f'  HomeServiceCard order={order}: already exists, skipped.'
-                )
-                continue
-            HomeServiceCard.objects.create(
+            HomeServiceCard.objects.update_or_create(
                 home=home,
                 order=order,
-                title_en=row['title_en'],
-                title_ar=row.get('title_ar', ''),
-                summary_en=row['summary_en'],
-                summary_ar=row.get('summary_ar', ''),
-                detail_url=row['detail_url'],
-                cta_label_en=row['cta_label_en'],
-                cta_label_ar=row.get('cta_label_ar', 'استكشف الميزة'),
-                is_active=True,
+                defaults={
+                    'title_en': row['title_en'],
+                    'title_ar': row.get('title_ar', ''),
+                    'summary_en': row['summary_en'],
+                    'summary_ar': row.get('summary_ar', ''),
+                    'detail_url': row['detail_url'],
+                    'cta_label_en': row['cta_label_en'],
+                    'cta_label_ar': row.get('cta_label_ar', 'استكشف الميزة'),
+                    'is_active': True,
+                },
             )
             self.stdout.write(
-                self.style.SUCCESS(f'  HomeServiceCard order={order}: created.')
+                self.style.SUCCESS(
+                    f'  HomeServiceCard order={order} ({row["title_en"]}): upserted.'
+                )
             )
 
     def _seed_pricing_tiers(self):
         home = HomePageContent.get_singleton()
         for row in PRICING_TIERS:
             order = row['order']
-            if HomePricingTier.objects.filter(home=home, order=order).exists():
-                self.stdout.write(
-                    f'  HomePricingTier order={order}: already exists, skipped.'
-                )
-                continue
-            tier = HomePricingTier(
+            HomePricingTier.objects.update_or_create(
                 home=home,
                 order=order,
-                name_en=row['name_en'],
-                name_ar=row.get('name_ar', ''),
-                summary_en=row['summary_en'],
-                summary_ar=row.get('summary_ar', ''),
-                price_display_en=row['price_display_en'],
-                price_display_ar=row.get('price_display_ar', ''),
-                bullet_1_en=row.get('bullet_1_en', ''),
-                bullet_1_ar=row.get('bullet_1_ar', ''),
-                bullet_2_en=row.get('bullet_2_en', ''),
-                bullet_2_ar=row.get('bullet_2_ar', ''),
-                bullet_3_en=row.get('bullet_3_en', ''),
-                bullet_3_ar=row.get('bullet_3_ar', ''),
-                bullet_4_en=row.get('bullet_4_en', ''),
-                bullet_4_ar=row.get('bullet_4_ar', ''),
-                cta_label_en=row['cta_label_en'],
-                cta_label_ar=row.get('cta_label_ar', 'ابدأ مجاناً'),
-                cta_url=row['cta_url'],
-                is_featured=row.get('is_featured', False),
-                is_active=True,
+                defaults={
+                    'name_en': row['name_en'],
+                    'name_ar': row.get('name_ar', ''),
+                    'summary_en': row['summary_en'],
+                    'summary_ar': row.get('summary_ar', ''),
+                    'price_display_en': row['price_display_en'],
+                    'price_display_ar': row.get('price_display_ar', ''),
+                    'bullet_1_en': row.get('bullet_1_en', ''),
+                    'bullet_1_ar': row.get('bullet_1_ar', ''),
+                    'bullet_2_en': row.get('bullet_2_en', ''),
+                    'bullet_2_ar': row.get('bullet_2_ar', ''),
+                    'bullet_3_en': row.get('bullet_3_en', ''),
+                    'bullet_3_ar': row.get('bullet_3_ar', ''),
+                    'bullet_4_en': row.get('bullet_4_en', ''),
+                    'bullet_4_ar': row.get('bullet_4_ar', ''),
+                    'cta_label_en': row['cta_label_en'],
+                    'cta_label_ar': row.get('cta_label_ar', 'ابدأ مجاناً'),
+                    'cta_url': row['cta_url'],
+                    'is_featured': row.get('is_featured', False),
+                    'is_active': True,
+                },
             )
-            tier.save()
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'  HomePricingTier order={order} ({row["name_en"]}): created.'
+                    f'  HomePricingTier order={order} ({row["name_en"]}): upserted.'
                 )
             )
 
@@ -615,25 +612,23 @@ class Command(BaseCommand):
         home = HomePageContent.get_singleton()
         for row in TESTIMONIALS:
             order = row['order']
-            if HomeTestimonial.objects.filter(home=home, order=order).exists():
-                self.stdout.write(
-                    f'  HomeTestimonial order={order}: already exists, skipped.'
-                )
-                continue
-            HomeTestimonial.objects.create(
+            HomeTestimonial.objects.update_or_create(
                 home=home,
                 order=order,
-                quote_en=TESTIMONIAL_QUOTE_EN,
-                quote_ar=TESTIMONIAL_QUOTE_AR,
-                author_name_en=row['author_name_en'],
-                author_name_ar=row.get('author_name_ar', ''),
-                author_role_en=row['author_role_en'],
-                author_role_ar=row.get('author_role_ar', ''),
-                is_active=True,
+                defaults={
+                    'quote_en': TESTIMONIAL_QUOTE_EN,
+                    'quote_ar': TESTIMONIAL_QUOTE_AR,
+                    'author_name_en': row['author_name_en'],
+                    'author_name_ar': row.get('author_name_ar', ''),
+                    'author_role_en': row['author_role_en'],
+                    'author_role_ar': row.get('author_role_ar', ''),
+                    'is_active': True,
+                },
             )
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'  HomeTestimonial order={order} ({row["author_name_en"]}): created.'
+                    f'  HomeTestimonial order={order} ({row["author_name_en"]}): '
+                    'upserted.'
                 )
             )
 

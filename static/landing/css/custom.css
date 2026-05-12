@@ -1762,6 +1762,8 @@ header.main-header .header-sticky.active {
 
 .partner-world-map-box {
   position: relative;
+  /* Pins overlay uses flex; isolate from page RTL so positions match the map */
+  direction: ltr;
 }
 
 .partner-world-map-image figure {
@@ -7531,6 +7533,8 @@ header.main-header.header-elite .header-sticky.active {
 
 .business-worldwide-map-elite {
   position: relative;
+  /* Isolate from html[dir=rtl]: flex row order must match the map image */
+  direction: ltr;
 }
 
 .partner-world-map-image-elite figure {

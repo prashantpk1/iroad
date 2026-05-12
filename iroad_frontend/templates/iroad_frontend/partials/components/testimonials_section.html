@@ -1,4 +1,4 @@
-{% load static %}
+{% load static cms_locale %}
     <!-- Our Testimonials Section Start -->
     <div class="our-testimonials bg-section">
       <div class="container">
@@ -45,7 +45,7 @@
 
                 <!-- Review Content Start -->
                 <div class="happy-customer-content">
-                  <p>{{ t_happy_label }}</p>
+                  <p>{% if use_cms_home_titles %}{% cms_txt home 'testimonials_happy_label' %}{% else %}{{ t_happy_label }}{% endif %}</p>
                 </div>
                 <!-- Review Content End -->
               </div>
@@ -59,8 +59,8 @@
             <div class="testimonial-content-box">
               <!-- Section Title Start -->
               <div class="section-title">
-                <h3>{{ t_kicker }}</h3>
-                <h2 data-cursor="-opaque">{{ t_heading }}</h2>
+                <h3>{% if use_cms_home_titles %}{% cms_txt home 'testimonials_kicker' %}{% else %}{{ t_kicker }}{% endif %}</h3>
+                <h2 data-cursor="-opaque">{% if use_cms_home_titles %}{% cms_txt home 'testimonials_heading' %}{% else %}{{ t_heading }}{% endif %}</h2>
               </div>
               <!-- Section Title End -->
 

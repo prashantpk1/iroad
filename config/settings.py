@@ -114,6 +114,11 @@ TEMPLATES = [
                 'iroad_tenants.context_processors.tenant_system_banners',
                 'iroad_tenants.context_processors.tenant_web_push_config',
             ],
+            # Explicit path so {% load cms_locale %} works even if auto-discovery
+            # of app templatetags packages fails (e.g. import/shadowing issues).
+            'libraries': {
+                'cms_locale': 'iroad_frontend.templatetags.cms_locale',
+            },
         },
     },
 ]

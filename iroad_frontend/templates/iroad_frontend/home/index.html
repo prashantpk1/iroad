@@ -1,5 +1,6 @@
 {% extends 'iroad_frontend/base.html' %}
 {% load static %}
+{% load cms_locale %}
 
 {% block content %}
     <!-- Hero Section Start -->
@@ -15,15 +16,15 @@
                 <div class="hero-content-header-elite">
                   <!-- Section Title Start -->
                   <div class="section-title section-title-center">
-                    <h3>{{ home.hero_kicker_en }}</h3>
-                    <h1>{{ home.hero_heading_en }}</h1>
-                    <p class="wow fadeInUp" data-wow-delay="0.2s">{{ home.hero_subheading_en }}</p>
+                    <h3>{% cms_txt home 'hero_kicker' %}</h3>
+                    <h1>{% cms_txt home 'hero_heading' %}</h1>
+                    <p class="wow fadeInUp" data-wow-delay="0.2s">{% cms_txt home 'hero_subheading' %}</p>
                   </div>
                   <!-- Section Title End -->
 
                   <!-- Section Button Start -->
                   <div class="section-btn-elite wow fadeInUp" data-wow-delay="0.4s">
-                    <a href="{{ home.hero_cta_url }}" class="btn-default">{{ home.hero_cta_label_en }}</a>
+                    <a href="{{ home.hero_cta_url }}" class="btn-default">{% cms_txt home 'hero_cta_label' %}</a>
                   </div>
                   <!-- Section Button End -->
                 </div>
@@ -32,9 +33,9 @@
                 <!-- Hero Content Body Start -->
                 <div class="hero-content-body-elite wow fadeInUp" data-wow-delay="0.6s">
                   <ul>
-                    {% if home.hero_bullet_1_en %}<li>{{ home.hero_bullet_1_en }}</li>{% endif %}
-                    {% if home.hero_bullet_2_en %}<li>{{ home.hero_bullet_2_en }}</li>{% endif %}
-                    {% if home.hero_bullet_3_en %}<li>{{ home.hero_bullet_3_en }}</li>{% endif %}
+                    {% if home.hero_bullet_1_en or home.hero_bullet_1_ar %}<li>{% cms_txt home 'hero_bullet_1' %}</li>{% endif %}
+                    {% if home.hero_bullet_2_en or home.hero_bullet_2_ar %}<li>{% cms_txt home 'hero_bullet_2' %}</li>{% endif %}
+                    {% if home.hero_bullet_3_en or home.hero_bullet_3_ar %}<li>{% cms_txt home 'hero_bullet_3' %}</li>{% endif %}
                   </ul>
                 </div>
                 <!-- Hero Content Body End -->
@@ -91,32 +92,32 @@
     <!-- Scrolling Ticker Start -->
     <div class="our-scrolling-ticker-elite">
       <div class="scrolling-content-elite">
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_4_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_5_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_4_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_1' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_2' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_3' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_4' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_5' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_1' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_2' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_3' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_4' %}</span>
       </div>
 
       <div class="scrolling-content-elite">
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_5_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_4_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_5_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_4_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_5_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_1_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_2_en }}</span>
-        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{{ home.ticker_item_3_en }}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_5' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_1' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_2' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_3' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_4' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_5' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_1' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_2' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_3' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_4' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_5' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_1' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_2' %}</span>
+        <span><img src="{% static 'landing/images/asterisk-icon.svg' %}" alt="" />{% cms_txt home 'ticker_item_3' %}</span>
       </div>
     </div>
     <!-- Scrolling Ticker End -->
@@ -144,9 +145,9 @@
             <div class="about-us-content-elite">
               <!-- Section Title Start -->
               <div class="section-title">
-                <h3>{{ home.about_kicker_en }}</h3>
-                <h2>{{ home.about_heading_en }}</h2>
-                <p class="wow fadeInUp" data-wow-delay="0.2s">{{ home.about_body_en }}</p>
+                <h3>{% cms_txt home 'about_kicker' %}</h3>
+                <h2>{% cms_txt home 'about_heading' %}</h2>
+                <p class="wow fadeInUp" data-wow-delay="0.2s">{% cms_txt home 'about_body' %}</p>
               </div>
               <!-- Section Title End -->
 
@@ -164,8 +165,8 @@
                       {% endif %}
                     </div>
                     <div class="about-body-item-content-elite">
-                      <h3>{{ home.about_point_1_title_en }}</h3>
-                      <p>{{ home.about_point_1_body_en }}</p>
+                      <h3>{% cms_txt home 'about_point_1_title' %}</h3>
+                      <p>{% cms_txt home 'about_point_1_body' %}</p>
                     </div>
                   </div>
                   <!-- About Body Item End -->
@@ -180,8 +181,8 @@
                       {% endif %}
                     </div>
                     <div class="about-body-item-content-elite">
-                      <h3>{{ home.about_point_2_title_en }}</h3>
-                      <p>{{ home.about_point_2_body_en }}</p>
+                      <h3>{% cms_txt home 'about_point_2_title' %}</h3>
+                      <p>{% cms_txt home 'about_point_2_body' %}</p>
                     </div>
                   </div>
                   <!-- About Body Item End -->
@@ -200,8 +201,8 @@
                     </figure>
                   </div>
                   <div class="about-experience-box-content-elite">
-                    <h2><span class="counter">{{ home.about_experience_number }}</span>{{ home.about_experience_suffix_en }}</h2>
-                    <p>{{ home.about_experience_caption_en }}</p>
+                    <h2><span class="counter">{{ home.about_experience_number }}</span>{% cms_txt home 'about_experience_suffix' %}</h2>
+                    <p>{% cms_txt home 'about_experience_caption' %}</p>
                   </div>
                 </div>
                 <!-- About Experience Box End -->
@@ -212,7 +213,7 @@
               <div class="about-us-footer-elite wow fadeInUp" data-wow-delay="0.6s">
                 <!-- About Us Button Start -->
                 <div class="about-us-btn-elite">
-                  <a href="{{ home.about_cta_url }}" class="btn-default">{{ home.about_cta_label_en }}</a>
+                  <a href="{{ home.about_cta_url }}" class="btn-default">{% cms_txt home 'about_cta_label' %}</a>
                 </div>
                 <!-- About Us Button End -->
               </div>
@@ -232,8 +233,8 @@
           <div class="col-lg-12">
             <!-- Section Title Start -->
             <div class="section-title section-title-center">
-              <h3>{{ home.services_kicker_en }}</h3>
-              <h2>{{ home.services_heading_en }}</h2>
+              <h3>{% cms_txt home 'services_kicker' %}</h3>
+              <h2>{% cms_txt home 'services_heading' %}</h2>
             </div>
             <!-- Section Title End -->
           </div>
@@ -263,16 +264,16 @@
                   </div>
                   <div class="service-item-title-elite">
                     <h3>
-                      <a href="{{ card.detail_url }}">{{ card.title_en }}</a>
+                      <a href="{{ card.detail_url }}">{% cms_txt card 'title' %}</a>
                     </h3>
                   </div>
                 </div>
                 <div class="service-item-body-elite">
                   <div class="service-item-content-elite">
-                    <p>{{ card.summary_en }}</p>
+                    <p>{% cms_txt card 'summary' %}</p>
                   </div>
                   <div class="service-item-btn-elite">
-                    <a href="{{ card.detail_url }}" class="readmore-btn">{{ card.cta_label_en }}</a>
+                    <a href="{{ card.detail_url }}" class="readmore-btn">{% cms_txt card 'cta_label' %}</a>
                   </div>
                 </div>
               </div>
@@ -284,8 +285,8 @@
             <!-- Section Footer Text Start -->
             <div class="section-footer-text wow fadeInUp" data-wow-delay="0.4s">
               <p>
-                {{ home.services_footer_text_en }}
-                <a href="{{ home.services_footer_link_url }}">{{ home.services_footer_link_label_en }}</a>
+                {% cms_txt home 'services_footer_text' %}
+                <a href="{{ home.services_footer_link_url }}">{% cms_txt home 'services_footer_link_label' %}</a>
               </p>
             </div>
             <!-- Section Footer Text End -->
@@ -304,8 +305,8 @@
             <div class="why-choose-content-elite">
               <!-- Section Title Start -->
               <div class="section-title">
-                <h3>{{ home.why_kicker_en }}</h3>
-                <h2>{{ home.why_heading_en }}</h2>
+                <h3>{% cms_txt home 'why_kicker' %}</h3>
+                <h2>{% cms_txt home 'why_heading' %}</h2>
               </div>
               <!-- Section Title End -->
 
@@ -321,8 +322,8 @@
                     {% endif %}
                   </div>
                   <div class="why-choose-item-elite-content">
-                    <h3>{{ home.why_point_1_title_en }}</h3>
-                    <p>{{ home.why_point_1_body_en }}</p>
+                    <h3>{% cms_txt home 'why_point_1_title' %}</h3>
+                    <p>{% cms_txt home 'why_point_1_body' %}</p>
                   </div>
                 </div>
                 <!-- Why Choose Item End -->
@@ -337,8 +338,8 @@
                     {% endif %}
                   </div>
                   <div class="why-choose-item-elite-content">
-                    <h3>{{ home.why_point_2_title_en }}</h3>
-                    <p>{{ home.why_point_2_body_en }}</p>
+                    <h3>{% cms_txt home 'why_point_2_title' %}</h3>
+                    <p>{% cms_txt home 'why_point_2_body' %}</p>
                   </div>
                 </div>
                 <!-- Why Choose Item End -->
@@ -353,8 +354,8 @@
                     {% endif %}
                   </div>
                   <div class="why-choose-item-elite-content">
-                    <h3>{{ home.why_point_3_title_en }}</h3>
-                    <p>{{ home.why_point_3_body_en }}</p>
+                    <h3>{% cms_txt home 'why_point_3_title' %}</h3>
+                    <p>{% cms_txt home 'why_point_3_body' %}</p>
                   </div>
                 </div>
                 <!-- Why Choose Item End -->
@@ -425,8 +426,8 @@
           <div class="col-lg-12">
             <!-- Section Title Start -->
             <div class="section-title section-title-center">
-              <h3>{{ home.features_kicker_en }}</h3>
-              <h2>{{ home.features_heading_en }}</h2>
+              <h3>{% cms_txt home 'features_kicker' %}</h3>
+              <h2>{% cms_txt home 'features_heading' %}</h2>
             </div>
             <!-- Section Title End -->
           </div>
@@ -456,8 +457,8 @@
                     {% endif %}
                   </div>
                   <div class="feature-item-image-content-elite">
-                    <h3>{{ home.feature_a_title_en }}</h3>
-                    <p>{{ home.feature_a_body_en }}</p>
+                    <h3>{% cms_txt home 'feature_a_title' %}</h3>
+                    <p>{% cms_txt home 'feature_a_body' %}</p>
                   </div>
                 </div>
               </div>
@@ -473,11 +474,11 @@
                   {% endif %}
                 </div>
                 <div class="feature-item-content-elite">
-                  <h3>{{ home.feature_b_title_en }}</h3>
-                  <p>{{ home.feature_b_body_en }}</p>
+                  <h3>{% cms_txt home 'feature_b_title' %}</h3>
+                  <p>{% cms_txt home 'feature_b_body' %}</p>
                   <ul>
-                    {% if home.feature_b_list_item_1_en %}<li>{{ home.feature_b_list_item_1_en }}</li>{% endif %}
-                    {% if home.feature_b_list_item_2_en %}<li>{{ home.feature_b_list_item_2_en }}</li>{% endif %}
+                    {% if home.feature_b_list_item_1_en or home.feature_b_list_item_1_ar %}<li>{% cms_txt home 'feature_b_list_item_1' %}</li>{% endif %}
+                    {% if home.feature_b_list_item_2_en or home.feature_b_list_item_2_ar %}<li>{% cms_txt home 'feature_b_list_item_2' %}</li>{% endif %}
                   </ul>
                 </div>
               </div>
@@ -503,8 +504,8 @@
                     {% endif %}
                   </div>
                   <div class="feature-item-image-content-elite">
-                    <h3>{{ home.feature_c_title_en }}</h3>
-                    <p>{{ home.feature_c_body_en }}</p>
+                    <h3>{% cms_txt home 'feature_c_title' %}</h3>
+                    <p>{% cms_txt home 'feature_c_body' %}</p>
                   </div>
                 </div>
               </div>
@@ -520,11 +521,11 @@
                   {% endif %}
                 </div>
                 <div class="feature-item-content-elite">
-                  <h3>{{ home.feature_d_title_en }}</h3>
-                  <p>{{ home.feature_d_body_en }}</p>
+                  <h3>{% cms_txt home 'feature_d_title' %}</h3>
+                  <p>{% cms_txt home 'feature_d_body' %}</p>
                   <ul>
-                    {% if home.feature_d_list_item_1_en %}<li>{{ home.feature_d_list_item_1_en }}</li>{% endif %}
-                    {% if home.feature_d_list_item_2_en %}<li>{{ home.feature_d_list_item_2_en }}</li>{% endif %}
+                    {% if home.feature_d_list_item_1_en or home.feature_d_list_item_1_ar %}<li>{% cms_txt home 'feature_d_list_item_1' %}</li>{% endif %}
+                    {% if home.feature_d_list_item_2_en or home.feature_d_list_item_2_ar %}<li>{% cms_txt home 'feature_d_list_item_2' %}</li>{% endif %}
                   </ul>
                 </div>
               </div>
@@ -537,8 +538,8 @@
             <!-- Section Footer Text Start -->
             <div class="section-footer-text wow fadeInUp" data-wow-delay="0.4s">
               <p>
-                {{ home.features_footer_text_en }}
-                <a href="{{ home.features_footer_link_url }}">{{ home.features_footer_link_label_en }}</a>
+                {% cms_txt home 'features_footer_text' %}
+                <a href="{{ home.features_footer_link_url }}">{% cms_txt home 'features_footer_link_label' %}</a>
               </p>
               <ul>
                 <li>{{ home.features_rating_value }}</li>
@@ -549,7 +550,7 @@
                   <i class="fa-solid fa-star"></i>
                   <i class="fa-solid fa-star"></i>
                 </li>
-                <li>{{ home.features_review_count_label_en }}</li>
+                <li>{% cms_txt home 'features_review_count_label' %}</li>
               </ul>
             </div>
             <!-- Section Footer Text End -->
@@ -559,11 +560,7 @@
     </div>
     <!-- Our Features Section End -->
 
-    {% if lang == 'ar' %}
-    {% include 'iroad_frontend/partials/components/pricing_tiers_section.html' with pricing_tiers=pricing_tiers pricing_benefits=pricing_benefits section_kicker=home.pricing_kicker_ar|default:home.pricing_kicker_en section_heading=home.pricing_heading_ar|default:home.pricing_heading_en %}
-    {% else %}
-    {% include 'iroad_frontend/partials/components/pricing_tiers_section.html' with pricing_tiers=pricing_tiers pricing_benefits=pricing_benefits section_kicker=home.pricing_kicker_en section_heading=home.pricing_heading_en %}
-    {% endif %}
+    {% include 'iroad_frontend/partials/components/pricing_tiers_section.html' with pricing_tiers=pricing_tiers pricing_benefits=pricing_benefits use_cms_home_titles=True %}
 
     <!-- Our Business Section Start -->
     <div class="our-business-elite bg-section">
@@ -575,7 +572,8 @@
               <!-- Business Map Box Start -->
               <div class="business-map-box-elite wow fadeInUp">
                 <!-- Business WorldWide Map Start -->
-                <div class="business-worldwide-map-elite">
+                <!-- dir=ltr: flex pin order must match the map image; page RTL would mirror pins otherwise -->
+                <div class="business-worldwide-map-elite" dir="ltr">
                   <!-- Partner World Map Image Start -->
                   <div class="partner-world-map-image-elite">
                     <figure>
@@ -610,9 +608,9 @@
                               {% endif %}
                             </figure>
                           </div>
-                          <div class="world-map-card-content-elite">
-                            <h3>{{ loc.title_en }}</h3>
-                            <p>{{ loc.subtitle_en }}</p>
+                          <div class="world-map-card-content-elite" dir="auto">
+                            <h3>{% cms_txt loc 'title' %}</h3>
+                            <p>{% cms_txt loc 'subtitle' %}</p>
                           </div>
                         </div>
                         <!-- World Map Card Body End -->
@@ -627,10 +625,10 @@
                 <!-- Business Counter Box Start -->
                 <div class="business-counter-box-elite">
                   <div class="business-counter-title-elite">
-                    <h2><span class="counter">{{ home.business_counter_value }}</span>{{ home.business_counter_suffix_en }}</h2>
+                    <h2><span class="counter">{{ home.business_counter_value }}</span>{% cms_txt home 'business_counter_suffix' %}</h2>
                   </div>
                   <div class="business-counter-content-elite">
-                    <p>{{ home.business_counter_caption_en }}</p>
+                    <p>{% cms_txt home 'business_counter_caption' %}</p>
                   </div>
                 </div>
                 <!-- Business Counter Box End -->
@@ -642,13 +640,13 @@
                 <!-- Business Content Start -->
                 <div class="business-content-elite">
                   <div class="business-content-header-elite">
-                    <h2>{{ home.business_heading_en }}</h2>
+                    <h2>{% cms_txt home 'business_heading' %}</h2>
                   </div>
                   <div class="business-content-body-elite">
-                    <p>{{ home.business_body_en }}</p>
+                    <p>{% cms_txt home 'business_body' %}</p>
                     <ul>
-                      {% if home.business_bullet_1_en %}<li>{{ home.business_bullet_1_en }}</li>{% endif %}
-                      {% if home.business_bullet_2_en %}<li>{{ home.business_bullet_2_en }}</li>{% endif %}
+                      {% if home.business_bullet_1_en or home.business_bullet_1_ar %}<li>{% cms_txt home 'business_bullet_1' %}</li>{% endif %}
+                      {% if home.business_bullet_2_en or home.business_bullet_2_ar %}<li>{% cms_txt home 'business_bullet_2' %}</li>{% endif %}
                     </ul>
                   </div>
                 </div>
@@ -673,9 +671,5 @@
     </div>
     <!-- Our Business Section End -->
 
-    {% if lang == 'ar' %}
-    {% include 'iroad_frontend/partials/components/testimonials_section.html' with testimonials=testimonials t_kicker=home.testimonials_kicker_ar|default:home.testimonials_kicker_en t_heading=home.testimonials_heading_ar|default:home.testimonials_heading_en t_hero_image=home.testimonials_hero_image t_happy_count=home.testimonials_happy_count t_happy_label=home.testimonials_happy_label_ar|default:home.testimonials_happy_label_en %}
-    {% else %}
-    {% include 'iroad_frontend/partials/components/testimonials_section.html' with testimonials=testimonials t_kicker=home.testimonials_kicker_en t_heading=home.testimonials_heading_en t_hero_image=home.testimonials_hero_image t_happy_count=home.testimonials_happy_count t_happy_label=home.testimonials_happy_label_en %}
-    {% endif %}
+    {% include 'iroad_frontend/partials/components/testimonials_section.html' with testimonials=testimonials use_cms_home_titles=True t_hero_image=home.testimonials_hero_image t_happy_count=home.testimonials_happy_count %}
 {% endblock %}

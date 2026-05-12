@@ -171,7 +171,8 @@
 
                 <div class="col-xl-6">
                     <!-- Partner World Map Box Start -->
-                    <div class="partner-world-map-box wow fadeInUp" data-wow-delay="0.2s">
+                    <!-- dir=ltr: map pins use flex layout; page RTL must not mirror them off the map -->
+                    <div class="partner-world-map-box wow fadeInUp" data-wow-delay="0.2s" dir="ltr">
                         <!-- Partner World Map Image Start -->
                         <div class="partner-world-map-image">
                             <figure>
@@ -206,7 +207,7 @@
                                             {% endif %}
                                         </figure>
                                     </div>
-                                    <div class="world-map-card-content">
+                                    <div class="world-map-card-content" dir="auto">
                                         <h3>{{ loc.title_en }}</h3>
                                         <p>{{ loc.subtitle_en }}</p>
                                     </div>
