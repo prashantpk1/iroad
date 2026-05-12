@@ -182,14 +182,43 @@
       "</td>";
     tbody.appendChild(emptyRow);
 
+    var chipGroup = root.querySelector("[data-eal-chip-group]");
+    var chipColumnRaw = root.getAttribute("data-eal-chip-column");
+    var chipColumn =
+      chipColumnRaw != null && String(chipColumnRaw).trim() !== ""
+        ? parseInt(String(chipColumnRaw).trim(), 10)
+        : NaN;
+    /** When set (e.g. data-eal-row-primary), chip filter uses row attribute instead of cell text. */
+    var chipRowPrimaryAttr = (root.getAttribute("data-eal-chip-primary-attr") || "").trim();
+
     var state = {
       globalSearch: "",
       columnFilters: {},
+      chipFilter: "all",
       sort: {
         columnIndex: null,
         direction: null,
       },
     };
+
+    var chipButtons = chipGroup
+      ? Array.prototype.slice.call(chipGroup.querySelectorAll("[data-eal-chip-value]"))
+      : [];
+
+    function chipMatches(row) {
+      if (state.chipFilter === "all") return true;
+      if (chipRowPrimaryAttr) {
+        var pv = String(row.getAttribute(chipRowPrimaryAttr) || "").trim();
+        if (state.chipFilter === "primary") return pv === "1";
+        if (state.chipFilter === "secondary") return pv === "0";
+        return true;
+      }
+      if (!chipGroup || chipButtons.length === 0 || isNaN(chipColumn)) return true;
+      var t = normalizeText(getCellText(row, chipColumn));
+      if (state.chipFilter === "primary") return t.indexOf("primary") !== -1;
+      if (state.chipFilter === "secondary") return t.indexOf("secondary") !== -1;
+      return true;
+    }
 
     function getRows() {
       return Array.prototype.slice
@@ -215,14 +244,15 @@
           return normalizeText(getCellText(row, Number(key))).indexOf(filterValue) !== -1;
         });
 
-        row.style.display = globalMatch && columnsMatch ? "" : "none";
+        row.style.display =
+          globalMatch && columnsMatch && chipMatches(row) ? "" : "none";
       });
 
       var visibleRows = rows.filter(function (row) {
         return row.style.display !== "none";
       });
 
-      if (state.sort.columnIndex !== null && state.sort.direction) {
+      if (state.sort.columnIndex !== null && state.sort.direction && visibleRows.length) {
         var col = state.sort.columnIndex;
         var dir = state.sort.direction;
         var sorted = visibleRows.slice().sort(function (a, b) {
@@ -234,9 +264,17 @@
           });
           return dir === "desc" ? -cmp : cmp;
         });
-        sorted.forEach(function (row) {
-          tbody.appendChild(row);
+        var hiddenRows = rows.filter(function (row) {
+          return visibleRows.indexOf(row) === -1;
         });
+        var frag = document.createDocumentFragment();
+        sorted.forEach(function (row) {
+          frag.appendChild(row);
+        });
+        hiddenRows.forEach(function (row) {
+          frag.appendChild(row);
+        });
+        tbody.insertBefore(frag, emptyRow);
       }
 
       emptyRow.style.display = visibleRows.length ? "none" : "";
@@ -247,6 +285,40 @@
         state.globalSearch = normalizeText(globalSearchInput.value);
         applyTableState();
       });
+    }
+
+    if (chipGroup && (chipRowPrimaryAttr || !isNaN(chipColumn))) {
+      if (root.getAttribute("data-eal-chip-listener") !== "1") {
+        root.setAttribute("data-eal-chip-listener", "1");
+        root.addEventListener(
+          "click",
+          function (e) {
+            var t = e.target;
+            if (t && t.nodeType !== 1) {
+              t = t.parentElement;
+            }
+            if (!t || typeof t.closest !== "function") return;
+            var chipBtn = t.closest("[data-eal-chip-value]");
+            if (!chipBtn || !chipGroup.contains(chipBtn)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            var v = String(chipBtn.getAttribute("data-eal-chip-value") || "all")
+              .toLowerCase()
+              .trim();
+            if (v === "primary") state.chipFilter = "primary";
+            else if (v === "secondary") state.chipFilter = "secondary";
+            else state.chipFilter = "all";
+            Array.prototype.forEach.call(
+              chipGroup.querySelectorAll("[data-eal-chip-value]"),
+              function (b) {
+                b.classList.toggle("active", b === chipBtn);
+              },
+            );
+            applyTableState();
+          },
+          true,
+        );
+      }
     }
 
     filterHeaders.forEach(function (header) {

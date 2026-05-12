@@ -3591,6 +3591,17 @@ textarea.form-control {
   margin-top: 20px;
 }
 
+/* Truck Master — Vehicle Info subsection divider */
+.field-group-title.tm-vehicle-info-divider,
+.field-group-title.tm-spec-capacity-divider {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.12);
+}
+
+/* Truck Master — color vs truck images (~45% / 55%) */
+.fields-grid.cols-2.tm-truck-details-images-row {
+  grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -4506,6 +4517,9 @@ textarea.form-control {
   cursor: pointer;
   font-size: 15px;
   transition: all 0.18s;
+}
+a.eal-row-btn {
+  text-decoration: none;
 }
 .eal-row-btn:hover {
   background: #eeedfe;

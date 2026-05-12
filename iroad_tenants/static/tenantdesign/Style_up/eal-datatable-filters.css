@@ -86,3 +86,20 @@
   color: #667085;
   font-weight: 500;
 }
+
+/* Chips: let clicks hit the <button>, not inner icons (improves filter reliability). */
+.eal-chip-group .eal-chip i,
+.eal-chip-group .eal-chip svg {
+  pointer-events: none;
+}
+
+/* Chip links (server-driven filters): match pill styling, not default anchor colors. */
+.eal-chip-group > a.eal-chip {
+  cursor: pointer;
+}
+.eal-chip-group > a.eal-chip:not(.active) {
+  color: #6b6f82;
+}
+.eal-chip-group > a.eal-chip.active {
+  color: #3b82f6;
+}

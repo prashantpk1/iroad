@@ -25,5 +25,39 @@
     </div>
   </div>
 </div>
-<p class="text-muted">Reporting for this account is not wired yet.</p>
+<div class="d-flex gap-2 mb-3">
+  <a href="{{ sales_report_create_url }}" class="btn btn-primary">Create Sales Invoice Report</a>
+  <a href="{{ sales_report_list_url }}" class="btn btn-outline-secondary">Open Reports List</a>
+</div>
+
+<p class="text-muted mb-2">Total reports for this client: <strong>{{ client_reports_count }}</strong></p>
+
+<div class="eal-table-card">
+  <div class="eal-table-wrap">
+    <table class="eal-table">
+      <thead>
+        <tr>
+          <th>Report No</th>
+          <th>Report Date</th>
+          <th>Status</th>
+          <th>Currency</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in client_reports %}
+        <tr>
+          <td>{{ r.report_no }}</td>
+          <td>{{ r.report_date|date:"d M Y" }}</td>
+          <td>{{ r.status }}</td>
+          <td>{{ r.currency|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-muted">No sales invoice reports for this client yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

@@ -15,7 +15,7 @@
       </li>
       <li class="breadcrumb-item">{% translate "Operations" %}</li>
       <li class="breadcrumb-item">{% translate "Fleet Management" %}</li>
-      <li class="breadcrumb-item active" aria-current="page">{% translate "Truck Type Master" %}</li>
+      <li class="breadcrumb-item active" aria-current="page">{% translate "Truck Type Master List" %}</li>
     </ol>
   </nav>
   <div class="page-header-row">
@@ -120,8 +120,8 @@
         <div class="eal-toolbar-filter-pair">
           <label class="form-label mb-0 small text-nowrap text-muted" for="ttListStatus">{% translate "Status" %}</label>
           <select name="status" id="ttListStatus" class="form-select form-select-sm">
-            <option value="active" {% if filter_status == '' or filter_status == 'active' %}selected{% endif %}>{% translate "Active" %}</option>
             <option value="all" {% if filter_status == 'all' %}selected{% endif %}>{% translate "All" %}</option>
+            <option value="active" {% if filter_status == 'active' %}selected{% endif %}>{% translate "Active" %}</option>
             <option value="inactive" {% if filter_status == 'inactive' %}selected{% endif %}>{% translate "Inactive" %}</option>
           </select>
         </div>
@@ -210,56 +210,48 @@
           <td class="eal-arabic" lang="ar" dir="rtl">{{ row.arabic_label }}</td>
           <td>
             {% if row.status == 'Active' %}
-            <span class="status-badge active"><i class="bi bi-check2-circle"></i> {% translate "Active" %}</span>
+            <span class="status-badge active">{% translate "Active" %}</span>
             {% else %}
-            <span class="status-badge inactive"><i class="bi bi-dash-circle"></i> {% translate "Inactive" %}</span>
+            <span class="status-badge inactive">{% translate "Inactive" %}</span>
             {% endif %}
           </td>
           <td>
-            <div class="dropdown eal-actions-cell" onclick="event.stopPropagation();">
-              <button
+            <div class="eal-actions-cell justify-content-end">
+              <a
+                href="{% url 'iroad_tenants:truck_type_master_edit' row.truck_type_id %}"
                 class="eal-row-btn"
-                type="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                title="{% translate 'Actions' %}"
+                title="{% translate 'View' %}"
               >
-                <i class="bi bi-three-dots-vertical"></i>
+                <i class="bi bi-eye"></i>
+              </a>
+              <a
+                href="{% url 'iroad_tenants:truck_type_master_edit' row.truck_type_id %}"
+                class="eal-row-btn"
+                title="{% translate 'Edit' %}"
+              >
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% if row.status == 'Active' %}
+              <button
+                type="button"
+                class="eal-row-btn danger tt-status-trigger"
+                title="{% translate 'Deactivate' %}"
+                data-truck-type-id="{{ row.truck_type_id }}"
+                data-new-status="Inactive"
+              >
+                <i class="bi bi-trash3"></i>
               </button>
-              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
-                <li>
-                  <a
-                    href="{% url 'iroad_tenants:truck_type_master_edit' row.truck_type_id %}"
-                    class="dropdown-item"
-                  >
-                    <i class="bi bi-pencil me-2 text-primary"></i>{% translate "Edit" %}
-                  </a>
-                </li>
-                {% if row.status == 'Active' %}
-                <li><hr class="dropdown-divider" /></li>
-                <li>
-                  <button
-                    type="button"
-                    class="dropdown-item text-danger tt-status-trigger"
-                    data-truck-type-id="{{ row.truck_type_id }}"
-                    data-new-status="Inactive"
-                  >
-                    <i class="bi bi-trash3 me-2"></i>{% translate "Deactivate" %}
-                  </button>
-                </li>
-                {% else %}
-                <li>
-                  <button
-                    type="button"
-                    class="dropdown-item text-success tt-status-trigger"
-                    data-truck-type-id="{{ row.truck_type_id }}"
-                    data-new-status="Active"
-                  >
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>{% translate "Activate" %}
-                  </button>
-                </li>
-                {% endif %}
-              </ul>
+              {% else %}
+              <button
+                type="button"
+                class="eal-row-btn tt-status-trigger"
+                title="{% translate 'Activate' %}"
+                data-truck-type-id="{{ row.truck_type_id }}"
+                data-new-status="Active"
+              >
+                <i class="bi bi-arrow-counterclockwise"></i>
+              </button>
+              {% endif %}
             </div>
           </td>
         </tr>

@@ -107,7 +107,7 @@
           <select name="client" id="addrListClient" class="form-select form-select-sm">
             <option value="">{% translate "All clients" %}</option>
             {% for ca in client_filter_choices %}
-            <option value="{{ ca.account_id }}" {% if filter_client_id and ca.account_id|stringformat:'s' == filter_client_id %}selected{% endif %}>
+            <option value="{{ ca.account_no }}" {% if filter_client_value and ca.account_no == filter_client_value %}selected{% endif %}>
               {{ ca.display_name }} ({{ ca.account_no }})
             </option>
             {% endfor %}
@@ -139,8 +139,8 @@
         {% for row in addresses_page %}
         <tr
           class="address-master-row"
-          data-edit-url="{% url 'iroad_tenants:tenant_address_master_edit' row.address_id %}"
-          data-detail-url="{% url 'iroad_tenants:tenant_address_master_detail' row.address_id %}"
+          data-edit-url="{% url 'iroad_tenants:tenant_address_master_edit' row.address_code %}"
+          data-detail-url="{% url 'iroad_tenants:tenant_address_master_detail' row.address_code %}"
           data-address-code="{{ row.address_code|escape }}"
           data-client-account="{{ row.client_account.account_no|escape }}"
           data-display-name="{{ row.display_name|escape }}"
@@ -203,12 +203,12 @@
               </button>
               <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0; min-width: 180px;">
                 <li>
-                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_address_master_detail' row.address_id %}">
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_address_master_detail' row.address_code %}">
                     <i class="bi bi-eye text-info me-2"></i>{% translate "View" %}
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_address_master_edit' row.address_id %}">
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_address_master_edit' row.address_code %}">
                     <i class="bi bi-pencil text-primary me-2"></i>{% translate "Edit" %}
                   </a>
                 </li>

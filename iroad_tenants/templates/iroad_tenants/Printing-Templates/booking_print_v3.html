@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ report.report_no }}-B{{ booking_line.line_no }}</title>
+  <style>
+    @page { size: A4; margin: 0.2cm; }
+    body { font-family: Tahoma, Arial, sans-serif; direction: rtl; font-size: 11px; color: #111; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { border: 1px solid #d1d5db; padding: 5px; text-align: right; }
+    th { background: #f3f4f6; } .num { direction: ltr; text-align: left; unicode-bidi: embed; }
+  </style>
+</head>
+<body>
+  <h2>سجل حجز (Snapshot) / Booking Snapshot</h2>
+  <table>
+    <tbody>
+      <tr><th>Report No</th><td>{{ report.report_no }}</td><th>Line No</th><td>{{ booking_line.line_no }}</td></tr>
+      <tr><th>Booking Ref</th><td>{{ booking_line.booking_ref|default:'-' }}</td><th>SO Ref</th><td>{{ booking_line.so_ref|default:'-' }}</td></tr>
+      <tr><th>Service</th><td>{{ booking_line.service_name|default:'-' }}</td><th>Trip Type</th><td>{{ booking_line.trip_type|default:'-' }}</td></tr>
+      <tr><th>Booking Status Snapshot</th><td>{{ booking_line.booking_status|default:'-' }}</td><th>Sell Price</th><td class="num">{{ booking_line.sell_price }}</td></tr>
+    </tbody>
+  </table>
+  <script>window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 250); });</script>
+</body>
+</html>

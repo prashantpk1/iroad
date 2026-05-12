@@ -1,6 +1,7 @@
 {% extends 'iroad_tenants/base.html' %}
 {% load static %}
 {% load i18n %}
+{% load tz %}
 
 {% block title %}Client Details | iRoad Admin{% endblock %}
 
@@ -319,22 +320,22 @@
               <div class="ch-logo">
                 <i class="bi bi-window-dock"></i>
               </div>
-              <h2 class="ch-title" id="cdTitle">Al Safa Logistics</h2>
+              <h2 class="ch-title" id="cdTitle">{% if client_account %}{{ client_account.display_name|default:client_account.name_english }}{% else %}—{% endif %}</h2>
             </div>
             <!-- Subtitle span kept hidden to avoid JS error but unused -->
             <span id="cdSubtitle" class="d-none"></span>
             <div class="ch-badges">
               <div class="ch-badge">
                 <i class="bi bi-globe"></i>
-                <span id="cdAccountNo">CA-000123</span>
+                <span id="cdAccountNo">{% if client_account %}{{ client_account.account_no }}{% else %}—{% endif %}</span>
               </div>
               <div class="ch-badge">
                 <i class="bi bi-phone"></i>
-                <span id="cdClientType">Corporate</span>
+                <span id="cdClientType">{% if client_account %}{% if client_account.client_type == 'Business' %}Corporate{% else %}Individual{% endif %}{% else %}—{% endif %}</span>
               </div>
               <div class="ch-badge">
                 <i class="bi bi-check2-circle"></i>
-                <span id="cdStatus">Active</span>
+                <span id="cdStatus">{% if client_account %}{{ client_account.status }}{% else %}—{% endif %}</span>
               </div>
             </div>
           </div>
@@ -452,28 +453,28 @@
               id="pane-overview"
               role="tabpanel"
             >
-              <!-- Section 1: Account & Status -->
+              <!-- Section 1: Account & Status (server-rendered when client_account exists) -->
               <div class="cd-details-section mb-4">
                 <div class="cd-details-header">Account & Status</div>
                 <div class="cd-details-body">
                   <div class="cd-grid-row">
                     <div class="cd-field">
                       <span class="cd-field-label">Account No.</span>
-                      <span class="cd-field-value" id="v_account_no">—</span>
+                      <span class="cd-field-value" id="v_account_no">{% if client_account %}{{ client_account.account_no }}{% else %}—{% endif %}</span>
                     </div>
                     <div class="cd-field">
                       <span class="cd-field-label">Created At</span>
-                      <span class="cd-field-value" id="v_created_at">—</span>
+                      <span class="cd-field-value" id="v_created_at">{% if client_account and client_account.created_at %}{{ client_account.created_at|localtime|date:"b d, Y, g:i A" }}{% else %}—{% endif %}</span>
                     </div>
                   </div>
                   <div class="cd-grid-row">
                     <div class="cd-field">
                       <span class="cd-field-label">Client Type</span>
-                      <span class="cd-field-value" id="v_client_type">—</span>
+                      <span class="cd-field-value" id="v_client_type">{% if client_account %}{% if client_account.client_type == 'Business' %}Corporate{% else %}Individual{% endif %}{% else %}—{% endif %}</span>
                     </div>
                     <div class="cd-field">
                       <span class="cd-field-label">Status</span>
-                      <span class="cd-field-value" id="v_status">—</span>
+                      <span class="cd-field-value" id="v_status">{% if client_account %}{{ client_account.status }}{% else %}—{% endif %}</span>
                     </div>
                   </div>
                 </div>
@@ -486,23 +487,21 @@
                   <div class="cd-grid-row">
                     <div class="cd-field">
                       <span class="cd-field-label">Name (English)</span>
-                      <span class="cd-field-value" id="v_name_english">—</span>
+                      <span class="cd-field-value" id="v_name_english">{% if client_account %}{{ client_account.name_english|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                     <div class="cd-field">
                       <span class="cd-field-label">Name (Arabic)</span>
-                      <span class="cd-field-value" id="v_name_arabic">—</span>
+                      <span class="cd-field-value" id="v_name_arabic">{% if client_account %}{{ client_account.name_arabic|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                   </div>
                   <div class="cd-grid-row">
                     <div class="cd-field">
                       <span class="cd-field-label">Display Name</span>
-                      <span class="cd-field-value" id="v_display_name">—</span>
+                      <span class="cd-field-value" id="v_display_name">{% if client_account %}{{ client_account.display_name|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                     <div class="cd-field">
                       <span class="cd-field-label">Preferred Currency</span>
-                      <span class="cd-field-value" id="v_preferred_currency"
-                        >—</span
-                      >
+                      <span class="cd-field-value" id="v_preferred_currency">{% if client_account %}{{ client_account.preferred_currency|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                   </div>
                 </div>
@@ -515,37 +514,31 @@
                   <div class="cd-grid-row">
                     <div class="cd-field">
                       <span class="cd-field-label">Billing Street 1</span>
-                      <span class="cd-field-value" id="v_billing_street_1"
-                        >—</span
-                      >
+                      <span class="cd-field-value" id="v_billing_street_1">{% if client_account %}{{ client_account.billing_street_1|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                     <div class="cd-field">
                       <span class="cd-field-label">Billing Street 2</span>
-                      <span class="cd-field-value" id="v_billing_street_2"
-                        >—</span
-                      >
+                      <span class="cd-field-value" id="v_billing_street_2">{% if client_account %}{{ client_account.billing_street_2|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                   </div>
                   <div class="cd-grid-row">
                     <div class="cd-field">
                       <span class="cd-field-label">Billing City</span>
-                      <span class="cd-field-value" id="v_billing_city">—</span>
+                      <span class="cd-field-value" id="v_billing_city">{% if client_account %}{{ client_account.billing_city|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                     <div class="cd-field">
                       <span class="cd-field-label">Billing Region/State</span>
-                      <span class="cd-field-value" id="v_billing_region"
-                        >—</span
-                      >
+                      <span class="cd-field-value" id="v_billing_region">{% if client_account %}{{ client_account.billing_region|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                   </div>
                   <div class="cd-grid-row">
                     <div class="cd-field">
                       <span class="cd-field-label">Postal Code</span>
-                      <span class="cd-field-value" id="v_postal_code">—</span>
+                      <span class="cd-field-value" id="v_postal_code">{% if client_account %}{{ client_account.postal_code|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                     <div class="cd-field">
                       <span class="cd-field-label">Country</span>
-                      <span class="cd-field-value" id="v_country">—</span>
+                      <span class="cd-field-value" id="v_country">{% if client_account %}{{ client_account.country|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                   </div>
                 </div>
@@ -555,7 +548,7 @@
               <div class="cd-details-section">
                 <div class="cd-details-header">Business Details</div>
                 <div class="cd-details-body">
-                  <div class="cd-empty mb-4" id="businessNotice">
+                  <div class="cd-empty mb-4 {% if not client_account or client_account.client_type == 'Business' %}d-none{% endif %}" id="businessNotice">
                     Business fields are only applicable when the client type is
                     Business.
                   </div>
@@ -567,14 +560,11 @@
                       <span
                         class="cd-field-value"
                         id="v_commercial_registration_no"
-                        >—</span
-                      >
+                      >{% if client_account %}{{ client_account.commercial_registration_no|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                     <div class="cd-field">
                       <span class="cd-field-label">Tax Registration No.</span>
-                      <span class="cd-field-value" id="v_tax_registration_no"
-                        >—</span
-                      >
+                      <span class="cd-field-value" id="v_tax_registration_no">{% if client_account %}{{ client_account.tax_registration_no|default:"—" }}{% else %}—{% endif %}</span>
                     </div>
                   </div>
                 </div>
@@ -998,7 +988,7 @@
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4 class="m-0" style="font-size: 1.1rem; font-weight: 600; color: #1a1a1a">Price Lists</h4>
                 {% if client_account %}
-                <a href="{% url 'iroad_tenants:tenant_price_list_master_create' %}?client={{ client_account.account_id }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Price List</a>
+                <a href="{% url 'iroad_tenants:tenant_price_list_master_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Price List</a>
                 {% else %}
                 <a href="{% url 'iroad_tenants:tenant_price_list_master_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Price List</a>
                 {% endif %}
@@ -1029,7 +1019,7 @@
                         </td>
                         <td>
                           <div class="eal-actions-cell">
-                            <a class="eal-row-btn" href="{{ pl.list_list_url }}?client={{ client_account.account_id }}" title="View" aria-label="View">
+                            <a class="eal-row-btn" href="{{ pl.list_detail_url }}" title="View" aria-label="View">
                               <i class="bi bi-eye"></i>
                             </a>
                             <a class="eal-row-btn" href="{{ pl.list_edit_url }}" title="Edit" aria-label="Edit">
@@ -1097,32 +1087,13 @@
                           {% endif %}
                         </td>
                         <td>
-                          <div class="dropdown eal-actions-cell" data-bs-display="static">
-                            <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions">
-                              <i class="bi bi-three-dots-vertical"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0; min-width: 180px;">
-                              <li>
-                                <a class="dropdown-item" href="{{ cargo.list_edit_url }}">
-                                  <i class="bi bi-pencil text-primary me-2"></i>Edit
-                                </a>
-                              </li>
-                              <li>
-                                <a class="dropdown-item" href="{{ cargo.list_detail_url }}">
-                                  <i class="bi bi-eye text-info me-2"></i>View
-                                </a>
-                              </li>
-                              <li><hr class="dropdown-divider" /></li>
-                              <li>
-                                <form method="post" action="{{ cargo.list_delete_action_url }}" class="d-inline" onsubmit="return confirm('Delete cargo {{ cargo.cargo_code|escapejs }}? This cannot be undone.');">
-                                  {% csrf_token %}
-                                  
-                                  <button type="submit" class="dropdown-item text-danger">
-                                    <i class="bi bi-trash3 me-2"></i>Delete
-                                  </button>
-                                </form>
-                              </li>
-                            </ul>
+                          <div class="eal-actions-cell">
+                            <a class="eal-row-btn" href="{{ cargo.list_detail_url }}" title="View" aria-label="View">
+                              <i class="bi bi-eye"></i>
+                            </a>
+                            <a class="eal-row-btn" href="{{ cargo.list_edit_url }}" title="Edit" aria-label="Edit">
+                              <i class="bi bi-pencil"></i>
+                            </a>
                           </div>
                         </td>
                       </tr>
@@ -1171,24 +1142,25 @@
 <script>
       (function () {
         var LOOKUP_FAILED = {{ client_lookup_failed|yesno:"true,false" }};
+        var SERVER_LOADED = {{ client_account|yesno:"true,false" }};
         var STORAGE_KEY = "ir_clients_v1";
-        var DEMO_CLIENT = {
-          account_no: "CA-000123",
-          client_type: "Business",
-          status: "Active",
-          created_at: "Jan 28, 2026, 03:52 PM",
-          name_arabic: "شركة الصفا للخدمات اللوجستية",
-          name_english: "Al Safa Logistics",
-          display_name: "Al Safa Logistics",
-          preferred_currency: "SAR",
-          billing_street_1: "King Fahd Rd, Building 12",
-          billing_street_2: "Floor 4, Office 402",
-          billing_city: "Riyadh",
-          billing_region: "Riyadh",
-          postal_code: "11564",
-          country: "SA",
-          commercial_registration_no: "CR-1234567890",
-          tax_registration_no: "TR-9876543210",
+        var EMPTY_CLIENT = {
+          account_no: "",
+          client_type: "",
+          status: "",
+          created_at: "",
+          name_arabic: "",
+          name_english: "",
+          display_name: "",
+          preferred_currency: "",
+          billing_street_1: "",
+          billing_street_2: "",
+          billing_city: "",
+          billing_region: "",
+          postal_code: "",
+          country: "",
+          commercial_registration_no: "",
+          tax_registration_no: "",
           header_email: "",
           header_phone: "",
         };
@@ -1196,7 +1168,7 @@
         function getIdFromQuery() {
           try {
             var params = new URLSearchParams(window.location.search);
-            return (params.get("id") || "").trim();
+            return (params.get("id") || params.get("ref") || "").trim();
           } catch (e) {
             return "";
           }
@@ -1219,24 +1191,6 @@
             return Array.isArray(parsed) ? parsed : [];
           } catch (e) {
             return [];
-          }
-        }
-
-        function ensureDemoClient() {
-          var clients = loadClients();
-          var exists = false;
-          for (var i = 0; i < clients.length; i++) {
-            if (
-              clients[i] &&
-              clients[i].account_no === DEMO_CLIENT.account_no
-            ) {
-              exists = true;
-              break;
-            }
-          }
-          if (!exists) {
-            clients.unshift(DEMO_CLIENT);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
           }
         }
 
@@ -1284,58 +1238,68 @@
           return;
         }
 
-        ensureDemoClient();
         var serverClient = readServerBootstrap();
-        var client = serverClient || (id ? byId(loadClients(), id) : null);
-
-        if (!client) {
-          client = DEMO_CLIENT;
+        var client = null;
+        if (SERVER_LOADED) {
+          client = serverClient;
+        } else if (id) {
+          client = byId(loadClients(), id);
+        }
+        if (!client && !SERVER_LOADED) {
+          client = EMPTY_CLIENT;
         }
 
-        setDocTitle(client);
+        if (client) {
+          if (client.account_no) {
+            setDocTitle(client);
+          }
 
-        setText(
-          "cdTitle",
-          client.display_name || client.name_english || "Client",
-        );
-        setText(
-          "cdSubtitle",
-          (client.preferred_currency ? client.preferred_currency + " • " : "") +
-            (client.created_at || "—"),
-        );
-        setText("cdAccountNo", client.account_no);
-        setText("cdClientType", displayClientType(client.client_type));
-        setText("cdStatus", client.status);
-        setTextIfPresent("cdHeaderEmail", client.header_email);
-        setTextIfPresent("cdHeaderPhone", client.header_phone);
+          setText(
+            "cdTitle",
+            client.display_name || client.name_english || "",
+          );
+          setText(
+            "cdSubtitle",
+            (client.preferred_currency ? client.preferred_currency + " • " : "") +
+              (client.created_at || "—"),
+          );
+          setText("cdAccountNo", client.account_no);
+          setText("cdClientType", displayClientType(client.client_type));
+          setText("cdStatus", client.status);
+          setTextIfPresent("cdHeaderEmail", client.header_email);
+          setTextIfPresent("cdHeaderPhone", client.header_phone);
 
-        setText("v_account_no", client.account_no);
-        setText("v_created_at", client.created_at);
-        setText("v_client_type", displayClientType(client.client_type));
-        setText("v_status", client.status);
+          setText("v_account_no", client.account_no);
+          setText("v_created_at", client.created_at);
+          setText("v_client_type", displayClientType(client.client_type));
+          setText("v_status", client.status);
 
-        setText("v_name_english", client.name_english);
-        setText("v_name_arabic", client.name_arabic);
-        setText("v_display_name", client.display_name);
-        setText("v_preferred_currency", client.preferred_currency);
+          setText("v_name_english", client.name_english);
+          setText("v_name_arabic", client.name_arabic);
+          setText("v_display_name", client.display_name);
+          setText("v_preferred_currency", client.preferred_currency);
 
-        setText("v_billing_street_1", client.billing_street_1);
-        setText("v_billing_street_2", client.billing_street_2);
-        setText("v_billing_city", client.billing_city);
-        setText("v_billing_region", client.billing_region);
-        setText("v_postal_code", client.postal_code);
-        setText("v_country", client.country);
+          setText("v_billing_street_1", client.billing_street_1);
+          setText("v_billing_street_2", client.billing_street_2);
+          setText("v_billing_city", client.billing_city);
+          setText("v_billing_region", client.billing_region);
+          setText("v_postal_code", client.postal_code);
+          setText("v_country", client.country);
 
-        setText(
-          "v_commercial_registration_no",
-          client.commercial_registration_no,
-        );
-        setText("v_tax_registration_no", client.tax_registration_no);
+          setText(
+            "v_commercial_registration_no",
+            client.commercial_registration_no,
+          );
+          setText("v_tax_registration_no", client.tax_registration_no);
 
-        var notice = document.getElementById("businessNotice");
-        if (notice) {
-          var isBiz = (client.client_type || "").toLowerCase() === "business";
-          notice.classList.toggle("d-none", isBiz);
+          var notice = document.getElementById("businessNotice");
+          if (notice) {
+            var hasAccount = !!(client && String(client.account_no || "").trim());
+            var isBiz =
+              hasAccount &&
+              (client.client_type || "").toLowerCase() === "business";
+            notice.classList.toggle("d-none", !hasAccount || isBiz);
+          }
         }
 
         document.querySelectorAll(".ch-contact-copy").forEach(function (btn) {

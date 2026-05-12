@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ truck.truck_code }}</title>
+  <style>
+    @page { size: A4; margin: 0.2cm; }
+    body { font-family: Tahoma, Arial, sans-serif; direction: rtl; font-size: 11px; color: #111; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { border: 1px solid #d1d5db; padding: 5px; text-align: right; }
+    th { background: #f3f4f6; }
+  </style>
+</head>
+<body>
+  <h2>بيانات الشاحنة / Truck Profile</h2>
+  <table>
+    <tbody>
+      <tr><th>Truck Code</th><td>{{ truck.truck_code }}</td><th>Status</th><td>{{ truck.status }}</td></tr>
+      <tr><th>Plate Number</th><td>{{ truck.plate_number|default:'-' }}</td><th>Type</th><td>{% if truck.truck_type %}{{ truck.truck_type.english_label }}{% else %}-{% endif %}</td></tr>
+      <tr><th>Sourcing</th><td>{{ truck.sourcing_mode|default:'-' }}</td><th>Owner</th><td>{{ truck.owner_name|default:'-' }}</td></tr>
+      <tr><th>Default Driver</th><td>{% if truck.default_driver_id %}{{ truck.default_driver_id.driver_code }}{% else %}-{% endif %}</td><th>VIN</th><td>{{ truck.chassis_number_vin|default:'-' }}</td></tr>
+    </tbody>
+  </table>
+  <div style="margin-top:12px;page-break-inside:avoid;"><strong>Signature</strong><div style="height:64px;border-top:1px dashed #9ca3af;margin-top:6px;"></div></div>
+  <script>window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 250); });</script>
+</body>
+</html>

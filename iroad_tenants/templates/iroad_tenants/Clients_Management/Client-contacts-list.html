@@ -93,7 +93,7 @@
         data-eal-filterable-table
         data-eal-empty-colspan="10"
         data-eal-empty-filter-message="No contacts match the selected search/filter criteria."
-        data-eal-global-search-columns="1,2,3,4,5,6,7"
+        data-eal-global-search-columns="1,2,3,4,5,6,7,8"
       >
         <!-- Toolbar -->
         <div class="eal-toolbar">
@@ -103,15 +103,24 @@
               <input type="text" data-eal-global-search placeholder="Search contacts..." />
             </div>
             <div class="eal-chip-group">
-              <button class="eal-chip active">All</button>
-              <button class="eal-chip">
+              <a
+                href="{% url 'iroad_tenants:tenant_client_contacts_list' %}"
+                class="eal-chip text-decoration-none text-reset{% if contacts_list_chip == 'all' %} active{% endif %}"
+                >All</a>
+              <a
+                href="{% url 'iroad_tenants:tenant_client_contacts_list' %}?chip=primary"
+                class="eal-chip text-decoration-none text-reset{% if contacts_list_chip == 'primary' %} active{% endif %}"
+              >
                 <i class="bi bi-star"></i>
                 Primary
-              </button>
-              <button class="eal-chip">
+              </a>
+              <a
+                href="{% url 'iroad_tenants:tenant_client_contacts_list' %}?chip=secondary"
+                class="eal-chip text-decoration-none text-reset{% if contacts_list_chip == 'secondary' %} active{% endif %}"
+              >
                 <i class="bi bi-person"></i>
                 Secondary
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -141,7 +150,7 @@
             </thead>
             <tbody>
               {% for contact in client_contacts %}
-              <tr data-detail-url="{{ contact.list_detail_url|default:'' }}">
+              <tr data-detail-url="{{ contact.list_detail_url|default:'' }}" data-eal-row-primary="{% if contact.is_primary %}1{% else %}0{% endif %}">
                 <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
                 <td><span class="eal-entity-id">{{ contact.client_account.account_no }}</span></td>
                 <td>

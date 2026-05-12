@@ -162,9 +162,8 @@
                     <option value="" selected disabled>
                       -Select sales report status-
                     </option>
-                    {% for status in booking_sales_report_status_options %}
-                    <option value="{{ status|lower }}">{{ status }}</option>
-                    {% endfor %}
+                    <option value="issued">Issued</option>
+                    <option value="not_issued">Not Issued</option>
                   </select>
                 </div>
               </div>

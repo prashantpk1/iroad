@@ -150,14 +150,15 @@
                   <label for="contactExtension" class="form-label"
                     >Extension</label
                   >
-                  <input
-                    type="text"
-                    class="form-control {% if form_errors.extension %}is-invalid{% endif %}"
+                  <select
+                    class="form-select {% if form_errors.extension %}is-invalid{% endif %}"
                     id="contactExtension"
                     name="extension"
-                    placeholder="e.g. 104"
-                    value="{{ form_data.extension|default:'' }}"
-                  />
+                  >
+                    {% for ext_val, ext_label in contact_extension_options %}
+                    <option value="{{ ext_val }}" {% if form_data.extension == ext_val %}selected{% endif %}>{{ ext_label }}</option>
+                    {% endfor %}
+                  </select>
                   {% if form_errors.extension %}<div class="invalid-feedback d-block">{{ form_errors.extension }}</div>{% endif %}
                 </div>
                 <div class="field">

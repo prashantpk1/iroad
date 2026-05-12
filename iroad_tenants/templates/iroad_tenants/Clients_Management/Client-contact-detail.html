@@ -162,7 +162,7 @@
             <label class="form-label">Extension</label>
             <div class="view-field-box">
               <p class="view-value {% if not contact.extension %}empty{% endif %}">
-                {{ contact.extension|default:"—" }}
+                {{ contact_extension_label|default:contact.extension|default:"—" }}
               </p>
             </div>
           </div>

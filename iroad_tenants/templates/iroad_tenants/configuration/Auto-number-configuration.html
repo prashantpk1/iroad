@@ -143,7 +143,7 @@
       </li>
 
       <li class="form-list-section">Operations</li>
-      <li class="form-list-item" data-form="shipment">Shipment</li>
+      <li class="form-list-item {% if auto_number_form_code == 'shipment' %}active{% endif %}" data-form="shipment">Shipment</li>
       <li class="form-list-item" data-form="shipment-documents">
         Shipment Documents
       </li>
@@ -382,6 +382,7 @@
       "service-item-master",
       "price-list-master",
       "booking",
+      "shipment",
       "sales-invoice-report",
     ]);
 
@@ -413,8 +414,8 @@
       const baseNumber = parseInt(baseNextNumberEl.value || "1", 10);
       const digits = parseInt(numberOfDigitsEl.value || "1", 10);
       const format = sequenceFormatEl.value || "numeric";
-      const prefix = (prefixEl && prefixEl.value ? String(prefixEl.value) : "").trim();
       const core = previewValue(baseNumber, digits, format);
+      const prefix = (prefixEl && prefixEl.value ? String(prefixEl.value).trim() : "");
       nextNumberEl.value = prefix ? (prefix + "-" + core) : core;
     }
 

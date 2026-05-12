@@ -4,6 +4,85 @@
 {% block title %}{{ page_title }} | iRoad{% endblock %}
 {% block breadcrumb %}{% endblock %}
 
+{% block extra_css %}
+{{ block.super }}
+<style>
+  /* Report Summary — read-only data view (not form fields) */
+  .jor-summary-panel { padding: 4px 2px 8px; }
+  .jor-summary-panel .eal-stats-row { margin-bottom: 14px; }
+  .jor-summary-panel .eal-stats-row:last-of-type { margin-bottom: 0; }
+  .jor-summary-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #8b8fa3;
+    margin: 0 0 10px 2px;
+  }
+  .jor-summary-currency {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+  .jor-summary-total-card {
+    border-color: #d4d5f9 !important;
+    background: linear-gradient(145deg, #f7f7ff 0%, #ffffff 55%, #ffffff 100%) !important;
+    box-shadow: 0 2px 14px rgba(80, 81, 249, 0.07);
+  }
+  .jor-summary-total-card .eal-stat-value {
+    font-size: 24px;
+    color: #383b8f;
+  }
+
+  /* Lookup (search) input inside table cells */
+  .lookup-input-wrap { position: relative; }
+  .lookup-input-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8b8fa3;
+    font-size: 12px;
+    pointer-events: none;
+  }
+  .lookup-input-wrap .lookup-input { padding-left: 30px; }
+
+  .lookup-menu {
+    position: fixed;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid #ecedf3;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+    overflow: hidden;
+    display: none;
+  }
+  .lookup-menu.is-open { display: block; }
+  .lookup-menu-list {
+    max-height: 220px;
+    overflow: auto;
+    padding: 6px;
+  }
+  .lookup-option {
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    padding: 9px 10px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    color: #1e1f26;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .lookup-option:hover,
+  .lookup-option:focus { outline: none; background: #f2f3ff; }
+  .lookup-option i { color: #5051f9; font-size: 14px; }
+  .lookup-empty { padding: 12px; font-size: 12px; color: #8b8fa3; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
   <nav aria-label="breadcrumb">
@@ -17,7 +96,7 @@
   </nav>
   <div class="page-header-row">
     <div class="page-header-left">
-      <h1 class="page-title">{{ page_title }}</h1>
+      <h1 class="page-title">Create Sales Invoice Report</h1>
       <p class="page-subtitle">Select client account and booking period to build the billing worksheet.</p>
     </div>
     <div class="page-header-right">
@@ -38,7 +117,7 @@
     <div class="form-card-header">
       <div class="form-card-icon blue"><i class="bi bi-receipt"></i></div>
       <div class="form-card-header-text">
-        <h2 class="form-card-title">Sales Invoice Report</h2>
+        <h2 class="form-card-title">Job Order Report</h2>
         <p class="form-card-desc">Header, booking scope, and worksheet controls.</p>
       </div>
     </div>
@@ -48,10 +127,17 @@
         <div class="fields-grid cols-3">
           <div class="field"><label class="form-label">Report No</label>{{ report_form.report_no }}<span class="field-hint">Auto-generated, read-only</span></div>
           <div class="field"><label class="form-label">Report Date <span class="required">*</span></label>{{ report_form.report_date }}</div>
-          <div class="field"><label class="form-label">Status</label>{{ report_form.status }}</div>
+          <div class="field">
+            <label class="form-label">Report Update Date (date-time)</label>
+            <input type="text" class="form-control" value="{% now 'm/d/Y h:i A' %}" readonly>
+          </div>
         </div>
         <div class="fields-grid cols-3">
+          <div class="field"><label class="form-label">Status</label>{{ report_form.status }}</div>
           <div class="field"><label class="form-label">Client Account <span class="required">*</span></label>{{ report_form.client }}</div>
+          <div class="field"><label class="form-label">Currency</label>{{ report_form.currency }}<span class="field-hint">Auto fill use SAR</span></div>
+        </div>
+        <div class="fields-grid cols-2">
           <div class="field"><label class="form-label">Freight Total</label>{{ report_form.total_freight_amount }}</div>
           <div class="field"><label class="form-label">Surcharge Total</label>{{ report_form.total_surcharge_amount }}</div>
         </div>
@@ -65,13 +151,12 @@
           <div class="field"><label class="form-label">Booking From (date)</label>{{ report_form.booking_date_from }}</div>
           <div class="field"><label class="form-label">Booking To (date)</label>{{ report_form.booking_date_to }}</div>
           <div class="field">
-            <label class="form-label">Currency</label>
-            {{ report_form.currency }}
-            <div class="mt-2">
-              <button type="button" class="btn btn-outline-primary btn-sm" id="sirPreviewBtn">
-                <i class="bi bi-arrow-repeat"></i> Preview / Auto Load
-              </button>
+            <label class="form-label">Auto Post</label>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" id="sirAutoPost">
+              <label class="form-check-label" for="sirAutoPost">Auto Post</label>
             </div>
+            <span class="field-hint">If enabled, system fetches all matching shipments from execute period.</span>
           </div>
         </div>
       </div>
@@ -86,14 +171,78 @@
       <div class="form-card-icon green"><i class="bi bi-calendar-check"></i></div>
       <div class="form-card-header-text">
         <h2 class="form-card-title">Bookings</h2>
+        <p class="form-card-desc">Executed bookings included in the billing worksheet. Sell price locked from Sales Order snapshot.</p>
       </div>
     </div>
     <div class="form-card-body">
-      <div class="eal-table-wrap">
-        <table class="eal-table">
-          <thead><tr><th>SN</th><th>Booking</th><th>Booking Date</th><th>Service Item</th><th>Trip Type</th><th>Sell Price</th></tr></thead>
-          <tbody id="sirBookingsBody">{% for r in booking_lines %}<tr><td>{{ r.line_no }}</td><td>{{ r.booking_ref|default:"—" }}</td><td>{{ report_form.booking_date_from.value|default:"—" }}</td><td>{{ r.service_name }}</td><td>{{ r.trip_type }}</td><td>{{ r.sell_price }}</td></tr>{% empty %}<tr><td colspan="6" class="text-muted text-center">No booking lines.</td></tr>{% endfor %}</tbody>
-        </table>
+      <div class="field-group">
+        <div class="eal-table-wrap">
+          <table class="eal-table" id="sirBookingsTable">
+            <thead>
+              <tr>
+                <th>SN</th>
+                <th>Booking</th>
+                <th>Booking Date</th>
+                <th>Service Item</th>
+                <th>Trip Type</th>
+                <th>Sell Price</th>
+              </tr>
+            </thead>
+            <tbody id="sirBookingsBody">
+              {% for r in booking_lines %}
+              <tr>
+                <td class="booking-sn">{{ r.line_no }}</td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search booking..." aria-label="Booking lookup" list="sirBookingLookupOptions" value="{{ r.booking_ref|default:'' }}">
+                  </div>
+                </td>
+                <td><input type="date" class="form-control form-control-sm" value="{{ report_form.booking_date_from.value|default:'' }}" readonly></td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search service item..." aria-label="Service item lookup" list="sirServiceItemLookupOptions" value="{{ r.service_name|default:'' }}">
+                  </div>
+                </td>
+                <td>
+                  <select class="form-select form-select-sm" aria-label="Trip type">
+                    <option value="" {% if not r.trip_type %}selected{% endif %} disabled>-Select type-</option>
+                    <option value="one-way" {% if r.trip_type == 'one-way' %}selected{% endif %}>One-Way</option>
+                    <option value="round" {% if r.trip_type == 'round' %}selected{% endif %}>Round</option>
+                  </select>
+                </td>
+                <td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" value="{{ r.sell_price|default:'' }}" readonly></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="booking-sn">1</td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search booking..." aria-label="Booking lookup" list="sirBookingLookupOptions">
+                  </div>
+                </td>
+                <td><input type="date" class="form-control form-control-sm" readonly></td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search service item..." aria-label="Service item lookup" list="sirServiceItemLookupOptions">
+                  </div>
+                </td>
+                <td>
+                  <select class="form-select form-select-sm" aria-label="Trip type">
+                    <option value="" selected disabled>-Select type-</option>
+                    <option value="one-way">One-Way</option>
+                    <option value="round">Round</option>
+                  </select>
+                </td>
+                <td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" readonly></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -101,14 +250,74 @@
   <div class="form-card" data-section="3">
     <div class="form-card-header">
       <div class="form-card-icon blue"><i class="bi bi-truck"></i></div>
-      <div class="form-card-header-text"><h2 class="form-card-title">Related Shipments</h2></div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Related Shipments</h2>
+        <p class="form-card-desc">Shipments executed for selected bookings. Customer Ref contains delivery document references.</p>
+      </div>
     </div>
     <div class="form-card-body">
-      <div class="eal-table-wrap">
-        <table class="eal-table">
-          <thead><tr><th>SN</th><th>Booking</th><th>Shipment</th><th>Shipment Date</th><th>Route</th><th>Truck</th><th>Customer Ref</th><th>POD Date</th></tr></thead>
-          <tbody id="sirShipmentsBody">{% for r in shipment_lines %}<tr><td>{{ r.line_no }}</td><td>{{ r.booking_ref|default:"—" }}</td><td>{{ r.shipment_ref|default:"—" }}</td><td>{{ r.shipment_date|default:"—" }}</td><td>{{ r.from_location }}{% if r.to_location %} → {{ r.to_location }}{% endif %}</td><td>{{ r.truck_plate }}</td><td>{{ r.customer_ref_docs|default:"—" }}</td><td>{{ r.pod_date|default:"—" }}</td></tr>{% empty %}<tr><td colspan="8" class="text-muted text-center">No shipment lines.</td></tr>{% endfor %}</tbody>
-        </table>
+      <div class="field-group">
+        <div class="eal-table-wrap">
+          <table class="eal-table" id="sirShipmentsTable">
+            <thead>
+              <tr>
+                <th>SN</th>
+                <th>Booking</th>
+                <th>Shipment</th>
+                <th>Shipment Date</th>
+                <th>Route</th>
+                <th>Truck</th>
+                <th>Customer Ref</th>
+                <th>POD Date</th>
+              </tr>
+            </thead>
+            <tbody id="sirShipmentsBody">
+              {% for r in shipment_lines %}
+              <tr>
+                <td class="shipment-sn">{{ r.line_no }}</td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search booking..." aria-label="Booking lookup" list="sirBookingLookupOptions" value="{{ r.booking_ref|default:'' }}">
+                  </div>
+                </td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search shipment..." aria-label="Shipment lookup" list="sirShipmentLookupOptions" value="{{ r.shipment_ref|default:'' }}">
+                  </div>
+                </td>
+                <td><input type="date" class="form-control form-control-sm" value="{{ r.shipment_date|default:'' }}" readonly></td>
+                <td><input type="text" class="form-control form-control-sm" placeholder="Route" value="{{ r.from_location|default:'' }}{% if r.to_location %} → {{ r.to_location }}{% endif %}" readonly></td>
+                <td><input type="text" class="form-control form-control-sm" placeholder="Truck" value="{{ r.truck_plate|default:'' }}" readonly></td>
+                <td><input type="text" class="form-control form-control-sm" placeholder="Customer ref" value="{{ r.customer_ref_docs|default:'' }}" readonly></td>
+                <td><input type="date" class="form-control form-control-sm" value="{{ r.pod_date|default:'' }}" readonly></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="shipment-sn">1</td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search booking..." aria-label="Booking lookup" list="sirBookingLookupOptions">
+                  </div>
+                </td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search shipment..." aria-label="Shipment lookup" list="sirShipmentLookupOptions">
+                  </div>
+                </td>
+                <td><input type="date" class="form-control form-control-sm" readonly></td>
+                <td><input type="text" class="form-control form-control-sm" placeholder="Route" readonly></td>
+                <td><input type="text" class="form-control form-control-sm" placeholder="Truck" readonly></td>
+                <td><input type="text" class="form-control form-control-sm" placeholder="Customer ref" readonly></td>
+                <td><input type="date" class="form-control form-control-sm" readonly></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -116,14 +325,88 @@
   <div class="form-card" data-section="4">
     <div class="form-card-header">
       <div class="form-card-icon amber"><i class="bi bi-plus-circle"></i></div>
-      <div class="form-card-header-text"><h2 class="form-card-title">Related Surcharges</h2></div>
+      <div class="form-card-header-text">
+        <h2 class="form-card-title">Related Surcharges</h2>
+        <p class="form-card-desc">Surcharges linked to selected shipments/bookings. Source: confirmed Sales Surcharge transactions.</p>
+      </div>
     </div>
     <div class="form-card-body">
-      <div class="eal-table-wrap">
-        <table class="eal-table">
-          <thead><tr><th>SN</th><th>Transaction No</th><th>Transaction Date</th><th>Shipment</th><th>Type</th><th>Amount</th></tr></thead>
-          <tbody id="sirSurchargesBody">{% for r in surcharge_lines %}<tr><td>{{ r.line_no }}</td><td>{{ r.surcharge_trx_ref|default:"—" }}</td><td>—</td><td>{{ r.shipment_ref|default:"—" }}</td><td>{{ r.surcharge_type }}</td><td>{{ r.amount }}</td></tr>{% empty %}<tr><td colspan="6" class="text-muted text-center">No surcharge lines.</td></tr>{% endfor %}</tbody>
-        </table>
+      <div class="field-group">
+        <div class="eal-table-wrap">
+          <table class="eal-table" id="sirSurchargesTable">
+            <thead>
+              <tr>
+                <th>SN</th>
+                <th>Transaction No</th>
+                <th>Transaction Date</th>
+                <th>Shipment</th>
+                <th>Type</th>
+                <th>QTY</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="sirSurchargesBody">
+              {% for r in surcharge_lines %}
+              <tr>
+                <td class="surcharge-sn">{{ r.line_no }}</td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search transaction..." aria-label="Transaction lookup" list="sirTransactionLookupOptions" value="{{ r.surcharge_trx_ref|default:'' }}">
+                  </div>
+                </td>
+                <td><input type="date" class="form-control form-control-sm" readonly></td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search shipment..." aria-label="Shipment lookup" list="sirShipmentLookupOptions" value="{{ r.shipment_ref|default:'' }}">
+                  </div>
+                </td>
+                <td>
+                  <select class="form-select form-select-sm" aria-label="Surcharge type" disabled>
+                    <option value="" {% if not r.surcharge_type %}selected{% endif %} disabled>-Select type-</option>
+                    <option value="fuel" {% if r.surcharge_type == 'fuel' %}selected{% endif %}>Fuel</option>
+                    <option value="detention" {% if r.surcharge_type == 'detention' %}selected{% endif %}>Detention</option>
+                    <option value="other" {% if r.surcharge_type == 'other' %}selected{% endif %}>Other</option>
+                  </select>
+                </td>
+                <td><input type="number" class="form-control form-control-sm text-end" placeholder="0" step="1" min="0" readonly></td>
+                <td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" readonly></td>
+                <td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" value="{{ r.amount|default:'' }}" readonly></td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td class="surcharge-sn">1</td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search transaction..." aria-label="Transaction lookup" list="sirTransactionLookupOptions">
+                  </div>
+                </td>
+                <td><input type="date" class="form-control form-control-sm" readonly></td>
+                <td>
+                  <div class="lookup-input-wrap">
+                    <i class="bi bi-search lookup-input-icon"></i>
+                    <input type="text" class="form-control form-control-sm lookup-input" placeholder="Search shipment..." aria-label="Shipment lookup" list="sirShipmentLookupOptions">
+                  </div>
+                </td>
+                <td>
+                  <select class="form-select form-select-sm" aria-label="Surcharge type" disabled>
+                    <option value="" selected disabled>-Select type-</option>
+                    <option value="fuel">Fuel</option>
+                    <option value="detention">Detention</option>
+                    <option value="other">Other</option>
+                  </select>
+                </td>
+                <td><input type="number" class="form-control form-control-sm text-end" placeholder="0" step="1" min="0" readonly></td>
+                <td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" readonly></td>
+                <td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" readonly></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -150,6 +433,27 @@
     </div>
   </div>
 
+  <datalist id="sirBookingLookupOptions">
+    <option value="BKG-2026-001 - Airport Transfer"></option>
+    <option value="BKG-2026-002 - City Delivery"></option>
+    <option value="BKG-2026-003 - Long Haul"></option>
+  </datalist>
+  <datalist id="sirServiceItemLookupOptions">
+    <option value="Airport Transfer"></option>
+    <option value="FTL - Riyadh to Dammam"></option>
+    <option value="Distribution Run"></option>
+  </datalist>
+  <datalist id="sirShipmentLookupOptions">
+    <option value="SHP-2026-1001"></option>
+    <option value="SHP-2026-1002"></option>
+    <option value="SHP-2026-1003"></option>
+  </datalist>
+  <datalist id="sirTransactionLookupOptions">
+    <option value="SCH-TRX-9001"></option>
+    <option value="SCH-TRX-9002"></option>
+    <option value="SCH-TRX-9003"></option>
+  </datalist>
+
   <div class="form-actions-bar">
     <div class="form-actions-left">
       <button type="reset" class="btn btn-outline-secondary">
@@ -158,7 +462,7 @@
     </div>
     <div class="form-actions-right">
       <button type="submit" class="btn btn-primary"{% if lock_state == 'locked' %} disabled{% endif %}>
-        <i class="bi bi-check-circle"></i> {% if is_edit %}Update{% else %}Save{% endif %} Sales Invoice Report
+        <i class="bi bi-check-circle"></i> {% if is_edit %}Update{% else %}Save{% endif %} Job Order Report
       </button>
     </div>
   </div>
@@ -170,14 +474,56 @@
 <script>
 (function () {
   function safeText(v) { return (v === null || v === undefined || v === "") ? "—" : String(v); }
-  function renderRows(bodyId, rows, cols, rowBuilder) {
+  function safeAttr(v) {
+    if (v === null || v === undefined) return "";
+    return String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+  function buildEmptyRow(kind) {
+    if (kind === "bookings") {
+      return '<tr>'
+        + '<td class="booking-sn">1</td>'
+        + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search booking..." list="sirBookingLookupOptions"></div></td>'
+        + '<td><input type="date" class="form-control form-control-sm" readonly></td>'
+        + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search service item..." list="sirServiceItemLookupOptions"></div></td>'
+        + '<td><select class="form-select form-select-sm"><option value="" selected disabled>-Select type-</option><option value="one-way">One-Way</option><option value="round">Round</option></select></td>'
+        + '<td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" readonly></td>'
+        + '</tr>';
+    }
+    if (kind === "shipments") {
+      return '<tr>'
+        + '<td class="shipment-sn">1</td>'
+        + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search booking..." list="sirBookingLookupOptions"></div></td>'
+        + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search shipment..." list="sirShipmentLookupOptions"></div></td>'
+        + '<td><input type="date" class="form-control form-control-sm" readonly></td>'
+        + '<td><input type="text" class="form-control form-control-sm" placeholder="Route" readonly></td>'
+        + '<td><input type="text" class="form-control form-control-sm" placeholder="Truck" readonly></td>'
+        + '<td><input type="text" class="form-control form-control-sm" placeholder="Customer ref" readonly></td>'
+        + '<td><input type="date" class="form-control form-control-sm" readonly></td>'
+        + '</tr>';
+    }
+    if (kind === "surcharges") {
+      return '<tr>'
+        + '<td class="surcharge-sn">1</td>'
+        + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search transaction..." list="sirTransactionLookupOptions"></div></td>'
+        + '<td><input type="date" class="form-control form-control-sm" readonly></td>'
+        + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search shipment..." list="sirShipmentLookupOptions"></div></td>'
+        + '<td><select class="form-select form-select-sm" disabled><option value="" selected disabled>-Select type-</option><option value="fuel">Fuel</option><option value="detention">Detention</option><option value="other">Other</option></select></td>'
+        + '<td><input type="number" class="form-control form-control-sm text-end" placeholder="0" step="1" min="0" readonly></td>'
+        + '<td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" readonly></td>'
+        + '<td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" readonly></td>'
+        + '</tr>';
+    }
+    return "";
+  }
+  function renderRows(bodyId, rows, emptyKind, rowBuilder) {
     var body = document.getElementById(bodyId);
     if (!body) return;
     if (!rows || !rows.length) {
-      body.innerHTML = '<tr><td colspan="' + cols + '" class="text-muted text-center">No records found for selected filters.</td></tr>';
-      return;
+      body.innerHTML = buildEmptyRow(emptyKind);
+    } else {
+      body.innerHTML = rows.map(rowBuilder).join("");
     }
-    body.innerHTML = rows.map(rowBuilder).join("");
+    initLookupInputsIn(body);
   }
 
   var messageEl = document.getElementById("sirDynamicMessage");
@@ -197,6 +543,7 @@
   var fromEl = document.getElementById("id_booking_date_from");
   var toEl = document.getElementById("id_booking_date_to");
   var ccyEl = document.getElementById("id_currency");
+  var autoPostEl = document.getElementById("sirAutoPost");
   var reportNoEl = document.getElementById("id_report_no");
   var freightEl = document.getElementById("id_total_freight_amount");
   var surchargeEl = document.getElementById("id_total_surcharge_amount");
@@ -216,9 +563,9 @@
   }
 
   function resetDynamicTables() {
-    renderRows("sirBookingsBody", [], 7, function () { return ""; });
-    renderRows("sirSurchargesBody", [], 5, function () { return ""; });
-    renderRows("sirShipmentsBody", [], 8, function () { return ""; });
+    renderRows("sirBookingsBody", [], "bookings", function () { return ""; });
+    renderRows("sirSurchargesBody", [], "surcharges", function () { return ""; });
+    renderRows("sirShipmentsBody", [], "shipments", function () { return ""; });
     if (bookingsCountEl) bookingsCountEl.textContent = "0";
     if (surchargesCountEl) surchargesCountEl.textContent = "0";
     if (shipmentsCountEl) shipmentsCountEl.textContent = "0";
@@ -263,15 +610,52 @@
           reportNoEl.value = data.report_no_preview;
         }
 
-        renderRows("sirBookingsBody", data.bookings, 6, function (r) {
-          return "<tr><td>" + safeText(r.line_no) + "</td><td>" + safeText(r.booking_ref) + "</td><td>" + safeText((fromEl && fromEl.value) || "—") + "</td><td>" + safeText(r.service_name) + "</td><td>" + safeText(r.trip_type) + "</td><td>" + safeText(r.sell_price) + "</td></tr>";
+        renderRows("sirBookingsBody", data.bookings, "bookings", function (r) {
+          var bookingDate = safeAttr((fromEl && fromEl.value) || "");
+          var tripType = (r.trip_type || "").toString().toLowerCase();
+          return '<tr>'
+            + '<td class="booking-sn">' + safeText(r.line_no) + '</td>'
+            + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search booking..." list="sirBookingLookupOptions" value="' + safeAttr(r.booking_ref) + '"></div></td>'
+            + '<td><input type="date" class="form-control form-control-sm" value="' + bookingDate + '" readonly></td>'
+            + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search service item..." list="sirServiceItemLookupOptions" value="' + safeAttr(r.service_name) + '"></div></td>'
+            + '<td><select class="form-select form-select-sm">'
+              + '<option value="" ' + (tripType ? '' : 'selected ') + 'disabled>-Select type-</option>'
+              + '<option value="one-way" ' + (tripType === 'one-way' ? 'selected' : '') + '>One-Way</option>'
+              + '<option value="round" ' + (tripType === 'round' ? 'selected' : '') + '>Round</option>'
+            + '</select></td>'
+            + '<td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" value="' + safeAttr(r.sell_price) + '" readonly></td>'
+            + '</tr>';
         });
-        renderRows("sirSurchargesBody", data.surcharges, 6, function (r) {
-          return "<tr><td>" + safeText(r.line_no) + "</td><td>" + safeText(r.surcharge_trx_ref) + "</td><td>—</td><td>" + safeText(r.shipment_ref) + "</td><td>" + safeText(r.surcharge_type) + "</td><td>" + safeText(r.amount) + "</td></tr>";
+        renderRows("sirSurchargesBody", data.surcharges, "surcharges", function (r) {
+          var st = (r.surcharge_type || "").toString().toLowerCase();
+          return '<tr>'
+            + '<td class="surcharge-sn">' + safeText(r.line_no) + '</td>'
+            + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search transaction..." list="sirTransactionLookupOptions" value="' + safeAttr(r.surcharge_trx_ref) + '"></div></td>'
+            + '<td><input type="date" class="form-control form-control-sm" readonly></td>'
+            + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search shipment..." list="sirShipmentLookupOptions" value="' + safeAttr(r.shipment_ref) + '"></div></td>'
+            + '<td><select class="form-select form-select-sm" disabled>'
+              + '<option value="" ' + (st ? '' : 'selected ') + 'disabled>-Select type-</option>'
+              + '<option value="fuel" ' + (st === 'fuel' ? 'selected' : '') + '>Fuel</option>'
+              + '<option value="detention" ' + (st === 'detention' ? 'selected' : '') + '>Detention</option>'
+              + '<option value="other" ' + (st === 'other' ? 'selected' : '') + '>Other</option>'
+            + '</select></td>'
+            + '<td><input type="number" class="form-control form-control-sm text-end" placeholder="0" step="1" min="0" readonly></td>'
+            + '<td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" readonly></td>'
+            + '<td><input type="number" class="form-control form-control-sm text-end" placeholder="0.00" step="0.01" value="' + safeAttr(r.amount) + '" readonly></td>'
+            + '</tr>';
         });
-        renderRows("sirShipmentsBody", data.shipments, 8, function (r) {
-          var route = safeText(r.from_location) + ((r.to_location || "") ? " → " + safeText(r.to_location) : "");
-          return "<tr><td>" + safeText(r.line_no) + "</td><td>" + safeText(r.booking_ref) + "</td><td>" + safeText(r.shipment_ref) + "</td><td>" + safeText(r.shipment_date) + "</td><td>" + route + "</td><td>" + safeText(r.truck_plate) + "</td><td>" + safeText(r.customer_ref_docs) + "</td><td>" + safeText(r.pod_date) + "</td></tr>";
+        renderRows("sirShipmentsBody", data.shipments, "shipments", function (r) {
+          var route = (r.from_location || "") + ((r.to_location || "") ? " → " + r.to_location : "");
+          return '<tr>'
+            + '<td class="shipment-sn">' + safeText(r.line_no) + '</td>'
+            + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search booking..." list="sirBookingLookupOptions" value="' + safeAttr(r.booking_ref) + '"></div></td>'
+            + '<td><div class="lookup-input-wrap"><i class="bi bi-search lookup-input-icon"></i><input type="text" class="form-control form-control-sm lookup-input" placeholder="Search shipment..." list="sirShipmentLookupOptions" value="' + safeAttr(r.shipment_ref) + '"></div></td>'
+            + '<td><input type="date" class="form-control form-control-sm" value="' + safeAttr(r.shipment_date) + '" readonly></td>'
+            + '<td><input type="text" class="form-control form-control-sm" placeholder="Route" value="' + safeAttr(route) + '" readonly></td>'
+            + '<td><input type="text" class="form-control form-control-sm" placeholder="Truck" value="' + safeAttr(r.truck_plate) + '" readonly></td>'
+            + '<td><input type="text" class="form-control form-control-sm" placeholder="Customer ref" value="' + safeAttr(r.customer_ref_docs) + '" readonly></td>'
+            + '<td><input type="date" class="form-control form-control-sm" value="' + safeAttr(r.pod_date) + '" readonly></td>'
+            + '</tr>';
         });
 
         if (bookingsCountEl) bookingsCountEl.textContent = String((data.bookings || []).length);
@@ -289,11 +673,114 @@
       });
   }
 
-  var btn = document.getElementById("sirPreviewBtn");
-  if (btn) btn.addEventListener("click", loadDynamicData);
+  function maybeAutoLoad() {
+    if (autoPostEl && autoPostEl.checked) {
+      loadDynamicData();
+    }
+  }
+
   [clientEl, fromEl, toEl, ccyEl].forEach(function (el) {
-    if (el) el.addEventListener("change", loadDynamicData);
+    if (el) el.addEventListener("change", maybeAutoLoad);
   });
+  if (autoPostEl) {
+    autoPostEl.addEventListener("change", function () {
+      if (autoPostEl.checked) {
+        loadDynamicData();
+      }
+    });
+  }
+
+  function initLookupDropdown(input) {
+    if (input.dataset.lookupBound === "1") return;
+    var listId = input.getAttribute("list");
+    if (!listId) return;
+    var dl = document.getElementById(listId);
+    if (!dl) return;
+
+    input.setAttribute("autocomplete", "off");
+    input.dataset.lookupBound = "1";
+
+    var wrap = input.closest(".lookup-input-wrap");
+    if (!wrap) return;
+
+    var menu = document.createElement("div");
+    menu.className = "lookup-menu";
+    menu.innerHTML = '<div class="lookup-menu-list" role="listbox"></div>';
+    var listEl = menu.querySelector(".lookup-menu-list");
+    document.body.appendChild(menu);
+
+    function positionMenu() {
+      if (!menu.classList.contains("is-open")) return;
+      var r = input.getBoundingClientRect();
+      menu.style.top = Math.round(r.bottom + 6) + "px";
+      menu.style.left = Math.round(r.left) + "px";
+      menu.style.width = Math.round(r.width) + "px";
+    }
+    function getOptions() {
+      return Array.prototype.slice.call(dl.querySelectorAll("option"))
+        .map(function (o) { return (o.value || "").trim(); })
+        .filter(Boolean);
+    }
+    function render(filterText) {
+      var ft = (filterText || "").trim().toLowerCase();
+      var options = getOptions().filter(function (v) {
+        return !ft || v.toLowerCase().indexOf(ft) !== -1;
+      });
+      listEl.innerHTML = "";
+      if (!options.length) {
+        var empty = document.createElement("div");
+        empty.className = "lookup-empty";
+        empty.textContent = "No matches.";
+        listEl.appendChild(empty);
+        return;
+      }
+      options.slice(0, 50).forEach(function (value) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "lookup-option";
+        btn.setAttribute("role", "option");
+        btn.innerHTML = '<i class="bi bi-search"></i><span></span>';
+        btn.querySelector("span").textContent = value;
+        btn.addEventListener("mousedown", function (e) {
+          e.preventDefault();
+          input.value = value;
+          close();
+        });
+        listEl.appendChild(btn);
+      });
+    }
+    function open() {
+      menu.classList.add("is-open");
+      render(input.value);
+      positionMenu();
+    }
+    function close() { menu.classList.remove("is-open"); }
+
+    input.addEventListener("focus", open);
+    input.addEventListener("click", open);
+    input.addEventListener("input", function () {
+      if (!menu.classList.contains("is-open")) open();
+      render(input.value);
+      positionMenu();
+    });
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") close();
+    });
+    document.addEventListener("mousedown", function (e) {
+      if (!menu.contains(e.target) && !wrap.contains(e.target)) close();
+    });
+    window.addEventListener("resize", positionMenu, { passive: true });
+    window.addEventListener("scroll", positionMenu, { passive: true });
+  }
+
+  function initLookupInputsIn(root) {
+    if (!root) return;
+    Array.prototype.slice
+      .call(root.querySelectorAll("input.lookup-input[list]"))
+      .forEach(initLookupDropdown);
+  }
+
+  initLookupInputsIn(document);
 })();
 </script>
 {% endblock %}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ treasury.treasury_code }}</title>
+  <style>
+    @page { size: A4; margin: 0.2cm; }
+    body { font-family: Tahoma, Arial, sans-serif; direction: rtl; font-size: 11px; color: #111; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    thead { display: table-header-group; } tr { page-break-inside: avoid; }
+    th, td { border: 1px solid #d1d5db; padding: 5px; text-align: right; }
+    th { background: #f3f4f6; } .num { direction: ltr; text-align: left; unicode-bidi: embed; }
+  </style>
+</head>
+<body>
+  <h2>خزنة السائق / Driver Treasury</h2>
+  <table>
+    <tbody>
+      <tr><th>Treasury Code</th><td>{{ treasury.treasury_code }}</td><th>Status</th><td>{{ treasury.status }}</td></tr>
+      <tr><th>Driver</th><td>{{ treasury.driver.driver_code }} - {{ treasury.driver.arabic_name }}</td><th>Current Balance</th><td class="num">{{ treasury.current_balance }}</td></tr>
+    </tbody>
+  </table>
+  <h3 style="margin-top:10px;">Recent Transactions</h3>
+  <table>
+    <thead><tr><th>No</th><th>Date</th><th>Type</th><th>Category</th><th class="num">Amount</th></tr></thead>
+    <tbody>
+      {% for row in transactions %}
+      <tr>
+        <td>{{ row.transaction_no }}</td>
+        <td>{{ row.transaction_date|date:'Y-m-d H:i' }}</td>
+        <td>{{ row.transaction_type }}</td>
+        <td>{{ row.transaction_category }}</td>
+        <td class="num">{{ row.amount }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No transactions.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <script>window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 250); });</script>
+</body>
+</html>
