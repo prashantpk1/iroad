@@ -6,13 +6,19 @@
       <div class="col-lg-12">
         <div class="footer-header-elite">
           <div class="footer-header-info-item-elite">
-            <h2>{{ home.footer_cta_left_en }}</h2>
+            <h2>
+              {% if lang == 'ar' %}{{ home.footer_cta_left_ar|default:home.footer_cta_left_en }}{% else %}{{ home.footer_cta_left_en }}{% endif %}
+            </h2>
           </div>
           <div class="footer-logo-elite">
-            <h2>{{ home.footer_brand_text_en }}</h2>
+            <h2>
+              {% if lang == 'ar' %}{{ home.footer_brand_text_ar|default:home.footer_brand_text_en }}{% else %}{{ home.footer_brand_text_en }}{% endif %}
+            </h2>
           </div>
           <div class="footer-header-info-item-elite">
-            <h2>{{ home.footer_cta_right_en }}</h2>
+            <h2>
+              {% if lang == 'ar' %}{{ home.footer_cta_right_ar|default:home.footer_cta_right_en }}{% else %}{{ home.footer_cta_right_en }}{% endif %}
+            </h2>
           </div>
         </div>
       </div>
@@ -20,7 +26,9 @@
       <div class="col-xl-4">
         <div class="about-footer-elite">
           <div class="about-footer-content-elite">
-            <p>{{ home.footer_about_blurb_en }}</p>
+            <p>
+              {% if lang == 'ar' %}{{ home.footer_about_blurb_ar|default:home.footer_about_blurb_en }}{% else %}{{ home.footer_about_blurb_en }}{% endif %}
+            </p>
           </div>
           <div class="footer-social-links-elite">
             <ul>
@@ -43,19 +51,37 @@
 
       <div class="col-xl-4">
         <div class="footer-links-elite">
-          <h3>{{ home.footer_column_title_en }}</h3>
+          <h3>
+            {% if lang == 'ar' %}{{ home.footer_column_title_ar|default:home.footer_column_title_en }}{% else %}{{ home.footer_column_title_en }}{% endif %}
+          </h3>
           <ul>
-            <li><a href="{{ home.footer_link_1_url }}">{{ home.footer_link_1_label_en }}</a></li>
-            <li><a href="{{ home.footer_link_2_url }}">{{ home.footer_link_2_label_en }}</a></li>
-            <li><a href="{{ home.footer_link_3_url }}">{{ home.footer_link_3_label_en }}</a></li>
+            <li>
+              <a href="{% url 'iroad_frontend:about' %}">
+                {% if lang == 'ar' %}{{ home.footer_link_1_label_ar|default:home.footer_link_1_label_en }}{% else %}{{ home.footer_link_1_label_en }}{% endif %}
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'iroad_frontend:pricing' %}">
+                {% if lang == 'ar' %}{{ home.footer_link_2_label_ar|default:home.footer_link_2_label_en }}{% else %}{{ home.footer_link_2_label_en }}{% endif %}
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'iroad_frontend:contact' %}">
+                {% if lang == 'ar' %}{{ home.footer_link_3_label_ar|default:home.footer_link_3_label_en }}{% else %}{{ home.footer_link_3_label_en }}{% endif %}
+              </a>
+            </li>
           </ul>
         </div>
       </div>
 
       <div class="col-xl-4">
         <div class="footer-newsletter-form-elite footer-links-elite">
-          <h3>{{ home.footer_newsletter_title_en }}</h3>
-          <p>{{ home.footer_newsletter_desc_en }}</p>
+          <h3>
+            {% if lang == 'ar' %}{{ home.footer_newsletter_title_ar|default:home.footer_newsletter_title_en }}{% else %}{{ home.footer_newsletter_title_en }}{% endif %}
+          </h3>
+          <p>
+            {% if lang == 'ar' %}{{ home.footer_newsletter_desc_ar|default:home.footer_newsletter_desc_en }}{% else %}{{ home.footer_newsletter_desc_en }}{% endif %}
+          </p>
           <form id="newslettersForm" action="{{ home.footer_newsletter_action_url }}" method="POST">
             {% csrf_token %}
             <div class="form-group">
@@ -64,7 +90,7 @@
                 name="mail"
                 class="form-control"
                 id="mail"
-                placeholder="{{ home.footer_newsletter_placeholder_en }}"
+                placeholder="{% if lang == 'ar' %}{{ home.footer_newsletter_placeholder_ar|default:home.footer_newsletter_placeholder_en }}{% else %}{{ home.footer_newsletter_placeholder_en }}{% endif %}"
                 required
               />
               <button type="submit" class="newsletter-btn-elite"><i class="fa-regular fa-paper-plane"></i></button>
@@ -76,10 +102,14 @@
       <div class="col-lg-12">
         <div class="footer-bottom-elite">
           <div class="footer-copyright-text-elite">
-            <p>{{ home.footer_copyright_en }}</p>
+            <p>
+              {% if lang == 'ar' %}{{ home.footer_copyright_ar|default:home.footer_copyright_en }}{% else %}{{ home.footer_copyright_en }}{% endif %}
+            </p>
           </div>
           <div class="footer-credit-text-elite">
-            <p>{{ home.footer_credit_en }}</p>
+            <p>
+              {% if lang == 'ar' %}{{ home.footer_credit_ar|default:home.footer_credit_en }}{% else %}{{ home.footer_credit_en }}{% endif %}
+            </p>
           </div>
         </div>
       </div>

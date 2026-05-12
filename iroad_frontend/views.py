@@ -14,6 +14,28 @@ from iroad_frontend.models import (
 )
 
 
+def get_lang_context(request) -> dict:
+    """
+    Detect language from:
+    1. ?lang=ar or ?lang=en query param
+    2. Session lang preference
+    3. Default: en
+
+    Returns dict with lang and dir keys.
+    """
+    lang = (request.GET.get('lang') or '').strip().lower()
+    if lang not in ('en', 'ar'):
+        lang = request.session.get('frontend_lang', 'en')
+    else:
+        request.session['frontend_lang'] = lang
+    if lang not in ('en', 'ar'):
+        lang = 'en'
+    return {
+        'lang': lang,
+        'dir': 'rtl' if lang == 'ar' else 'ltr',
+    }
+
+
 class HomePageView(View):
     def get(self, request):
         home = HomePageContent.get_singleton()
@@ -29,9 +51,8 @@ class HomePageView(View):
             'pricing_benefits': pricing_benefits,
             'testimonials': testimonials,
             'map_locations': map_locations,
-            'lang': 'en',
-            'dir': 'ltr',
         }
+        context.update(get_lang_context(request))
         return render(
             request,
             'iroad_frontend/home/index.html',
@@ -52,9 +73,8 @@ class AboutPageView(View):
                 is_active=True).order_by('order'),
             'faq_items': about.faq_items.filter(
                 is_active=True).order_by('order'),
-            'lang': 'en',
-            'dir': 'ltr',
         }
+        context.update(get_lang_context(request))
         return render(
             request,
             'iroad_frontend/about/index.html',
@@ -88,9 +108,8 @@ class PricingPageView(View):
             'map_locations': map_locations,
             'faq_items': about.faq_items.filter(
                 is_active=True).order_by('order'),
-            'lang': 'en',
-            'dir': 'ltr',
         }
+        context.update(get_lang_context(request))
         return render(
             request,
             'iroad_frontend/pricing/index.html',
@@ -105,11 +124,10 @@ class ContactPageView(View):
         context = {
             'contact': contact,
             'home': home,
-            'lang': 'en',
-            'dir': 'ltr',
             'form_success': request.GET.get('success') == '1',
             'form_error': request.GET.get('error') == '1',
         }
+        context.update(get_lang_context(request))
         return render(
             request,
             'iroad_frontend/contact/index.html',
@@ -172,13 +190,11 @@ def page_not_found(request, exception=None):
     and CMS-driven nav/footer via HomePageContent singleton.
     """
     home = HomePageContent.get_singleton()
+    ctx = {'home': home}
+    ctx.update(get_lang_context(request))
     return render(
         request,
         'iroad_frontend/errors/404.html',
-        {
-            'home': home,
-            'lang': 'en',
-            'dir': 'ltr',
-        },
+        ctx,
         status=404,
     )

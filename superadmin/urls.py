@@ -1157,6 +1157,11 @@ urlpatterns = [
         PricingInteractiveStepUpdateView.as_view(),
         name='pricing_interactive_edit',
     ),
+    path(
+        'cms/pricing/faqs/',
+        RedirectView.as_view(pattern_name='about_faq_list', permanent=False),
+        name='pricing_faq_list',
+    ),
     path('cms/contact/', ContactPageCMSView.as_view(), name='contact_page_cms'),
     path(
         'cms/contact/submissions/',

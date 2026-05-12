@@ -19,7 +19,15 @@
         <span class="badge text-bg-warning text-dark">{% translate "Unread" %}</span>
       {% endif %}
     </div>
-    <div class="page-header-right">
+    <div class="page-header-right d-flex flex-wrap gap-2">
+      <form method="post" action="" class="d-inline">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="toggle_read" />
+        <button type="submit" class="btn btn-outline-primary">
+          <i class="bi bi-envelope-open"></i>
+          {% translate "Toggle read / unread" %}
+        </button>
+      </form>
       <a href="{% url 'contact_submission_list' %}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> {% translate "Back" %}
       </a>

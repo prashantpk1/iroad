@@ -12213,3 +12213,12 @@ class ContactSubmissionDetailView(LoginRequiredMixin, View):
             'submission': submission,
             'page_title': f'Contact — {submission.email}',
         })
+
+    def post(self, request, pk):
+        submission = get_object_or_404(ContactSubmission, pk=pk)
+        if request.POST.get('action') == 'toggle_read':
+            submission.is_read = not submission.is_read
+            submission.save(update_fields=['is_read'])
+            state = 'read' if submission.is_read else 'unread'
+            messages.success(request, f'Submission marked as {state}.')
+        return redirect('contact_submission_detail', pk=pk)

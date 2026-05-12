@@ -411,12 +411,13 @@
       </li>
 
       <!-- Website CMS -->
+      {% with u=request.resolver_match.url_name %}
       <li
-        class="nav-item has-submenu{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_pricing_benefit' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name or request.resolver_match.url_name == 'about_page_cms' or 'about_pillar' in request.resolver_match.url_name or 'about_how_step' in request.resolver_match.url_name or 'about_faq' in request.resolver_match.url_name or request.resolver_match.url_name == 'pricing_page_cms' or 'pricing_interactive' in request.resolver_match.url_name or request.resolver_match.url_name == 'contact_page_cms' or 'contact_submission' in request.resolver_match.url_name %} open{% endif %}"
+        class="nav-item has-submenu{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or u == 'contact_page_cms' or 'contact_submission' in u %} open{% endif %}"
       >
         <a
           href="#"
-          class="nav-link{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_pricing_benefit' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name or request.resolver_match.url_name == 'about_page_cms' or 'about_pillar' in request.resolver_match.url_name or 'about_how_step' in request.resolver_match.url_name or 'about_faq' in request.resolver_match.url_name or request.resolver_match.url_name == 'pricing_page_cms' or 'pricing_interactive' in request.resolver_match.url_name or request.resolver_match.url_name == 'contact_page_cms' or 'contact_submission' in request.resolver_match.url_name %} active{% endif %}"
+          class="nav-link{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or u == 'contact_page_cms' or 'contact_submission' in u %} active{% endif %}"
           data-tooltip="{% translate 'Website CMS' %}"
         >
           <i class="bi bi-layout-text-window"></i>
@@ -424,176 +425,140 @@
           <i class="bi bi-chevron-right arrow"></i>
         </a>
         <ul class="submenu">
-          <li
-            class="submenu-item has-submenu{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_pricing_benefit' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name %} open{% endif %}"
-          >
-            <a
-              href="#"
-              class="submenu-link{% if request.resolver_match.url_name == 'home_page_cms' or 'home_service_card' in request.resolver_match.url_name or 'home_pricing_tier' in request.resolver_match.url_name or 'home_pricing_benefit' in request.resolver_match.url_name or 'home_testimonial' in request.resolver_match.url_name or 'home_map_location' in request.resolver_match.url_name %} active{% endif %}"
-            >
-              <i class="bi bi-house"></i>
-              <span>{% translate "Home Page" %}</span>
-              <i class="bi bi-chevron-right arrow"></i>
-            </a>
-            <ul class="submenu">
-              <li class="submenu-item">
-                <a
-                  href="{% url 'home_page_cms' %}"
-                  class="submenu-link{% if request.resolver_match.url_name == 'home_page_cms' %} active{% endif %}"
-                >
-                  <i class="bi bi-file-earmark-text"></i>
-                  <span>{% translate "Page content & SEO" %}</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a
-                  href="{% url 'home_service_card_list' %}"
-                  class="submenu-link{% if 'home_service_card' in request.resolver_match.url_name %} active{% endif %}"
-                >
-                  <i class="bi bi-grid"></i>
-                  <span>{% translate "Service Cards" %}</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a
-                  href="{% url 'home_pricing_tier_list' %}"
-                  class="submenu-link{% if 'home_pricing_tier' in request.resolver_match.url_name %} active{% endif %}"
-                >
-                  <i class="bi bi-tags"></i>
-                  <span>{% translate "Pricing Tiers" %}</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a
-                  href="{% url 'home_pricing_benefit_list' %}"
-                  class="submenu-link{% if 'home_pricing_benefit' in request.resolver_match.url_name %} active{% endif %}"
-                >
-                  <i class="bi bi-patch-check"></i>
-                  <span>{% translate "Pricing Benefits" %}</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a
-                  href="{% url 'home_testimonial_list' %}"
-                  class="submenu-link{% if 'home_testimonial' in request.resolver_match.url_name %} active{% endif %}"
-                >
-                  <i class="bi bi-chat-quote"></i>
-                  <span>{% translate "Testimonials" %}</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a
-                  href="{% url 'home_map_location_list' %}"
-                  class="submenu-link{% if 'home_map_location' in request.resolver_match.url_name %} active{% endif %}"
-                >
-                  <i class="bi bi-geo-alt"></i>
-                  <span>{% translate "Map Locations" %}</span>
-                </a>
-              </li>
-            </ul>
+          <!-- Home Page Group -->
+          <li class="submenu-section-label">
+            <small class="text-muted px-3">{% translate "Home Page" %}</small>
           </li>
-          <li
-            class="submenu-item has-submenu{% if request.resolver_match.url_name == 'about_page_cms' or 'about_pillar' in request.resolver_match.url_name or 'about_how_step' in request.resolver_match.url_name or 'about_faq' in request.resolver_match.url_name %} open{% endif %}"
-          >
+          <li class="submenu-item">
             <a
-              href="#"
-              class="submenu-link{% if request.resolver_match.url_name == 'about_page_cms' or 'about_pillar' in request.resolver_match.url_name or 'about_how_step' in request.resolver_match.url_name or 'about_faq' in request.resolver_match.url_name %} active{% endif %}"
+              href="{% url 'home_page_cms' %}"
+              class="submenu-link{% if u == 'home_page_cms' %} active{% endif %}"
             >
-              <i class="bi bi-info-circle"></i>
-              <span>{% translate "About Page" %}</span>
-              <i class="bi bi-chevron-right arrow"></i>
+              <i class="bi bi-house"></i><span>{% translate "Home Content" %}</span>
             </a>
-            <ul class="submenu">
-              <li class="submenu-item">
-                <a
-                  href="{% url 'about_page_cms' %}"
-                  class="submenu-link{% if request.resolver_match.url_name == 'about_page_cms' %} active{% endif %}"
-                >
-                  <i class="bi bi-file-earmark-text"></i>
-                  <span>{% translate "Page content & SEO" %}</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a
-                  href="{% url 'about_pillar_list' %}"
-                  class="submenu-link{% if 'about_pillar' in request.resolver_match.url_name %} active{% endif %}"
-                >
-                  <i class="bi bi-columns-gap"></i>
-                  <span>{% translate "Approach Pillars" %}</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a
-                  href="{% url 'about_how_step_list' %}"
-                  class="submenu-link{% if 'about_how_step' in request.resolver_match.url_name %} active{% endif %}"
-                >
-                  <i class="bi bi-list-ol"></i>
-                  <span>{% translate "How It Works Steps" %}</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a
-                  href="{% url 'about_faq_list' %}"
-                  class="submenu-link{% if 'about_faq' in request.resolver_match.url_name %} active{% endif %}"
-                >
-                  <i class="bi bi-question-circle"></i>
-                  <span>{% translate "FAQs" %}</span>
-                </a>
-              </li>
-            </ul>
           </li>
-          <li
-            class="submenu-item has-submenu{% if request.resolver_match.url_name == 'pricing_page_cms' or 'pricing_interactive' in request.resolver_match.url_name %} open{% endif %}"
-          >
+          <li class="submenu-item">
             <a
-              href="#"
-              class="submenu-link{% if request.resolver_match.url_name == 'pricing_page_cms' or 'pricing_interactive' in request.resolver_match.url_name %} active{% endif %}"
+              href="{% url 'home_service_card_list' %}"
+              class="submenu-link{% if 'home_service_card' in u %} active{% endif %}"
             >
-              <i class="bi bi-tag"></i>
-              <span>{% translate "Pricing Page" %}</span>
-              <i class="bi bi-chevron-right arrow"></i>
+              <i class="bi bi-grid"></i><span>{% translate "Service Cards" %}</span>
             </a>
-            <ul class="submenu">
-              <li class="submenu-item">
-                <a
-                  href="{% url 'pricing_page_cms' %}"
-                  class="submenu-link{% if request.resolver_match.url_name == 'pricing_page_cms' %} active{% endif %}"
-                >
-                  <i class="bi bi-file-earmark-text"></i>
-                  <span>{% translate "Page content & SEO" %}</span>
-                </a>
-              </li>
-              <li class="submenu-item">
-                <a
-                  href="{% url 'pricing_interactive_list' %}"
-                  class="submenu-link{% if 'pricing_interactive' in request.resolver_match.url_name %} active{% endif %}"
-                >
-                  <i class="bi bi-sliders"></i>
-                  <span>{% translate "Interactive Steps" %}</span>
-                </a>
-              </li>
-            </ul>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'home_pricing_tier_list' %}"
+              class="submenu-link{% if 'home_pricing_tier' in u %} active{% endif %}"
+            >
+              <i class="bi bi-tags"></i><span>{% translate "Pricing Tiers" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'home_pricing_benefit_list' %}"
+              class="submenu-link{% if 'home_pricing_benefit' in u %} active{% endif %}"
+            >
+              <i class="bi bi-patch-check"></i><span>{% translate "Pricing Benefits" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'home_testimonial_list' %}"
+              class="submenu-link{% if 'home_testimonial' in u %} active{% endif %}"
+            >
+              <i class="bi bi-chat-quote"></i><span>{% translate "Testimonials" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'home_map_location_list' %}"
+              class="submenu-link{% if 'home_map_location' in u %} active{% endif %}"
+            >
+              <i class="bi bi-geo-alt"></i><span>{% translate "Map Locations" %}</span>
+            </a>
+          </li>
+
+          <!-- About Page Group -->
+          <li class="submenu-section-label mt-2">
+            <small class="text-muted px-3">{% translate "About Page" %}</small>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'about_page_cms' %}"
+              class="submenu-link{% if u == 'about_page_cms' %} active{% endif %}"
+            >
+              <i class="bi bi-info-circle"></i><span>{% translate "About Content" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'about_pillar_list' %}"
+              class="submenu-link{% if 'about_pillar' in u %} active{% endif %}"
+            >
+              <i class="bi bi-columns-gap"></i><span>{% translate "Approach Pillars" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'about_how_step_list' %}"
+              class="submenu-link{% if 'about_how_step' in u %} active{% endif %}"
+            >
+              <i class="bi bi-list-ol"></i><span>{% translate "How It Works" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'about_faq_list' %}"
+              class="submenu-link{% if 'about_faq' in u %} active{% endif %}"
+            >
+              <i class="bi bi-question-circle"></i><span>{% translate "About FAQs" %}</span>
+            </a>
+          </li>
+
+          <!-- Pricing Page Group -->
+          <li class="submenu-section-label mt-2">
+            <small class="text-muted px-3">{% translate "Pricing Page" %}</small>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'pricing_page_cms' %}"
+              class="submenu-link{% if u == 'pricing_page_cms' %} active{% endif %}"
+            >
+              <i class="bi bi-currency-dollar"></i><span>{% translate "Pricing Content" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'pricing_interactive_list' %}"
+              class="submenu-link{% if 'pricing_interactive' in u %} active{% endif %}"
+            >
+              <i class="bi bi-sliders"></i><span>{% translate "Interactive Steps" %}</span>
+            </a>
+          </li>
+
+          <!-- Contact Page Group -->
+          <li class="submenu-section-label mt-2">
+            <small class="text-muted px-3">{% translate "Contact Page" %}</small>
           </li>
           <li class="submenu-item">
             <a
               href="{% url 'contact_page_cms' %}"
-              class="submenu-link{% if request.resolver_match.url_name == 'contact_page_cms' %} active{% endif %}"
+              class="submenu-link{% if u == 'contact_page_cms' %} active{% endif %}"
             >
-              <i class="bi bi-envelope"></i>
-              <span>Contact Page</span>
+              <i class="bi bi-envelope"></i><span>{% translate "Contact Content" %}</span>
             </a>
           </li>
           <li class="submenu-item">
             <a
               href="{% url 'contact_submission_list' %}"
-              class="submenu-link{% if 'contact_submission' in request.resolver_match.url_name %} active{% endif %}"
+              class="submenu-link{% if 'contact_submission' in u %} active{% endif %}"
             >
-              <i class="bi bi-inbox"></i>
-              <span>Demo Requests</span>
+              <i class="bi bi-inbox"></i><span>{% translate "Demo Requests" %}</span>
             </a>
           </li>
         </ul>
       </li>
+      {% endwith %}
 
       <!-- Support Management -->
       <li

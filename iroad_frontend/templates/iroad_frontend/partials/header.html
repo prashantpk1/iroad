@@ -5,11 +5,17 @@
     <nav class="navbar navbar-expand-lg">
       <div class="container-fluid">
         <!-- Logo Start -->
-        <a class="navbar-brand" href="/">
+        <a class="navbar-brand" href="{% url 'iroad_frontend:home' %}">
           {% if home.logo_image %}
-            <img src="{{ home.logo_image.url }}" alt="{{ home.logo_alt_en }}" />
+            <img
+              src="{{ home.logo_image.url }}"
+              alt="{% if lang == 'ar' %}{{ home.logo_alt_ar|default:home.logo_alt_en }}{% else %}{{ home.logo_alt_en }}{% endif %}"
+            />
           {% else %}
-            <img src="{% static 'landing/images/logo-elite.svg' %}" alt="{{ home.logo_alt_en }}" />
+            <img
+              src="{% static 'landing/images/logo-elite.svg' %}"
+              alt="{% if lang == 'ar' %}{{ home.logo_alt_ar|default:home.logo_alt_en }}{% else %}{{ home.logo_alt_en }}{% endif %}"
+            />
           {% endif %}
         </a>
         <!-- Logo End -->
@@ -19,16 +25,24 @@
           <div class="nav-menu-wrapper">
             <ul class="navbar-nav mr-auto" id="menu">
               <li class="nav-item">
-                <a class="nav-link" href="/">{{ home.nav_home_en }}</a>
+                <a class="nav-link" href="{% url 'iroad_frontend:home' %}">
+                  {% if lang == 'ar' %}{{ home.nav_home_ar|default:home.nav_home_en }}{% else %}{{ home.nav_home_en }}{% endif %}
+                </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="/about/">{{ home.nav_about_en }}</a>
+                <a class="nav-link" href="{% url 'iroad_frontend:about' %}">
+                  {% if lang == 'ar' %}{{ home.nav_about_ar|default:home.nav_about_en }}{% else %}{{ home.nav_about_en }}{% endif %}
+                </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="/pricing/">{{ home.nav_pricing_en }}</a>
+                <a class="nav-link" href="{% url 'iroad_frontend:pricing' %}">
+                  {% if lang == 'ar' %}{{ home.nav_pricing_ar|default:home.nav_pricing_en }}{% else %}{{ home.nav_pricing_en }}{% endif %}
+                </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="/contact/">{{ home.nav_contact_en }}</a>
+                <a class="nav-link" href="{% url 'iroad_frontend:contact' %}">
+                  {% if lang == 'ar' %}{{ home.nav_contact_ar|default:home.nav_contact_en }}{% else %}{{ home.nav_contact_en }}{% endif %}
+                </a>
               </li>
             </ul>
           </div>
@@ -41,15 +55,40 @@
                 <img src="{% static 'landing/images/icon-phone-white.svg' %}" alt="" />
               </div>
               <div class="header-contact-item-content">
-                <p>{{ home.header_cta_small_title_en }}</p>
-                <h3><a href="{{ home.header_cta_url }}">{{ home.header_cta_title_en }}</a></h3>
+                <p>
+                  {% if lang == 'ar' %}
+                    {{ home.header_cta_small_title_ar|default:home.header_cta_small_title_en }}
+                  {% else %}
+                    {{ home.header_cta_small_title_en }}
+                  {% endif %}
+                </p>
+                <h3>
+                  <a href="{{ home.header_cta_url }}">
+                    {% if lang == 'ar' %}{{ home.header_cta_title_ar|default:home.header_cta_title_en }}{% else %}{{ home.header_cta_title_en }}{% endif %}
+                  </a>
+                </h3>
               </div>
             </div>
             <!-- Header Contact Item End -->
 
+            <div class="lang-toggle" role="group" aria-label="Language" dir="ltr">
+              <a
+                href="?lang=en"
+                class="lang-toggle__btn{% if lang != 'ar' %} is-active{% endif %}"
+                lang="en"
+              >EN</a>
+              <a
+                href="?lang=ar"
+                class="lang-toggle__btn{% if lang == 'ar' %} is-active{% endif %}"
+                lang="ar"
+              >عربي</a>
+            </div>
+
             <!-- Header Btn Start -->
             <div class="header-btn">
-              <a href="{{ home.header_sign_in_url }}" class="btn-default">{{ home.header_sign_in_en }}</a>
+              <a href="{{ home.header_sign_in_url }}" class="btn-default">
+                {% if lang == 'ar' %}{{ home.header_sign_in_ar|default:home.header_sign_in_en }}{% else %}{{ home.header_sign_in_en }}{% endif %}
+              </a>
             </div>
             <!-- Header Btn End -->
           </div>

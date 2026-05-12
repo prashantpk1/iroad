@@ -19,7 +19,11 @@
                         <h1>{% if lang == 'ar' %}{{ pricing.page_header_h1_ar|default:pricing.page_header_h1_en }}{% else %}{{ pricing.page_header_h1_en }}{% endif %}</h1>
                         <nav class="wow fadeInUp">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="{% url 'iroad_frontend:home' %}">home</a></li>
+                                <li class="breadcrumb-item">
+                                  <a href="{% url 'iroad_frontend:home' %}">
+                                    {% if lang == 'ar' %}{{ home.nav_home_ar|default:home.nav_home_en }}{% else %}{{ home.nav_home_en }}{% endif %}
+                                  </a>
+                                </li>
                                 <li class="breadcrumb-item active" aria-current="page">{% if lang == 'ar' %}{{ pricing.breadcrumb_current_ar|default:pricing.breadcrumb_current_en }}{% else %}{{ pricing.breadcrumb_current_en }}{% endif %}</li>
                             </ol>
                         </nav>

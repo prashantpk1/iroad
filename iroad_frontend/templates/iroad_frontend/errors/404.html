@@ -15,7 +15,9 @@
               <nav class="wow fadeInUp" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                   <li class="breadcrumb-item">
-                    <a href="{% url 'iroad_frontend:home' %}">{{ home.nav_home_en|default:"Home" }}</a>
+                    <a href="{% url 'iroad_frontend:home' %}">
+                      {% if lang == 'ar' %}{{ home.nav_home_ar|default:home.nav_home_en|default:"Home" }}{% else %}{{ home.nav_home_en|default:"Home" }}{% endif %}
+                    </a>
                   </li>
                   <li class="breadcrumb-item active" aria-current="page">
                     404 Error

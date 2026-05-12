@@ -4,8 +4,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}{{ home.page_title_en }}{% endblock %}</title>
-    <meta name="description" content="{{ home.meta_description_en }}" />
+    <title>
+      {% block title %}
+        {% if lang == 'ar' %}{{ home.page_title_ar|default:home.page_title_en }}{% else %}{{ home.page_title_en }}{% endif %}
+      {% endblock %}
+    </title>
+    <meta
+      name="description"
+      content="{% if lang == 'ar' %}{{ home.meta_description_ar|default:home.meta_description_en }}{% else %}{{ home.meta_description_en }}{% endif %}"
+    />
     {% if home.favicon %}
       <link rel="icon" href="{{ home.favicon.url }}" />
     {% else %}
