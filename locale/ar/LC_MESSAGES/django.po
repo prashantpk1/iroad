@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: iRoad\n"
 "POT-Creation-Date: 2026-04-20 00:00+0000\n"
-"PO-Revision-Date: 2026-05-13 10:17+0530\n"
+"PO-Revision-Date: 2026-05-13 17:54+0530\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: ar\n"
@@ -652,6 +652,12 @@ msgstr "البريد الإلكتروني أو كلمة المرور غير صح
 
 msgid "mobile.auth.account_inactive"
 msgstr "هذا الحساب غير نشط. يرجى التواصل مع الدعم"
+
+msgid "mobile.auth.account_deleted"
+msgstr "تم حذف هذا الحساب ولا يمكن استخدامه."
+
+msgid "web.auth.account_deleted"
+msgstr "تم حذف هذا الحساب ولا يمكن استخدامه لتسجيل الدخول."
 
 msgid "mobile.auth.not_a_driver"
 msgstr "هذا الحساب غير مرتبط بسائق"

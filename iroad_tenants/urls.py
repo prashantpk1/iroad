@@ -87,6 +87,7 @@ from .views import (
     TenantUsersAdministrationDeleteView,
     TenantUsersAdministrationEditView,
     TenantUsersAdministrationExportView,
+    TenantUsersAdministrationRestoreView,
     TenantRolesPermissionsCreateView,
     TenantRolesPermissionsDeleteView,
     TenantRolesPermissionsEditView,
@@ -222,6 +223,11 @@ urlpatterns = [
         'administration/users/<uuid:user_id>/delete/',
         TenantUsersAdministrationDeleteView.as_view(),
         name='tenant_users_administration_delete',
+    ),
+    path(
+        'administration/users/<uuid:user_id>/restore/',
+        TenantUsersAdministrationRestoreView.as_view(),
+        name='tenant_users_administration_restore',
     ),
     path(
         'administration/users/export/',

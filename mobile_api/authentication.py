@@ -20,6 +20,8 @@ from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from django.utils.translation import gettext_lazy as _
 
+from django_tenants.utils import schema_context
+
 from mobile_api.helpers.auth import (
     get_token_from_request,
     verify_token,
@@ -90,6 +92,25 @@ class MobileJWTAuthentication(BaseAuthentication):
         if payload is None:
             raise AuthenticationFailed(
                 _('mobile.auth.token_invalid')
+            )
+
+        user_id = str(payload.get('user_id') or '').strip()
+        tenant_schema = str(payload.get('tenant_schema') or '').strip()
+        if not user_id or not tenant_schema:
+            raise AuthenticationFailed(_('mobile.auth.token_invalid'))
+        try:
+            from tenant_workspace.models import TenantUser
+
+            with schema_context(tenant_schema):
+                tu = TenantUser.all_objects.filter(pk=user_id).only('is_deleted').first()
+        except Exception:
+            raise AuthenticationFailed(_('mobile.auth.token_invalid')) from None
+        if tu is None:
+            raise AuthenticationFailed(_('mobile.auth.unauthorized'))
+        if getattr(tu, 'is_deleted', False):
+            raise AuthenticationFailed(
+                _('mobile.auth.account_deleted'),
+                code='account_deleted',
             )
 
         # Build lightweight user object from token claims

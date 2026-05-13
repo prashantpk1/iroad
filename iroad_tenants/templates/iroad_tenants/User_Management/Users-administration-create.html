@@ -1,6 +1,6 @@
 {% extends 'iroad_tenants/base.html' %}
 
-{% block title %}{% if is_view_mode %}View User Administration{% elif is_edit_mode %}Edit User Administration{% else %}Create User Administration{% endif %} | iRoad Admin{% endblock %}
+{% block title %}{% if is_deleted_user %}Deleted user (read-only){% elif is_view_mode %}View User Administration{% elif is_edit_mode %}Edit User Administration{% else %}Create User Administration{% endif %} | iRoad Admin{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -48,13 +48,13 @@
       <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
       <li class="breadcrumb-item">Administration</li>
       <li class="breadcrumb-item">User Management</li>
-      <li class="breadcrumb-item active" aria-current="page">{% if is_view_mode %}View User Administration{% elif is_edit_mode %}Edit User Administration{% else %}Create User Administration{% endif %}</li>
+      <li class="breadcrumb-item active" aria-current="page">{% if is_deleted_user %}Deleted user{% elif is_view_mode %}View User Administration{% elif is_edit_mode %}Edit User Administration{% else %}Create User Administration{% endif %}</li>
     </ol>
   </nav>
   <div class="page-header-row">
     <div class="page-header-left">
-      <h1 class="page-title">{% if is_view_mode %}View User Administration{% elif is_edit_mode %}Edit User Administration{% else %}Create User Administration{% endif %}</h1>
-      <p class="page-subtitle">{% if is_view_mode %}Review user account details.{% elif is_edit_mode %}Update the details below to edit this user account.{% else %}Fill in the details below to create a new user account.{% endif %}</p>
+      <h1 class="page-title">{% if is_deleted_user %}Deleted user (read-only){% elif is_view_mode %}View User Administration{% elif is_edit_mode %}Edit User Administration{% else %}Create User Administration{% endif %}</h1>
+      <p class="page-subtitle">{% if is_deleted_user %}This account is soft-deleted. Use Restore to clear deletion; the account stays Inactive until you activate it.{% elif is_view_mode %}Review user account details.{% elif is_edit_mode %}Update the details below to edit this user account.{% else %}Fill in the details below to create a new user account.{% endif %}</p>
     </div>
     <div class="page-header-right">
       <div class="eal-header-actions">
@@ -62,6 +62,15 @@
           <i class="bi bi-arrow-left"></i>
           <span>Back</span>
         </a>
+        {% if is_deleted_user and editing_user %}
+        <form method="post" action="{% url 'iroad_tenants:tenant_users_administration_restore' editing_user.user_id %}" class="d-inline" onsubmit="return confirm('Restore this user? They will remain Inactive until you activate the account.');">
+          {% csrf_token %}
+          <button type="submit" class="eal-btn eal-btn-primary">
+            <i class="bi bi-arrow-counterclockwise"></i>
+            <span>Restore user</span>
+          </button>
+        </form>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -94,7 +103,7 @@
                                     </label>
                                     <div class="input-icon-wrapper">
                                         <i class="bi bi-person"></i>
-                                        <input type="text" class="form-control has-icon {% if form_errors.username %}is-invalid{% endif %}" id="username" name="username" placeholder="e.g. jsmith" value="{{ form_data.username|default:'' }}" autocomplete="off" {% if is_view_mode %}disabled{% else %}required{% endif %}/>
+                                        <input type="text" class="form-control has-icon {% if form_errors.username %}is-invalid{% endif %}" id="username" name="username" placeholder="e.g. jsmith" value="{{ form_data.username|default:'' }}" autocomplete="off" {% if is_effective_readonly %}disabled{% else %}required{% endif %}/>
                                     </div>
                                     {% if form_errors.username %}<div class="invalid-feedback d-block">{{ form_errors.username }}</div>{% endif %}
                                     <span class="field-hint">No spaces allowed. Cannot be edited later.</span>
@@ -105,7 +114,7 @@
                                     </label>
                                     <div class="input-icon-wrapper">
                                         <i class="bi bi-card-text"></i>
-                                        <input type="text" class="form-control has-icon {% if form_errors.full_name %}is-invalid{% endif %}" id="fullName" name="full_name" placeholder="e.g. John Smith" value="{{ form_data.full_name|default:'' }}" autocomplete="off" {% if is_view_mode %}disabled{% else %}required{% endif %}/>
+                                        <input type="text" class="form-control has-icon {% if form_errors.full_name %}is-invalid{% endif %}" id="fullName" name="full_name" placeholder="e.g. John Smith" value="{{ form_data.full_name|default:'' }}" autocomplete="off" {% if is_effective_readonly %}disabled{% else %}required{% endif %}/>
                                     </div>
                                     {% if form_errors.full_name %}<div class="invalid-feedback d-block">{{ form_errors.full_name }}</div>{% endif %}
                                 </div>
@@ -124,14 +133,14 @@
                                     </label>
                                     <div class="input-icon-wrapper">
                                         <i class="bi bi-envelope"></i>
-                                        <input type="email" class="form-control has-icon {% if form_errors.email %}is-invalid{% endif %}" id="email" name="email" placeholder="Enter Email Address" value="{{ form_data.email|default:'' }}" autocomplete="off" {% if is_view_mode %}disabled{% else %}required{% endif %}/>
+                                        <input type="email" class="form-control has-icon {% if form_errors.email %}is-invalid{% endif %}" id="email" name="email" placeholder="Enter Email Address" value="{{ form_data.email|default:'' }}" autocomplete="off" {% if is_effective_readonly %}disabled{% else %}required{% endif %}/>
                                     </div>
                                     {% if form_errors.email %}<div class="invalid-feedback d-block">{{ form_errors.email }}</div>{% endif %}
                                 </div>
                                 <div class="field">
                                     <label for="mobileNo" class="form-label">Mobile Number</label>
                                     <div class="phone-input-group">
-                                        <select class="form-select country-code" id="mobileCountryCode" name="mobile_country_code" {% if is_view_mode %}disabled{% endif %}>
+                                        <select class="form-select country-code" id="mobileCountryCode" name="mobile_country_code" {% if is_effective_readonly %}disabled{% endif %}>
                                             <option value="" {% if not form_data.mobile_country_code %}selected{% endif %}>Select code</option>
                                             <option value="+966" {% if form_data.mobile_country_code == '+966' %}selected{% endif %}>+966</option>
                                             <option value="+971" {% if form_data.mobile_country_code == '+971' %}selected{% endif %}>+971</option>
@@ -142,7 +151,7 @@
                                             <option value="+91" {% if form_data.mobile_country_code == '+91' %}selected{% endif %}>+91</option>
                                             <option value="+1" {% if form_data.mobile_country_code == '+1' %}selected{% endif %}>+1</option>
                                         </select>
-                                        <input type="text" class="form-control phone-number" id="mobileNo" name="mobile_no" placeholder="Enter mobile number" value="{{ form_data.mobile_no|default:'' }}" autocomplete="off" oninput="formatPhoneNumber(this)" {% if is_view_mode %}disabled{% endif %}/>
+                                        <input type="text" class="form-control phone-number" id="mobileNo" name="mobile_no" placeholder="Enter mobile number" value="{{ form_data.mobile_no|default:'' }}" autocomplete="off" oninput="formatPhoneNumber(this)" {% if is_effective_readonly %}disabled{% endif %}/>
                                     </div>
                                 </div>
                             </div>
@@ -176,14 +185,14 @@
                                     <div class="d-flex align-items-stretch gap-2">
                                         <div class="flex-grow-1 password-input-wrapper">
                                             <i class="bi bi-lock password-lock-inside"></i>
-                                            <input type="password" class="form-control {% if form_errors.password %}is-invalid{% endif %}" id="password" name="password" placeholder="••••••••" autocomplete="new-password" {% if is_view_mode or is_edit_mode %}disabled{% else %}required{% endif %}/>
+                                            <input type="password" class="form-control {% if form_errors.password %}is-invalid{% endif %}" id="password" name="password" placeholder="••••••••" autocomplete="new-password" {% if is_view_mode or is_edit_mode or is_deleted_user %}disabled{% else %}required{% endif %}/>
                                             <button
                                               type="button"
                                               class="password-toggle-inside"
                                               id="togglePasswordBtn"
                                               title="Show password"
                                               aria-label="Show password"
-                                              {% if is_view_mode or is_edit_mode %}disabled{% endif %}
+                                              {% if is_view_mode or is_edit_mode or is_deleted_user %}disabled{% endif %}
                                             >
                                               <i class="bi bi-eye"></i>
                                             </button>
@@ -193,7 +202,7 @@
                                           class="btn btn-outline-secondary"
                                           id="generatePasswordBtn"
                                           title="Generate random password"
-                                          {% if is_view_mode or is_edit_mode %}disabled{% endif %}
+                                          {% if is_view_mode or is_edit_mode or is_deleted_user %}disabled{% endif %}
                                         >
                                           <i class="bi bi-shuffle me-1"></i>Generate
                                         </button>
@@ -204,7 +213,7 @@
                                 <div class="field">
                                     <label class="form-label d-block mb-2">Account Status</label>
                                     <label class="setting-toggle">
-                                        <input type="checkbox" id="status" name="status" {% if form_data.status == 'Active' %}checked{% endif %} {% if is_view_mode %}disabled{% endif %}/>
+                                        <input type="checkbox" id="status" name="status" {% if form_data.status == 'Active' %}checked{% endif %} {% if is_effective_readonly %}disabled{% endif %}/>
                                         <span class="toggle-track"></span>
                                         <span class="toggle-label">Active</span>
                                     </label>
@@ -223,14 +232,14 @@
                                         <span class="required">*</span>
                                     </label>
                                     <div class="dropdown">
-                                        <button class="form-select text-start bg-white d-flex justify-content-between align-items-center w-100" type="button" id="roleOptionsDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" {% if is_view_mode %}disabled{% endif %}>
+                                        <button class="form-select text-start bg-white d-flex justify-content-between align-items-center w-100" type="button" id="roleOptionsDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" {% if is_effective_readonly %}disabled{% endif %}>
                                             <span id="selectedRolesText" class="text-truncate {% if not form_data.roles %}text-muted{% endif %}">{% if form_data.roles %}{{ form_data.roles|join:", " }}{% else %}Select Roles{% endif %}</span>
                                         </button>
                                         <ul class="dropdown-menu w-100 p-2 shadow-sm" aria-labelledby="roleOptionsDropdown" style="max-height: 200px; overflow-y: auto">
                                             {% for role_name in role_options %}
                                             <li>
                                               <div class="form-check mb-1">
-                                                <input class="form-check-input role-checkbox" type="checkbox" name="roles" value="{{ role_name }}" id="role_{{ forloop.counter }}" {% if role_name in form_data.roles %}checked{% endif %} {% if is_view_mode %}disabled{% endif %}/>
+                                                <input class="form-check-input role-checkbox" type="checkbox" name="roles" value="{{ role_name }}" id="role_{{ forloop.counter }}" {% if role_name in form_data.roles %}checked{% endif %} {% if is_effective_readonly %}disabled{% endif %}/>
                                                 <label class="form-check-label w-100 cursor-pointer" for="role_{{ forloop.counter }}">{{ role_name }}</label>
                                               </div>
                                             </li>
@@ -285,12 +294,37 @@
                                     </div>
                                 </div>
                             </div>
+                            {% if editing_user %}
+                            <div class="fields-grid cols-3 mt-3">
+                                <div class="field">
+                                    <label class="form-label">Soft-deleted</label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="bi bi-trash"></i>
+                                        <input type="text" class="form-control has-icon bg-light" value="{% if editing_user.is_deleted %}Yes{% else %}No{% endif %}" readonly/>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label class="form-label">Deleted at</label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="bi bi-calendar-x"></i>
+                                        <input type="text" class="form-control has-icon bg-light" value="{% if editing_user.deleted_at %}{{ editing_user.deleted_at|date:'d M Y, h:i A' }}{% else %}—{% endif %}" readonly/>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <label class="form-label">Deleted by</label>
+                                    <div class="input-icon-wrapper">
+                                        <i class="bi bi-person-x"></i>
+                                        <input type="text" class="form-control has-icon bg-light" value="{{ deleted_by_display|default:'—' }}" readonly/>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
 
   <div class="form-actions-bar">
-                    {% if not is_view_mode %}
+                    {% if not is_effective_readonly %}
                     <div class="form-actions-left">
                         <button type="reset" class="btn btn-outline-secondary">
                             <i class="bi bi-arrow-counterclockwise"></i>
@@ -299,7 +333,7 @@
                     </div>
                     {% endif %}
                     <div class="form-actions-right">
-                        {% if not is_view_mode %}
+                        {% if not is_effective_readonly %}
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle"></i>
                             {% if is_edit_mode %}Update User{% else %}Create User{% endif %}

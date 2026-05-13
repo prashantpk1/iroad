@@ -198,6 +198,11 @@ def verify_token(token: str, expected_type: str = TOKEN_TYPE_ACCESS) -> dict | N
     """
     Verify and decode a JWT token.
 
+    Cryptographic and blacklist checks only. Callers that must enforce
+    workspace account state (e.g. soft-deleted ``TenantUser``) should
+    load the subject after verify — see ``MobileJWTAuthentication`` and
+    ``authenticate_request`` / ``authenticate_refresh_request``.
+
     Args:
         token: JWT string
         expected_type: 'access' or 'refresh'
@@ -246,24 +251,30 @@ def authenticate_request(request: HttpRequest) -> dict | None:
     Extracts Bearer token from Authorization header,
     verifies it as an access token, returns payload.
 
-    Args:
-        request: Django HttpRequest
-
-    Returns:
-        Decoded token payload dict if authenticated
-        None if not authenticated
-
-    Usage in view:
-        payload = authenticate_request(request)
-        if payload is None:
-            return api_auth_error(_('mobile.auth.unauthorized'))
-        user_id = payload['user_id']
-        tenant_schema = payload['tenant_schema']
+    Returns None if there is no token, the token is invalid, or the
+    ``TenantUser`` row is missing or soft-deleted (same as DRF mobile auth).
     """
     token = get_token_from_request(request)
     if not token:
         return None
-    return verify_token(token, expected_type=TOKEN_TYPE_ACCESS)
+    payload = verify_token(token, expected_type=TOKEN_TYPE_ACCESS)
+    if payload is None:
+        return None
+    user_id = str(payload.get('user_id') or '').strip()
+    tenant_schema = str(payload.get('tenant_schema') or '').strip()
+    if not user_id or not tenant_schema:
+        return None
+    try:
+        from django_tenants.utils import schema_context
+        from tenant_workspace.models import TenantUser
+
+        with schema_context(tenant_schema):
+            tu = TenantUser.all_objects.filter(pk=user_id).only('is_deleted').first()
+    except Exception:
+        return None
+    if tu is None or getattr(tu, 'is_deleted', False):
+        return None
+    return payload
 
 
 def authenticate_refresh_request(request: HttpRequest) -> dict | None:
@@ -271,9 +282,28 @@ def authenticate_refresh_request(request: HttpRequest) -> dict | None:
     Authentication flow for token refresh endpoint.
 
     Same as authenticate_request but expects a refresh token.
+    Returns None when the token is invalid or the tenant user row is missing
+    or soft-deleted (same client behaviour as an expired/invalid refresh).
     """
     token = get_token_from_request(request)
     if not token:
         return None
-    return verify_token(token, expected_type=TOKEN_TYPE_REFRESH)
+    payload = verify_token(token, expected_type=TOKEN_TYPE_REFRESH)
+    if payload is None:
+        return None
+    user_id = str(payload.get('user_id') or '').strip()
+    tenant_schema = str(payload.get('tenant_schema') or '').strip()
+    if not user_id or not tenant_schema:
+        return None
+    try:
+        from django_tenants.utils import schema_context
+        from tenant_workspace.models import TenantUser
+
+        with schema_context(tenant_schema):
+            tu = TenantUser.all_objects.filter(pk=user_id).only('is_deleted').first()
+    except Exception:
+        return None
+    if tu is None or getattr(tu, 'is_deleted', False):
+        return None
+    return payload
 

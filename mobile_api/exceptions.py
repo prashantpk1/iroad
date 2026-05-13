@@ -50,6 +50,23 @@ def mobile_exception_handler(exc, context):
     # ── Authentication failures → status=2 ───────────────────────
     if isinstance(exc, (AuthenticationFailed, NotAuthenticated)):
         # Do not forward raw DRF/JWT exception text (may leak library details).
+        account_deleted_msg = str(_('mobile.auth.account_deleted'))
+        is_account_deleted = False
+        if isinstance(exc, AuthenticationFailed):
+            codes = exc.get_codes()
+            if codes == 'account_deleted':
+                is_account_deleted = True
+            elif isinstance(codes, list) and 'account_deleted' in codes:
+                is_account_deleted = True
+        if is_account_deleted:
+            return Response(
+                {
+                    'status': 2,
+                    'message': account_deleted_msg,
+                    'data': {},
+                },
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
         return Response(
             {
                 'status': 2,

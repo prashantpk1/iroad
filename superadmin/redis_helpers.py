@@ -268,6 +268,37 @@ def revoke_tenant_session_by_jti(jti):
     return deleted
 
 
+def revoke_tenant_workspace_sessions_for_user_reference(tenant_id, tenant_user_pk):
+    """
+    Best-effort: revoke tenant **portal** Redis sessions for a workspace ``TenantUser``.
+
+    Matches ``tenant_id`` + ``reference_id`` (``TenantUser`` PK) and
+    ``user_domain`` ``Tenant_User`` (sub-admin / tenant user web sessions).
+
+    Does not enumerate mobile JWTs (those are invalidated via blacklist / DB checks).
+    """
+    if not tenant_id or not tenant_user_pk:
+        return 0
+    tid = str(tenant_id).strip()
+    ref = str(tenant_user_pk).strip()
+    try:
+        sessions = get_all_active_tenant_sessions()
+    except Exception:
+        return 0
+    total = 0
+    for sess in sessions:
+        if str(sess.get('tenant_id') or '').strip() != tid:
+            continue
+        if str(sess.get('reference_id') or '').strip() != ref:
+            continue
+        if (sess.get('user_domain') or '').strip() != 'Tenant_User':
+            continue
+        jti = sess.get('jti')
+        if jti:
+            total += int(revoke_tenant_session_by_jti(jti) or 0)
+    return total
+
+
 def get_all_active_tenant_sessions():
     """
     Return list of all active tenant web/driver sessions from Redis.

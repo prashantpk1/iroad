@@ -146,7 +146,7 @@ class DriverMasterForm(forms.ModelForm):
         base_users_qs = TenantUser.objects.filter(status=TenantUser.Status.ACTIVE)
         if instance_user and instance_user.pk:
             users_qs = (
-                TenantUser.objects.filter(pk=instance_user.pk) | base_users_qs
+                TenantUser.all_objects.filter(pk=instance_user.pk) | base_users_qs
             ).distinct().order_by('full_name')
         else:
             users_qs = base_users_qs.order_by('full_name')

@@ -11,6 +11,15 @@
   .eal-table-wrap .dropdown {
     position: static;
   }
+  .status-badge.deleted {
+    background: #64748b;
+    color: #fff;
+  }
+  .tenant-user-deletion-meta {
+    font-size: 0.75rem;
+    color: #64748b;
+    line-height: 1.35;
+  }
 </style>
 {% endblock %}
 
@@ -64,6 +73,13 @@
     <div class="eal-stat-icon blue"><i class="bi bi-person-lock"></i></div>
     <div><div class="eal-stat-value">{{ users_locked_count|default:0 }}</div><div class="eal-stat-label">Locked Accounts</div></div>
   </div>
+  {% comment %}Soft-delete stat card — re-enable with list column + restore when needed{% endcomment %}
+  {% comment %}
+  <div class="eal-stat-card">
+    <div class="eal-stat-icon" style="background:#94a3b8;"><i class="bi bi-trash"></i></div>
+    <div><div class="eal-stat-value">{{ users_deleted_count|default:0 }}</div><div class="eal-stat-label">Deleted (soft)</div></div>
+  </div>
+  {% endcomment %}
 </div>
 
 <div
@@ -100,12 +116,13 @@
           {% include 'iroad_tenants/partials/eal_column_filter_th.html' with col_index=5 title="Role" filter_placeholder="Filter by role" %}
           {% include 'iroad_tenants/partials/eal_column_filter_th.html' with col_index=6 title="Last Login" filter_placeholder="Filter by date" %}
           {% include 'iroad_tenants/partials/eal_column_filter_th.html' with col_index=7 title="Status" filter_placeholder="Filter by status" %}
+          {% comment %}{% include 'iroad_tenants/partials/eal_column_filter_th.html' with col_index=8 title="Deletion" filter_placeholder="Deleted / date" %}{% endcomment %}
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for tenant_user in tenant_users %}
-        <tr>
+        <tr>{# class="table-secondary" when showing deleted rows — see TenantUser.objects list #}
           <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
           <td><span class="eal-entity-id">{{ tenant_user.tenant_ref_no|default:"USR-00001" }}</span></td>
           <td>{{ tenant_user.full_name }}</td>
@@ -114,10 +131,28 @@
           <td>{{ tenant_user.role_name }}</td>
           <td>{% if tenant_user.last_login_at %}{{ tenant_user.last_login_at|date:"d M Y, h:i A" }}{% else %}Never{% endif %}</td>
           <td>
+            {% comment %}{% if tenant_user.is_deleted %}<span class="status-badge deleted">Deleted</span>{% else %}{% endcomment %}
             <span class="status-badge {% if tenant_user.status == 'Active' %}active{% else %}inactive{% endif %}">
               {{ tenant_user.status }}
             </span>
+            {% comment %}{% endif %}{% endcomment %}
           </td>
+          {% comment %}Deletion column — re-enable with all_objects list + deleted stat card{% endcomment %}
+          {% comment %}
+          <td>
+            {% if tenant_user.is_deleted %}
+            <span class="status-badge deleted mb-1 d-inline-block">Deleted</span>
+            <div class="tenant-user-deletion-meta">
+              {% if tenant_user.deleted_at %}{{ tenant_user.deleted_at|date:"d M Y, h:i A" }}{% else %}—{% endif %}
+            </div>
+            <div class="tenant-user-deletion-meta text-truncate" style="max-width:12rem;" title="{% if tenant_user.deleted_by %}{{ tenant_user.deleted_by.first_name }} {{ tenant_user.deleted_by.last_name }} ({{ tenant_user.deleted_by.email }}){% endif %}">
+              {% if tenant_user.deleted_by %}{{ tenant_user.deleted_by.first_name }} {{ tenant_user.deleted_by.last_name }}{% if tenant_user.deleted_by.email %} · {{ tenant_user.deleted_by.email }}{% endif %}{% else %}—{% endif %}
+            </div>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          {% endcomment %}
           <td>
             <div class="dropdown eal-actions-cell">
               <button
@@ -134,6 +169,24 @@
                 class="dropdown-menu dropdown-menu-end shadow-sm"
                 style="border-radius: 8px; border-color: #e2e8f0; min-width: 180px;"
               >
+                {% comment %}Deleted-row actions (view + restore) — list uses TenantUser.objects so branch unused until re-enabled{% endcomment %}
+                {% comment %}
+                {% if tenant_user.is_deleted %}
+                <li>
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_users_administration_edit' tenant_user.user_id %}?mode=view">
+                    <i class="bi bi-eye text-info me-2"></i>View
+                  </a>
+                </li>
+                <li>
+                  <form method="post" action="{% url 'iroad_tenants:tenant_users_administration_restore' tenant_user.user_id %}" class="d-inline" onsubmit="return confirm('Restore this user? They will remain Inactive until you activate the account.');">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item text-success">
+                      <i class="bi bi-arrow-counterclockwise me-2"></i>Restore user
+                    </button>
+                  </form>
+                </li>
+                {% else %}
+                {% endcomment %}
                 <li>
                   <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_users_administration_edit' tenant_user.user_id %}">
                     <i class="bi bi-pencil text-primary me-2"></i>Edit
@@ -162,6 +215,7 @@
                     </button>
                   </form>
                 </li>
+                {% comment %}{% endif %}{% endcomment %}
               </ul>
             </div>
           </td>

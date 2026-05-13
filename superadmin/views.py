@@ -286,17 +286,21 @@ def _resolve_tenant_user_by_tid_and_email(raw_tid, raw_email):
         matches = []
         inactive_matches = []
         role_inactive_matches = []
+        deleted_matches = []
         connection.set_schema_to_public()
         try:
             for registry in registries:
                 tenant = registry.tenant_profile
                 connection.set_tenant(registry)
                 tenant_user = (
-                    TenantUser.objects.filter(email__iexact=email)
+                    TenantUser.all_objects.filter(email__iexact=email)
                     .order_by('-updated_at')
                     .first()
                 )
                 if not tenant_user:
+                    continue
+                if getattr(tenant_user, 'is_deleted', False):
+                    deleted_matches.append((tenant, tenant_user))
                     continue
                 if tenant_user.status != TenantUser.Status.ACTIVE:
                     inactive_matches.append((tenant, tenant_user))
@@ -321,6 +325,8 @@ def _resolve_tenant_user_by_tid_and_email(raw_tid, raw_email):
             return inactive_matches[0][0], None, 'tenant_user_inactive'
         if role_inactive_matches:
             return role_inactive_matches[0][0], None, 'tenant_user_role_inactive'
+        if deleted_matches:
+            return deleted_matches[0][0], None, 'tenant_user_deleted'
         return None, None, 'tenant_user_not_found'
 
     tenant = TenantProfile.objects.filter(pk=tenant_id).first()
@@ -341,12 +347,14 @@ def _resolve_tenant_user_by_tid_and_email(raw_tid, raw_email):
     try:
         connection.set_tenant(registry)
         tenant_user = (
-            TenantUser.objects.filter(email__iexact=email)
+            TenantUser.all_objects.filter(email__iexact=email)
             .order_by('-updated_at')
             .first()
         )
         if not tenant_user:
             return tenant, None, 'tenant_user_not_found'
+        if getattr(tenant_user, 'is_deleted', False):
+            return tenant, None, 'tenant_user_deleted'
         if tenant_user.status != TenantUser.Status.ACTIVE:
             return tenant, None, 'tenant_user_inactive'
         role = (
@@ -638,6 +646,9 @@ class LoginView(View):
                             'Please use your tenant-specific login link.'
                         ),
                     })
+                if tenant_user_resolution == 'tenant_user_deleted':
+                    log_access('Login', 'Failed', email, ip)
+                    return render_login({'error': str(_('web.auth.account_deleted'))})
                 if tenant_user_resolution in ('tenant_user_inactive', 'tenant_user_role_inactive'):
                     log_access('Login', 'Failed', email, ip)
                     return render_login({'error': 'User account is not active for login.'})
@@ -722,6 +733,9 @@ class LoginView(View):
                             'Please use your tenant-specific login link.'
                         ),
                     })
+                if tenant_user_resolution == 'tenant_user_deleted':
+                    log_access('Login', 'Failed', email, ip)
+                    return render_login({'error': str(_('web.auth.account_deleted'))})
                 if tenant_user_resolution in ('tenant_user_inactive', 'tenant_user_role_inactive'):
                     log_access('Login', 'Failed', email, ip)
                     return render_login({'error': 'User account is not active for login.'})
@@ -1041,11 +1055,19 @@ class OTPVerificationView(View):
                 connection.set_schema_to_public()
                 try:
                     connection.set_tenant(registry)
-                    tenant_user = TenantUser.objects.filter(
+                    tenant_user = TenantUser.all_objects.filter(
                         pk=tenant_user_id,
                         email__iexact=email,
                     ).first()
-                    if not tenant_user or tenant_user.status != TenantUser.Status.ACTIVE:
+                    if not tenant_user:
+                        self._clear_tenant_pending(request)
+                        messages.error(request, 'Account no longer eligible for login. Please contact administrator.')
+                        return redirect('login')
+                    if getattr(tenant_user, 'is_deleted', False):
+                        self._clear_tenant_pending(request)
+                        messages.error(request, str(_('web.auth.account_deleted')))
+                        return redirect('login')
+                    if tenant_user.status != TenantUser.Status.ACTIVE:
                         self._clear_tenant_pending(request)
                         messages.error(request, 'Account no longer eligible for login. Please contact administrator.')
                         return redirect('login')
@@ -1168,6 +1190,38 @@ class OTPVerificationView(View):
             messages.success(request, 'OTP verified successfully.')
             return redirect('dashboard')
 
+        # Re-check workspace user was not soft-deleted during OTP (tenant sub-user only).
+        tenant_user_id_otp = str(request.session.get('pending_tenant_user_id') or '').strip()
+        if tenant_user_id_otp:
+            registry_otp = (
+                TenantRegistry.objects.select_related('tenant_profile')
+                .filter(tenant_profile_id=tenant.tenant_id)
+                .first()
+            )
+            if registry_otp:
+                from tenant_workspace.models import TenantUser
+
+                connection.set_schema_to_public()
+                try:
+                    connection.set_tenant(registry_otp)
+                    fresh_tu = TenantUser.all_objects.filter(
+                        pk=tenant_user_id_otp,
+                        email__iexact=email,
+                    ).first()
+                    if not fresh_tu or getattr(fresh_tu, 'is_deleted', False):
+                        self._clear_tenant_pending(request)
+                        if fresh_tu and getattr(fresh_tu, 'is_deleted', False):
+                            messages.error(request, str(_('web.auth.account_deleted')))
+                        else:
+                            messages.error(
+                                request,
+                                'Account no longer eligible for login. Please contact administrator.',
+                            )
+                        return redirect('login')
+                    tenant_user = fresh_tu
+                finally:
+                    connection.set_schema_to_public()
+
         from .tenant_jwt import sign_tenant_access_jwt
         from .redis_helpers import create_tenant_session, revoke_tenant_session_key
         from .models import TenantSecuritySettings
@@ -1231,7 +1285,7 @@ class OTPVerificationView(View):
                 connection.set_schema_to_public()
                 try:
                     connection.set_tenant(registry)
-                    TenantUser.objects.filter(pk=tenant_user.user_id).update(
+                    TenantUser.all_objects.filter(pk=tenant_user.user_id).update(
                         last_login_at=timezone.now(),
                         login_attempts=0,
                         temp_password_expires_at=None,
@@ -1346,7 +1400,9 @@ class ForgotPasswordView(View):
                 None,
                 email,
             )
-            if tenant_user_tenant and tenant_user and tenant_user_resolution is None:
+            if tenant_user_resolution == 'tenant_user_deleted':
+                pass
+            elif tenant_user_tenant and tenant_user and tenant_user_resolution is None:
                 registry = (
                     TenantRegistry.objects.select_related('tenant_profile')
                     .filter(tenant_profile_id=tenant_user_tenant.tenant_id)
@@ -1357,11 +1413,15 @@ class ForgotPasswordView(View):
                     connection.set_schema_to_public()
                     try:
                         connection.set_tenant(registry)
-                        tenant_user_record = TenantUser.objects.filter(
+                        tenant_user_record = TenantUser.all_objects.filter(
                             pk=tenant_user.user_id,
                             email__iexact=email,
                         ).first()
-                        if tenant_user_record and tenant_user_record.status == TenantUser.Status.ACTIVE:
+                        if (
+                            tenant_user_record
+                            and tenant_user_record.status == TenantUser.Status.ACTIVE
+                            and not getattr(tenant_user_record, 'is_deleted', False)
+                        ):
                             reset_token = _build_tenant_user_password_reset_token(
                                 tenant_id=tenant_user_tenant.tenant_id,
                                 email=tenant_user_record.email,
@@ -1560,9 +1620,10 @@ class TenantUserResetPasswordConfirmView(View):
         connection.set_schema_to_public()
         try:
             connection.set_tenant(registry)
-            tenant_user = TenantUser.objects.filter(
+            tenant_user = TenantUser.all_objects.filter(
                 email__iexact=email,
                 status=TenantUser.Status.ACTIVE,
+                is_deleted=False,
             ).first()
             if not tenant_user:
                 return None, None
@@ -1604,8 +1665,10 @@ class TenantUserResetPasswordConfirmView(View):
         connection.set_schema_to_public()
         try:
             connection.set_tenant(registry)
-            fresh_user = TenantUser.objects.filter(pk=tenant_user.pk).first()
-            if not fresh_user or fresh_user.status != TenantUser.Status.ACTIVE:
+            fresh_user = TenantUser.all_objects.filter(pk=tenant_user.pk).first()
+            if not fresh_user or getattr(fresh_user, 'is_deleted', False):
+                return self._render_error(request, str(_('web.auth.account_deleted')))
+            if fresh_user.status != TenantUser.Status.ACTIVE:
                 return self._render_error(request, 'User account is not available.')
             fresh_user.password_hash = make_password(form.cleaned_data['password'])
             fresh_user.temp_password_expires_at = None

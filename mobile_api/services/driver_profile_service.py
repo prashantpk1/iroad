@@ -42,7 +42,7 @@ logger = logging.getLogger('mobile_api')
 def _get_tenant_user_by_id(user_id: str, tenant_schema: str):
     try:
         with schema_context(tenant_schema):
-            return TenantUser.objects.filter(pk=user_id).first()
+            return TenantUser.all_objects.filter(pk=user_id).first()
     except Exception as exc:
         logger.error('get_tenant_user_by_id error: %s', exc)
         return None
@@ -76,6 +76,9 @@ def _resolve_driver_context(
     tenant_user = _get_tenant_user_by_id(user_id, tenant_schema)
     if tenant_user is None:
         return {'success': False, 'error': _('mobile.auth.unauthorized')}
+
+    if getattr(tenant_user, 'is_deleted', False):
+        return {'success': False, 'error': _('mobile.auth.account_deleted')}
 
     if not _jwt_email_matches_user(tenant_user, jwt_email):
         return {'success': False, 'error': _('mobile.auth.unauthorized')}
@@ -378,7 +381,7 @@ def driver_change_password(
 
     new_hash = make_password(new_password)
     with schema_context(tenant_schema):
-        TenantUser.objects.filter(pk=tenant_user.pk).update(
+        TenantUser.all_objects.filter(pk=tenant_user.pk).update(
             password_hash=new_hash,
         )
         DriverPasswordResetOTP.objects.filter(pk=otp_record.pk).update(
@@ -437,9 +440,11 @@ def get_driver_profile(
         return {'success': False, 'error': _('mobile.auth.unauthorized')}
 
     with schema_context(tenant_schema):
-        tenant_user = TenantUser.objects.filter(pk=user_id).first()
+        tenant_user = TenantUser.all_objects.filter(pk=user_id).first()
         if tenant_user is None:
             return {'success': False, 'error': _('mobile.auth.unauthorized')}
+        if getattr(tenant_user, 'is_deleted', False):
+            return {'success': False, 'error': _('mobile.auth.account_deleted')}
         if not _jwt_email_matches_user(tenant_user, jwt_email):
             return {'success': False, 'error': _('mobile.auth.unauthorized')}
         user_status = getattr(tenant_user, 'status', None)

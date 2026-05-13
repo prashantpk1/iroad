@@ -43,7 +43,7 @@ def get_driver_user_by_email(email: str, tenant_schema: str):
     try:
         from tenant_workspace.models import TenantUser
         with schema_context(tenant_schema):
-            return TenantUser.objects.filter(
+            return TenantUser.all_objects.filter(
                 email__iexact=email.strip(),
             ).first()
     except Exception as e:
@@ -296,9 +296,10 @@ def driver_login(
 
     Checks:
     1. TenantUser exists with this email
-    2. Password matches password_hash
-    3. TenantUser is active
-    4. DriverMaster exists and is Active
+    2. TenantUser is not soft-deleted
+    3. Password matches password_hash
+    4. TenantUser is active
+    5. DriverMaster exists and is Active
     """
     # Step 0: Resolve tenant schema automatically when header is absent.
     if not tenant_schema:
@@ -315,6 +316,12 @@ def driver_login(
         return {
             'success': False,
             'error': _('mobile.auth.invalid_credentials'),
+        }
+
+    if getattr(tenant_user, 'is_deleted', False):
+        return {
+            'success': False,
+            'error': _('mobile.auth.account_deleted'),
         }
 
     # Step 2: Verify password
@@ -414,6 +421,13 @@ def driver_forgot_password(
             'Forgot password: no tenant user for schema=%s',
             tenant_schema,
         )
+        return {
+            'success': False,
+            'error': _('mobile.auth.user_not_found'),
+            'email_dispatch_status': False,
+        }
+
+    if getattr(tenant_user, 'is_deleted', False):
         return {
             'success': False,
             'error': _('mobile.auth.user_not_found'),
@@ -605,6 +619,12 @@ def driver_reset_password(
         return {
             'success': False,
             'error': _('mobile.auth.user_not_found'),
+        }
+
+    if getattr(tenant_user, 'is_deleted', False):
+        return {
+            'success': False,
+            'error': _('mobile.auth.account_deleted'),
         }
 
     # Step 5: Update password hash

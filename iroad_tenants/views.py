@@ -617,8 +617,13 @@ def _tenant_context_from_session(request):
         tenant_registry = _activate_tenant_workspace_schema(request)
         if tenant_registry is not None:
             try:
-                tenant_user = TenantUser.objects.filter(pk=reference_id).first()
+                tenant_user = TenantUser.all_objects.filter(pk=reference_id).first()
                 if tenant_user:
+                    if getattr(tenant_user, 'is_deleted', False):
+                        connection.set_schema_to_public()
+                        revoke_tenant_session_key(str(tenant.tenant_id), str(tenant_jti))
+                        _clear_tenant_bootstrap_session(request)
+                        return None
                     display_name = (tenant_user.full_name or tenant_user.username or display_name).strip()
                     display_email = (tenant_user.email or display_email).strip()
                     display_role = (tenant_user.role_name or 'Tenant User').strip()
@@ -2459,7 +2464,7 @@ def _build_login_session_events_context(request):
     if tenant_registry is not None:
         try:
             users = list(
-                TenantUser.objects.values(
+                TenantUser.all_objects.values(
                     'full_name',
                     'email',
                     'last_login_at',
@@ -2665,7 +2670,7 @@ def _build_critical_account_changes_context(request):
     tenant_registry = _activate_tenant_workspace_schema(request)
     if tenant_registry is not None:
         try:
-            for user in TenantUser.objects.values('user_id', 'full_name', 'email'):
+            for user in TenantUser.all_objects.values('user_id', 'full_name', 'email'):
                 user_id = str(user.get('user_id') or '').strip()
                 if not user_id:
                     continue
@@ -2676,7 +2681,7 @@ def _build_critical_account_changes_context(request):
                 )
 
             if reference_id and reference_id != tenant_id:
-                tenant_user = TenantUser.objects.filter(pk=reference_id).first()
+                tenant_user = TenantUser.all_objects.filter(pk=reference_id).first()
                 if tenant_user:
                     tenant_actor_label = (
                         tenant_user.full_name
@@ -14521,6 +14526,7 @@ class TenantUsersAdministrationView(View):
             return response
         try:
             search_query = (request.GET.get('q') or '').strip()
+            # List page: hide soft-deleted users (Deletion column / restore UI commented out in template).
             users_qs = TenantUser.objects.all()
             if search_query:
                 users_qs = users_qs.filter(
@@ -14534,13 +14540,16 @@ class TenantUsersAdministrationView(View):
 
             all_users_qs = TenantUser.objects.all()
             total_users = all_users_qs.count()
+            # Soft-delete stats card temporarily hidden in Users-administration.html
+            # users_deleted_count = TenantUser.all_objects.filter(is_deleted=True).count()
             active_users = all_users_qs.filter(status=TenantUser.Status.ACTIVE).count()
-            inactive_users = total_users - active_users
+            inactive_users = all_users_qs.filter(status=TenantUser.Status.INACTIVE).count()
             locked_accounts = all_users_qs.filter(login_attempts__gte=3).count()
             context.update(
                 {
                     'tenant_users': tenant_users,
                     'users_total_count': total_users,
+                    # 'users_deleted_count': users_deleted_count,
                     'users_active_count': active_users,
                     'users_inactive_count': inactive_users,
                     'users_locked_count': locked_accounts,
@@ -14647,6 +14656,37 @@ def _tenant_user_form_data_from_model(tenant_user):
     }
 
 
+def _tenant_user_deleted_by_display(tenant_user):
+    """Human-readable label for ``deleted_by`` (Control Panel admin), if any."""
+    admin = getattr(tenant_user, 'deleted_by', None)
+    if admin is None:
+        return ''
+    name = f'{admin.first_name or ""} {admin.last_name or ""}'.strip()
+    if not name:
+        name = (getattr(admin, 'email', None) or str(getattr(admin, 'pk', ''))).strip()
+    email = (getattr(admin, 'email', None) or '').strip()
+    if email and email.lower() not in name.lower():
+        return f'{name} ({email})'
+    return name
+
+
+def _tenant_user_deleted_by_for_soft_delete(request):
+    """
+    Resolve ``TenantUser.deleted_by`` (FK to ``AUTH_USER_MODEL`` / ``AdminUser``).
+
+    Tenant workspace is JWT- and cookie-backed; ``request.user`` is often anonymous.
+    When the same browser has an authenticated Control Panel ``AdminUser`` session,
+    record that user. Tenant sub-admins are not ``AdminUser`` instances, so this
+    returns ``None`` and the nullable ``deleted_by`` column is left unset.
+    """
+    user = getattr(request, 'user', None)
+    if user is None or not getattr(user, 'is_authenticated', False):
+        return None
+    if isinstance(user, AdminUser):
+        return user
+    return None
+
+
 class TenantUsersAdministrationCreateView(View):
     """Tenant users administration create page."""
 
@@ -14674,6 +14714,9 @@ class TenantUsersAdministrationCreateView(View):
                     'tenant_schema_name': tenant_registry.schema_name,
                     'is_edit_mode': False,
                     'is_view_mode': False,
+                    'is_deleted_user': False,
+                    'is_effective_readonly': False,
+                    'deleted_by_display': '',
                 }
             )
             return render(
@@ -14719,9 +14762,9 @@ class TenantUsersAdministrationCreateView(View):
             elif len(password) < 8:
                 form_errors['password'] = 'Password must be at least 8 characters.'
 
-            if form_data['username'] and TenantUser.objects.filter(username__iexact=form_data['username']).exists():
+            if form_data['username'] and TenantUser.all_objects.filter(username__iexact=form_data['username']).exists():
                 form_errors['username'] = 'This username already exists in this tenant.'
-            if form_data['email'] and TenantUser.objects.filter(email__iexact=form_data['email']).exists():
+            if form_data['email'] and TenantUser.all_objects.filter(email__iexact=form_data['email']).exists():
                 form_errors['email'] = 'This email already exists in this tenant.'
             tenant_primary_email = (context['tenant'].primary_email or '').strip().lower()
             if form_data['email'] and tenant_primary_email and form_data['email'] == tenant_primary_email:
@@ -14738,6 +14781,9 @@ class TenantUsersAdministrationCreateView(View):
                         'tenant_schema_name': tenant_registry.schema_name,
                         'is_edit_mode': False,
                         'is_view_mode': False,
+                        'is_deleted_user': False,
+                        'is_effective_readonly': False,
+                        'deleted_by_display': '',
                     }
                 )
                 messages.error(request, 'Please fix the highlighted errors.', extra_tags='tenant')
@@ -14818,11 +14864,13 @@ class TenantUsersAdministrationEditView(View):
             clear_tenant_portal_cookie(response, request=request)
             return response
         try:
-            tenant_user = TenantUser.objects.filter(pk=user_id).first()
+            tenant_user = TenantUser.all_objects.select_related('deleted_by').filter(pk=user_id).first()
             if tenant_user is None:
                 messages.error(request, 'User not found.', extra_tags='tenant')
                 return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
             is_view_mode = request.GET.get('mode') == 'view'
+            is_deleted_user = bool(tenant_user.is_deleted)
+            is_effective_readonly = is_view_mode or is_deleted_user
             role_options = _tenant_role_name_options()
             if tenant_user.role_name and tenant_user.role_name not in role_options:
                 role_options = [tenant_user.role_name, *role_options]
@@ -14834,6 +14882,9 @@ class TenantUsersAdministrationEditView(View):
                     'tenant_schema_name': tenant_registry.schema_name,
                     'is_edit_mode': True,
                     'is_view_mode': is_view_mode,
+                    'is_deleted_user': is_deleted_user,
+                    'is_effective_readonly': is_effective_readonly,
+                    'deleted_by_display': _tenant_user_deleted_by_display(tenant_user),
                     'editing_user': tenant_user,
                 }
             )
@@ -14857,9 +14908,17 @@ class TenantUsersAdministrationEditView(View):
             clear_tenant_portal_cookie(response, request=request)
             return response
         try:
-            tenant_user = TenantUser.objects.filter(pk=user_id).first()
+            tenant_user = TenantUser.all_objects.select_related('deleted_by').filter(pk=user_id).first()
             if tenant_user is None:
                 messages.error(request, 'User not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
+
+            if tenant_user.is_deleted:
+                messages.error(
+                    request,
+                    'This user is deleted and cannot be edited. Restore the account first, then you may update details or re-activate.',
+                    extra_tags='tenant',
+                )
                 return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
 
             form_data = _tenant_user_form_data_from_post(request)
@@ -14880,9 +14939,9 @@ class TenantUsersAdministrationEditView(View):
                 invalid_roles = [role for role in form_data['roles'] if role not in role_options]
                 if invalid_roles:
                     form_errors['roles'] = 'Selected role is invalid. Please choose from Roles master.'
-            if form_data['username'] and TenantUser.objects.filter(username__iexact=form_data['username']).exclude(pk=tenant_user.pk).exists():
+            if form_data['username'] and TenantUser.all_objects.filter(username__iexact=form_data['username']).exclude(pk=tenant_user.pk).exists():
                 form_errors['username'] = 'This username already exists in this tenant.'
-            if form_data['email'] and TenantUser.objects.filter(email__iexact=form_data['email']).exclude(pk=tenant_user.pk).exists():
+            if form_data['email'] and TenantUser.all_objects.filter(email__iexact=form_data['email']).exclude(pk=tenant_user.pk).exists():
                 form_errors['email'] = 'This email already exists in this tenant.'
             tenant_primary_email = (context['tenant'].primary_email or '').strip().lower()
             if form_data['email'] and tenant_primary_email and form_data['email'] == tenant_primary_email:
@@ -14899,6 +14958,9 @@ class TenantUsersAdministrationEditView(View):
                         'tenant_schema_name': tenant_registry.schema_name,
                         'is_edit_mode': True,
                         'is_view_mode': False,
+                        'is_deleted_user': False,
+                        'is_effective_readonly': False,
+                        'deleted_by_display': _tenant_user_deleted_by_display(tenant_user),
                         'editing_user': tenant_user,
                     }
                 )
@@ -14939,9 +15001,16 @@ class TenantUsersAdministrationToggleStatusView(View):
             clear_tenant_portal_cookie(response, request=request)
             return response
         try:
-            tenant_user = TenantUser.objects.filter(pk=user_id).first()
+            tenant_user = TenantUser.all_objects.filter(pk=user_id).first()
             if tenant_user is None:
                 messages.error(request, 'User not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
+            if tenant_user.is_deleted:
+                messages.error(
+                    request,
+                    'Cannot change status for a deleted user. Restore the account first.',
+                    extra_tags='tenant',
+                )
                 return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
             tenant_user.status = (
                 TenantUser.Status.INACTIVE
@@ -14956,7 +15025,7 @@ class TenantUsersAdministrationToggleStatusView(View):
 
 
 class TenantUsersAdministrationDeleteView(View):
-    """Delete tenant user from current tenant schema."""
+    """Soft-delete tenant user in the current tenant schema (no hard ORM delete)."""
 
     def post(self, request, user_id):
         context = _tenant_context_from_session(request)
@@ -14970,13 +15039,55 @@ class TenantUsersAdministrationDeleteView(View):
             clear_tenant_portal_cookie(response, request=request)
             return response
         try:
-            tenant_user = TenantUser.objects.filter(pk=user_id).first()
+            tenant_user = TenantUser.all_objects.filter(pk=user_id).first()
             if tenant_user is None:
                 messages.error(request, 'User not found.', extra_tags='tenant')
                 return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
-            tenant_user.delete()
+            if tenant_user.is_deleted:
+                messages.success(request, 'User deleted successfully.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
+            deleted_by = _tenant_user_deleted_by_for_soft_delete(request)
+            tenant_user.soft_delete(deleted_by=deleted_by)
             messages.success(request, 'User deleted successfully.', extra_tags='tenant')
             return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
+        finally:
+            connection.set_schema_to_public()
+
+
+class TenantUsersAdministrationRestoreView(View):
+    """Clear soft-delete flags; does not auto-activate (status stays Inactive until toggled)."""
+
+    def post(self, request, user_id):
+        context = _tenant_context_from_session(request)
+        if context is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        tenant_registry = _activate_tenant_workspace_schema(request)
+        if tenant_registry is None:
+            response = redirect('login')
+            clear_tenant_portal_cookie(response, request=request)
+            return response
+        try:
+            tenant_user = TenantUser.all_objects.filter(pk=user_id).first()
+            if tenant_user is None:
+                messages.error(request, 'User not found.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
+            if not tenant_user.is_deleted:
+                messages.warning(request, 'This user is not deleted.', extra_tags='tenant')
+                return _tenant_redirect(request, 'iroad_tenants:tenant_users_administration')
+            tenant_user.restore()
+            messages.success(
+                request,
+                'User restored from deleted state. Status remains Inactive until you activate the account.',
+                extra_tags='tenant',
+            )
+            return redirect(
+                reverse(
+                    'iroad_tenants:tenant_users_administration_edit',
+                    kwargs={'user_id': tenant_user.user_id},
+                )
+            )
         finally:
             connection.set_schema_to_public()
 
@@ -14996,7 +15107,11 @@ class TenantUsersAdministrationExportView(View):
             clear_tenant_portal_cookie(response, request=request)
             return response
         try:
-            tenant_users = TenantUser.objects.all().order_by('created_at', 'updated_at')
+            tenant_users = (
+                TenantUser.all_objects.select_related('deleted_by')
+                .all()
+                .order_by('created_at', 'updated_at')
+            )
             response = HttpResponse(content_type='text/csv')
             response['Content-Disposition'] = 'attachment; filename="tenant_users_export.csv"'
 
@@ -15009,6 +15124,9 @@ class TenantUsersAdministrationExportView(View):
                 'Username',
                 'Role',
                 'Status',
+                'Is Deleted',
+                'Deleted At',
+                'Deleted By',
                 'Last Login',
                 'Login Attempts',
                 'Created By',
@@ -15024,6 +15142,9 @@ class TenantUsersAdministrationExportView(View):
                     tenant_user.username,
                     tenant_user.role_name,
                     tenant_user.status,
+                    'Yes' if tenant_user.is_deleted else 'No',
+                    tenant_user.deleted_at.isoformat() if tenant_user.deleted_at else '',
+                    _tenant_user_deleted_by_display(tenant_user),
                     tenant_user.last_login_at.isoformat() if tenant_user.last_login_at else '',
                     tenant_user.login_attempts,
                     tenant_user.created_by_label,

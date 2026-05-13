@@ -10,6 +10,7 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import Q, Sum
@@ -2920,8 +2921,27 @@ class SalesInvoiceReportShipment(models.Model):
         ]
 
 
+class ActiveTenantUserManager(models.Manager):
+    """Default queryset: exclude soft-deleted tenant workspace users."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
+
+class AllTenantUserManager(models.Manager):
+    """Unfiltered queryset (includes soft-deleted rows)."""
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+
 class TenantUser(models.Model):
-    """Tenant-scoped internal users (stored per tenant schema)."""
+    """Tenant-scoped internal users (stored per tenant schema).
+
+    ``objects`` excludes soft-deleted rows (normal UI and listings).
+    Use ``all_objects`` when resolving by email/pk across delete boundaries
+    (login, uniqueness vs DB, audit labels).
+    """
 
     class Status(models.TextChoices):
         ACTIVE = 'Active', 'Active'
@@ -2944,13 +2964,132 @@ class TenantUser(models.Model):
     created_by_label = models.CharField(max_length=200, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='tenant_users_deleted',
+        db_constraint=False,
+    )
+
+    objects = ActiveTenantUserManager()
+    all_objects = AllTenantUserManager()
 
     class Meta:
         db_table = 'tenant_users'
         ordering = ['-created_at']
+        base_manager_name = 'all_objects'
 
     def __str__(self):
         return f'{self.full_name} ({self.username})'
+
+    @property
+    def is_active_user(self):
+        """True when the row is not soft-deleted and status is Active (existing lifecycle semantics)."""
+        return not self.is_deleted and self.status == self.Status.ACTIVE
+
+    def soft_delete(
+        self,
+        deleted_by=None,
+        save=True,
+        *,
+        revoke_tenant_workspace_sessions=True,
+        mobile_tokens_to_blacklist=None,
+    ):
+        """Mark the tenant user as soft-deleted and inactive; preserves row for audit and restore.
+
+        After a successful ``save``, best-effort:
+        - Revokes tenant **portal** Redis sessions for this user (web sub-user).
+        - Optionally blacklists mobile JWT JTIs (``mobile_tokens_to_blacklist``), each item
+          ``{'jti': str, 'exp': int | None}`` for access/refresh tokens when the caller holds them.
+
+        Redis / blacklist failures never prevent soft-delete from persisting.
+        """
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.status = self.Status.INACTIVE
+        if deleted_by is not None:
+            self.deleted_by = deleted_by
+        if save:
+            self.save(
+                update_fields=[
+                    'is_deleted',
+                    'deleted_at',
+                    'deleted_by',
+                    'status',
+                    'updated_at',
+                ],
+            )
+            self._after_soft_delete_side_effects(
+                revoke_tenant_workspace_sessions=revoke_tenant_workspace_sessions,
+                mobile_tokens_to_blacklist=mobile_tokens_to_blacklist,
+            )
+
+    def _after_soft_delete_side_effects(
+        self,
+        *,
+        revoke_tenant_workspace_sessions,
+        mobile_tokens_to_blacklist,
+    ):
+        if revoke_tenant_workspace_sessions:
+            self._revoke_tenant_workspace_redis_sessions_best_effort()
+        if mobile_tokens_to_blacklist:
+            try:
+                from mobile_api.helpers.auth import blacklist_token_jti
+
+                for entry in mobile_tokens_to_blacklist:
+                    if not isinstance(entry, dict):
+                        continue
+                    jti = (entry.get('jti') or '').strip()
+                    if not jti:
+                        continue
+                    blacklist_token_jti(jti=jti, exp_ts=entry.get('exp'))
+            except Exception:
+                pass
+
+    def _revoke_tenant_workspace_redis_sessions_best_effort(self):
+        """Revoke tenant portal Redis rows for this ``TenantUser`` when DB connection is on tenant schema."""
+        from django.db import connection
+
+        schema = getattr(connection, 'schema_name', None) or ''
+        if not schema or schema == 'public':
+            return
+        try:
+            from django_tenants.utils import schema_context
+
+            from iroad_tenants.models import TenantRegistry
+            from superadmin.redis_helpers import (
+                revoke_tenant_workspace_sessions_for_user_reference,
+            )
+
+            with schema_context('public'):
+                reg = TenantRegistry.objects.filter(schema_name=schema).first()
+            if not reg:
+                return
+            revoke_tenant_workspace_sessions_for_user_reference(
+                str(reg.tenant_profile_id),
+                str(self.pk),
+            )
+        except Exception:
+            pass
+
+    def restore(self, save=True):
+        """Clear soft-delete flags; does not change ``status`` (caller may re-activate separately)."""
+        self.is_deleted = False
+        self.deleted_at = None
+        self.deleted_by = None
+        if save:
+            self.save(
+                update_fields=[
+                    'is_deleted',
+                    'deleted_at',
+                    'deleted_by',
+                    'updated_at',
+                ],
+            )
 
 
 class TenantRole(models.Model):

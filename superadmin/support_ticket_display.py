@@ -45,7 +45,7 @@ def support_ticket_created_by_display_map(tickets):
             if not reg:
                 continue
             connection.set_tenant(reg)
-            for tu in TenantUser.objects.filter(user_id__in=ids).only(
+            for tu in TenantUser.all_objects.filter(user_id__in=ids).only(
                 'user_id', 'full_name', 'username', 'email',
             ):
                 label = (
