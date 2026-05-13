@@ -1,0 +1,530 @@
+{
+	"info": {
+		"_postman_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+		"name": "IRoad Mobile Driver APIs",
+		"description": "## IRoad Mobile Driver APIs\n\n### Base URL\nUse environment variable `{{base_url}}` (no trailing slash). Full paths begin with `/api/v1/mobile/`.\n\nExample: `http://127.0.0.1:8000/api/v1/mobile/driver/auth/login/`\n\n### Standard JSON envelope\n```json\n{\n  \"status\": 1,\n  \"message\": \"…\",\n  \"data\": { }\n}\n```\n- **status `1`**: Success (`data` may be empty `{}`).\n- **status `0`**: Validation or business error; `data` often includes `errors` (DRF serializer shape) or extra fields such as `attempts_remaining`.\n- **status `2`**: Authentication failure (e.g. missing/invalid/expired JWT) — HTTP **401**; used by the mobile API exception handler for auth failures.\n\n### Headers\n| Header | When |\n|--------|------|\n| **X-Tenant-ID** | Send tenant profile UUID or schema name when tenant middleware cannot resolve the host; required for correct tenant DB in many deployments. |\n| **X-Language** | Optional: `en` or `ar` for translated `message` strings. |\n| **Authorization** | `Bearer {{access_token}}` on all **authenticated** routes. |\n| **Content-Type** | `application/json` for JSON bodies. For profile photo, use **multipart/form-data** (field `profile_photo`); Postman sets the boundary automatically. |\n\n### Login and tokens\n1. Set `base_url`, `email`, `password`, and `tenant_id` (if needed) in the **IRoad Mobile Driver — Local** environment.\n2. Run **Login**. The **Tests** script saves `access_token` and `refresh_token` into the active environment.\n3. Call protected endpoints with **Bearer** `access_token`.\n\n> Refresh-token exchange is not part of this collection unless you add it separately; tokens are issued by the mobile auth service.\n\n### Forgot password / reset (unauthenticated)\n1. **Forgot Password** — `POST` with `email`.\n2. **Verify OTP** — `POST` with `email` and `otp_code` from email/SMS.\n3. **Reset Password** — `POST` with `email`, `otp_code`, `new_password`, `confirm_password`.\n\n### Change password while logged in (OTP)\n1. **Request OTP** — `POST` with `send_via`: `email` or `mobile` (SMS requires a phone number on the driver profile).\n2. **Verify Change Password OTP** — `POST` with `otp_code`.\n3. **Change Password** — `POST` with `current_password`, `new_password`, `confirm_password`, `otp_code`.\n\n### Profile\n- **Get Profile** — `GET` returns driver/profile payload in `data`.\n- **Update Profile Photo** — `POST` or `PATCH` same URL; **form-data** key **`profile_photo`** (image file: jpg, jpeg, png, webp; max 10 MB).\n\n### Logout\n`POST` with **Bearer** access token; empty body. Invalidates the current access token server-side where implemented.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Driver Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"try {",
+									"    var json = pm.response.json();",
+									"    if (json && json.status === 1 && json.data) {",
+									"        if (json.data.access_token) {",
+									"            pm.environment.set(\"access_token\", json.data.access_token);",
+									"        }",
+									"        if (json.data.refresh_token) {",
+									"            pm.environment.set(\"refresh_token\", json.data.refresh_token);",
+									"        }",
+									"    }",
+									"} catch (e) {",
+									"    console.warn(\"Could not parse login JSON or save tokens:\", e);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}",
+								"description": "Tenant UUID or schema name when needed"
+							},
+							{
+								"key": "X-Language",
+								"value": "en",
+								"description": "Optional: en | ar"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/api/v1/mobile/driver/auth/login/",
+						"description": "Authenticate driver. On success, `data` contains `access_token`, `refresh_token`, and `driver`."
+					},
+					"response": [
+						{
+							"name": "Login success",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"driver@example.com\",\n  \"password\": \"Password@123\"\n}"
+								},
+								"url": "{{base_url}}/api/v1/mobile/driver/auth/login/"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"Login successful.\",\n  \"data\": {\n    \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"driver\": {\n      \"driver_id\": \"uuid\",\n      \"driver_code\": \"DRV001\",\n      \"english_name\": \"John Driver\",\n      \"arabic_name\": null,\n      \"driver_status\": \"active\"\n    }\n  }\n}"
+						},
+						{
+							"name": "Invalid credentials",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"driver@example.com\",\n  \"password\": \"WrongPassword\"\n}"
+								},
+								"url": "{{base_url}}/api/v1/mobile/driver/auth/login/"
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 0,\n  \"message\": \"Invalid email or password.\",\n  \"data\": {}\n}"
+						}
+					]
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}"
+							},
+							{
+								"key": "X-Language",
+								"value": "en"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/api/v1/mobile/driver/auth/forgot-password/",
+						"description": "Request password-reset OTP. Response is generic when email is unknown (anti-enumeration)."
+					},
+					"response": [
+						{
+							"name": "OTP sent (example)",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"OTP has been sent if the email is registered.\",\n  \"data\": {}\n}"
+						}
+					]
+				},
+				{
+					"name": "Verify OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}"
+							},
+							{
+								"key": "X-Language",
+								"value": "en"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"otp_code\": \"{{otp_code}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/api/v1/mobile/driver/auth/verify-otp/",
+						"description": "Verify reset-password OTP for the given email."
+					},
+					"response": [
+						{
+							"name": "OTP verified",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"OTP verified successfully.\",\n  \"data\": {}\n}"
+						},
+						{
+							"name": "Invalid OTP",
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 0,\n  \"message\": \"Incorrect OTP entered.\",\n  \"data\": {\n    \"attempts_remaining\": 2\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}"
+							},
+							{
+								"key": "X-Language",
+								"value": "en"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{email}}\",\n  \"otp_code\": \"{{otp_code}}\",\n  \"new_password\": \"NewPassword@123\",\n  \"confirm_password\": \"NewPassword@123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/api/v1/mobile/driver/auth/reset-password/",
+						"description": "Complete password reset after OTP verification."
+					},
+					"response": [
+						{
+							"name": "Password reset success",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"Password reset successful.\",\n  \"data\": {}\n}"
+						}
+					]
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}"
+							},
+							{
+								"key": "X-Language",
+								"value": "en"
+							}
+						],
+						"url": "{{base_url}}/api/v1/mobile/driver/auth/logout/",
+						"description": "Invalidate current access token. No JSON body."
+					},
+					"response": [
+						{
+							"name": "Logout success",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"Logout successful.\",\n  \"data\": {}\n}"
+						},
+						{
+							"name": "Missing or invalid token",
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 0,\n  \"message\": \"Invalid authentication token. Please login again.\",\n  \"data\": {}\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Driver Change Password",
+			"item": [
+				{
+					"name": "Request OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}"
+							},
+							{
+								"key": "X-Language",
+								"value": "en"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"send_via\": \"email\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/api/v1/mobile/driver/auth/change-password/request-otp/",
+						"description": "`send_via`: `email` or `mobile`."
+					},
+					"response": [
+						{
+							"name": "OTP dispatched",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"Verification code sent.\",\n  \"data\": {}\n}"
+						}
+					]
+				},
+				{
+					"name": "Verify Change Password OTP",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}"
+							},
+							{
+								"key": "X-Language",
+								"value": "en"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"otp_code\": \"{{otp_code}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/api/v1/mobile/driver/auth/change-password/verify-otp/",
+						"description": "Six-digit numeric OTP from email/SMS."
+					},
+					"response": [
+						{
+							"name": "OTP verified",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"Verification code accepted.\",\n  \"data\": {\n    \"attempts_remaining\": 5,\n    \"verified\": true\n  }\n}"
+						},
+						{
+							"name": "Invalid OTP",
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 0,\n  \"message\": \"Incorrect OTP entered.\",\n  \"data\": {\n    \"attempts_remaining\": 1,\n    \"verified\": false\n  }\n}"
+						}
+					]
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}"
+							},
+							{
+								"key": "X-Language",
+								"value": "en"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"current_password\": \"{{password}}\",\n  \"new_password\": \"NewPassword@123\",\n  \"confirm_password\": \"NewPassword@123\",\n  \"otp_code\": \"{{otp_code}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/api/v1/mobile/driver/auth/change-password/",
+						"description": "Requires verified change-password OTP. Other sessions may be revoked depending on server policy."
+					},
+					"response": [
+						{
+							"name": "Password changed",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"Password updated successfully.\",\n  \"data\": {}\n}"
+						},
+						{
+							"name": "Validation error",
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 0,\n  \"message\": \"Validation failed. Please check your input.\",\n  \"data\": {\n    \"errors\": {\n      \"confirm_password\": [\"Passwords do not match.\"]\n    }\n  }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Driver Profile",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}"
+							},
+							{
+								"key": "X-Language",
+								"value": "en"
+							}
+						],
+						"url": "{{base_url}}/api/v1/mobile/driver/profile/",
+						"description": "Returns driver profile payload in `data` (shape from `DriverProfileSerializer`)."
+					},
+					"response": [
+						{
+							"name": "Profile fetch success",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"Profile loaded successfully.\",\n  \"data\": {\n    \"driver\": {\n      \"driver_id\": \"uuid\",\n      \"driver_code\": \"DRV001\",\n      \"arabic_name\": null,\n      \"english_name\": \"John Driver\",\n      \"driver_status\": \"active\"\n    },\n    \"user\": {},\n    \"vehicle\": null,\n    \"attachments\": []\n  }\n}"
+						},
+						{
+							"name": "Unauthorized (JWT)",
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 2,\n  \"message\": \"Unauthorized access. Please login to continue.\",\n  \"data\": {}\n}"
+						}
+					]
+				},
+				{
+					"name": "Update Profile Photo",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}"
+							},
+							{
+								"key": "X-Tenant-ID",
+								"value": "{{tenant_id}}"
+							},
+							{
+								"key": "X-Language",
+								"value": "en"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "profile_photo",
+									"description": "Image file: jpg, jpeg, png, webp — max 10 MB. Same endpoint supports PATCH.",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": "{{base_url}}/api/v1/mobile/driver/profile/photo/",
+						"description": "Multipart field name must be **profile_photo**. Duplicate this request and set method to **PATCH** if you prefer PATCH (same body)."
+					},
+					"response": [
+						{
+							"name": "Photo updated",
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 1,\n  \"message\": \"Profile photo updated successfully.\",\n  \"data\": {\n    \"profile_photo_url\": \"http://127.0.0.1:8000/media/drivers/photos/example.jpg\"\n  }\n}"
+						},
+						{
+							"name": "Invalid image",
+							"status": "Bad Request",
+							"code": 400,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"body": "{\n  \"status\": 0,\n  \"message\": \"Validation failed. Please check your input.\",\n  \"data\": {\n    \"errors\": {\n      \"profile_photo\": [\"The file must be a valid image (JPG, JPEG, PNG, or WEBP).\"]\n    }\n  }\n}"
+						}
+					]
+				}
+			]
+		}
+	]
+}
