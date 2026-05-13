@@ -1,0 +1,44 @@
+{% extends 'iroad_frontend/base.html' %}
+{% load static cms_locale %}
+
+{% block title %}{% cms_txt terms_conditions 'page_title' %}{% endblock %}
+
+{% block meta_description %}
+  <meta name="description" content="{% cms_txt terms_conditions 'meta_description' %}" />
+{% endblock %}
+
+{% block extra_head %}
+  <style>
+    .legal-page-body {
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+    .legal-page-body img {
+      max-width: 100%;
+      height: auto;
+    }
+    .legal-page-body table {
+      max-width: 100%;
+      display: block;
+      overflow-x: auto;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  {% include 'iroad_frontend/partials/components/page_header.html' with page_header_kind='terms' page_header_background=terms_conditions.page_header_background %}
+
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-10 col-xl-9">
+        <article class="legal-page-body wow fadeInUp" data-wow-delay="0.1s">
+          {% if lang == 'ar' %}
+            {{ terms_conditions.content_ar|safe }}
+          {% else %}
+            {{ terms_conditions.content_en|safe }}
+          {% endif %}
+        </article>
+      </div>
+    </div>
+  </div>
+{% endblock %}

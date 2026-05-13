@@ -6,6 +6,8 @@ from iroad_frontend.views import (
     ContactPageView,
     HomePageView,
     PricingPageView,
+    PrivacyPolicyView,
+    TermsConditionsView,
 )
 
 app_name = 'iroad_frontend'
@@ -18,6 +20,16 @@ urlpatterns = [
         'contact/submit/',
         ContactFormSubmitView.as_view(),
         name='contact_submit',
+    ),
+    path(
+        'privacy-policy/',
+        PrivacyPolicyView.as_view(),
+        name='privacy_policy',
+    ),
+    path(
+        'terms-and-conditions/',
+        TermsConditionsView.as_view(),
+        name='terms_conditions',
     ),
     path('', HomePageView.as_view(), name='home'),
 ]

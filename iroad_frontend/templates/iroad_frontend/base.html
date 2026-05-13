@@ -9,10 +9,12 @@
         {% if lang == 'ar' %}{{ home.page_title_ar|default:home.page_title_en }}{% else %}{{ home.page_title_en }}{% endif %}
       {% endblock %}
     </title>
+    {% block meta_description %}
     <meta
       name="description"
       content="{% if lang == 'ar' %}{{ home.meta_description_ar|default:home.meta_description_en }}{% else %}{{ home.meta_description_en }}{% endif %}"
     />
+    {% endblock %}
     {% if home.favicon %}
       <link rel="icon" href="{{ home.favicon.url }}" />
     {% else %}

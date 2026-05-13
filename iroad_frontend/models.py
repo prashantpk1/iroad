@@ -1498,6 +1498,177 @@ class ContactPageContent(models.Model):
         return obj
 
 
+# ── Legal pages CMS (singletons) ────────────────────────────────────
+
+
+def privacy_policy_upload_path(instance, filename):
+    return f'marketing/legal/privacy/{filename}'
+
+
+def terms_conditions_upload_path(instance, filename):
+    return f'marketing/legal/terms/{filename}'
+
+
+class PrivacyPolicyPageContent(models.Model):
+    """
+    Singleton CMS for the public Privacy Policy page.
+    One record only — get_singleton() pattern.
+    """
+
+    # ── SEO ──────────────────────────────────────────────────────
+    page_title_en = models.CharField(
+        max_length=200,
+        blank=True,
+        default='Privacy Policy - IRoad',
+    )
+    page_title_ar = models.CharField(
+        max_length=200,
+        blank=True,
+        default='سياسة الخصوصية - آيروود',
+    )
+    meta_description_en = models.TextField(blank=True, default='')
+    meta_description_ar = models.TextField(blank=True, default='')
+
+    # ── Page Header / Breadcrumb ──────────────────────────────────
+    page_header_h1_en = models.CharField(
+        max_length=300,
+        blank=True,
+        default='Privacy Policy',
+    )
+    page_header_h1_ar = models.CharField(
+        max_length=300,
+        blank=True,
+        default='سياسة الخصوصية',
+    )
+    breadcrumb_current_en = models.CharField(
+        max_length=100,
+        blank=True,
+        default='Privacy Policy',
+    )
+    breadcrumb_current_ar = models.CharField(
+        max_length=100,
+        blank=True,
+        default='سياسة الخصوصية',
+    )
+    page_header_background = models.FileField(
+        upload_to=privacy_policy_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+        verbose_name='Page header background image',
+        help_text=(
+            'Optional hero background for the privacy policy page header. '
+            'If empty, a solid theme fallback is used.'
+        ),
+    )
+
+    # ── Main body (rich text editor to be wired in superadmin later) ─
+    content_en = models.TextField(blank=True, default='')
+    content_ar = models.TextField(blank=True, default='')
+
+    # ── Audit ─────────────────────────────────────────────────────
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+    )
+
+    class Meta:
+        db_table = 'iroad_frontend_privacy_policy_content'
+        verbose_name = 'Privacy Policy Page Content'
+        verbose_name_plural = 'Privacy Policy Page Content'
+
+    def __str__(self):
+        return 'Privacy Policy Page Content'
+
+    @classmethod
+    def get_singleton(cls):
+        obj, _created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
+class TermsConditionsPageContent(models.Model):
+    """
+    Singleton CMS for the public Terms & Conditions page.
+    One record only — get_singleton() pattern.
+    """
+
+    # ── SEO ──────────────────────────────────────────────────────
+    page_title_en = models.CharField(
+        max_length=200,
+        blank=True,
+        default='Terms & Conditions - IRoad',
+    )
+    page_title_ar = models.CharField(
+        max_length=200,
+        blank=True,
+        default='الشروط والأحكام - آيروود',
+    )
+    meta_description_en = models.TextField(blank=True, default='')
+    meta_description_ar = models.TextField(blank=True, default='')
+
+    # ── Page Header / Breadcrumb ──────────────────────────────────
+    page_header_h1_en = models.CharField(
+        max_length=300,
+        blank=True,
+        default='Terms & Conditions',
+    )
+    page_header_h1_ar = models.CharField(
+        max_length=300,
+        blank=True,
+        default='الشروط والأحكام',
+    )
+    breadcrumb_current_en = models.CharField(
+        max_length=100,
+        blank=True,
+        default='Terms & Conditions',
+    )
+    breadcrumb_current_ar = models.CharField(
+        max_length=100,
+        blank=True,
+        default='الشروط والأحكام',
+    )
+    page_header_background = models.FileField(
+        upload_to=terms_conditions_upload_path,
+        blank=True,
+        null=True,
+        validators=_CMS_UPLOAD_VALIDATORS,
+        verbose_name='Page header background image',
+        help_text=(
+            'Optional hero background for the terms page header. '
+            'If empty, a solid theme fallback is used.'
+        ),
+    )
+
+    # ── Main body (rich text editor to be wired in superadmin later) ─
+    content_en = models.TextField(blank=True, default='')
+    content_ar = models.TextField(blank=True, default='')
+
+    # ── Audit ─────────────────────────────────────────────────────
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+    )
+
+    class Meta:
+        db_table = 'iroad_frontend_terms_conditions_content'
+        verbose_name = 'Terms & Conditions Page Content'
+        verbose_name_plural = 'Terms & Conditions Page Content'
+
+    def __str__(self):
+        return 'Terms & Conditions Page Content'
+
+    @classmethod
+    def get_singleton(cls):
+        obj, _created = cls.objects.get_or_create(pk=1)
+        return obj
+
+
 class ContactSubmission(models.Model):
     """
     Stores demo request form submissions.

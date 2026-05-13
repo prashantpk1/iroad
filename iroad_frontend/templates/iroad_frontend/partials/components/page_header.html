@@ -1,42 +1,62 @@
 {% load static cms_locale %}
-    <!-- Page Header Section Start -->
-    <div
-      class="page-header {{ page_header_kind }}-page-header bg-section parallaxie{% if page_header_background %} {{ page_header_kind }}-page-header--cms-bg{% endif %}"
-      {% if page_header_background %}
-      style="background-image: url('{{ page_header_background.url }}');"
-      {% endif %}
-    >
-      <div class="container">
-        <div class="row">
-          <div class="col-lg-12">
-            <!-- Page Header Box Start -->
-            <div class="page-header-box">
-              <h1>
-                {% if cms_about_header %}{% cms_txt about 'page_header_h1' %}
-                {% elif cms_pricing_header %}{% cms_txt pricing 'page_header_h1' %}
-                {% elif cms_contact_header %}{% cms_txt contact 'page_header_h1' %}
-                {% else %}{{ page_h1 }}{% endif %}
-              </h1>
-              <nav class="wow fadeInUp" aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                  <li class="breadcrumb-item">
-                    <a href="{% url 'iroad_frontend:home' %}">
-                      {% if cms_about_header or cms_pricing_header or cms_contact_header %}{% cms_txt home 'nav_home' %}
-                      {% else %}{{ breadcrumb_home_label }}{% endif %}
-                    </a>
-                  </li>
-                  <li class="breadcrumb-item active" aria-current="page">
-                    {% if cms_about_header %}{% cms_txt about 'breadcrumb_current' %}
-                    {% elif cms_pricing_header %}{% cms_txt pricing 'breadcrumb_current' %}
-                    {% elif cms_contact_header %}{% cms_txt contact 'breadcrumb_current' %}
-                    {% else %}{{ breadcrumb_current }}{% endif %}
-                  </li>
-                </ol>
-              </nav>
-            </div>
-            <!-- Page Header Box End -->
+{# Generic: page_header_use_generic + page_h1 + breadcrumb_current + page_header_background + page_header_kind #}
+{% with page_bg=page_header_background %}
+  <!-- Page Header Section Start -->
+  <div
+    class="page-header {{ page_header_kind }}-page-header bg-section parallaxie{% if page_bg %} {{ page_header_kind }}-page-header--cms-bg{% endif %}"
+    {% if page_bg %}
+      style="background-image: url('{{ page_bg.url }}');"
+    {% endif %}
+  >
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <!-- Page Header Box Start -->
+          <div class="page-header-box">
+            <h1>
+              {% if page_header_use_generic %}
+                {{ page_h1 }}
+              {% elif cms_about_header %}
+                {% cms_txt about 'page_header_h1' %}
+              {% elif cms_pricing_header %}
+                {% cms_txt pricing 'page_header_h1' %}
+              {% elif cms_contact_header %}
+                {% cms_txt contact 'page_header_h1' %}
+              {% else %}
+                {{ page_h1 }}
+              {% endif %}
+            </h1>
+            <nav class="wow fadeInUp" aria-label="breadcrumb">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                  <a href="{% url 'iroad_frontend:home' %}">
+                    {% if page_header_use_generic or cms_about_header or cms_pricing_header or cms_contact_header %}
+                      {% cms_txt home 'nav_home' %}
+                    {% else %}
+                      {{ breadcrumb_home_label }}
+                    {% endif %}
+                  </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                  {% if page_header_use_generic %}
+                    {{ breadcrumb_current }}
+                  {% elif cms_about_header %}
+                    {% cms_txt about 'breadcrumb_current' %}
+                  {% elif cms_pricing_header %}
+                    {% cms_txt pricing 'breadcrumb_current' %}
+                  {% elif cms_contact_header %}
+                    {% cms_txt contact 'breadcrumb_current' %}
+                  {% else %}
+                    {{ breadcrumb_current }}
+                  {% endif %}
+                </li>
+              </ol>
+            </nav>
           </div>
+          <!-- Page Header Box End -->
         </div>
       </div>
     </div>
-    <!-- Page Header Section End -->
+  </div>
+  <!-- Page Header Section End -->
+{% endwith %}

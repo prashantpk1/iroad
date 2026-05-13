@@ -5,12 +5,15 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 
+from iroad_frontend.cms_text import localized_cms_field
 from iroad_frontend.models import (
     AboutPageContent,
     ContactPageContent,
     ContactSubmission,
     HomePageContent,
     PricingPageContent,
+    PrivacyPolicyPageContent,
+    TermsConditionsPageContent,
 )
 
 
@@ -130,6 +133,54 @@ class ContactPageView(View):
         return render(
             request,
             'iroad_frontend/contact/index.html',
+            context,
+        )
+
+
+class PrivacyPolicyView(View):
+    """Public privacy policy page (CMS singleton). Not linked from site nav."""
+
+    def get(self, request):
+        privacy = PrivacyPolicyPageContent.get_singleton()
+        home = HomePageContent.get_singleton()
+        context = {
+            'privacy': privacy,
+            'home': home,
+        }
+        context.update(get_lang_context(request))
+        lang = context['lang']
+        context['page_header_use_generic'] = True
+        context['page_h1'] = localized_cms_field(
+            privacy, 'page_header_h1', lang)
+        context['breadcrumb_current'] = localized_cms_field(
+            privacy, 'breadcrumb_current', lang)
+        return render(
+            request,
+            'iroad_frontend/privacy_policy/index.html',
+            context,
+        )
+
+
+class TermsConditionsView(View):
+    """Public terms & conditions page (CMS singleton). Not linked from site nav."""
+
+    def get(self, request):
+        terms_conditions = TermsConditionsPageContent.get_singleton()
+        home = HomePageContent.get_singleton()
+        context = {
+            'terms_conditions': terms_conditions,
+            'home': home,
+        }
+        context.update(get_lang_context(request))
+        lang = context['lang']
+        context['page_header_use_generic'] = True
+        context['page_h1'] = localized_cms_field(
+            terms_conditions, 'page_header_h1', lang)
+        context['breadcrumb_current'] = localized_cms_field(
+            terms_conditions, 'breadcrumb_current', lang)
+        return render(
+            request,
+            'iroad_frontend/terms_conditions/index.html',
             context,
         )
 

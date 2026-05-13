@@ -3,6 +3,8 @@ Bilingual CMS helpers: pick *_ar vs *_en using ``lang`` from template context.
 """
 from django import template
 
+from iroad_frontend.cms_text import localized_cms_field
+
 register = template.Library()
 
 
@@ -15,12 +17,4 @@ def cms_txt(context, obj, base):
     other language when the preferred column is empty.
     """
     lang = context.get('lang') or 'en'
-    v_en = getattr(obj, f'{base}_en', None)
-    v_ar = getattr(obj, f'{base}_ar', None)
-    if v_en is None and v_ar is None:
-        return ''
-    en = '' if v_en is None else str(v_en).strip()
-    ar = '' if v_ar is None else str(v_ar).strip()
-    if str(lang).lower() == 'ar':
-        return ar or en
-    return en or ar
+    return localized_cms_field(obj, base, lang)
