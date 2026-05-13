@@ -7,6 +7,7 @@ All endpoints versioned under /api/v1/mobile/
 from django.urls import path
 
 from mobile_api.views.driver_auth import (
+    DriverDeleteAccountView,
     DriverForgotPasswordView,
     DriverLoginView,
     DriverLogoutView,
@@ -48,6 +49,11 @@ urlpatterns = [
         'driver/auth/logout/',
         DriverLogoutView.as_view(),
         name='driver_logout',
+    ),
+    path(
+        'driver/auth/delete-account/',
+        DriverDeleteAccountView.as_view(),
+        name='driver_delete_account',
     ),
     path(
         'driver/auth/change-password/request-otp/',

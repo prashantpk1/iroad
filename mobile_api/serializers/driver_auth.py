@@ -141,3 +141,23 @@ class LogoutSerializer(serializers.Serializer):
     API 5: POST /api/v1/mobile/driver/auth/logout/
     """
     pass
+
+
+class DeleteAccountSerializer(serializers.Serializer):
+    """
+    Validates delete-account request body (current password for confirmation).
+
+    Checks only presence / non-blank input. Matching ``password_hash`` and
+    soft-delete side effects belong in the service layer.
+    """
+    password = serializers.CharField(
+        required=True,
+        min_length=1,
+        write_only=True,
+        style={'input_type': 'password'},
+        error_messages={
+            'required': _('mobile.auth.password_required'),
+            'blank': _('mobile.auth.password_required'),
+            'null': _('mobile.auth.password_required'),
+        },
+    )

@@ -9,8 +9,10 @@ Endpoints:
   POST /api/v1/mobile/driver/auth/verify-otp/
   POST /api/v1/mobile/driver/auth/reset-password/
   POST /api/v1/mobile/driver/auth/logout/
+  POST /api/v1/mobile/driver/auth/delete-account/
 """
 from django.utils.translation import gettext as _
+from django_tenants.utils import schema_context
 
 from mobile_api.views.base import MobileAPIView
 from mobile_api.permissions import (
@@ -22,6 +24,7 @@ from mobile_api.throttling import (
     MobileOtpThrottle,
 )
 from mobile_api.serializers.driver_auth import (
+    DeleteAccountSerializer,
     DriverLoginSerializer,
     ForgotPasswordSerializer,
     VerifyOtpSerializer,
@@ -29,6 +32,7 @@ from mobile_api.serializers.driver_auth import (
     LogoutSerializer,
 )
 from mobile_api.services.driver_auth_service import (
+    driver_delete_account,
     driver_login,
     driver_forgot_password,
     driver_verify_otp,
@@ -326,4 +330,76 @@ class DriverLogoutView(MobileAPIView):
 
         return self.success(
             message=_('mobile.auth.logout_success'),
+        )
+
+
+class DriverDeleteAccountView(MobileAPIView):
+    """
+    API 6: Delete account (soft-delete TenantUser)
+    POST /api/v1/mobile/driver/auth/delete-account/
+
+    Authenticated (default ``MobileJWTAuthentication``). Body:
+      { "password": "..." }
+
+    Missing/invalid JWT or deleted subject: handled by DRF auth / exception
+    handler (status 2). Wrong password / already deleted: service + this view.
+    Inactive ``TenantUser`` cannot obtain a driver JWT via login; if status
+    changes mid-session, ``driver_delete_account`` still enforces password + soft-delete.
+
+    Response success:
+      { "status": 1, "message": "<account_deleted_success>", "data": {} }
+    """
+
+    permission_classes = [IsMobileAuthenticated]
+    throttle_classes = [MobileAuthThrottle]
+
+    def post(self, request):
+        serializer = DeleteAccountSerializer(data=request.data)
+        if not serializer.is_valid():
+            return self.error(
+                message=_('mobile.validation.failed'),
+                data={'errors': serializer.errors},
+            )
+
+        mobile_user = getattr(request, 'user', None)
+        user_id = getattr(mobile_user, 'user_id', None)
+        if not user_id:
+            return self.auth_error(_('mobile.auth.unauthorized'))
+
+        tenant_schema = (
+            get_tenant_schema(request)
+            or getattr(mobile_user, 'tenant_schema', '')
+            or ''
+        ).strip()
+        if not tenant_schema:
+            return self.auth_error(_('mobile.auth.unauthorized'))
+
+        from tenant_workspace.models import TenantUser
+
+        with schema_context(tenant_schema):
+            tenant_user = TenantUser.all_objects.filter(pk=user_id).first()
+
+        if tenant_user is None:
+            return self.auth_error(_('mobile.auth.unauthorized'))
+
+        if getattr(tenant_user, 'is_deleted', False):
+            return self.error(
+                message=_('mobile.auth.account_already_deleted'),
+                http_code=401,
+            )
+
+        password = serializer.validated_data['password']
+        result = driver_delete_account(request, tenant_user, password)
+
+        if not result.get('success'):
+            err = result.get('error', _('mobile.validation.failed'))
+            if err == _('mobile.auth.invalid_credentials'):
+                return self.error(message=err, http_code=401)
+            if err == _('mobile.auth.account_already_deleted'):
+                return self.error(message=err, http_code=400)
+            return self.error(message=err, http_code=401)
+
+        return self.success(
+            message=str(result.get('message', '')),
+            data={},
         )

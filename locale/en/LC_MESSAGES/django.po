@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: iRoad\n"
 "POT-Creation-Date: 2026-04-20 00:00+0000\n"
-"PO-Revision-Date: 2026-05-13 17:54+0530\n"
+"PO-Revision-Date: 2026-05-13 18:54+0530\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: ar\n"
@@ -655,6 +655,12 @@ msgstr "This account is inactive. Please contact support."
 
 msgid "mobile.auth.account_deleted"
 msgstr "This account has been deleted and cannot be used."
+
+msgid "mobile.auth.account_already_deleted"
+msgstr "This account has already been deleted."
+
+msgid "mobile.auth.account_deleted_success"
+msgstr "Your account has been deleted successfully."
 
 msgid "web.auth.account_deleted"
 msgstr "This account has been deleted and cannot be used for login."

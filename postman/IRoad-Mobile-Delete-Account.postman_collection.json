@@ -1,0 +1,220 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "IRoad Mobile Delete Account API",
+    "description": "Dedicated collection for the authenticated driver **Delete Account** endpoint.\n\nUses `TenantUser.soft_delete()` on the backend. Set `base_url`, `access_token`, and `password` in the environment before sending.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Delete Account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Response time is acceptable', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(15000);",
+              "});",
+              "",
+              "pm.test('Content-Type is JSON', function () {",
+              "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+              "});",
+              "",
+              "pm.test('Body parses as JSON', function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "const code = pm.response.code;",
+              "pm.test('HTTP status is expected for delete-account', function () {",
+              "    pm.expect([200, 400, 401, 403]).to.include(code);",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    pm.test('Success envelope (status=1)', function () {",
+              "        const j = pm.response.json();",
+              "        pm.expect(j).to.have.property('status', 1);",
+              "        pm.expect(j).to.have.property('message');",
+              "        pm.expect(j).to.have.property('data');",
+              "    });",
+              "}",
+              "",
+              "if (pm.response.code === 401) {",
+              "    pm.test('401 uses error or auth envelope', function () {",
+              "        const j = pm.response.json();",
+              "        pm.expect(j).to.have.property('status');",
+              "        pm.expect([0, 2]).to.include(j.status);",
+              "    });",
+              "}",
+              "",
+              "if (pm.response.code === 400) {",
+              "    pm.test('400 error envelope (status=0)', function () {",
+              "        const j = pm.response.json();",
+              "        pm.expect(j.status).to.eql(0);",
+              "    });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/v1/mobile/driver/auth/delete-account/"
+        },
+        "description": "Soft-deletes the authenticated driver's tenant user after password confirmation.\n\n**Body example (literal):**\n```json\n{\n  \"password\": \"Password@123\"\n}\n```\n\nThis request uses `{{password}}` from the active environment."
+      },
+      "response": [
+        {
+          "name": "Success",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/mobile/driver/auth/delete-account/"
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"status\": 1,\n  \"message\": \"Your account has been deleted successfully.\",\n  \"data\": {}\n}"
+        },
+        {
+          "name": "Wrong password",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"WrongPassword\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/mobile/driver/auth/delete-account/"
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"status\": 0,\n  \"message\": \"Invalid email or password.\",\n  \"data\": {}\n}"
+        },
+        {
+          "name": "Deleted account (already deleted / auth)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/mobile/driver/auth/delete-account/"
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"status\": 0,\n  \"message\": \"This account has already been deleted.\",\n  \"data\": {}\n}"
+        },
+        {
+          "name": "Unauthorized (missing / invalid JWT)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer "
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/mobile/driver/auth/delete-account/"
+            }
+          },
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"status\": 2,\n  \"message\": \"Unauthorized\",\n  \"data\": {}\n}"
+        }
+      ]
+    }
+  ]
+}

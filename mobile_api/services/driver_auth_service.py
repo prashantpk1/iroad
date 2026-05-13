@@ -12,6 +12,7 @@ Multi-tenant aware:
 """
 import secrets
 import logging
+from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.hashers import check_password, make_password
 from django.utils.translation import gettext as _
@@ -652,6 +653,114 @@ def driver_reset_password(
     )
 
     return {'success': True}
+
+
+def _tenant_schema_from_driver_request(request) -> str:
+    """Resolve tenant schema from ``request.tenant`` or verified Bearer access token."""
+    tenant = getattr(request, 'tenant', None)
+    schema = (getattr(tenant, 'schema_name', None) or '').strip()
+    if schema:
+        return schema
+    try:
+        from mobile_api.helpers.auth import (
+            TOKEN_TYPE_ACCESS,
+            get_token_from_request,
+            verify_token,
+        )
+
+        token = get_token_from_request(request)
+        if not token:
+            return ''
+        payload = verify_token(token, expected_type=TOKEN_TYPE_ACCESS)
+        if not payload:
+            return ''
+        return str(payload.get('tenant_schema') or '').strip()
+    except Exception:
+        return ''
+
+
+def _access_token_blacklist_entries_for_user(request, user_id) -> list | None:
+    """
+    Build ``mobile_tokens_to_blacklist`` entries for ``TenantUser.soft_delete``.
+
+    Returns a one-element list ``[{'jti': ..., 'exp': ...}]`` when the Bearer
+    access token is present, valid, and belongs to ``user_id``; otherwise ``None``.
+    """
+    try:
+        from mobile_api.helpers.auth import (
+            TOKEN_TYPE_ACCESS,
+            get_token_from_request,
+            verify_token,
+        )
+
+        token = get_token_from_request(request)
+        if not token:
+            return None
+        payload = verify_token(token, expected_type=TOKEN_TYPE_ACCESS)
+        if not payload:
+            return None
+        if str(payload.get('user_id') or '').strip() != str(user_id).strip():
+            return None
+        jti = str(payload.get('jti') or '').strip()
+        if not jti:
+            return None
+        return [{'jti': jti, 'exp': payload.get('exp')}]
+    except Exception:
+        return None
+
+
+def driver_delete_account(request, tenant_user, password: str) -> dict:
+    """
+    Soft-delete the driver's ``TenantUser`` after password confirmation.
+
+    Uses ``TenantUser.soft_delete()`` only (no hard delete). Blacklists the
+    current access-token JTI when it can be read from ``request``. Sets linked
+    ``DriverMaster.driver_status`` to Inactive (row retained; not soft-deleted).
+
+    Returns:
+        {'success': True, 'message': lazy_str}
+        {'success': False, 'error': lazy_str}
+    """
+    tenant_schema = _tenant_schema_from_driver_request(request)
+    if not tenant_schema:
+        return {'success': False, 'error': _('mobile.auth.unauthorized')}
+
+    try:
+        from tenant_workspace.models import DriverMaster, TenantUser
+
+        with schema_context(tenant_schema):
+            with transaction.atomic():
+                row = (
+                    TenantUser.all_objects.select_for_update()
+                    .filter(pk=tenant_user.pk)
+                    .first()
+                )
+                if row is None:
+                    return {'success': False, 'error': _('mobile.auth.unauthorized')}
+                if getattr(row, 'is_deleted', False):
+                    return {'success': False, 'error': _('mobile.auth.account_already_deleted')}
+                if not check_password(password, row.password_hash):
+                    return {'success': False, 'error': _('mobile.auth.invalid_credentials')}
+
+                mobile_tokens = _access_token_blacklist_entries_for_user(request, row.pk)
+                row.soft_delete(
+                    deleted_by=None,
+                    mobile_tokens_to_blacklist=mobile_tokens,
+                )
+
+                driver = DriverMaster.objects.filter(user_account_id=row.pk).first()
+                if driver is not None:
+                    driver.driver_status = DriverMaster.Status.INACTIVE
+                    driver.updated_at = timezone.now()
+                    driver.save(update_fields=['driver_status', 'updated_at'])
+
+        return {
+            'success': True,
+            'message': _('mobile.auth.account_deleted_success'),
+        }
+    except Exception as exc:
+        logger.error('driver_delete_account error: %s', exc)
+        return {'success': False, 'error': _('mobile.auth.unauthorized')}
 
 
 # ── API 5: Logout ─────────────────────────────────────────────────
