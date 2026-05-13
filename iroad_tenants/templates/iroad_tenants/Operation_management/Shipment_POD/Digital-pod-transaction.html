@@ -91,13 +91,13 @@
                   <label for="documentType" class="form-label"
                     >Doc Type (list)</label
                   >
-                  <select class="form-select" id="documentType">
-                    <option value="" selected disabled>
+                  <select class="form-select" id="documentType" name="document_type">
+                    <option value="" {% if not pod_form_data.document_type %}selected{% endif %} disabled>
                       - Select Doc Type -
                     </option>
-                    <option value="delivery_note">Delivery Note</option>
-                    <option value="invoice">Invoice</option>
-                    <option value="pod">POD</option>
+                    <option value="delivery_note" {% if pod_form_data.document_type == 'delivery_note' %}selected{% endif %}>Delivery Note</option>
+                    <option value="invoice" {% if pod_form_data.document_type == 'invoice' %}selected{% endif %}>Invoice</option>
+                    <option value="pod" {% if pod_form_data.document_type == 'pod' %}selected{% endif %}>POD</option>
                   </select>
                 </div>
               </div>
@@ -125,18 +125,6 @@
               </h3>
               <div class="fields-grid cols-3">
                 <div class="field">
-                  <label for="bookingNo" class="form-label"
-                    >Booking No (list)</label
-                  >
-                  <input type="text" class="form-control" id="bookingNo" name="booking_no" value="{{ pod_form_data.booking_no }}" placeholder="Auto from shipment" readonly />
-                </div>
-                <div class="field">
-                  <label for="bookingItem" class="form-label"
-                    >Booking Item (list)</label
-                  >
-                  <input type="text" class="form-control" id="bookingItem" name="booking_item" value="{{ pod_form_data.booking_item }}" placeholder="Auto from shipment" readonly />
-                </div>
-                <div class="field">
                   <label for="shipmentRef" class="form-label"
                     >Shipment (list)</label
                   >
@@ -149,6 +137,18 @@
                     {% endfor %}
                   </select>
                   {% if form_errors.shipment_ref %}<div class="invalid-feedback d-block">{{ form_errors.shipment_ref }}</div>{% endif %}
+                </div>
+                <div class="field">
+                  <label for="bookingNo" class="form-label"
+                    >Booking No (list)</label
+                  >
+                  <input type="text" class="form-control" id="bookingNo" name="booking_no" value="{{ pod_form_data.booking_no }}" placeholder="Auto from shipment" readonly />
+                </div>
+                <div class="field">
+                  <label for="bookingItem" class="form-label"
+                    >Booking Item (list)</label
+                  >
+                  <input type="text" class="form-control" id="bookingItem" name="booking_item" value="{{ pod_form_data.booking_item }}" placeholder="Auto from shipment" readonly />
                 </div>
               </div>
             </div>
@@ -554,8 +554,8 @@
         const bookingNoInput = document.getElementById("bookingNo");
         const bookingItemInput = document.getElementById("bookingItem");
         if (shipmentRefSelect && docNoInput && bookingNoInput && bookingItemInput) {
-          shipmentRefSelect.addEventListener("change", function () {
-            const option = this.options[this.selectedIndex];
+          function syncShipmentFields() {
+            const option = shipmentRefSelect.options[shipmentRefSelect.selectedIndex];
             if (!option) return;
             const docNo = option.getAttribute("data-doc-no") || "";
             const bookingNo = option.getAttribute("data-booking-no") || "";
@@ -563,7 +563,11 @@
             docNoInput.value = docNo;
             bookingNoInput.value = bookingNo;
             bookingItemInput.value = bookingItem;
-          });
+          }
+          shipmentRefSelect.addEventListener("change", syncShipmentFields);
+          if (shipmentRefSelect.value) {
+            syncShipmentFields();
+          }
         }
 
         // ── POD Status → Lifecycle Tracker ─────────────

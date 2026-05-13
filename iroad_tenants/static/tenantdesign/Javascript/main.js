@@ -515,29 +515,46 @@ function initShipmentDocumentLines() {
     }
   }
 
-  function createLineRow() {
+  function setFieldValue(tr, selector, value) {
+    const field = tr.querySelector(selector);
+    if (!field) return;
+    const safeValue = value || "";
+    if (field.tagName === "SELECT" && safeValue) {
+      const hasOption = Array.from(field.options).some((option) => option.value === safeValue);
+      if (!hasOption) {
+        const option = document.createElement("option");
+        option.value = safeValue;
+        option.textContent = safeValue;
+        field.appendChild(option);
+      }
+    }
+    field.value = safeValue;
+  }
+
+  function createLineRow(lineData) {
+    const data = lineData || {};
     const tr = document.createElement("tr");
     tr.setAttribute("data-sd-line", "true");
     tr.innerHTML = `
       <td data-label="SN"><span data-sn></span></td>
       <td data-label="Doc Ref No">
-        <input type="text" class="form-control form-control-sm" data-field="docRefNo" placeholder="Ref No..." />
+        <input type="text" class="form-control form-control-sm" name="line_doc_ref_no[]" data-field="docRefNo" placeholder="Ref No..." />
       </td>
       <td data-label="Extra Ref">
-        <input type="text" class="form-control form-control-sm" data-field="extraRef" placeholder="Extra Ref..." />
+        <input type="text" class="form-control form-control-sm" name="line_extra_ref[]" data-field="extraRef" placeholder="Extra Ref..." />
       </td>
       <td data-label="Page No">
-        <input type="number" class="form-control form-control-sm" data-field="pageNo" min="1" placeholder="Page No" />
+        <input type="number" class="form-control form-control-sm" name="line_page_no[]" data-field="pageNo" min="1" placeholder="Page No" />
       </td>
       <td data-label="Status">
-        <select class="form-select form-select-sm" data-field="status">
+        <select class="form-select form-select-sm" name="line_status[]" data-field="status">
           <option value="pending" selected>Pending</option>
           <option value="uploaded">Uploaded</option>
           <option value="approved">Approved</option>
         </select>
       </td>
       <td data-label="Physical Location">
-        <select class="form-select form-select-sm" data-field="physicalLocation">
+        <select class="form-select form-select-sm" name="line_physical_location[]" data-field="physicalLocation">
           <option value="" selected disabled>-Select location-</option>
           <option value="not_collected">Not Collected</option>
           <option value="submitted_to_receiver">Submitted to Receiver</option>
@@ -547,7 +564,9 @@ function initShipmentDocumentLines() {
         </select>
       </td>
       <td data-label="Attachment">
-        <input type="file" class="form-control form-control-sm" data-field="attachment" />
+        <input type="file" class="form-control form-control-sm" name="line_attachment[]" data-field="attachment" />
+        <input type="hidden" name="line_existing_attachment_label[]" data-field="existingAttachment" />
+        <div class="text-muted small mt-1" data-existing-attachment></div>
       </td>
       <td data-col="actions" data-label="Actions">
         <button type="button" class="eal-row-btn danger" data-action="delete" title="Delete">
@@ -557,6 +576,16 @@ function initShipmentDocumentLines() {
     `;
 
     tbody.appendChild(tr);
+    setFieldValue(tr, '[name="line_doc_ref_no[]"]', data.doc_ref_no);
+    setFieldValue(tr, '[name="line_extra_ref[]"]', data.extra_ref);
+    setFieldValue(tr, '[name="line_page_no[]"]', data.page_no);
+    setFieldValue(tr, '[name="line_status[]"]', data.status || "pending");
+    setFieldValue(tr, '[name="line_physical_location[]"]', data.physical_location);
+    setFieldValue(tr, '[name="line_existing_attachment_label[]"]', data.attachment_label);
+    const attachmentLabel = tr.querySelector("[data-existing-attachment]");
+    if (attachmentLabel && data.attachment_label) {
+      attachmentLabel.textContent = "Current: " + data.attachment_label;
+    }
     attachRowEvents(tr);
     updateSN();
   }
@@ -565,8 +594,23 @@ function initShipmentDocumentLines() {
     createLineRow();
   });
 
-  // Start with one blank line
-  createLineRow();
+  let initialLines = [];
+  const initialLinesEl = document.getElementById("shipment-document-line-rows");
+  if (initialLinesEl && initialLinesEl.textContent) {
+    try {
+      initialLines = JSON.parse(initialLinesEl.textContent) || [];
+    } catch (e) {
+      initialLines = [];
+    }
+  }
+
+  if (initialLines.length) {
+    initialLines.forEach(function (lineData) {
+      createLineRow(lineData);
+    });
+  } else {
+    createLineRow();
+  }
 }
 
 /* ============================================

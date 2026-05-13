@@ -201,7 +201,25 @@
               </thead>
               <tbody>
                 {% for shipment in shipment_records %}
-                <tr>
+                <tr
+                  data-sales-report="{{ shipment.sales_order_ref|default:'' }}"
+                  data-sales-report-status="{{ shipment.sales_invoice_status|default:'' }}"
+                  data-sales-order-item="{{ shipment.sales_order_item_ref|default:'' }}"
+                  data-cod-amount="{{ shipment.cod_amount|floatformat:2 }}"
+                  data-cod-payment-status="{% if shipment.order_type == 'COD' or shipment.cod_amount %}{{ shipment.collection_status }}{% else %}Not Applicable{% endif %}"
+                  data-booking-item="{{ shipment.booking_item_ref|default:'' }}"
+                  data-booking-item-type="{{ shipment.booking_item_type|default:'' }}"
+                  data-sourcing-mode="{{ shipment.sourcing_mode|default:'' }}"
+                  data-trip-type="{{ shipment.trip_type|default:'' }}"
+                  data-from-location="{{ shipment.from_location|default:'' }}"
+                  data-to-location="{{ shipment.to_location|default:'' }}"
+                  data-pod-type="{{ shipment.pod_type|default:'' }}"
+                  data-pod-status="{{ shipment.pod_status|default:'' }}"
+                  data-pod-doc-count="{{ shipment.pod_doc_count|default:0 }}"
+                  data-truck="{{ shipment.truck.truck_code|default:'' }}"
+                  data-driver="{{ shipment.driver_ref|default:'' }}"
+                  data-detail-url="{% url 'iroad_tenants:tenant_operation_shipment_detail' shipment.shipment_id %}"
+                >
                   <td class="eal-col-check">
                     <input type="checkbox" class="eal-custom-check" />
                   </td>
@@ -231,10 +249,26 @@
                         <i class="bi bi-three-dots-vertical"></i>
                       </button>
                       <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0">
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-pencil text-primary me-2"></i> Edit</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-eye text-info me-2"></i> View</a></li>
-                        <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_shipment_print' shipment.shipment_id %}" target="_blank" rel="noopener"><i class="bi bi-printer me-2"></i> Print</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-repeat text-secondary me-2"></i> Update</a></li>
+                        <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_shipment_edit' shipment.shipment_id %}"><i class="bi bi-pencil text-primary me-2"></i> Edit</a></li>
+                        <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_shipment_detail' shipment.shipment_id %}"><i class="bi bi-eye text-info me-2"></i> View</a></li>
+                        <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_shipment_print' shipment.shipment_id %}" target="_blank" rel="noopener"><i class="bi bi-printer text-success me-2"></i> Print</a></li>
+                        <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_shipment_update' shipment.shipment_id %}"><i class="bi bi-arrow-repeat text-secondary me-2"></i> Update</a></li>
+                        <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_shipment_edit' shipment.shipment_id %}#shipment-address-section"><i class="bi bi-pin-map text-success me-2"></i> Update Address</a></li>
+                        <li><a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_shipment_edit' shipment.shipment_id %}#shipment-cargo-section"><i class="bi bi-box-seam text-warning me-2"></i> Update Cargo</a></li>
+                        <li>
+                          {% if shipment.booking_action_id %}
+                          <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_booking_assign_truck' shipment.booking_action_id %}"><i class="bi bi-truck text-info me-2"></i> Update Truck</a>
+                          {% else %}
+                          <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_shipment_edit' shipment.shipment_id %}#shipment-booking-section"><i class="bi bi-truck text-info me-2"></i> Update Truck</a>
+                          {% endif %}
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                          <form method="post" action="{% url 'iroad_tenants:tenant_operation_shipment_delete' shipment.shipment_id %}" onsubmit="return confirm('Delete shipment {{ shipment.shipment_no }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item text-danger"><i class="bi bi-trash3 me-2"></i> Delete</button>
+                          </form>
+                        </li>
                       </ul>
                     </div>
                   </td>
@@ -342,6 +376,10 @@
             <span class="detail-field-value" id="dpCodAmount">&mdash;</span>
           </div>
           <div class="detail-field">
+            <span class="detail-field-label">COD Payment Status (auto Update)</span>
+            <span class="detail-field-value" id="dpCodPaymentStatus">&mdash;</span>
+          </div>
+          <div class="detail-field">
             <span class="detail-field-label">POD Type</span>
             <span class="detail-field-value" id="dpPodType">&mdash;</span>
           </div>
@@ -397,35 +435,22 @@
 
         <!-- Section: Sales Order Information -->
         <div class="detail-section">
-          <h3 class="detail-section-title">Sales Order Information</h3>
+          <h3 class="detail-section-title">Sales Report Information</h3>
           <div class="detail-field">
             <span class="detail-field-label">Client Account</span>
             <span class="detail-field-value" id="dpClientAccount">&mdash;</span>
           </div>
           <div class="detail-field">
-            <span class="detail-field-label">Sales Order</span>
+            <span class="detail-field-label">Sales Report</span>
             <span class="detail-field-value" id="dpSalesOrder">&mdash;</span>
+          </div>
+          <div class="detail-field">
+            <span class="detail-field-label">Sales Report Status</span>
+            <span class="detail-field-value" id="dpSalesReportStatus">&mdash;</span>
           </div>
           <div class="detail-field">
             <span class="detail-field-label">SO Item</span>
             <span class="detail-field-value" id="dpSoItem">&mdash;</span>
-          </div>
-        </div>
-
-        <!-- Section: Purchase Order Information -->
-        <div class="detail-section">
-          <h3 class="detail-section-title">Purchase Order Information</h3>
-          <div class="detail-field">
-            <span class="detail-field-label">Vendor Account</span>
-            <span class="detail-field-value" id="dpVendorAccount">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Purchase Order</span>
-            <span class="detail-field-value" id="dpPurchaseOrder">&mdash;</span>
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">PO Item</span>
-            <span class="detail-field-value" id="dpPoItem">&mdash;</span>
           </div>
         </div>
 
@@ -452,12 +477,6 @@
           <div class="detail-field">
             <span class="detail-field-label">Sales Billing Status</span>
             <span class="detail-field-value" id="dpSalesBillingStatus"
-              >&mdash;</span
-            >
-          </div>
-          <div class="detail-field">
-            <span class="detail-field-label">Purchase Invoice</span>
-            <span class="detail-field-value" id="dpPurchaseInvoice"
               >&mdash;</span
             >
           </div>
@@ -526,6 +545,21 @@
           return el ? el.textContent.trim() : "\u2014";
         }
 
+        function detailValue(value) {
+          const normalized = value ? value.trim() : "";
+          return normalized || "\u2014";
+        }
+
+        function formatStatus(value) {
+          const normalized = detailValue(value);
+          if (normalized === "\u2014") return normalized;
+          return normalized
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, function (char) {
+              return char.toUpperCase();
+            });
+        }
+
         function openPanel() {
           panel.classList.add("active");
           overlay.classList.add("active");
@@ -544,13 +578,13 @@
 
         function populatePanel(row) {
           const cells = row.querySelectorAll("td");
-          // cells index: 0=check, 1=shipmentNo, 2=orderType,
-          //              3=shipmentDate, 4=clientAccount, 5=booking,
-          //              6=shipmentStatus, 7=collectionStatus, 8=actions
+          // cells index: 0=check, 1=shipmentNo, 2=date, 3=status,
+          //              4=clientAccount, 5=booking, 6=type,
+          //              7=route, 8=collectionStatus, 9=actions
 
           document.getElementById("dpShipmentNo").textContent = txt(cells[1]);
-          document.getElementById("dpOrderType").textContent = txt(cells[2]);
-          document.getElementById("dpShipmentDate").textContent = txt(cells[3]);
+          document.getElementById("dpOrderType").textContent = txt(cells[6]);
+          document.getElementById("dpShipmentDate").textContent = txt(cells[2]);
 
           // Client Account: combine name + sub account id if available
           let clientAccountText = "\u2014";
@@ -575,8 +609,8 @@
           document.getElementById("dpBooking").textContent = txt(cells[5]);
 
           // Shipment Status badge
-          const shipmentStatusBadge = cells[6]
-            ? cells[6].querySelector(".status-badge")
+          const shipmentStatusBadge = cells[3]
+            ? cells[3].querySelector(".status-badge")
             : null;
           const shipmentStatusEl = document.getElementById("dpShipmentStatus");
           if (shipmentStatusBadge) {
@@ -584,12 +618,12 @@
             const clone = shipmentStatusBadge.cloneNode(true);
             shipmentStatusEl.appendChild(clone);
           } else {
-            shipmentStatusEl.textContent = txt(cells[6]);
+            shipmentStatusEl.textContent = txt(cells[3]);
           }
 
           // Collection Status badge
-          const collectionStatusBadge = cells[7]
-            ? cells[7].querySelector(".status-badge")
+          const collectionStatusBadge = cells[8]
+            ? cells[8].querySelector(".status-badge")
             : null;
           const collectionStatusEl =
             document.getElementById("dpCollectionStatus");
@@ -598,31 +632,58 @@
             const clone = collectionStatusBadge.cloneNode(true);
             collectionStatusEl.appendChild(clone);
           } else {
-            collectionStatusEl.textContent = txt(cells[7]);
+            collectionStatusEl.textContent = txt(cells[8]);
           }
 
           // Set empty placeholders for fields not in table
-          document.getElementById("dpCodAmount").textContent = "\u2014";
-          document.getElementById("dpPodType").textContent = "\u2014";
-          document.getElementById("dpPodStatus").textContent = "\u2014";
-          document.getElementById("dpPodDocCount").textContent = "\u2014";
-          document.getElementById("dpBookingItem").textContent = "\u2014";
-          document.getElementById("dpBookingItemType").textContent = "\u2014";
-          document.getElementById("dpSourcingMode").textContent = "\u2014";
-          document.getElementById("dpTripType").textContent = "\u2014";
-          document.getElementById("dpFromLocation").textContent = "\u2014";
-          document.getElementById("dpToLocation").textContent = "\u2014";
-          document.getElementById("dpSalesOrder").textContent = "\u2014";
-          document.getElementById("dpSoItem").textContent = "\u2014";
-          document.getElementById("dpVendorAccount").textContent = "\u2014";
-          document.getElementById("dpPurchaseOrder").textContent = "\u2014";
-          document.getElementById("dpPoItem").textContent = "\u2014";
-          document.getElementById("dpTruck").textContent = "\u2014";
-          document.getElementById("dpDriver").textContent = "\u2014";
+          document.getElementById("dpCodAmount").textContent = detailValue(
+            row.dataset.codAmount
+          );
+          document.getElementById("dpCodPaymentStatus").textContent =
+            detailValue(row.dataset.codPaymentStatus);
+          document.getElementById("dpPodType").textContent = detailValue(
+            row.dataset.podType
+          );
+          document.getElementById("dpPodStatus").textContent = detailValue(
+            row.dataset.podStatus
+          );
+          document.getElementById("dpPodDocCount").textContent = detailValue(
+            row.dataset.podDocCount
+          );
+          document.getElementById("dpBookingItem").textContent = detailValue(
+            row.dataset.bookingItem
+          );
+          document.getElementById("dpBookingItemType").textContent =
+            detailValue(row.dataset.bookingItemType);
+          document.getElementById("dpSourcingMode").textContent = detailValue(
+            row.dataset.sourcingMode
+          );
+          document.getElementById("dpTripType").textContent = detailValue(
+            row.dataset.tripType
+          );
+          document.getElementById("dpFromLocation").textContent = detailValue(
+            row.dataset.fromLocation
+          );
+          document.getElementById("dpToLocation").textContent = detailValue(
+            row.dataset.toLocation
+          );
+          document.getElementById("dpSalesOrder").textContent = detailValue(
+            row.dataset.salesReport
+          );
+          document.getElementById("dpSalesReportStatus").textContent =
+            formatStatus(row.dataset.salesReportStatus);
+          document.getElementById("dpSoItem").textContent = detailValue(
+            row.dataset.salesOrderItem
+          );
+          document.getElementById("dpTruck").textContent = detailValue(
+            row.dataset.truck
+          );
+          document.getElementById("dpDriver").textContent = detailValue(
+            row.dataset.driver
+          );
           document.getElementById("dpSalesInvoice").textContent = "\u2014";
           document.getElementById("dpSalesBillingStatus").textContent =
             "\u2014";
-          document.getElementById("dpPurchaseInvoice").textContent = "\u2014";
           document.getElementById("dpPurchaseBillingStatus").textContent =
             "\u2014";
           document.getElementById("dpAdditionalCharges").textContent = "\u2014";
@@ -647,7 +708,6 @@
         rows.forEach(function (row, idx) {
           row.style.cursor = "pointer";
           row.addEventListener("click", function (e) {
-            // Don't trigger on checkbox or action button clicks
             if (
               e.target.closest(".eal-col-check") ||
               e.target.closest(".eal-actions-cell") ||
@@ -655,9 +715,9 @@
             ) {
               return;
             }
-            currentIndex = idx;
-            showRow(currentIndex);
-            openPanel();
+            if (row.dataset.detailUrl) {
+              window.location.href = row.dataset.detailUrl;
+            }
           });
         });
 

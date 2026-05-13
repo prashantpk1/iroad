@@ -20,15 +20,15 @@
           <div class="page-header-left">
             <h1 class="page-title">Booking</h1>
             <p class="page-subtitle">
-              Create or edit a booking. Link to Sales Order and optionally
-              Purchase Order (External sourcing).
+              {% if booking_is_edit %}Edit booking details.{% else %}Create or edit a booking and link operational details.{% endif %}
             </p>
           </div>
         </div>
       </div>
 
       <!-- Booking Form -->
-      <form id="bookingForm">
+      <form id="bookingForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
         <!-- Section 1: Booking Information (Header) -->
         <div class="form-card" data-section="1">
           <div class="form-card-header">
@@ -82,6 +82,7 @@
                     class="form-control"
                     id="bookingDate"
                     name="booking_date"
+                    value="{{ booking_form_data.booking_date|default:'' }}"
                     required
                   />
                 </div>
@@ -105,6 +106,7 @@
                     class="form-control"
                     id="executionDate"
                     name="execution_date"
+                    value="{{ booking_form_data.execution_date|default:'' }}"
                     required
                   />
                   <span class="field-hint"
@@ -122,48 +124,9 @@
                     name="booking_status"
                     required
                   >
-                    <option value="Draft" selected>Draft</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                </div>
-              </div>
-              <div class="fields-grid cols-2">
-                <div class="field">
-                  <label for="salesReportLookup" class="form-label"
-                    >Sales Report
-                    <span class="required">*</span>
-                  </label>
-                  <select
-                    class="form-select"
-                    id="salesReportLookup"
-                    name="sales_report_lookup"
-                  >
-                    <option value="" selected disabled>
-                      -Select sales report-
-                    </option>
-                    {% for price_list in booking_price_lists %}
-                    <option value="{{ price_list.price_list_id }}">
-                      {{ price_list.price_list_code }} - {{ price_list.price_list_name }}
-                    </option>
-                    {% endfor %}
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="salesReportStatus" class="form-label"
-                    >Sales Report Status
-                    <span class="required">*</span>
-                  </label>
-                  <select
-                    class="form-select"
-                    id="salesReportStatus"
-                    name="sales_report_status"
-                  >
-                    <option value="" selected disabled>
-                      -Select sales report status-
-                    </option>
-                    <option value="issued">Issued</option>
-                    <option value="not_issued">Not Issued</option>
+                    <option value="Draft" {% if booking_form_data.booking_status == 'Draft' or not booking_form_data.booking_status %}selected{% endif %}>Draft</option>
+                    <option value="Confirmed" {% if booking_form_data.booking_status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                    <option value="Cancelled" {% if booking_form_data.booking_status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
                   </select>
                 </div>
               </div>
@@ -175,7 +138,11 @@
                       -Select POD type-
                     </option>
                     {% for pod_type in booking_pod_type_options %}
-                    <option value="{{ pod_type|lower }}">{{ pod_type }}</option>
+                    <option value="{{ pod_type|lower }}" {% if booking_form_data.pod_type == pod_type|lower %}selected{% endif %}>{{ pod_type }}</option>
+                    {% empty %}
+                    <option value="signature" {% if booking_form_data.pod_type == 'signature' %}selected{% endif %}>Signature</option>
+                    <option value="photo" {% if booking_form_data.pod_type == 'photo' %}selected{% endif %}>Photo</option>
+                    <option value="digital" {% if booking_form_data.pod_type == 'digital' %}selected{% endif %}>Digital</option>
                     {% endfor %}
                   </select>
                 </div>
@@ -186,7 +153,11 @@
                       -Select POD status-
                     </option>
                     {% for pod_status in booking_pod_status_options %}
-                    <option value="{{ pod_status|lower }}">{{ pod_status }}</option>
+                    <option value="{{ pod_status|lower }}" {% if booking_form_data.pod_status == pod_status|lower %}selected{% endif %}>{{ pod_status }}</option>
+                    {% empty %}
+                    <option value="pending" {% if booking_form_data.pod_status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="received" {% if booking_form_data.pod_status == 'received' %}selected{% endif %}>Received</option>
+                    <option value="verified" {% if booking_form_data.pod_status == 'verified' %}selected{% endif %}>Verified</option>
                     {% endfor %}
                   </select>
                 </div>
@@ -237,7 +208,7 @@
                       -Select client account-
                     </option>
                     {% for account in booking_client_accounts %}
-                    <option value="{{ account.account_id }}">
+                    <option value="{{ account.account_id }}" {% if booking_form_data.client_account == account.account_id|stringformat:'s' %}selected{% endif %}>
                       {{ account.account_no }} - {{ account.display_name }}
                     </option>
                     {% endfor %}
@@ -264,6 +235,7 @@
                     <option
                       value="{{ price_list.price_list_id }}"
                       data-client-account-id="{{ price_list.client_account_id }}"
+                      {% if booking_form_data.sales_order_no == price_list.price_list_id|stringformat:'s' %}selected{% endif %}
                     >
                       {{ price_list.price_list_code }} - {{ price_list.price_list_name }}
                     </option>
@@ -290,6 +262,7 @@
                       data-route-id="{{ service_item.route_id }}"
                       data-service-type="{{ service_item.service_type }}"
                       data-base-sell-price="{{ service_item.base_sell_price }}"
+                      {% if booking_form_data.service_lookup == service_item.service_item_id|stringformat:'s' %}selected{% endif %}
                     >
                       {{ service_item.service_code }} - {{ service_item.english_name }}
                     </option>
@@ -318,19 +291,21 @@
                       value="{{ route.route_id }}|forward"
                       data-route-id="{{ route.route_id }}"
                       data-direction="forward"
-                      data-forward-label="{{ route.origin_point.location_name_english|default:route.origin_point.display_label }} To {{ route.destination_point.location_name_english|default:route.destination_point.display_label }}"
-                      data-reverse-label="{{ route.destination_point.location_name_english|default:route.destination_point.display_label }} To {{ route.origin_point.location_name_english|default:route.origin_point.display_label }}"
+                      data-forward-label="{{ route.origin_point.display_label }} To {{ route.destination_point.display_label }}"
+                      data-reverse-label="{{ route.destination_point.display_label }} To {{ route.origin_point.display_label }}"
+                      {% if booking_form_data.route_lookup == route.route_id|stringformat:'s'|add:'|forward' %}selected{% endif %}
                     >
-                      {{ route.origin_point.location_name_english|default:route.origin_point.display_label }} To {{ route.destination_point.location_name_english|default:route.destination_point.display_label }}
+                      {{ route.origin_point.display_label }} To {{ route.destination_point.display_label }}
                     </option>
                     <option
                       value="{{ route.route_id }}|reverse"
                       data-route-id="{{ route.route_id }}"
                       data-direction="reverse"
-                      data-forward-label="{{ route.origin_point.location_name_english|default:route.origin_point.display_label }} To {{ route.destination_point.location_name_english|default:route.destination_point.display_label }}"
-                      data-reverse-label="{{ route.destination_point.location_name_english|default:route.destination_point.display_label }} To {{ route.origin_point.location_name_english|default:route.origin_point.display_label }}"
+                      data-forward-label="{{ route.origin_point.display_label }} To {{ route.destination_point.display_label }}"
+                      data-reverse-label="{{ route.destination_point.display_label }} To {{ route.origin_point.display_label }}"
+                      {% if booking_form_data.route_lookup == route.route_id|stringformat:'s'|add:'|reverse' %}selected{% endif %}
                     >
-                      {{ route.destination_point.location_name_english|default:route.destination_point.display_label }} To {{ route.origin_point.location_name_english|default:route.origin_point.display_label }}
+                      {{ route.destination_point.display_label }} To {{ route.origin_point.display_label }}
                     </option>
                     {% endfor %}
                   </select>
@@ -350,7 +325,7 @@
                       -Select order type-
                     </option>
                     {% for order_type in booking_order_type_options %}
-                    <option value="{{ order_type }}">{{ order_type }}</option>
+                    <option value="{{ order_type }}" {% if booking_form_data.order_type == order_type %}selected{% endif %}>{{ order_type }}</option>
                     {% endfor %}
                   </select>
                   <span class="field-hint">List values: COD, Credit</span>
@@ -369,7 +344,7 @@
                       -Select trip type-
                     </option>
                     {% for trip_type in booking_trip_type_options %}
-                    <option value="{{ trip_type }}">{{ trip_type }}</option>
+                    <option value="{{ trip_type }}" {% if booking_form_data.trip_type == trip_type %}selected{% endif %}>{{ trip_type }}</option>
                     {% endfor %}
                   </select>
                 </div>
@@ -386,6 +361,7 @@
                     id="sellUnitPrice"
                     name="sell_price"
                     readonly
+                    value="{{ booking_form_data.sell_price|default:'' }}"
                     placeholder="Enter or derive sell price"
                   />
                 </div>
@@ -590,17 +566,17 @@
                     <tr>
                       <td>1</td>
                       <td>
-                        <select class="form-select">
+                        <select class="form-select" name="cargo_booking_item_1">
                           <option value="" selected disabled>
                             -Select booking line-
                           </option>
                           {% for line_type in booking_line_type_options %}
-                          <option value="{{ line_type }}">{{ line_type }}</option>
+                          <option value="{{ line_type }}" {% if booking_form_data.cargo_booking_item_1 == line_type %}selected{% endif %}>{{ line_type }}</option>
                           {% endfor %}
                         </select>
                       </td>
                       <td>
-                        <select class="form-select">
+                        <select class="form-select" name="cargo_id_1">
                           <option value="" selected disabled>
                             -Select cargo-
                           </option>
@@ -608,6 +584,7 @@
                           <option
                             value="{{ cargo.cargo_id }}"
                             data-client-account-id="{{ cargo.client_account_id }}"
+                            {% if booking_form_data.cargo_id_1 == cargo.cargo_id|stringformat:'s' %}selected{% endif %}
                           >
                             {{ cargo.cargo_code }} - {{ cargo.display_name }}
                           </option>
@@ -618,20 +595,22 @@
                         <input
                           type="number"
                           class="form-control cargo-weight-input"
+                          name="cargo_weight_1"
                           min="0"
                           step="0.01"
-                          value=""
+                          value="{{ booking_form_data.cargo_weight_1|default:'' }}"
                         />
                       </td>
                       <td>
-                        <input type="text" class="form-control" value="" />
+                        <input type="text" class="form-control" name="cargo_unit_1" value="{{ booking_form_data.cargo_unit_1|default:'' }}" />
                       </td>
                       <td>
                         <input
                           type="number"
                           class="form-control cargo-qty-input"
+                          name="cargo_qty_1"
                           min="0"
-                          value=""
+                          value="{{ booking_form_data.cargo_qty_1|default:'' }}"
                         />
                       </td>
                     </tr>
@@ -647,8 +626,9 @@
                 <input
                   type="number"
                   id="totalCargoQty"
+                  name="total_cargo_qty"
                   class="form-control"
-                  value="0"
+                  value="{{ booking_form_data.total_cargo_qty|default:'0' }}"
                   readonly
                 />
               </div>
@@ -659,8 +639,9 @@
                 <input
                   type="number"
                   id="totalCargoWeight"
+                  name="total_cargo_weight"
                   class="form-control"
-                  value="0"
+                  value="{{ booking_form_data.total_cargo_weight|default:'0.00' }}"
                   readonly
                 />
               </div>
@@ -690,6 +671,7 @@
                     class="form-control"
                     id="containerNo"
                     name="container_no"
+                    value="{{ booking_form_data.container_no|default:'' }}"
                     placeholder="Enter container number"
                   />
                 </div>
@@ -703,6 +685,9 @@
                     id="bookingAttachment"
                     name="booking_attachment"
                   />
+                  {% if booking and booking.booking_attachment %}
+                  <span class="field-hint">Current: {{ booking.booking_attachment.name }}</span>
+                  {% endif %}
                 </div>
               </div>
               <div class="fields-grid cols-1">
@@ -716,12 +701,16 @@
                     name="booking_instructions"
                     rows="4"
                     placeholder="Add special instructions for operations team..."
-                  ></textarea>
+                  >{{ booking_form_data.booking_instructions|default:'' }}</textarea>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        <input type="hidden" id="assignedTruckId" name="assigned_truck_id" value="{{ booking_form_data.booking_line_truck_1|default:'' }}" />
+        <input type="hidden" id="assignedDriverId" name="assigned_driver_id" value="{{ booking_form_data.booking_line_driver_1|default:'' }}" />
+        <input type="hidden" id="selectedCargoId" name="cargo_id" value="{{ booking_form_data.cargo_id_1|default:'' }}" />
 
         <!-- Form Actions -->
         <div class="form-actions-bar">
@@ -734,7 +723,7 @@
           <div class="form-actions-right">
             <button type="submit" class="btn btn-primary">
               <i class="bi bi-check-circle"></i>
-              Save Booking
+              {% if booking_is_edit %}Update Booking{% else %}Save Booking{% endif %}
             </button>
           </div>
         </div>
@@ -831,7 +820,7 @@
             var qty = qtyInput ? Number(qtyInput.value || "0") : 0;
             var wt = wtInput ? Number(wtInput.value || "0") : 0;
             grandQty += qty;
-            grandWeight += wt;
+            grandWeight += qty * wt;
           });
 
           totalCargoQty.value = grandQty;
@@ -858,10 +847,14 @@
           {% endfor %}
         ];
         var driverOptions = [
-          {% for d in booking_driver_ids %}
-          { value: "{{ d|escapejs }}", label: "{{ d|escapejs }}" },
+          {% for d in booking_drivers %}
+          { value: "{{ d.driver_id }}", label: "{{ d.driver_code|escapejs }} - {{ d.arabic_name|escapejs }}" },
           {% endfor %}
         ];
+        var selectedBookingLineTruck = "{{ booking_form_data.booking_line_truck_1|default:''|escapejs }}";
+        var selectedBookingLineDriver = "{{ booking_form_data.booking_line_driver_1|default:''|escapejs }}";
+        var selectedBookingLineCod = "{{ booking_form_data.booking_line_cod_amount_1|default:''|escapejs }}";
+        var selectedBookingLinePodDocs = "{{ booking_form_data.booking_line_pod_doc_count_1|default:''|escapejs }}";
         var serviceSellOverrides = {};
         var tripSellOverrides = {};
         try {
@@ -911,6 +904,7 @@
         function applyPriceListFilter() {
           if (!clientAccountSelect || !priceListSelect) return;
           var selectedClientId = clientAccountSelect.value || "";
+          var previousPriceList = priceListSelect.value || "";
           var visibleCount = 0;
           Array.prototype.forEach.call(priceListSelect.options, function (opt, idx) {
             if (idx === 0) {
@@ -922,7 +916,6 @@
             opt.hidden = !isVisible;
             if (isVisible) visibleCount += 1;
           });
-          resetSelectToPlaceholder(priceListSelect);
           if (serviceSelect) {
             resetSelectToPlaceholder(serviceSelect);
           }
@@ -932,10 +925,20 @@
           }
           applyAddressAndCargoFilter();
           rebuildBookingLines();
-          if (!priceListSelect.disabled && autoSelectSingleVisibleOption(priceListSelect)) {
+          var previousPriceOption = previousPriceList
+            ? priceListSelect.querySelector("option[value='" + previousPriceList + "']")
+            : null;
+          if (!priceListSelect.disabled && previousPriceOption && !previousPriceOption.hidden) {
+            priceListSelect.value = previousPriceList;
             applyServiceFilter();
             deriveSellPrice();
-          } else if (sellPriceInput) {
+          } else {
+            resetSelectToPlaceholder(priceListSelect);
+          }
+          if (!priceListSelect.disabled && priceListSelect.selectedIndex <= 0 && autoSelectSingleVisibleOption(priceListSelect)) {
+            applyServiceFilter();
+            deriveSellPrice();
+          } else if (priceListSelect.selectedIndex <= 0 && sellPriceInput) {
             sellPriceInput.value = "";
           }
         }
@@ -943,6 +946,7 @@
         function applyServiceFilter() {
           if (!priceListSelect || !serviceSelect) return;
           var selectedPriceListId = priceListSelect.value || "";
+          var previousService = serviceSelect.value || "";
           var visibleCount = 0;
           Array.prototype.forEach.call(serviceSelect.options, function (opt, idx) {
             if (idx === 0) {
@@ -957,13 +961,22 @@
             opt.hidden = !isVisible;
             if (isVisible) visibleCount += 1;
           });
-          resetSelectToPlaceholder(serviceSelect);
           serviceSelect.disabled = !selectedPriceListId || visibleCount === 0;
           rebuildBookingLines();
-          if (!serviceSelect.disabled && autoSelectSingleVisibleOption(serviceSelect)) {
+          var previousServiceOption = previousService
+            ? serviceSelect.querySelector("option[value='" + previousService + "']")
+            : null;
+          if (!serviceSelect.disabled && previousServiceOption && !previousServiceOption.hidden) {
+            serviceSelect.value = previousService;
             syncRouteFromService();
             deriveSellPrice();
-          } else if (sellPriceInput) {
+          } else {
+            resetSelectToPlaceholder(serviceSelect);
+          }
+          if (!serviceSelect.disabled && serviceSelect.selectedIndex <= 0 && autoSelectSingleVisibleOption(serviceSelect)) {
+            syncRouteFromService();
+            deriveSellPrice();
+          } else if (serviceSelect.selectedIndex <= 0 && sellPriceInput) {
             sellPriceInput.value = "";
           }
         }
@@ -994,8 +1007,9 @@
             }
           });
 
-          var cargoSelect = document.querySelector("#cargoTable tbody tr select:nth-of-type(2)");
+          var cargoSelect = document.querySelector("select[name='cargo_id_1']");
           if (cargoSelect) {
+            var previousCargo = cargoSelect.value || "";
             var cargoVisibleCount = 0;
             Array.prototype.forEach.call(cargoSelect.options, function (opt, idx) {
               if (idx === 0) {
@@ -1007,10 +1021,17 @@
               opt.hidden = !isVisible;
               if (isVisible) cargoVisibleCount += 1;
             });
-            resetSelectToPlaceholder(cargoSelect);
             cargoSelect.disabled = !selectedClientId || cargoVisibleCount === 0;
             if (!cargoSelect.disabled) {
-              autoSelectSingleVisibleOption(cargoSelect);
+              var previousCargoOption = previousCargo
+                ? cargoSelect.querySelector("option[value='" + previousCargo + "']")
+                : null;
+              if (previousCargoOption && !previousCargoOption.hidden) {
+                cargoSelect.value = previousCargo;
+              } else {
+                resetSelectToPlaceholder(cargoSelect);
+                autoSelectSingleVisibleOption(cargoSelect);
+              }
             }
           }
         }
@@ -1020,7 +1041,7 @@
           var selectors = [
             "select[name='loading_booking_item_1']",
             "select[name='delivery_booking_item_1']",
-            "#cargoTable tbody tr select:first-of-type"
+            "select[name='cargo_booking_item_1']"
           ];
           selectors.forEach(function (selector) {
             var selectEl = document.querySelector(selector);
@@ -1056,6 +1077,24 @@
             html += "<option value='" + opt.value + "'>" + opt.label + "</option>";
           });
           return html;
+        }
+
+        function syncBookingForeignKeyFields() {
+          var truckSelect = document.querySelector("select[name='booking_line_truck_1']");
+          var driverSelect = document.querySelector("select[name='booking_line_driver_1']");
+          var cargoSelect = document.querySelector("select[name='cargo_id_1']");
+          var assignedTruckInput = document.getElementById("assignedTruckId");
+          var assignedDriverInput = document.getElementById("assignedDriverId");
+          var selectedCargoInput = document.getElementById("selectedCargoId");
+          if (assignedTruckInput && truckSelect) {
+            assignedTruckInput.value = truckSelect.value || "";
+          }
+          if (assignedDriverInput && driverSelect) {
+            assignedDriverInput.value = driverSelect.value || "";
+          }
+          if (selectedCargoInput && cargoSelect) {
+            selectedCargoInput.value = cargoSelect.value || "";
+          }
         }
 
         function rebuildBookingLines() {
@@ -1096,13 +1135,22 @@
               + "<td>" + lineType + "</td>"
               + "<td><span class='status-badge status-active'>Draft</span></td>"
               + "<td>" + routeLabelForLine + "</td>"
-              + "<td><select class='form-select form-select-sm'>" + buildOptionsHtml(truckOptions, "-Select truck-") + "</select></td>"
-              + "<td><select class='form-select form-select-sm'>" + buildOptionsHtml(driverOptions, "-Select driver-") + "</select></td>"
-              + "<td class='cod-col'><input type='number' min='0' step='0.01' class='form-control form-control-sm booking-line-cod-input' value='' /></td>"
-              + "<td><input type='number' min='0' class='form-control form-control-sm' value='' /></td>"
+              + "<td><select class='form-select form-select-sm booking-line-truck-select' name='booking_line_truck_" + (idx + 1) + "'>" + buildOptionsHtml(truckOptions, "-Select truck-") + "</select></td>"
+              + "<td><select class='form-select form-select-sm booking-line-driver-select' name='booking_line_driver_" + (idx + 1) + "'>" + buildOptionsHtml(driverOptions, "-Select driver-") + "</select></td>"
+              + "<td class='cod-col'><input type='number' min='0' step='0.01' name='booking_line_cod_amount_" + (idx + 1) + "' class='form-control form-control-sm booking-line-cod-input' value='' /></td>"
+              + "<td><input type='number' min='0' name='booking_line_pod_doc_count_" + (idx + 1) + "' class='form-control form-control-sm booking-line-pod-doc-input' value='' /></td>"
               + "</tr>";
           });
           tbody.innerHTML = rowsHtml;
+          var truckSelect = tbody.querySelector("select[name='booking_line_truck_1']");
+          if (truckSelect && selectedBookingLineTruck) truckSelect.value = selectedBookingLineTruck;
+          var driverSelect = tbody.querySelector("select[name='booking_line_driver_1']");
+          if (driverSelect && selectedBookingLineDriver) driverSelect.value = selectedBookingLineDriver;
+          var codInput = tbody.querySelector("input[name='booking_line_cod_amount_1']");
+          if (codInput && selectedBookingLineCod) codInput.value = selectedBookingLineCod;
+          var podDocsInput = tbody.querySelector("input[name='booking_line_pod_doc_count_1']");
+          if (podDocsInput && selectedBookingLinePodDocs) podDocsInput.value = selectedBookingLinePodDocs;
+          syncBookingForeignKeyFields();
         }
 
         function deriveSellPrice() {
@@ -1181,6 +1229,22 @@
             deriveSellPrice();
           }
         }
+        var bookingForm = document.getElementById("bookingForm");
+        if (bookingForm) {
+          bookingForm.addEventListener("submit", syncBookingForeignKeyFields);
+        }
+        document.addEventListener("change", function (event) {
+          if (
+            event.target &&
+            (
+              event.target.matches("select[name='booking_line_truck_1']") ||
+              event.target.matches("select[name='booking_line_driver_1']") ||
+              event.target.matches("select[name='cargo_id_1']")
+            )
+          ) {
+            syncBookingForeignKeyFields();
+          }
+        });
       })();
     </script>
 {% endblock %}

@@ -148,18 +148,23 @@
 
       <li class="form-list-section">Operations</li>
       <li class="form-list-item {% if auto_number_form_code == 'shipment' %}active{% endif %}" data-form="shipment">Shipment</li>
-      <li class="form-list-item" data-form="shipment-documents">
+      <li class="form-list-item {% if auto_number_form_code == 'shipment-documents' %}active{% endif %}" data-form="shipment-documents">
         Shipment Documents
+      </li>
+      <li class="form-list-item {% if auto_number_form_code == 'surcharge-sales-transaction' %}active{% endif %}" data-form="surcharge-sales-transaction">
+        Surcharge Sales Transaction
+      </li>
+      <li class="form-list-item {% if auto_number_form_code == 'shipment-pod-analysis' %}active{% endif %}" data-form="shipment-pod-analysis">
+        Shipment POD Analysis
       </li>
       <li class="form-list-item" data-form="document-handover">
         Document Handover
       </li>
-      <li class="auto-number-nav-item">
-        <a
-          class="form-list-item {% if auto_number_form_code == 'booking' %}active{% endif %}"
-          href="{% url 'iroad_tenants:tenant_auto_number_configuration' %}?form_code=booking"
-          data-form="booking"
-        >Booking</a>
+      <li
+        class="form-list-item {% if auto_number_form_code == 'booking' %}active{% endif %}"
+        data-form="booking"
+      >
+        Booking
       </li>
       <li class="form-list-item" data-form="operation-actions">
         Operation Actions
@@ -250,18 +255,19 @@
             <div class="fields-grid cols-2">
               <div class="field">
                 <label for="nextNumber" class="form-label">
-                  Next Number (Preview)
+                  Next Number
                 </label>
                 <input
                   type="text"
                   class="form-control"
                   id="nextNumber"
+                  name="next_number"
                   value="0001"
-                  readonly
                 />
                 <span class="field-hint">
-                  Preview only. It updates automatically based on Sequence
-                  Format and Number of digits.
+                  The system will assign this number to the next item. You can
+                  enter either the number only (0017) or the full preview
+                  (SH-0017).
                 </span>
               </div>
 
@@ -423,6 +429,22 @@
       nextNumberEl.value = prefix ? (prefix + "-" + core) : core;
     }
 
+    function syncBaseNextNumberFromInput() {
+      const raw = String(nextNumberEl.value || "").trim();
+      const numericMatch = raw.match(/(\d+)(?!.*\d)/);
+      if (numericMatch) {
+        baseNextNumberEl.value = String(Math.max(1, parseInt(numericMatch[1], 10) || 1));
+        return;
+      }
+      const alphaMatch = raw.toUpperCase().match(/[A-Z]+$/);
+      if (!alphaMatch) return;
+      let value = 0;
+      alphaMatch[0].split("").forEach(function (ch) {
+        value = (value * 26) + (ch.charCodeAt(0) - 64);
+      });
+      baseNextNumberEl.value = String(Math.max(1, value || 1));
+    }
+
     function focusActiveFormItem() {
       const activeItem = document.querySelector(".form-list-item.active");
       if (!activeItem) return;
@@ -472,7 +494,9 @@
       if (!ENABLED_FORM_CODES.has(selectedFormCodeEl.value)) {
         event.preventDefault();
         window.alert("Backend save is not enabled for this form yet.");
+        return;
       }
+      syncBaseNextNumberFromInput();
     });
 
     formEl.addEventListener("reset", function () {
@@ -480,6 +504,7 @@
     });
     numberOfDigitsEl.addEventListener("input", refreshPreview);
     sequenceFormatEl.addEventListener("change", refreshPreview);
+    nextNumberEl.addEventListener("input", syncBaseNextNumberFromInput);
     refreshPreview();
     focusActiveFormItem();
 

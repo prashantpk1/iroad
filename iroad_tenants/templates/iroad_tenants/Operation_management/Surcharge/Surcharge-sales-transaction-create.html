@@ -35,7 +35,12 @@
       </div>
 
             <!-- Surcharge Sales Transaction Form -->
-      <form id="surchargeSalesTransactionForm" method="post" enctype="multipart/form-data">
+      <form
+        id="surchargeSalesTransactionForm"
+        method="post"
+        action="{% url 'iroad_tenants:tenant_operation_surcharge_sales_create' %}"
+        enctype="multipart/form-data"
+      >
         {% csrf_token %}
         <input type="hidden" name="surcharge_id" value="{{ surcharge_form_data.surcharge_id|default:'' }}" />
         <input type="hidden" name="page_mode" value="{{ surcharge_form_data.page_mode|default:'create' }}" />
@@ -136,7 +141,7 @@
                   <select class="form-select {% if form_errors.shipment_id %}is-invalid{% endif %}" id="shipmentId" name="shipment_id" required>
                     <option value="" {% if not surcharge_form_data.shipment_id %}selected{% endif %} disabled>-Select shipment-</option>
                     {% for shipment in shipment_options %}
-                    <option value="{{ shipment.shipment_id }}" data-booking="{{ shipment.booking_no|default:'' }}" data-client="{{ shipment.client_account_ref|default:'' }}" data-currency="SAR" {% if surcharge_form_data.shipment_id == shipment.shipment_id|stringformat:'s' %}selected{% endif %}>{{ shipment.shipment_no }}</option>
+                    <option value="{{ shipment.shipment_id }}" data-booking="{{ shipment.booking_no|default:'' }}" data-client="{{ shipment.client_account_ref|default:'' }}" data-currency="{{ shipment.currency|default:'SAR' }}" {% if surcharge_form_data.shipment_id == shipment.shipment_id|stringformat:'s' %}selected{% endif %}>{{ shipment.shipment_no }}</option>
                     {% endfor %}
                   </select>
                   {% if form_errors.shipment_id %}<div class="invalid-feedback d-block">{{ form_errors.shipment_id }}</div>{% endif %}
@@ -210,7 +215,7 @@
                   <select class="form-select {% if form_errors.service_item_id %}is-invalid{% endif %}" id="serviceItemId" name="service_item_id" required>
                     <option value="" {% if not surcharge_form_data.service_item_id %}selected{% endif %} disabled>-Select service item-</option>
                     {% for service in service_options %}
-                    <option value="{{ service.service_item_id }}" data-unit-price="{{ service.sell_price|default:'0.00' }}" {% if surcharge_form_data.service_item_id == service.service_item_id|stringformat:'s' %}selected{% endif %}>{{ service.english_name }}</option>
+                    <option value="{{ service.service_item_id }}" data-unit-price="{{ service.sell_price|default:'0.00' }}" {% if surcharge_form_data.service_item_id == service.service_item_id|stringformat:'s' %}selected{% endif %}>{{ service.service_code }} - {{ service.english_name }}</option>
                     {% endfor %}
                   </select>
                   {% if form_errors.service_item_id %}<div class="invalid-feedback d-block">{{ form_errors.service_item_id }}</div>{% endif %}
@@ -395,27 +400,34 @@
           totalAmountInput.value = (qty * price).toFixed(2);
         }
 
-        shipmentSelect.addEventListener("change", function () {
+        function syncShipmentDetails() {
           var option = shipmentSelect.options[shipmentSelect.selectedIndex];
+          if (!option || !shipmentSelect.value) {
+            bookingInput.value = "";
+            clientInput.value = "";
+            currencyInput.value = "";
+            return;
+          }
           bookingInput.value = option.getAttribute("data-booking") || "";
           clientInput.value = option.getAttribute("data-client") || "";
-          currencyInput.value = option.getAttribute("data-currency") || "";
-        });
-        if (shipmentSelect.value) {
-          var selected = shipmentSelect.options[shipmentSelect.selectedIndex];
-          bookingInput.value = selected.getAttribute("data-booking") || "";
-          clientInput.value = selected.getAttribute("data-client") || "";
-          currencyInput.value = selected.getAttribute("data-currency") || "";
+          currencyInput.value = option.getAttribute("data-currency") || "SAR";
         }
+        shipmentSelect.addEventListener("change", syncShipmentDetails);
+        syncShipmentDetails();
 
-        serviceSelect.addEventListener("change", function () {
+        function syncServicePrice() {
           var option = serviceSelect.options[serviceSelect.selectedIndex];
+          if (!option || !serviceSelect.value) {
+            updateTotal();
+            return;
+          }
           var defaultPrice = option.getAttribute("data-unit-price");
           if (defaultPrice) {
             unitPriceInput.value = parseFloat(defaultPrice).toFixed(2);
-            updateTotal();
           }
-        });
+          updateTotal();
+        }
+        serviceSelect.addEventListener("change", syncServicePrice);
         if (serviceSelect.value) {
           var selectedService = serviceSelect.options[serviceSelect.selectedIndex];
           var selectedPrice = selectedService.getAttribute("data-unit-price");

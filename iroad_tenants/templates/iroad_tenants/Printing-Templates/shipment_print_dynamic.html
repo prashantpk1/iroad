@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Shipment {{ shipment.shipment_no }}</title>
+  <style>
+    @page { size: A4; margin: 12mm; }
+    body { font-family: Arial, sans-serif; color: #1f2937; font-size: 11px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-bottom: 14px; }
+    .brand { font-size: 18px; font-weight: 700; color: #1e40af; }
+    .title { text-align: right; }
+    .title h1 { margin: 0; font-size: 20px; color: #1e40af; }
+    .title .no { margin-top: 6px; font-weight: 700; }
+    .section { margin-top: 12px; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; page-break-inside: avoid; }
+    .section-title { background: #eff6ff; color: #1e40af; font-weight: 700; padding: 8px 10px; border-bottom: 1px solid #dbeafe; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+    .grid.two { grid-template-columns: repeat(2, 1fr); }
+    .field { padding: 8px 10px; border-right: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6; min-height: 48px; }
+    .label { color: #6b7280; font-size: 9px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+    .value { font-size: 12px; font-weight: 600; word-break: break-word; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #e5e7eb; padding: 7px; text-align: left; }
+    th { background: #f9fafb; color: #475569; font-size: 9px; text-transform: uppercase; }
+    .num { text-align: right; }
+    .footer { margin-top: 18px; display: flex; justify-content: space-between; color: #6b7280; font-size: 10px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand">iRoad</div>
+      <div>Shipment Print</div>
+    </div>
+    <div class="title">
+      <h1>Shipment</h1>
+      <div class="no">{{ shipment.shipment_no }}</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Shipment Information</div>
+    <div class="grid">
+      <div class="field"><div class="label">Shipment No.</div><div class="value">{{ shipment.shipment_no }}</div></div>
+      <div class="field"><div class="label">Date</div><div class="value">{{ shipment.shipment_date|date:'d M Y' }}</div></div>
+      <div class="field"><div class="label">Status</div><div class="value">{{ shipment.shipment_status|default:'-' }}</div></div>
+      <div class="field"><div class="label">Order Type</div><div class="value">{{ shipment.order_type|default:'-' }}</div></div>
+      <div class="field"><div class="label">Collection Status</div><div class="value">{{ shipment.collection_status|default:'-' }}</div></div>
+      <div class="field"><div class="label">Created By</div><div class="value">{{ shipment.created_by_label|default:'-' }}</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Booking Information</div>
+    <div class="grid">
+      <div class="field"><div class="label">Client Account</div><div class="value">{{ shipment.client_account_ref|default:'-' }}</div></div>
+      <div class="field"><div class="label">Booking No.</div><div class="value">{{ shipment.booking_no|default:'-' }}</div></div>
+      <div class="field"><div class="label">Booking Item</div><div class="value">{{ shipment.booking_item_ref|default:'-' }}</div></div>
+      <div class="field"><div class="label">Booking Item Type</div><div class="value">{{ shipment.booking_item_type|default:'-' }}</div></div>
+      <div class="field"><div class="label">Sourcing Mode</div><div class="value">{{ shipment.sourcing_mode|default:'-' }}</div></div>
+      <div class="field"><div class="label">Trip Type</div><div class="value">{{ shipment.trip_type|default:'-' }}</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Route & Addresses</div>
+    <div class="grid">
+      <div class="field"><div class="label">Route</div><div class="value">{{ shipment.route_display|default:'-' }}</div></div>
+      <div class="field"><div class="label">Loading Address</div><div class="value">{{ shipment.from_location|default:'-' }}</div></div>
+      <div class="field"><div class="label">Delivery Address</div><div class="value">{{ shipment.to_location|default:'-' }}</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">POD, COD & Billing</div>
+    <div class="grid">
+      <div class="field"><div class="label">POD Type</div><div class="value">{{ shipment.pod_type|default:'-' }}</div></div>
+      <div class="field"><div class="label">POD Status</div><div class="value">{{ shipment.pod_status|default:'-' }}</div></div>
+      <div class="field"><div class="label">POD Doc Count</div><div class="value">{{ shipment.pod_doc_count|default:0 }}</div></div>
+      <div class="field"><div class="label">COD Amount</div><div class="value">{{ shipment.cod_amount|floatformat:2 }}</div></div>
+      <div class="field"><div class="label">COD Payment Status</div><div class="value">{{ cod_payment_status }}</div></div>
+      <div class="field"><div class="label">Additional Charges</div><div class="value">{{ additional_charges|floatformat:2 }}</div></div>
+      <div class="field"><div class="label">Sales Report</div><div class="value">{{ shipment.sales_order_ref|default:'-' }}</div></div>
+      <div class="field"><div class="label">Sales Report Status</div><div class="value">{{ shipment.sales_invoice_status|default:'-' }}</div></div>
+      <div class="field"><div class="label">SO Item</div><div class="value">{{ shipment.sales_order_item_ref|default:'-' }}</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Truck & Driver</div>
+    <div class="grid two">
+      <div class="field"><div class="label">Truck</div><div class="value">{% if shipment.truck %}{{ shipment.truck.truck_code }}{% else %}-{% endif %}</div></div>
+      <div class="field"><div class="label">Driver</div><div class="value">{{ shipment.driver_ref|default:'-' }}</div></div>
+    </div>
+  </div>
+
+  {% if booking %}
+  <div class="section">
+    <div class="section-title">Cargo Information</div>
+    <table>
+      <thead>
+        <tr>
+          <th>SN</th>
+          <th>Booking Item</th>
+          <th>Cargo</th>
+          <th class="num">Weight (Ton)</th>
+          <th>Unit</th>
+          <th class="num">QTY</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>{{ booking.cargo_booking_item|default:'-' }}</td>
+          <td>{% if booking.cargo %}{{ booking.cargo.cargo_code }} - {{ booking.cargo.display_name }}{% else %}-{% endif %}</td>
+          <td class="num">{{ booking.cargo_weight|floatformat:2 }}</td>
+          <td>{{ booking.cargo_unit|default:'-' }}</td>
+          <td class="num">{{ booking.cargo_qty|floatformat:2 }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="grid two">
+      <div class="field"><div class="label">Total Cargo Unit QTY</div><div class="value">{{ booking.total_cargo_qty|floatformat:2 }}</div></div>
+      <div class="field"><div class="label">Total Cargo Weight</div><div class="value">{{ booking.total_cargo_weight|floatformat:2 }}</div></div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="footer">
+    <span>Generated from iRoad Tenant Portal</span>
+    <span>{{ shipment.shipment_no }}</span>
+  </div>
+</body>
+</html>

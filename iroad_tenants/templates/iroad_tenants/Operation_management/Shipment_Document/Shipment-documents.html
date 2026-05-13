@@ -1,6 +1,7 @@
 {% extends 'iroad_tenants/base.html' %}
+{% load static %}
 
-{% block title %}Shipment Documents | iRoad Admin{% endblock %}
+{% block title %}{% if shipment_document_is_edit %}Edit Shipment Document{% else %}Shipment Documents{% endif %} | iRoad Admin{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -70,6 +71,68 @@
         justify-content: center;
       }
 
+      .shipment-doc-lookup {
+        position: relative;
+      }
+
+      .shipment-doc-lookup-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        z-index: 30;
+        display: none;
+        max-height: 240px;
+        overflow-y: auto;
+        background: #ffffff;
+        border: 1px solid #dbe4f0;
+        border-radius: 12px;
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
+        padding: 6px;
+      }
+
+      .shipment-doc-lookup-menu.show {
+        display: block;
+      }
+
+      .shipment-doc-lookup-option {
+        display: block;
+        width: 100%;
+        border: 0;
+        background: transparent;
+        border-radius: 9px;
+        padding: 9px 10px;
+        text-align: left;
+        color: #0f172a;
+        cursor: pointer;
+      }
+
+      .shipment-doc-lookup-option:hover,
+      .shipment-doc-lookup-option:focus {
+        background: #eff6ff;
+      }
+
+      .shipment-doc-lookup-code {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .shipment-doc-lookup-meta {
+        display: block;
+        margin-top: 3px;
+        font-size: 12px;
+        color: #64748b;
+        line-height: 1.25;
+      }
+
+      .shipment-doc-lookup-empty {
+        padding: 10px;
+        font-size: 12px;
+        color: #64748b;
+      }
+
       @media (max-width: 1200px) {
         .sd-lines-table thead {
           display: none;
@@ -136,16 +199,16 @@
         </nav>
         <div class="page-header-row">
           <div class="page-header-left">
-            <h1 class="page-title">Shipment Documents</h1>
+            <h1 class="page-title">{% if shipment_document_is_edit %}Edit Shipment Document{% else %}Shipment Documents{% endif %}</h1>
             <p class="page-subtitle">
-              Manage and upload required shipping documentation and attachments.
+              {% if shipment_document_is_edit %}Update shipping documentation and attachment lines.{% else %}Manage and upload required shipping documentation and attachments.{% endif %}
             </p>
           </div>
         </div>
       </div>
 
       <!-- Shipment Documents Form -->
-      <form id="shipmentDocumentForm" method="post">
+      <form id="shipmentDocumentForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <!-- Section A: Header Fields -->
         <div class="form-card" data-section="1">
@@ -180,7 +243,7 @@
                       class="form-control has-icon"
                       id="recordNo"
                       name="record_no"
-                      value="{{ preview_shipment_document_record_no|default:'REC-0001' }}"
+                      value="{% if shipment_document_is_edit %}{{ shipment_document_record.record_no }}{% else %}{{ preview_shipment_document_record_no }}{% endif %}"
                       readonly
                     />
                   </div>
@@ -207,16 +270,33 @@
                     >Booking No
                     <span class="required">*</span>
                   </label>
-                  <div class="input-icon-wrapper">
+                  <div class="input-icon-wrapper shipment-doc-lookup">
                     <i class="bi bi-search"></i>
                     <input
                       type="text"
-                      class="form-control has-icon"
+                      class="form-control has-icon {% if shipment_document_form_errors.booking_no %}is-invalid{% endif %}"
                       id="bookingNo"
                       name="booking_no"
                       value="{{ shipment_document_form_data.booking_no|default:'' }}"
-                      placeholder="booking no..."
+                      placeholder="Search or type booking no..."
+                      autocomplete="off"
                     />
+                    <div class="shipment-doc-lookup-menu" id="bookingNoOptions">
+                      {% for booking in shipment_document_booking_options %}
+                      <button
+                        type="button"
+                        class="shipment-doc-lookup-option"
+                        data-booking-no="{{ booking.booking_no }}"
+                        data-booking-item="{{ booking.booking_item }}"
+                      >
+                        <span class="shipment-doc-lookup-code">{{ booking.booking_no }}</span>
+                        <span class="shipment-doc-lookup-meta">{{ booking.booking_item|default:'No booking item' }}</span>
+                      </button>
+                      {% empty %}
+                      <div class="shipment-doc-lookup-empty">No shipment bookings available.</div>
+                      {% endfor %}
+                    </div>
+                    {% if shipment_document_form_errors.booking_no %}<div class="invalid-feedback d-block">{{ shipment_document_form_errors.booking_no }}</div>{% endif %}
                   </div>
                 </div>
               </div>
@@ -230,12 +310,14 @@
                     <i class="bi bi-search"></i>
                     <input
                       type="text"
-                      class="form-control has-icon"
+                      class="form-control has-icon {% if shipment_document_form_errors.booking_item %}is-invalid{% endif %}"
                       id="bookingItem"
                       name="booking_item"
                       value="{{ shipment_document_form_data.booking_item|default:'' }}"
                       placeholder="booking item..."
+                      readonly
                     />
+                    {% if shipment_document_form_errors.booking_item %}<div class="invalid-feedback d-block">{{ shipment_document_form_errors.booking_item }}</div>{% endif %}
                   </div>
                 </div>
                 <div class="field">
@@ -243,24 +325,28 @@
                     >Shipment
                     <span class="required">*</span>
                   </label>
-                  <div class="input-icon-wrapper">
-                    <i class="bi bi-search"></i>
-                    <input
-                      type="text"
-                      class="form-control has-icon"
-                      id="shipmentRef"
-                      name="shipment_ref"
-                      value="{{ shipment_document_form_data.shipment_ref|default:'' }}"
-                      placeholder="Search or enter shipment ref..."
-                    />
-                  </div>
+                  <select class="form-select {% if shipment_document_form_errors.shipment_ref %}is-invalid{% endif %}" id="shipmentRef" name="shipment_ref">
+                    <option value="" {% if not shipment_document_form_data.shipment_ref %}selected{% endif %} disabled>-Select shipment-</option>
+                    {% for shipment in shipment_document_shipments %}
+                    <option
+                      value="{{ shipment.shipment_no }}"
+                      data-booking-no="{{ shipment.booking_no }}"
+                      data-booking-item="{{ shipment.booking_item_ref }}"
+                      hidden
+                      {% if shipment_document_form_data.shipment_ref == shipment.shipment_no %}selected{% endif %}
+                    >
+                      {{ shipment.shipment_no }} - {{ shipment.booking_no }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  {% if shipment_document_form_errors.shipment_ref %}<div class="invalid-feedback d-block">{{ shipment_document_form_errors.shipment_ref }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="documentType" class="form-label"
                     >Document Type
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select" id="documentType" name="document_type">
+                  <select class="form-select {% if shipment_document_form_errors.document_type %}is-invalid{% endif %}" id="documentType" name="document_type">
                     <option value="" {% if not shipment_document_form_data.document_type %}selected{% endif %} disabled>
                       -Select Document Type-
                     </option>
@@ -270,6 +356,7 @@
                     <option value="Certificate of Origin" {% if shipment_document_form_data.document_type == 'Certificate of Origin' %}selected{% endif %}>Certificate of Origin</option>
                     <option value="Other" {% if shipment_document_form_data.document_type == 'Other' %}selected{% endif %}>Other</option>
                   </select>
+                  {% if shipment_document_form_errors.document_type %}<div class="invalid-feedback d-block">{{ shipment_document_form_errors.document_type }}</div>{% endif %}
                 </div>
               </div>
             </div>
@@ -288,12 +375,13 @@
                   </label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="form-control {% if shipment_document_form_errors.document_ref_no %}is-invalid{% endif %}"
                     id="documentRefNo"
                     name="document_ref_no"
                     value="{{ shipment_document_form_data.document_ref_no|default:'' }}"
                     placeholder="Enter reference number"
                   />
+                  {% if shipment_document_form_errors.document_ref_no %}<div class="invalid-feedback d-block">{{ shipment_document_form_errors.document_ref_no }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="documentDate" class="form-label"
@@ -454,7 +542,7 @@
           <div class="form-actions-right">
             <button type="submit" class="btn btn-primary">
               <i class="bi bi-check-circle"></i>
-              Save Document
+              {% if shipment_document_is_edit %}Update Document{% else %}Save Document{% endif %}
             </button>
           </div>
         </div>
@@ -464,7 +552,151 @@
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
       <!-- Custom JS -->
-      <script src="Javascript/main.js"></script>
+      {{ shipment_document_line_rows|json_script:"shipment-document-line-rows" }}
+      <script src="{% static 'tenantdesign/Javascript/main.js' %}"></script>
+      <script>
+        (function () {
+          var shipmentSelect = document.getElementById("shipmentRef");
+          var bookingNoInput = document.getElementById("bookingNo");
+          var bookingNoMenu = document.getElementById("bookingNoOptions");
+          var bookingItemInput = document.getElementById("bookingItem");
+
+          function selectedOption(selectEl) {
+            if (!selectEl || selectEl.selectedIndex < 0) return null;
+            return selectEl.options[selectEl.selectedIndex];
+          }
+
+          function findBookingOption(bookingNo) {
+            var normalized = String(bookingNo || "").trim().toLowerCase();
+            if (!bookingNoMenu || !normalized) return null;
+            var options = bookingNoMenu.querySelectorAll("[data-booking-no]");
+            for (var i = 0; i < options.length; i += 1) {
+              if (String(options[i].getAttribute("data-booking-no") || "").trim().toLowerCase() === normalized) {
+                return options[i];
+              }
+            }
+            return null;
+          }
+
+          function hideBookingMenu() {
+            if (bookingNoMenu) bookingNoMenu.classList.remove("show");
+          }
+
+          function filterBookingMenu() {
+            if (!bookingNoMenu || !bookingNoInput) return;
+            var term = String(bookingNoInput.value || "").trim().toLowerCase();
+            var options = bookingNoMenu.querySelectorAll(".shipment-doc-lookup-option");
+            var visibleCount = 0;
+            Array.prototype.forEach.call(options, function (option) {
+              var bookingNo = String(option.getAttribute("data-booking-no") || "").toLowerCase();
+              var bookingItem = String(option.getAttribute("data-booking-item") || "").toLowerCase();
+              var isVisible = !term || bookingNo.indexOf(term) !== -1 || bookingItem.indexOf(term) !== -1;
+              option.hidden = !isVisible;
+              if (isVisible) visibleCount += 1;
+            });
+            bookingNoMenu.classList.toggle("show", visibleCount > 0);
+          }
+
+          function resetShipmentSelection() {
+            if (!shipmentSelect) return;
+            Array.prototype.forEach.call(shipmentSelect.options, function (opt, index) {
+              if (index === 0) {
+                opt.hidden = false;
+                opt.disabled = false;
+                return;
+              }
+              opt.hidden = true;
+              opt.disabled = true;
+            });
+            shipmentSelect.value = "";
+          }
+
+          function applyBookingLookup() {
+            var typedBookingNo = bookingNoInput ? String(bookingNoInput.value || "").trim() : "";
+            var bookingOpt = findBookingOption(typedBookingNo);
+            var bookingNo = bookingOpt ? bookingOpt.getAttribute("data-booking-no") || "" : typedBookingNo;
+            var bookingItem = bookingOpt ? bookingOpt.getAttribute("data-booking-item") || "" : "";
+            if (bookingItemInput) bookingItemInput.value = bookingItem;
+            if (!shipmentSelect) return;
+
+            var matched = [];
+            Array.prototype.forEach.call(shipmentSelect.options, function (opt, index) {
+              if (index === 0) {
+                opt.hidden = false;
+                opt.disabled = false;
+                return;
+              }
+              var isMatch = bookingNo && opt.getAttribute("data-booking-no") === bookingNo;
+              opt.hidden = !isMatch;
+              opt.disabled = !isMatch;
+              if (isMatch) matched.push(opt);
+            });
+
+            var selectedShipment = selectedOption(shipmentSelect);
+            if (!selectedShipment || selectedShipment.hidden || selectedShipment.disabled) {
+              shipmentSelect.value = matched.length === 1 ? matched[0].value : "";
+            }
+          }
+
+          function syncBookingFromShipment() {
+            var shipmentOpt = selectedOption(shipmentSelect);
+            if (!shipmentOpt || !shipmentOpt.value) return;
+            var bookingNo = shipmentOpt.getAttribute("data-booking-no") || "";
+            if (bookingNoInput && bookingNoInput.value !== bookingNo) {
+              bookingNoInput.value = bookingNo;
+            }
+            if (bookingItemInput) {
+              bookingItemInput.value = shipmentOpt.getAttribute("data-booking-item") || "";
+            }
+            applyBookingLookup();
+            if (shipmentSelect) shipmentSelect.value = shipmentOpt.value;
+          }
+
+          if (bookingNoInput) {
+            bookingNoInput.addEventListener("input", function () {
+              filterBookingMenu();
+              applyBookingLookup();
+            });
+            bookingNoInput.addEventListener("focus", filterBookingMenu);
+            bookingNoInput.addEventListener("change", function () {
+              applyBookingLookup();
+              hideBookingMenu();
+            });
+            applyBookingLookup();
+          } else {
+            resetShipmentSelection();
+          }
+
+          if (bookingNoMenu && bookingNoInput) {
+            bookingNoMenu.addEventListener("mousedown", function (event) {
+              var option = event.target.closest(".shipment-doc-lookup-option");
+              if (!option) return;
+              event.preventDefault();
+              bookingNoInput.value = option.getAttribute("data-booking-no") || "";
+              if (bookingItemInput) {
+                bookingItemInput.value = option.getAttribute("data-booking-item") || "";
+              }
+              applyBookingLookup();
+              hideBookingMenu();
+            });
+            document.addEventListener("mousedown", function (event) {
+              if (
+                bookingNoMenu.contains(event.target) ||
+                (bookingNoInput && bookingNoInput.contains(event.target))
+              ) {
+                return;
+              }
+              hideBookingMenu();
+            });
+          }
+
+          if (shipmentSelect) {
+            shipmentSelect.addEventListener("change", syncBookingFromShipment);
+            syncBookingFromShipment();
+          }
+
+        })();
+      </script>
 
 </body>
 </html>
