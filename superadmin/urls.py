@@ -212,6 +212,8 @@ from .views import (
     PricingInteractiveStepListView,
     PricingInteractiveStepUpdateView,
     PricingPageCMSView,
+    PrivacyPolicyCMSView,
+    TermsConditionsCMSView,
 )
 
 urlpatterns = [
@@ -1183,6 +1185,16 @@ urlpatterns = [
         'cms/contact/submissions/<int:pk>/',
         ContactSubmissionDetailView.as_view(),
         name='contact_submission_detail',
+    ),
+    path(
+        'cms/privacy-policy/',
+        PrivacyPolicyCMSView.as_view(),
+        name='privacy_policy_cms',
+    ),
+    path(
+        'cms/terms-and-conditions/',
+        TermsConditionsCMSView.as_view(),
+        name='terms_conditions_cms',
     ),
     path(
         'search/',

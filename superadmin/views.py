@@ -10940,6 +10940,8 @@ from iroad_frontend.models import (
     PricingFaqItem,
     PricingInteractiveStep,
     PricingPageContent,
+    PrivacyPolicyPageContent,
+    TermsConditionsPageContent,
 )
 from iroad_frontend.cms_forms import (
     AboutApproachPillarForm,
@@ -10956,6 +10958,8 @@ from iroad_frontend.cms_forms import (
     PricingFaqItemForm,
     PricingInteractiveStepForm,
     PricingPageContentForm,
+    PrivacyPolicyPageContentForm,
+    TermsConditionsPageContentForm,
 )
 
 
@@ -12190,6 +12194,92 @@ class ContactPageCMSView(LoginRequiredMixin, View):
             'form': form,
             'contact': contact,
             'page_title': 'Contact Page CMS',
+        })
+
+
+class PrivacyPolicyCMSView(LoginRequiredMixin, View):
+    """Singleton edit view for Privacy Policy (Website CMS)."""
+
+    template_name = 'superadmin/cms/privacy_policy_cms.html'
+
+    def _get_page(self):
+        return PrivacyPolicyPageContent.get_singleton()
+
+    def get(self, request):
+        page = self._get_page()
+        form = PrivacyPolicyPageContentForm(instance=page)
+        return render(request, self.template_name, {
+            'form': form,
+            'page': page,
+            'page_title': 'Privacy Policy CMS',
+        })
+
+    def post(self, request):
+        page = self._get_page()
+        form = PrivacyPolicyPageContentForm(
+            request.POST,
+            request.FILES,
+            instance=page,
+        )
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.updated_by = (
+                f'{request.user.first_name} '
+                f'{request.user.last_name}'
+            )
+            obj.save()
+            messages.success(
+                request,
+                'Privacy policy content updated successfully.',
+            )
+            return redirect('privacy_policy_cms')
+        return render(request, self.template_name, {
+            'form': form,
+            'page': page,
+            'page_title': 'Privacy Policy CMS',
+        })
+
+
+class TermsConditionsCMSView(LoginRequiredMixin, View):
+    """Singleton edit view for Terms & Conditions (Website CMS)."""
+
+    template_name = 'superadmin/cms/terms_conditions_cms.html'
+
+    def _get_page(self):
+        return TermsConditionsPageContent.get_singleton()
+
+    def get(self, request):
+        page = self._get_page()
+        form = TermsConditionsPageContentForm(instance=page)
+        return render(request, self.template_name, {
+            'form': form,
+            'page': page,
+            'page_title': 'Terms & Conditions CMS',
+        })
+
+    def post(self, request):
+        page = self._get_page()
+        form = TermsConditionsPageContentForm(
+            request.POST,
+            request.FILES,
+            instance=page,
+        )
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.updated_by = (
+                f'{request.user.first_name} '
+                f'{request.user.last_name}'
+            )
+            obj.save()
+            messages.success(
+                request,
+                'Terms & conditions content updated successfully.',
+            )
+            return redirect('terms_conditions_cms')
+        return render(request, self.template_name, {
+            'form': form,
+            'page': page,
+            'page_title': 'Terms & Conditions CMS',
         })
 
 

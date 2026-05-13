@@ -1,0 +1,41 @@
+{# TinyMCE for legal page body fields — mirrors comm/templates/template_form.html #}
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  (function () {
+    const editorConfig = {
+      menubar: false,
+      plugins: 'lists link image code table wordcount',
+      toolbar:
+        'undo redo | blocks | bold italic | alignleft aligncenter alignright | bullist numlist | table link | code',
+      height: 350,
+      skin: 'oxide',
+      content_css: 'default',
+      branding: false,
+      promotion: false,
+    };
+
+    tinymce.init({
+      ...editorConfig,
+      selector: '#id_content_en',
+      placeholder: 'Write your content here...',
+    });
+
+    tinymce.init({
+      ...editorConfig,
+      selector: '#id_content_ar',
+      directionality: 'rtl',
+      placeholder: 'اكتب المحتوى هنا...',
+    });
+
+    const form = document.getElementById('{{ legal_cms_form_id }}');
+    if (form) {
+      form.addEventListener('submit', function () {
+        try {
+          if (window.tinymce && typeof window.tinymce.triggerSave === 'function') {
+            window.tinymce.triggerSave();
+          }
+        } catch (e) {}
+      });
+    }
+  })();
+</script>

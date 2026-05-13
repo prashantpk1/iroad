@@ -413,11 +413,11 @@
       <!-- Website CMS -->
       {% with u=request.resolver_match.url_name %}
       <li
-        class="nav-item has-submenu{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or 'pricing_faq' in u or u == 'contact_page_cms' or 'contact_submission' in u %} open{% endif %}"
+        class="nav-item has-submenu{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or 'pricing_faq' in u or u == 'contact_page_cms' or 'contact_submission' in u or u == 'privacy_policy_cms' or u == 'terms_conditions_cms' %} open{% endif %}"
       >
         <a
           href="#"
-          class="nav-link{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or 'pricing_faq' in u or u == 'contact_page_cms' or 'contact_submission' in u %} active{% endif %}"
+          class="nav-link{% if u == 'home_page_cms' or 'home_service_card' in u or 'home_pricing_tier' in u or 'home_pricing_benefit' in u or 'home_testimonial' in u or 'home_map_location' in u or u == 'about_page_cms' or 'about_pillar' in u or 'about_how_step' in u or 'about_faq' in u or u == 'pricing_page_cms' or 'pricing_interactive' in u or 'pricing_faq' in u or u == 'contact_page_cms' or 'contact_submission' in u or u == 'privacy_policy_cms' or u == 'terms_conditions_cms' %} active{% endif %}"
           data-tooltip="{% translate 'Website CMS' %}"
         >
           <i class="bi bi-layout-text-window"></i>
@@ -562,6 +562,27 @@
               class="submenu-link{% if 'contact_submission' in u %} active{% endif %}"
             >
               <i class="bi bi-inbox"></i><span>{% translate "Demo Requests" %}</span>
+            </a>
+          </li>
+
+          <!-- Legal pages -->
+          <li class="submenu-section-label mt-2">
+            <small class="text-muted px-3">{% translate "Legal Pages" %}</small>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'privacy_policy_cms' %}"
+              class="submenu-link{% if u == 'privacy_policy_cms' %} active{% endif %}"
+            >
+              <i class="bi bi-shield-lock"></i><span>{% translate "Privacy Policy" %}</span>
+            </a>
+          </li>
+          <li class="submenu-item">
+            <a
+              href="{% url 'terms_conditions_cms' %}"
+              class="submenu-link{% if u == 'terms_conditions_cms' %} active{% endif %}"
+            >
+              <i class="bi bi-file-text"></i><span>{% translate "Terms & Conditions" %}</span>
             </a>
           </li>
         </ul>
