@@ -8,11 +8,23 @@ from mobile_api.views.driver_auth import (
     DriverResetPasswordView,
     DriverVerifyOtpView,
 )
+from mobile_api.views.driver_profile import (
+    DriverChangePasswordView,
+    DriverProfilePhotoUpdateView,
+    DriverProfileView,
+    DriverRequestChangePasswordOtpView,
+    DriverVerifyChangePasswordOtpView,
+)
 
 __all__ = [
     'MobileAPIView',
+    'DriverChangePasswordView',
     'DriverLoginView',
     'DriverForgotPasswordView',
+    'DriverProfilePhotoUpdateView',
+    'DriverProfileView',
+    'DriverRequestChangePasswordOtpView',
+    'DriverVerifyChangePasswordOtpView',
     'DriverVerifyOtpView',
     'DriverResetPasswordView',
     'DriverLogoutView',

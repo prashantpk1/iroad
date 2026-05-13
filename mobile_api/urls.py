@@ -13,6 +13,13 @@ from mobile_api.views.driver_auth import (
     DriverResetPasswordView,
     DriverVerifyOtpView,
 )
+from mobile_api.views.driver_profile import (
+    DriverChangePasswordView,
+    DriverProfilePhotoUpdateView,
+    DriverProfileView,
+    DriverRequestChangePasswordOtpView,
+    DriverVerifyChangePasswordOtpView,
+)
 
 app_name = 'mobile_api'
 
@@ -41,6 +48,31 @@ urlpatterns = [
         'driver/auth/logout/',
         DriverLogoutView.as_view(),
         name='driver_logout',
+    ),
+    path(
+        'driver/auth/change-password/request-otp/',
+        DriverRequestChangePasswordOtpView.as_view(),
+        name='driver_request_change_password_otp',
+    ),
+    path(
+        'driver/auth/change-password/verify-otp/',
+        DriverVerifyChangePasswordOtpView.as_view(),
+        name='driver_verify_change_password_otp',
+    ),
+    path(
+        'driver/auth/change-password/',
+        DriverChangePasswordView.as_view(),
+        name='driver_change_password',
+    ),
+    path(
+        'driver/profile/',
+        DriverProfileView.as_view(),
+        name='driver_profile',
+    ),
+    path(
+        'driver/profile/photo/',
+        DriverProfilePhotoUpdateView.as_view(),
+        name='driver_profile_photo_update',
     ),
 ]
 

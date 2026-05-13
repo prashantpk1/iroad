@@ -40,6 +40,11 @@ class MobileUser:
         self.payload = payload
         self.is_authenticated = True
 
+    @property
+    def pk(self):
+        """DRF ``UserRateThrottle`` uses ``request.user.pk`` for cache keys."""
+        return self.user_id
+
     def __str__(self):
         return f"MobileUser({self.user_id}@{self.tenant_schema})"
 

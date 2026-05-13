@@ -49,12 +49,11 @@ def mobile_exception_handler(exc, context):
 
     # ── Authentication failures → status=2 ───────────────────────
     if isinstance(exc, (AuthenticationFailed, NotAuthenticated)):
+        # Do not forward raw DRF/JWT exception text (may leak library details).
         return Response(
             {
                 'status': 2,
-                'message': str(exc.detail)
-                    if hasattr(exc, 'detail')
-                    else _('mobile.auth.unauthorized'),
+                'message': str(_('mobile.auth.unauthorized')),
                 'data': {},
             },
             status=status.HTTP_401_UNAUTHORIZED,
@@ -65,9 +64,7 @@ def mobile_exception_handler(exc, context):
         return Response(
             {
                 'status': 2,
-                'message': str(exc.detail)
-                    if hasattr(exc, 'detail')
-                    else _('mobile.auth.forbidden'),
+                'message': str(_('mobile.auth.forbidden')),
                 'data': {},
             },
             status=status.HTTP_403_FORBIDDEN,
@@ -103,9 +100,7 @@ def mobile_exception_handler(exc, context):
         return Response(
             {
                 'status': 0,
-                'message': str(exc.detail)
-                    if hasattr(exc, 'detail')
-                    else _('mobile.error.not_found'),
+                'message': str(_('mobile.error.not_found')),
                 'data': {},
             },
             status=status.HTTP_404_NOT_FOUND,
@@ -140,19 +135,27 @@ def mobile_exception_handler(exc, context):
 
     # ── DRF handled it but not one of the above ───────────────────
     if response is not None:
-        message = _('mobile.error.generic')
-        if hasattr(exc, 'detail'):
-            if isinstance(exc.detail, str):
-                message = exc.detail
-            elif isinstance(exc.detail, list) and exc.detail:
-                message = str(exc.detail[0])
+        status_code = response.status_code
+        if status_code >= 500:
+            message = str(_('mobile.error.server_error'))
+        else:
+            message = str(_('mobile.error.generic'))
+            if hasattr(exc, 'detail') and status_code < 500:
+                detail = exc.detail
+                if isinstance(detail, str) and detail.strip():
+                    message = detail
+                elif isinstance(detail, list) and detail:
+                    message = str(detail[0])
+                elif isinstance(detail, dict) and detail:
+                    # Avoid dumping arbitrary dicts (may include internal keys).
+                    message = str(_('mobile.error.generic'))
         return Response(
             {
                 'status': 0,
                 'message': message,
                 'data': {},
             },
-            status=response.status_code,
+            status=status_code,
         )
 
     # ── Unhandled exception → log it ─────────────────────────────
@@ -167,7 +170,7 @@ def mobile_exception_handler(exc, context):
     return Response(
         {
             'status': 0,
-            'message': _('mobile.error.server_error'),
+            'message': str(_('mobile.error.server_error')),
             'data': {},
         },
         status=status.HTTP_500_INTERNAL_SERVER_ERROR,

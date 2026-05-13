@@ -111,10 +111,16 @@ class DriverPasswordResetOTP(models.Model):
         email: str,
         tenant_schema: str,
         otp_code: str,
+        *,
+        expire_verified: bool = False,
     ) -> 'DriverPasswordResetOTP':
         """
         Create a new OTP record.
         Invalidates any existing pending OTP for same email+schema.
+
+        When ``expire_verified`` is True (authenticated change-password flow),
+        prior ``VERIFIED`` rows for the same email+schema are also expired so
+        stale verified codes cannot be replayed after a new OTP is issued.
         """
         if not tenant_schema:
             raise ValueError('tenant_schema is required for OTP creation')
@@ -125,6 +131,12 @@ class DriverPasswordResetOTP(models.Model):
                 tenant_schema=tenant_schema,
                 status=cls.Status.PENDING,
             ).update(status=cls.Status.EXPIRED)
+            if expire_verified:
+                cls.objects.filter(
+                    email=email,
+                    tenant_schema=tenant_schema,
+                    status=cls.Status.VERIFIED,
+                ).update(status=cls.Status.EXPIRED)
 
             expiry = timezone.now() + timedelta(
                 minutes=OTP_EXPIRY_MINUTES

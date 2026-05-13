@@ -409,9 +409,10 @@ def driver_forgot_password(
     tenant_user = get_driver_user_by_email(email, tenant_schema)
 
     if tenant_user is None:
-        logger.info(
-            'Forgot password: email not found %s schema=%s',
-            email, tenant_schema
+        # DEBUG only: avoid INFO logs that embed raw email (enumeration / PII).
+        logger.debug(
+            'Forgot password: no tenant user for schema=%s',
+            tenant_schema,
         )
         return {
             'success': False,
@@ -438,12 +439,10 @@ def driver_forgot_password(
         otp_code=otp_code,
     )
 
-    # TODO: Send OTP via email/SMS using communication engine
-    # For now log it — wire to communication helpers in next phase
-    # Never log raw OTP in production logs.
+    # Never log raw OTP. Schema-only breadcrumb at INFO.
     logger.info(
-        'Password reset OTP generated for %s (schema=%s)',
-        email, tenant_schema
+        'Password reset OTP generated (schema=%s)',
+        tenant_schema,
     )
     email_sent = send_driver_reset_otp_email(
         recipient_email=email.lower().strip(),
@@ -628,8 +627,8 @@ def driver_reset_password(
         ).update(status=DriverPasswordResetOTP.Status.EXPIRED)
 
     logger.info(
-        'Password reset successful for %s schema=%s',
-        email, tenant_schema
+        'Password reset successful (schema=%s)',
+        tenant_schema,
     )
 
     return {'success': True}
