@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
-    path('admin/', admin.site.urls),
+    path('superadmin/', admin.site.urls),
     path('api/v1/mobile/', include(('mobile_api.urls', 'mobile_api'), namespace='mobile_api')),
     path('api/v1/', include('superadmin.api_urls')),
     path('tenant/', include(('iroad_tenants.urls', 'iroad_tenants'), namespace='iroad_tenants')),
