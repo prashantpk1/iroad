@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: iRoad\n"
 "POT-Creation-Date: 2026-04-20 00:00+0000\n"
-"PO-Revision-Date: 2026-05-08 15:31+0530\n"
+"PO-Revision-Date: 2026-05-13 10:17+0530\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: ar\n"
@@ -583,6 +583,21 @@ msgstr "Admin permissions are required for this action."
 msgid "mobile.validation.failed"
 msgstr "Validation failed. Please check your input."
 
+msgid "mobile.validation.invalid_image"
+msgstr "The file must be a valid image (JPG, JPEG, PNG, or WEBP)."
+
+msgid "mobile.validation.image_too_large"
+msgstr "Image must not exceed %(max_mb)s MB. Your file is %(size_mb)s MB."
+
+msgid "mobile.validation.invalid_otp"
+msgstr "The verification code is incorrect."
+
+msgid "mobile.validation.otp_expired"
+msgstr "The verification code has expired. Please request a new one."
+
+msgid "mobile.validation.password_too_long"
+msgstr "Password is too long (maximum 128 characters)."
+
 # Mobile API — Error messages
 msgid "mobile.error.not_found"
 msgstr "Requested resource not found."
@@ -676,3 +691,46 @@ msgstr "Password reset successful."
 
 msgid "mobile.auth.logout_success"
 msgstr "Logout successful."
+
+msgid "mobile.auth.change_password_otp_sent"
+msgstr "Verification code sent."
+
+msgid "mobile.auth.change_password_otp_verified"
+msgstr "Verification code accepted."
+
+msgid "mobile.auth.password_changed_successfully"
+msgstr "Password updated successfully."
+
+msgid "mobile.auth.current_password_invalid"
+msgstr "Current password is incorrect."
+
+msgid "mobile.auth.change_password_requires_verified_otp"
+msgstr "You must verify the code before changing your password."
+
+# Mobile API — Driver profile & change password
+msgid "mobile.profile.send_via_required"
+msgstr "Please choose how to receive the verification code."
+
+msgid "mobile.profile.send_via_invalid"
+msgstr "Send via must be either email or mobile."
+
+msgid "mobile.profile.current_password_required"
+msgstr "Current password is required."
+
+msgid "mobile.profile.current_password_blank"
+msgstr "Current password cannot be empty."
+
+msgid "mobile.profile.photo_required"
+msgstr "Profile photo is required."
+
+msgid "mobile.profile.phone_missing_for_sms"
+msgstr "No mobile number is on file for this account. Add a phone number or choose email."
+
+msgid "mobile.profile.new_password_same_as_current"
+msgstr "New password must be different from your current password."
+
+msgid "mobile.profile.fetch_success"
+msgstr "Profile loaded successfully."
+
+msgid "mobile.profile.photo_updated"
+msgstr "Profile photo updated successfully."

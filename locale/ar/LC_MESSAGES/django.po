@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: iRoad\n"
 "POT-Creation-Date: 2026-04-20 00:00+0000\n"
-"PO-Revision-Date: 2026-05-08 15:21+0530\n"
+"PO-Revision-Date: 2026-05-13 10:17+0530\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: ar\n"
@@ -581,7 +581,22 @@ msgstr "هذه الصفحة تتطلب صلاحيات المسؤول"
 
 # Mobile API — Validation messages
 msgid "mobile.validation.failed"
-msgstr "البيانات المدخلة غير صحيحة. يرجى المراجعة"
+msgstr "البيانات المدخلة غير صحيحة. يرجى المراجعة."
+
+msgid "mobile.validation.invalid_image"
+msgstr "يجب أن يكون الملف صورة صالحة بصيغة JPG أو JPEG أو PNG أو WEBP."
+
+msgid "mobile.validation.image_too_large"
+msgstr "يجب ألا يتجاوز حجم الصورة %(max_mb)s ميجابايت. حجم ملفك %(size_mb)s ميجابايت."
+
+msgid "mobile.validation.invalid_otp"
+msgstr "رمز التحقق غير صحيح."
+
+msgid "mobile.validation.otp_expired"
+msgstr "انتهت صلاحية رمز التحقق. يرجى طلب رمز جديد."
+
+msgid "mobile.validation.password_too_long"
+msgstr "كلمة المرور طويلة جداً (الحد الأقصى 128 حرفاً)."
 
 # Mobile API — Error messages
 msgid "mobile.error.not_found"
@@ -676,3 +691,46 @@ msgstr "تم تغيير كلمة المرور بنجاح"
 
 msgid "mobile.auth.logout_success"
 msgstr "تم تسجيل الخروج بنجاح"
+
+msgid "mobile.auth.change_password_otp_sent"
+msgstr "تم إرسال رمز التحقق."
+
+msgid "mobile.auth.change_password_otp_verified"
+msgstr "تم قبول رمز التحقق."
+
+msgid "mobile.auth.password_changed_successfully"
+msgstr "تم تحديث كلمة المرور بنجاح."
+
+msgid "mobile.auth.current_password_invalid"
+msgstr "كلمة المرور الحالية غير صحيحة."
+
+msgid "mobile.auth.change_password_requires_verified_otp"
+msgstr "يجب التحقق من الرمز قبل تغيير كلمة المرور."
+
+# Mobile API — Driver profile & change password
+msgid "mobile.profile.send_via_required"
+msgstr "يرجى اختيار طريقة استلام رمز التحقق."
+
+msgid "mobile.profile.send_via_invalid"
+msgstr "يجب أن تكون طريقة الإرسال إما البريد الإلكتروني أو الجوال."
+
+msgid "mobile.profile.current_password_required"
+msgstr "كلمة المرور الحالية مطلوبة."
+
+msgid "mobile.profile.current_password_blank"
+msgstr "كلمة المرور الحالية لا يمكن أن تكون فارغة."
+
+msgid "mobile.profile.photo_required"
+msgstr "صورة الملف الشخصي مطلوبة."
+
+msgid "mobile.profile.phone_missing_for_sms"
+msgstr "لا يوجد رقم جوال مسجل لهذا الحساب. أضف رقماً أو اختر البريد الإلكتروني."
+
+msgid "mobile.profile.new_password_same_as_current"
+msgstr "يجب أن تكون كلمة المرور الجديدة مختلفة عن الحالية."
+
+msgid "mobile.profile.fetch_success"
+msgstr "تم تحميل الملف الشخصي بنجاح."
+
+msgid "mobile.profile.photo_updated"
+msgstr "تم تحديث صورة الملف الشخصي بنجاح."
