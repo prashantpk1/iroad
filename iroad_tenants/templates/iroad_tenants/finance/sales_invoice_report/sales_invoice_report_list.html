@@ -124,11 +124,31 @@
             {% endif %}
           </td>
           <td>
-            <a href="{% url 'iroad_tenants:sales_invoice_report_detail' r.report_id %}" class="eal-row-btn" title="View"><i class="bi bi-eye"></i></a>
-            <a href="{% url 'iroad_tenants:sales_invoice_report_print' r.report_id %}" class="eal-row-btn" title="Print" target="_blank" rel="noopener"><i class="bi bi-printer"></i></a>
-            {% if r.status != 'Converted' %}
-            <a href="{% url 'iroad_tenants:sales_invoice_report_edit' r.report_id %}" class="eal-row-btn" title="Edit"><i class="bi bi-pencil"></i></a>
-            {% endif %}
+            <div class="dropdown eal-actions-cell">
+              <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false" title="Actions">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0; min-width: 180px;">
+                <li>
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:sales_invoice_report_detail' r.report_id %}">
+                    <i class="bi bi-eye text-info me-2"></i> View
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:sales_invoice_report_print' r.report_id %}" target="_blank" rel="noopener">
+                    <i class="bi bi-printer text-success me-2"></i> Print
+                  </a>
+                </li>
+                {% if r.status != 'Converted' %}
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:sales_invoice_report_edit' r.report_id %}">
+                    <i class="bi bi-pencil text-primary me-2"></i> Edit
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </div>
           </td>
         </tr>
         {% empty %}

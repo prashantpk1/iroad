@@ -165,6 +165,10 @@ def cargo_master_attachment_upload_to(instance, filename):
     )
 
 
+def surcharge_attachment_upload_to(instance, filename):
+    return _random_prefixed_stored_name('surcharges/attachments', 'SST', filename)
+
+
 class AutoNumberConfiguration(models.Model):
     """Per-tenant auto numbering settings by form code."""
 
@@ -3145,6 +3149,108 @@ class TenantRolePermission(models.Model):
         return f'{self.role.role_name_en} - {self.module_name}/{self.form_name}'
 
 
+class TenantBooking(models.Model):
+    """BK-001 booking header record for tenant operations."""
+
+    class Status(models.TextChoices):
+        DRAFT = 'Draft', 'Draft'
+        CONFIRMED = 'Confirmed', 'Confirmed'
+        CANCELLED = 'Cancelled', 'Cancelled'
+
+    booking_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    booking_no = models.CharField(max_length=64, unique=True)
+    booking_sequence = models.PositiveIntegerField(default=0)
+    creation_date = models.DateField(default=date.today)
+    booking_date = models.DateField(default=date.today)
+    execution_date = models.DateField(null=True, blank=True)
+    booking_status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    client_account = models.ForeignKey(
+        TenantClientAccount,
+        on_delete=models.PROTECT,
+        related_name='bookings',
+    )
+    price_list = models.ForeignKey(
+        TenantPriceList,
+        on_delete=models.PROTECT,
+        related_name='bookings',
+        null=True,
+        blank=True,
+    )
+    service_item = models.ForeignKey(
+        TenantServiceItemMaster,
+        on_delete=models.PROTECT,
+        related_name='bookings',
+        null=True,
+        blank=True,
+    )
+    route = models.ForeignKey(
+        TenantRouteMaster,
+        on_delete=models.PROTECT,
+        related_name='bookings',
+        null=True,
+        blank=True,
+    )
+    route_direction = models.CharField(max_length=12, blank=True, default='forward')
+    route_display = models.CharField(max_length=255, blank=True, default='')
+    order_type = models.CharField(max_length=20, blank=True, default='')
+    trip_type = models.CharField(max_length=20, blank=True, default='')
+    sell_price = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    sourcing_mode = models.CharField(max_length=20, blank=True, default='')
+    pod_type = models.CharField(max_length=30, blank=True, default='')
+    pod_status = models.CharField(max_length=30, blank=True, default='')
+    assigned_truck = models.ForeignKey(
+        TruckMaster,
+        on_delete=models.SET_NULL,
+        related_name='assigned_bookings',
+        null=True,
+        blank=True,
+    )
+    assigned_driver = models.ForeignKey(
+        DriverMaster,
+        on_delete=models.SET_NULL,
+        related_name='assigned_bookings',
+        null=True,
+        blank=True,
+    )
+    booking_line_cod_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    booking_line_pod_doc_count = models.PositiveIntegerField(default=0)
+    cargo_booking_item = models.CharField(max_length=20, blank=True, default='')
+    cargo = models.ForeignKey(
+        TenantCargoMaster,
+        on_delete=models.SET_NULL,
+        related_name='bookings',
+        null=True,
+        blank=True,
+    )
+    cargo_weight = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    cargo_unit = models.CharField(max_length=50, blank=True, default='')
+    cargo_qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_cargo_qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_cargo_weight = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    container_no = models.CharField(max_length=120, blank=True, default='')
+    booking_attachment = models.FileField(
+        upload_to='booking_attachments/',
+        blank=True,
+        null=True,
+        max_length=500,
+    )
+    booking_instructions = models.TextField(blank=True, default='')
+    created_by_label = models.CharField(max_length=200, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'tenant_bookings'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['booking_no'], name='tenant_booking_no_idx'),
+            models.Index(fields=['client_account', 'booking_status'], name='tenant_bkg_client_status_idx'),
+        ]
+
+    def __str__(self):
+        return self.booking_no
+
+
 
 class TenantShipment(models.Model):
     """SH-001 Shipment execution record (Phase 1 foundation)."""
@@ -3295,6 +3401,12 @@ class TenantShipmentSurcharge(models.Model):
     item_label = models.CharField(max_length=120)
     qty = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    attachment_file = models.FileField(
+        upload_to=surcharge_attachment_upload_to,
+        max_length=500,
+        null=True,
+        blank=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -58,6 +58,9 @@ class SalesInvoiceReportForm(forms.ModelForm):
         self.fields['total_surcharge_amount'].required = False
         self.fields['total_freight_amount'].disabled = True
         self.fields['total_surcharge_amount'].disabled = True
+        self.fields['currency'].required = False
+        if not self.initial.get('currency') and not getattr(self.instance, 'currency', ''):
+            self.fields['currency'].initial = 'SAR'
 
         # Sales invoice relation is optional until target model exists.
         self.fields['sales_invoice_ref'].required = False
@@ -69,6 +72,7 @@ class SalesInvoiceReportForm(forms.ModelForm):
         if cleaned.get('booking_date_from') and cleaned.get('booking_date_to'):
             if cleaned['booking_date_from'] > cleaned['booking_date_to']:
                 raise ValidationError({'booking_date_to': _('Booking To must be on/after Booking From.')})
+        cleaned['currency'] = (cleaned.get('currency') or 'SAR').strip()
         return cleaned
 
 

@@ -7,6 +7,74 @@
 .dh-lines-table { table-layout: fixed; }
 .dh-lines-table th, .dh-lines-table td { white-space: normal; word-break: break-word; vertical-align: middle; }
 .dh-lines-table .form-control, .dh-lines-table .form-select { min-width: 0; }
+.dh-booking-lookup { position: relative; }
+.dh-booking-lookup .form-control { padding-right: 38px; }
+.dh-booking-dropdown-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+.dh-booking-dropdown-toggle:hover,
+.dh-booking-dropdown-toggle:focus { background: #eff6ff; color: #2563eb; }
+.dh-booking-lookup-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: none;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #dbe4f0;
+  border-radius: 12px;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
+  padding: 6px;
+}
+.dh-booking-lookup-menu.show { display: block; }
+.dh-booking-lookup-option {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  border-radius: 9px;
+  padding: 9px 10px;
+  text-align: left;
+  color: #0f172a;
+  cursor: pointer;
+}
+.dh-booking-lookup-option:hover,
+.dh-booking-lookup-option:focus { background: #eff6ff; }
+.dh-booking-lookup-code {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.dh-booking-lookup-meta {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.25;
+}
+.dh-booking-lookup-empty {
+  padding: 10px;
+  font-size: 12px;
+  color: #64748b;
+}
 @media (max-width: 1200px) {
   .dh-lines-table thead { display: none; }
   .dh-lines-table tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; padding: 12px; border: 1px solid rgba(0,0,0,.08); border-radius: 12px; margin-bottom: 12px; background: #fff; }
@@ -54,7 +122,8 @@
         <div class="fields-grid cols-3">
           <div class="field">
             <label for="handoverNo" class="form-label">Handover No <span class="required">*</span></label>
-            <input type="text" class="form-control" id="handoverNo" value="{{ preview_handover_no }}" readonly />
+            <input type="text" class="form-control {% if handover_form_errors.handover_no %}is-invalid{% endif %}" id="handoverNo" name="handover_no" value="{{ preview_handover_no }}" readonly />
+            {% if handover_form_errors.handover_no %}<div class="invalid-feedback d-block">{{ handover_form_errors.handover_no }}</div>{% endif %}
           </div>
           <div class="field">
             <label for="handoverDate" class="form-label">Handover Date <span class="required">*</span></label>
@@ -63,7 +132,24 @@
           </div>
           <div class="field">
             <label for="bookingNo" class="form-label">Booking No <span class="required">*</span></label>
-            <input type="text" class="form-control" id="bookingNo" name="booking_no" value="{{ handover_form_data.booking_no }}" readonly />
+            <div class="input-icon-wrapper dh-booking-lookup">
+              <i class="bi bi-search"></i>
+              <input type="text" class="form-control has-icon {% if handover_form_errors.booking_no %}is-invalid{% endif %}" id="bookingNo" name="booking_no" value="{{ handover_form_data.booking_no }}" placeholder="Search or type booking no..." autocomplete="off" />
+              <button type="button" class="dh-booking-dropdown-toggle" id="bookingNoToggle" aria-label="Show booking list">
+                <i class="bi bi-chevron-down"></i>
+              </button>
+              <div class="dh-booking-lookup-menu" id="bookingNoOptions">
+                {% for booking in booking_options %}
+                <button type="button" class="dh-booking-lookup-option" data-booking-no="{{ booking.booking_no }}" data-booking-item="{{ booking.booking_item }}">
+                  <span class="dh-booking-lookup-code">{{ booking.booking_no }}</span>
+                  <span class="dh-booking-lookup-meta">{{ booking.booking_item|default:'No booking item' }}</span>
+                </button>
+                {% empty %}
+                <div class="dh-booking-lookup-empty">No shipment bookings available.</div>
+                {% endfor %}
+              </div>
+              {% if handover_form_errors.booking_no %}<div class="invalid-feedback d-block">{{ handover_form_errors.booking_no }}</div>{% endif %}
+            </div>
           </div>
         </div>
       </div>
@@ -73,14 +159,15 @@
         <div class="fields-grid cols-3">
           <div class="field">
             <label for="bookingItem" class="form-label">Booking Item <span class="required">*</span></label>
-            <input type="text" class="form-control" id="bookingItem" name="booking_item" value="{{ handover_form_data.booking_item }}" readonly />
+            <input type="text" class="form-control {% if handover_form_errors.booking_item %}is-invalid{% endif %}" id="bookingItem" name="booking_item" value="{{ handover_form_data.booking_item }}" readonly />
+            {% if handover_form_errors.booking_item %}<div class="invalid-feedback d-block">{{ handover_form_errors.booking_item }}</div>{% endif %}
           </div>
           <div class="field">
             <label for="shipmentRef" class="form-label">Shipment <span class="required">*</span></label>
             <select class="form-select {% if handover_form_errors.shipment_ref %}is-invalid{% endif %}" id="shipmentRef" name="shipment_ref">
               <option value="" {% if not handover_form_data.shipment_ref %}selected{% endif %} disabled>-Select shipment-</option>
               {% for shipment in shipment_options %}
-              <option value="{{ shipment.shipment_no }}" data-booking-no="{{ shipment.booking_no }}" data-booking-item="{{ shipment.booking_item_ref }}" {% if handover_form_data.shipment_ref == shipment.shipment_no %}selected{% endif %}>{{ shipment.shipment_no }}</option>
+              <option value="{{ shipment.shipment_no }}" data-booking-no="{{ shipment.booking_no }}" data-booking-item="{{ shipment.booking_item_ref }}" {% if handover_form_data.shipment_ref == shipment.shipment_no %}selected{% endif %}>{{ shipment.shipment_no }} - {{ shipment.booking_no }}</option>
               {% endfor %}
             </select>
             {% if handover_form_errors.shipment_ref %}<div class="invalid-feedback d-block">{{ handover_form_errors.shipment_ref }}</div>{% endif %}
@@ -177,6 +264,9 @@
       <div class="mt-3 d-flex gap-2 align-items-center">
         <button type="button" class="btn btn-outline-primary" id="addDhLineBtn"><i class="bi bi-plus-lg"></i> Add Line</button>
       </div>
+      {% if handover_form_errors.handover_lines %}
+      <div class="invalid-feedback d-block mt-2">{{ handover_form_errors.handover_lines }}</div>
+      {% endif %}
     </div>
   </div>
 
@@ -193,16 +283,139 @@
     const form = document.getElementById("documentHandoverForm");
     const shipmentRef = document.getElementById("shipmentRef");
     const bookingNo = document.getElementById("bookingNo");
+    const bookingNoMenu = document.getElementById("bookingNoOptions");
+    const bookingNoToggle = document.getElementById("bookingNoToggle");
     const bookingItem = document.getElementById("bookingItem");
     const tbody = document.getElementById("dhLinesTbody");
     const addBtn = document.getElementById("addDhLineBtn");
     const linesJson = document.getElementById("handoverLinesJson");
-    if (shipmentRef && bookingNo && bookingItem) {
-      shipmentRef.addEventListener("change", function () {
-        const option = this.options[this.selectedIndex];
-        bookingNo.value = option ? (option.getAttribute("data-booking-no") || "") : "";
-        bookingItem.value = option ? (option.getAttribute("data-booking-item") || "") : "";
+
+    function selectedOption(selectEl) {
+      if (!selectEl || selectEl.selectedIndex < 0) return null;
+      return selectEl.options[selectEl.selectedIndex];
+    }
+
+    function findBookingOption(bookingNoValue) {
+      const normalized = String(bookingNoValue || "").trim().toLowerCase();
+      if (!bookingNoMenu || !normalized) return null;
+      const options = bookingNoMenu.querySelectorAll("[data-booking-no]");
+      for (let i = 0; i < options.length; i += 1) {
+        if (String(options[i].getAttribute("data-booking-no") || "").trim().toLowerCase() === normalized) {
+          return options[i];
+        }
+      }
+      return null;
+    }
+
+    function hideBookingMenu() {
+      if (bookingNoMenu) bookingNoMenu.classList.remove("show");
+    }
+
+    function filterBookingMenu() {
+      if (!bookingNoMenu || !bookingNo) return;
+      const term = String(bookingNo.value || "").trim().toLowerCase();
+      const options = bookingNoMenu.querySelectorAll(".dh-booking-lookup-option");
+      let visibleCount = 0;
+      options.forEach(function (option) {
+        const optionBookingNo = String(option.getAttribute("data-booking-no") || "").toLowerCase();
+        const optionBookingItem = String(option.getAttribute("data-booking-item") || "").toLowerCase();
+        const isVisible = !term || optionBookingNo.indexOf(term) !== -1 || optionBookingItem.indexOf(term) !== -1;
+        option.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
       });
+      bookingNoMenu.classList.toggle(
+        "show",
+        visibleCount > 0 || !!bookingNoMenu.querySelector(".dh-booking-lookup-empty")
+      );
+    }
+
+    function applyBookingLookup() {
+      if (!bookingNo) return;
+      const typedBookingNo = String(bookingNo.value || "").trim();
+      const bookingOpt = findBookingOption(typedBookingNo);
+      const resolvedBookingNo = bookingOpt ? (bookingOpt.getAttribute("data-booking-no") || "") : typedBookingNo;
+      if (bookingItem) {
+        bookingItem.value = bookingOpt ? (bookingOpt.getAttribute("data-booking-item") || "") : "";
+      }
+      if (!shipmentRef) return;
+
+      const matched = [];
+      Array.prototype.forEach.call(shipmentRef.options, function (opt, index) {
+        if (index === 0) {
+          opt.hidden = false;
+          opt.disabled = false;
+          return;
+        }
+        const isMatch = !resolvedBookingNo || opt.getAttribute("data-booking-no") === resolvedBookingNo;
+        opt.hidden = !isMatch;
+        opt.disabled = !isMatch;
+        if (isMatch) matched.push(opt);
+      });
+
+      const selectedShipment = selectedOption(shipmentRef);
+      if (!selectedShipment || selectedShipment.hidden || selectedShipment.disabled) {
+        shipmentRef.value = matched.length === 1 ? matched[0].value : "";
+      }
+      const currentShipment = selectedOption(shipmentRef);
+      if (currentShipment && currentShipment.value && bookingItem) {
+        bookingItem.value = currentShipment.getAttribute("data-booking-item") || bookingItem.value;
+      }
+    }
+
+    function syncBookingFromShipment() {
+      const option = selectedOption(shipmentRef);
+      if (!option || !option.value) return;
+      if (bookingNo) bookingNo.value = option.getAttribute("data-booking-no") || "";
+      if (bookingItem) bookingItem.value = option.getAttribute("data-booking-item") || "";
+      applyBookingLookup();
+      shipmentRef.value = option.value;
+    }
+
+    if (bookingNo) {
+      bookingNo.addEventListener("input", function () {
+        filterBookingMenu();
+        applyBookingLookup();
+      });
+      bookingNo.addEventListener("focus", filterBookingMenu);
+      bookingNo.addEventListener("change", function () {
+        applyBookingLookup();
+        hideBookingMenu();
+      });
+      applyBookingLookup();
+    }
+
+    if (bookingNoMenu && bookingNo) {
+      if (bookingNoToggle) {
+        bookingNoToggle.addEventListener("mousedown", function (event) {
+          event.preventDefault();
+          bookingNo.focus();
+          filterBookingMenu();
+        });
+      }
+      bookingNoMenu.addEventListener("mousedown", function (event) {
+        const option = event.target.closest(".dh-booking-lookup-option");
+        if (!option) return;
+        event.preventDefault();
+        bookingNo.value = option.getAttribute("data-booking-no") || "";
+        if (bookingItem) bookingItem.value = option.getAttribute("data-booking-item") || "";
+        applyBookingLookup();
+        hideBookingMenu();
+      });
+      document.addEventListener("mousedown", function (event) {
+        if (
+          bookingNoMenu.contains(event.target) ||
+          (bookingNoToggle && bookingNoToggle.contains(event.target)) ||
+          (bookingNo && bookingNo.contains(event.target))
+        ) {
+          return;
+        }
+        hideBookingMenu();
+      });
+    }
+
+    if (shipmentRef) {
+      shipmentRef.addEventListener("change", syncBookingFromShipment);
+      syncBookingFromShipment();
     }
     function renumber() {
       if (!tbody) return;

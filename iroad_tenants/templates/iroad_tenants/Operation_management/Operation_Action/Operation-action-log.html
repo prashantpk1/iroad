@@ -148,28 +148,11 @@
 {% endblock %}
 
 {% block content %}
-<!-- Top Header (lightweight; relies on main.js behaviors) -->
-      <header class="top-header">
-        <div class="header-left">
-          <button
-            class="header-toggle-btn"
-            id="sidebarCollapseBtn"
-            title="Toggle Sidebar"
-          >
-            <i class="bi bi-list"></i>
-          </button>
-        </div>
-        <div class="header-datetime">
-          <span class="header-date" id="headerDate">—</span>
-          <span class="header-time" id="headerTime">—</span>
-        </div>
-      </header>
-
       <!-- Page Header -->
       <div class="page-header">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="index.html">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'iroad_tenants:tenant_dashboard' %}">Dashboard</a></li>
             <li class="breadcrumb-item">Operations</li>
             <li class="breadcrumb-item">Operations Management</li>
             <li class="breadcrumb-item active" aria-current="page">
@@ -179,7 +162,7 @@
         </nav>
         <div class="page-header-row">
           <div class="page-header-left">
-            <h1 class="page-title">Action Log</h1>
+            <h1 class="page-title">{{ action_log_page_title|default:'Action Log' }}</h1>
             <p class="page-subtitle">
               Record action events (OperationActionLog) and attach multiple
               photos/videos (OperationActionMedia).
@@ -187,16 +170,24 @@
           </div>
           <div class="page-header-right">
             <div class="eal-header-actions">
-              <a href="../Operation_Action/Operation-actions-list.html" class="eal-btn eal-btn-outline">
+              {% if action_log_is_edit and action_log_form.detail_url %}
+              <a href="{{ action_log_form.detail_url }}" class="eal-btn eal-btn-outline">
+                <i class="bi bi-arrow-left"></i>
+                <span>Back to Details</span>
+              </a>
+              {% else %}
+              <a href="{% url 'iroad_tenants:tenant_operation_actions_list' %}" class="eal-btn eal-btn-outline">
                 <i class="bi bi-gear"></i>
                 <span>Go to Action Master</span>
               </a>
+              {% endif %}
             </div>
           </div>
         </div>
       </div>
 
-      <form id="operationActionLogForm">
+      <form id="operationActionLogForm" method="post"{% if action_log_form.edit_url %} action="{{ action_log_form.edit_url }}"{% endif %}>
+        {% csrf_token %}
         <div class="form-card" data-section="1">
           <div class="form-card-header">
             <div class="form-card-icon amber">
@@ -215,6 +206,8 @@
                   type="text"
                   class="form-control"
                   id="logNo"
+                  name="log_no"
+                  value="{{ action_log_form.log_no|default:'' }}"
                   placeholder="Auto-generated"
                   readonly
                 />
@@ -227,43 +220,50 @@
                   type="datetime-local"
                   class="form-control"
                   id="logDate"
+                  name="log_date"
+                  value="{{ action_log_form.log_date_input|default:'' }}"
                   required
                 />
               </div>
               <div class="field">
                 <label for="actionLookup" class="form-label">Action</label>
-                <select class="form-select" id="actionLookup">
-                  <option value="" selected disabled>-Select action-</option>
-                  <option value="delivery">Delivery Confirmation</option>
-                  <option value="pickup">Pickup Completed</option>
-                  <option value="checkpoint">Checkpoint Reached</option>
+                <select class="form-select" id="actionLookup" name="action">
+                  <option value="" {% if not action_log_form.action %}selected{% endif %} disabled>-Select action-</option>
+                  {% for status_choice in action_log_status_choices %}
+                  <option value="{{ status_choice }}" {% if action_log_form.action == status_choice %}selected{% endif %}>{{ status_choice }}</option>
+                  {% endfor %}
                 </select>
               </div>
             </div>
             <div class="fields-grid cols-3">
               <div class="field">
                 <label for="sourceType" class="form-label">Source</label>
-                <select class="form-select" id="sourceType">
-                  <option value="auto">Auto</option>
-                  <option value="manual">Manual</option>
+                <select class="form-select" id="sourceType" name="source">
+                  {% for source_choice in action_log_source_choices %}
+                  <option value="{{ source_choice }}" {% if action_log_form.source == source_choice %}selected{% endif %}>{{ source_choice }}</option>
+                  {% endfor %}
                 </select>
               </div>
               <div class="field">
                 <label for="userLookup" class="form-label">User</label>
-                <select class="form-select" id="userLookup">
-                  <option value="" selected disabled>-Select user-</option>
-                  <option value="u1">USR-001 - Dispatcher</option>
-                  <option value="u2">USR-002 - Driver App</option>
-                </select>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="userLookup"
+                  name="user"
+                  value="{{ action_log_form.user|default:'' }}"
+                  placeholder="Enter user"
+                />
               </div>
               <div class="field">
                 <label for="notes" class="form-label">Notes</label>
                 <textarea
                   class="form-control"
                   id="notes"
+                  name="notes"
                   rows="1"
                   placeholder="Enter notes"
-                ></textarea>
+                >{{ action_log_form.notes|default:'' }}</textarea>
               </div>
             </div>
           </div>
@@ -283,55 +283,75 @@
             <div class="fields-grid cols-3">
               <div class="field">
                 <label for="bookingLookup" class="form-label">Booking</label>
-                <select class="form-select" id="bookingLookup">
-                  <option value="" selected disabled>-Select booking-</option>
-                  <option value="b1">BKG-2001</option>
-                  <option value="b2">BKG-2002</option>
-                </select>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="bookingLookup"
+                  name="booking_no"
+                  value="{{ action_log_form.booking_no|default:'' }}"
+                  placeholder="Enter booking"
+                />
               </div>
               <div class="field">
                 <label for="bookingItemLookup" class="form-label"
                   >Booking Item</label
                 >
-                <select class="form-select" id="bookingItemLookup">
-                  <option value="" selected disabled>-Select booking item-</option>
-                  <option value="bi1">BKG-2001 / ITEM-01</option>
-                  <option value="bi2">BKG-2002 / ITEM-03</option>
-                </select>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="bookingItemLookup"
+                  name="booking_item"
+                  value="{{ action_log_form.booking_item|default:'' }}"
+                  placeholder="Enter booking item"
+                  readonly
+                />
               </div>
               <div class="field">
                 <label for="movementLookup" class="form-label">Movement</label>
-                <select class="form-select" id="movementLookup">
-                  <option value="" selected disabled>-Select movement-</option>
-                  <option value="m1">MOV-1301</option>
-                  <option value="m2">MOV-1302</option>
-                </select>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="movementLookup"
+                  name="movement"
+                  value="{{ action_log_form.movement|default:'' }}"
+                  placeholder="Movement"
+                  readonly
+                />
               </div>
             </div>
             <div class="fields-grid cols-3">
               <div class="field">
                 <label for="shipmentLookup" class="form-label">Shipment</label>
-                <select class="form-select" id="shipmentLookup">
-                  <option value="" selected disabled>-Select shipment-</option>
-                  <option value="s1">SHP-10045</option>
-                  <option value="s2">SHP-10044</option>
-                </select>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="shipmentLookup"
+                  name="shipment"
+                  value="{{ action_log_form.shipment|default:'' }}"
+                  placeholder="Enter shipment"
+                />
               </div>
               <div class="field">
                 <label for="truckLookup" class="form-label">Truck</label>
-                <select class="form-select" id="truckLookup">
-                  <option value="" selected disabled>-Select truck-</option>
-                  <option value="t1">TRK-901</option>
-                  <option value="t2">TRK-902</option>
-                </select>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="truckLookup"
+                  name="truck"
+                  value="{{ action_log_form.truck|default:'' }}"
+                  placeholder="Enter truck"
+                />
               </div>
               <div class="field">
                 <label for="driverLookup" class="form-label">Driver</label>
-                <select class="form-select" id="driverLookup">
-                  <option value="" selected disabled>-Select driver-</option>
-                  <option value="d1">DRV-001 - Ahmed Ali</option>
-                  <option value="d2">DRV-002 - Mohammad Farooq</option>
-                </select>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="driverLookup"
+                  name="driver"
+                  value="{{ action_log_form.driver|default:'' }}"
+                  placeholder="Enter driver"
+                />
               </div>
             </div>
           </div>
@@ -355,6 +375,8 @@
                   type="text"
                   class="form-control"
                   id="latitude"
+                  name="latitude"
+                  value="{{ action_log_form.latitude|default:'' }}"
                   placeholder="e.g. 24.7136"
                 />
               </div>
@@ -364,6 +386,8 @@
                   type="text"
                   class="form-control"
                   id="longitude"
+                  name="longitude"
+                  value="{{ action_log_form.longitude|default:'' }}"
                   placeholder="e.g. 46.6753"
                 />
               </div>
@@ -375,6 +399,8 @@
                   type="text"
                   class="form-control"
                   id="coordinates"
+                  name="coordinates"
+                  value="{{ action_log_form.coordinates|default:'' }}"
                   placeholder="24.7136, 46.6753"
                 />
               </div>
@@ -386,6 +412,8 @@
                   type="url"
                   class="form-control"
                   id="mapLink"
+                  name="map_link"
+                  value="{{ action_log_form.map_link|default:'' }}"
                   placeholder="https://maps.google.com/..."
                 />
               </div>
@@ -452,7 +480,7 @@
           <div class="form-actions-right">
             <button type="submit" class="btn btn-primary">
               <i class="bi bi-check-circle"></i>
-              Save Action Log
+              {{ action_log_submit_label|default:'Save Action Log' }}
             </button>
           </div>
         </div>
@@ -524,13 +552,6 @@
           var now = new Date();
           now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
           logDateEl.value = now.toISOString().slice(0, 16);
-        }
-
-        var formEl = document.getElementById("operationActionLogForm");
-        if (formEl) {
-          formEl.addEventListener("submit", function (e) {
-            e.preventDefault();
-          });
         }
 
         var tbody = document.getElementById("oalMediaTbody");

@@ -24,8 +24,8 @@
           <div class="page-header-left">
             <h1 class="page-title">{{ page_title|default:'Create Service Item' }}</h1>
             <p class="page-subtitle">
-              Define service or trip items with identity, category, pricing, and
-              status (SV-001).
+              Define service or trip items with identity, pricing, and status
+              (SV-001).
             </p>
           </div>
         </div>
@@ -146,24 +146,12 @@
                     dir="rtl" {% if is_view_mode %}readonly{% endif %}
                   />
                 </div>
-                <div class="field">
-                  <label for="category" class="form-label"
-                    >Category
-                    <span class="required">*</span>
-                  </label>
-                  <select class="form-select" id="category" name="category_name" required {% if is_view_mode %}disabled{% endif %}>
-                    <option value="" selected disabled>
-                      -Select category-
-                    </option>
-                    {% for category in service_item_category_options %}
-                    <option value="{{ category }}" {% if form_data.category_name == category %}selected{% endif %}>{{ category }}</option>
-                    {% endfor %}
-                  </select>
-                  {% if field_errors.category_name %}<span class="text-danger small">{{ field_errors.category_name }}</span>{% endif %}
-                  <span class="field-hint"
-                    >Must reference an active service category.</span
-                  >
-                </div>
+                <input
+                  type="hidden"
+                  id="category"
+                  name="category_name"
+                  value="{{ form_data.category_name|default:service_item_category_options.0 }}"
+                />
               </div>
             </div>
 

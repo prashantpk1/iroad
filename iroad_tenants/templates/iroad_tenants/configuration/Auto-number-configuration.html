@@ -108,7 +108,7 @@
       <li class="form-list-item" data-form="purchase-report">Purchase Report</li>
 
       <li class="form-list-section">Fleet &amp; Drivers</li>
-      <li class="form-list-item" data-form="truck-movement-log">
+      <li class="form-list-item {% if auto_number_form_code == 'truck-movement-log' %}active{% endif %}" data-form="truck-movement-log">
         Truck Movement Log
       </li>
       <li class="form-list-item {% if auto_number_form_code == 'truck-master' %}active{% endif %}" data-form="truck-master">
@@ -157,7 +157,7 @@
       <li class="form-list-item {% if auto_number_form_code == 'shipment-pod-analysis' %}active{% endif %}" data-form="shipment-pod-analysis">
         Shipment POD Analysis
       </li>
-      <li class="form-list-item" data-form="document-handover">
+      <li class="form-list-item {% if auto_number_form_code == 'document-handover' %}active{% endif %}" data-form="document-handover">
         Document Handover
       </li>
       <li
@@ -166,7 +166,7 @@
       >
         Booking
       </li>
-      <li class="form-list-item" data-form="operation-actions">
+      <li class="form-list-item {% if auto_number_form_code == 'operation-actions' %}active{% endif %}" data-form="operation-actions">
         Operation Actions
       </li>
 
@@ -262,7 +262,7 @@
                   class="form-control"
                   id="nextNumber"
                   name="next_number"
-                  value="0001"
+                  value="{{ auto_number_preview|default:'0001' }}"
                 />
                 <span class="field-hint">
                   The system will assign this number to the next item. You can

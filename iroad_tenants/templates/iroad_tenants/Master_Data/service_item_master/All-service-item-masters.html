@@ -195,7 +195,7 @@
                   </span>
                 </th>
                 <th>Arabic Name</th>
-                <th>
+                <th class="d-none">
                   Category
                   <span class="sort-indicator">
                     <i class="bi bi-caret-up-fill"></i>
@@ -235,7 +235,7 @@
                 <td><span class="eal-entity-id">{{ item.service_code }}</span></td>
                 <td><span class="eal-name-text">{{ item.english_name }}</span></td>
                 <td class="eal-arabic" lang="ar">{{ item.arabic_name|default:'-' }}</td>
-                <td>{{ item.category_name|default:'-' }}</td>
+                <td class="d-none">{{ item.category_name|default:'-' }}</td>
                 <td>
                   <span class="eal-type-badge {% if item.service_type == 'Trip' %}org{% else %}ind{% endif %}">
                     <i class="bi {% if item.service_type == 'Trip' %}bi-signpost-split{% else %}bi-gear{% endif %}"></i>
@@ -1090,9 +1090,9 @@
           </div>
         </div>
 
-        <!-- Section: Naming & Category -->
+        <!-- Section: Naming -->
         <div class="detail-section">
-          <h3 class="detail-section-title">Naming &amp; Category</h3>
+          <h3 class="detail-section-title">Naming</h3>
           <div class="detail-field">
             <span class="detail-field-label">English Name</span>
             <span class="detail-field-value" id="dpEnglishName"
@@ -1105,7 +1105,7 @@
               >Not provided</span
             >
           </div>
-          <div class="detail-field">
+          <div class="detail-field d-none">
             <span class="detail-field-label">Category</span>
             <span class="detail-field-value" id="dpCategory">Not provided</span>
           </div>

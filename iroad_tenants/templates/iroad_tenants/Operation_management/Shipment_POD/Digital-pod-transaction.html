@@ -55,7 +55,7 @@
               <div class="fields-grid cols-2">
                 <div class="field">
                   <label for="recordNo" class="form-label">Record No</label>
-                  <input type="text" class="form-control" id="recordNo" value="{{ preview_pod_record_no }}" placeholder="Auto-generated" readonly />
+                  <input type="text" class="form-control" id="recordNo" name="record_no" value="{{ pod_form_data.record_no|default:preview_pod_record_no }}" placeholder="Auto-generated" readonly />
                 </div>
                 <div class="field">
                   <label for="recordDate" class="form-label">Record Date</label>

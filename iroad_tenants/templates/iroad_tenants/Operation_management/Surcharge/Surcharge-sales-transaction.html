@@ -142,7 +142,7 @@
             </thead>
             <tbody>
               {% for row in surcharge_rows %}
-              <tr data-trx-no="{{ row.transaction_no }}" data-shipment="{{ row.shipment_ref }}" data-booking="{{ row.booking_ref }}" data-client="{{ row.client }}" data-date="{{ row.date|date:'d M Y' }}" data-currency="SAR" data-service="{{ row.service }}" data-description="{{ row.service }}" data-qty="1.00" data-unit-price="{{ row.total_amount }}" data-total="{{ row.total_amount }}" data-status="{{ row.status }}" data-reason="{{ row.service }}" data-attachment="-">
+              <tr data-trx-no="{{ row.transaction_no }}" data-shipment="{{ row.shipment_ref }}" data-booking="{{ row.booking_ref }}" data-client="{{ row.client }}" data-date="{{ row.date|date:'d M Y' }}" data-currency="SAR" data-service="{{ row.service }}" data-description="{{ row.service }}" data-qty="1.00" data-unit-price="{{ row.total_amount }}" data-total="{{ row.total_amount }}" data-status="{{ row.status }}" data-reason="{{ row.service }}" data-attachment="{{ row.attachment_name|default:'-' }}">
                 <td class="eal-col-check"><input type="checkbox" class="eal-custom-check" /></td>
                 <td><span class="eal-entity-id">{{ row.transaction_no }}</span></td>
                 <td>{{ row.shipment_ref }}</td>
@@ -156,7 +156,13 @@
                     {{ row.status }}
                   </span>
                 </td>
-                <td><span class="status-badge pending"><i class="bi bi-paperclip"></i> No</span></td>
+                <td>
+                  {% if row.attachment_name %}
+                  <span class="status-badge active"><i class="bi bi-paperclip"></i> Yes</span>
+                  {% else %}
+                  <span class="status-badge pending"><i class="bi bi-paperclip"></i> No</span>
+                  {% endif %}
+                </td>
                 <td>
                   <div class="dropdown eal-actions-cell">
                     <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Actions"><i class="bi bi-three-dots-vertical"></i></button>

@@ -2,6 +2,79 @@
 
 {% block title %}Truck Movement Log | iRoad Admin{% endblock %}
 
+{% block extra_css %}
+<style>
+  .tml-booking-lookup { position: relative; }
+  .tml-booking-lookup .form-control { padding-right: 38px; }
+  .tml-booking-dropdown-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+  }
+  .tml-booking-dropdown-toggle:hover,
+  .tml-booking-dropdown-toggle:focus { background: #eff6ff; color: #2563eb; }
+  .tml-booking-lookup-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    display: none;
+    max-height: 240px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.14);
+    padding: 6px;
+  }
+  .tml-booking-lookup-menu.show { display: block; }
+  .tml-booking-lookup-option {
+    display: block;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    border-radius: 9px;
+    padding: 9px 10px;
+    text-align: left;
+    color: #0f172a;
+    cursor: pointer;
+  }
+  .tml-booking-lookup-option:hover,
+  .tml-booking-lookup-option:focus { background: #eff6ff; }
+  .tml-booking-lookup-code {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .tml-booking-lookup-meta {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.25;
+  }
+  .tml-booking-lookup-empty {
+    padding: 10px;
+    font-size: 12px;
+    color: #64748b;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Page Header -->
       <div class="page-header">
@@ -57,13 +130,14 @@
                   </label>
                   <input
                     type="text"
-                    class="form-control"
+                    class="form-control{% if movement_form_errors.movement_no %} is-invalid{% endif %}"
                     id="movementNo"
                     name="movement_no_preview"
                     value="{{ preview_movement_no }}"
                     placeholder="Auto-generated"
                     readonly
                   />
+                  {% if movement_form_errors.movement_no %}<div class="invalid-feedback d-block">{{ movement_form_errors.movement_no }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="movementDate" class="form-label"
@@ -166,8 +240,39 @@
                     >Booking
                     <span class="required">*</span>
                   </label>
-                  <input class="form-control" id="booking" name="booking_ref" value="{{ movement_form_data.booking_ref|default:'' }}" placeholder="Booking reference (optional)" />
-                  </select>
+                  <div class="input-icon-wrapper tml-booking-lookup">
+                    <i class="bi bi-search"></i>
+                    <input
+                      type="text"
+                      class="form-control has-icon"
+                      id="booking"
+                      name="booking_ref"
+                      value="{{ movement_form_data.booking_ref|default:'' }}"
+                      placeholder="Search or type booking no..."
+                      autocomplete="off"
+                    />
+                    <button type="button" class="tml-booking-dropdown-toggle" id="bookingToggle" aria-label="Show booking list">
+                      <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="tml-booking-lookup-menu" id="bookingOptions">
+                      {% for booking in booking_options %}
+                      <button
+                        type="button"
+                        class="tml-booking-lookup-option"
+                        data-booking-no="{{ booking.booking_no }}"
+                        data-booking-meta="{{ booking.meta }}"
+                        data-shipment-ref="{{ booking.shipment_ref }}"
+                        data-truck-ref="{{ booking.truck_ref }}"
+                        data-driver-ref="{{ booking.driver_ref }}"
+                      >
+                        <span class="tml-booking-lookup-code">{{ booking.booking_no }}</span>
+                        <span class="tml-booking-lookup-meta">{% if booking.meta %}Shipment: {{ booking.meta }}{% else %}No linked shipment{% endif %}</span>
+                      </button>
+                      {% empty %}
+                      <div class="tml-booking-lookup-empty">No bookings available.</div>
+                      {% endfor %}
+                    </div>
+                  </div>
                 </div>
                 <div class="field">
                   <label for="shipment" class="form-label"
@@ -177,7 +282,15 @@
                   <select class="form-select{% if movement_form_errors.shipment_ref %} is-invalid{% endif %}" id="shipment" name="shipment_ref">
                     <option value="">-Select shipment-</option>
                     {% for shipment in shipment_options %}
-                    <option value="{{ shipment.shipment_ref_no }}" {% if movement_form_data.shipment_ref == shipment.shipment_ref_no %}selected{% endif %}>{{ shipment.shipment_ref_no }}</option>
+                    <option
+                      value="{{ shipment.shipment_ref_no }}"
+                      data-booking-no="{{ shipment.booking_no }}"
+                      data-truck-ref="{{ shipment.truck_ref }}"
+                      data-driver-ref="{{ shipment.driver_ref }}"
+                      {% if movement_form_data.shipment_ref == shipment.shipment_ref_no %}selected{% endif %}
+                    >
+                      {{ shipment.shipment_ref_no }}{% if shipment.booking_no %} - {{ shipment.booking_no }}{% endif %}
+                    </option>
                     {% endfor %}
                   </select>
                   {% if movement_form_errors.shipment_ref %}<div class="invalid-feedback d-block">{{ movement_form_errors.shipment_ref }}</div>{% endif %}
@@ -264,12 +377,13 @@
                     >To Location
                     <span class="required">*</span>
                   </label>
-                  <select class="form-select{% if movement_form_errors.from_location %} is-invalid{% endif %}" id="toLocation" name="to_location">
+                  <select class="form-select{% if movement_form_errors.to_location %} is-invalid{% endif %}" id="toLocation" name="to_location">
                     <option value="">-Select location-</option>
                     {% for location in location_options %}
                     <option value="{{ location.location_name }}" {% if movement_form_data.to_location == location.location_name %}selected{% endif %}>{{ location.location_name }}</option>
                     {% endfor %}
                   </select>
+                  {% if movement_form_errors.to_location %}<div class="invalid-feedback d-block">{{ movement_form_errors.to_location }}</div>{% endif %}
                 </div>
               </div>
             </div>
@@ -300,27 +414,29 @@
                   </label>
                   <input
                     type="datetime-local"
-                    class="form-control"
+                    class="form-control{% if movement_form_errors.start_time %} is-invalid{% endif %}"
                     id="startTime"
                     name="start_time"
                     value="{{ movement_form_data.start_time|default:'' }}"
                   />
+                  {% if movement_form_errors.start_time %}<div class="invalid-feedback d-block">{{ movement_form_errors.start_time }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="endTime" class="form-label">End Time</label>
                   <input
                     type="datetime-local"
-                    class="form-control"
+                    class="form-control{% if movement_form_errors.end_time %} is-invalid{% endif %}"
                     id="endTime"
                     name="end_time"
                     value="{{ movement_form_data.end_time|default:'' }}"
                   />
+                  {% if movement_form_errors.end_time %}<div class="invalid-feedback d-block">{{ movement_form_errors.end_time }}</div>{% endif %}
                 </div>
                 <div class="field">
                   <label for="distance" class="form-label">Distance (km)</label>
                   <input
                     type="number"
-                    class="form-control"
+                    class="form-control{% if movement_form_errors.distance_km %} is-invalid{% endif %}"
                     id="distance"
                     name="distance_km"
                     value="{{ movement_form_data.distance_km|default:'' }}"
@@ -328,6 +444,7 @@
                     step="0.1"
                     min="0"
                   />
+                  {% if movement_form_errors.distance_km %}<div class="invalid-feedback d-block">{{ movement_form_errors.distance_km }}</div>{% endif %}
                 </div>
               </div>
             </div>
@@ -352,4 +469,169 @@
       </form>
 
 <!-- Bootstrap 5 JS -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const bookingInput = document.getElementById("booking");
+    const bookingMenu = document.getElementById("bookingOptions");
+    const bookingToggle = document.getElementById("bookingToggle");
+    const shipmentSelect = document.getElementById("shipment");
+    const truckSelect = document.getElementById("truck");
+    const driverSelect = document.getElementById("driver");
+
+    function selectedOption(selectEl) {
+      if (!selectEl || selectEl.selectedIndex < 0) return null;
+      return selectEl.options[selectEl.selectedIndex];
+    }
+
+    function setSelectValue(selectEl, value) {
+      if (!selectEl || !value) return;
+      for (let i = 0; i < selectEl.options.length; i += 1) {
+        if (selectEl.options[i].value === value) {
+          selectEl.value = value;
+          return;
+        }
+      }
+    }
+
+    function findBookingOption(bookingNo) {
+      const normalized = String(bookingNo || "").trim().toLowerCase();
+      if (!bookingMenu || !normalized) return null;
+      const options = bookingMenu.querySelectorAll("[data-booking-no]");
+      for (let i = 0; i < options.length; i += 1) {
+        if (String(options[i].getAttribute("data-booking-no") || "").trim().toLowerCase() === normalized) {
+          return options[i];
+        }
+      }
+      return null;
+    }
+
+    function hideBookingMenu() {
+      if (bookingMenu) bookingMenu.classList.remove("show");
+    }
+
+    function filterBookingMenu() {
+      if (!bookingMenu || !bookingInput) return;
+      const term = String(bookingInput.value || "").trim().toLowerCase();
+      const options = bookingMenu.querySelectorAll(".tml-booking-lookup-option");
+      let visibleCount = 0;
+      options.forEach(function (option) {
+        const bookingNo = String(option.getAttribute("data-booking-no") || "").toLowerCase();
+        const bookingMeta = String(option.getAttribute("data-booking-meta") || "").toLowerCase();
+        const isVisible = !term || bookingNo.indexOf(term) !== -1 || bookingMeta.indexOf(term) !== -1;
+        option.hidden = !isVisible;
+        if (isVisible) visibleCount += 1;
+      });
+      bookingMenu.classList.toggle(
+        "show",
+        visibleCount > 0 || !!bookingMenu.querySelector(".tml-booking-lookup-empty")
+      );
+    }
+
+    function syncTruckAndDriverFromShipment(fallbackBookingOption) {
+      const shipmentOption = selectedOption(shipmentSelect);
+      const hasShipment = shipmentOption && shipmentOption.value;
+      const truckRef = (hasShipment ? shipmentOption.getAttribute("data-truck-ref") : "") ||
+        (fallbackBookingOption ? fallbackBookingOption.getAttribute("data-truck-ref") : "");
+      const driverRef = (hasShipment ? shipmentOption.getAttribute("data-driver-ref") : "") ||
+        (fallbackBookingOption ? fallbackBookingOption.getAttribute("data-driver-ref") : "");
+      setSelectValue(truckSelect, truckRef || "");
+      setSelectValue(driverSelect, driverRef || "");
+    }
+
+    function applyBookingLookup() {
+      if (!bookingInput || !shipmentSelect) return;
+      const typedBookingNo = String(bookingInput.value || "").trim();
+      const bookingOption = findBookingOption(typedBookingNo);
+      const resolvedBookingNo = bookingOption
+        ? (bookingOption.getAttribute("data-booking-no") || "")
+        : typedBookingNo;
+
+      const matchedShipments = [];
+      Array.prototype.forEach.call(shipmentSelect.options, function (option, index) {
+        if (index === 0) {
+          option.hidden = false;
+          option.disabled = false;
+          return;
+        }
+        const isMatch = !resolvedBookingNo || option.getAttribute("data-booking-no") === resolvedBookingNo;
+        option.hidden = !isMatch;
+        option.disabled = !isMatch;
+        if (isMatch) matchedShipments.push(option);
+      });
+
+      const currentShipment = selectedOption(shipmentSelect);
+      if (!currentShipment || currentShipment.hidden || currentShipment.disabled) {
+        const preferredShipmentRef = bookingOption ? (bookingOption.getAttribute("data-shipment-ref") || "") : "";
+        const preferredShipment = matchedShipments.find(function (option) {
+          return option.value === preferredShipmentRef;
+        });
+        shipmentSelect.value = preferredShipment
+          ? preferredShipment.value
+          : (matchedShipments.length === 1 ? matchedShipments[0].value : "");
+      }
+      syncTruckAndDriverFromShipment(bookingOption);
+    }
+
+    function syncBookingFromShipment() {
+      const shipmentOption = selectedOption(shipmentSelect);
+      if (!shipmentOption || !shipmentOption.value) return;
+      if (bookingInput) {
+        bookingInput.value = shipmentOption.getAttribute("data-booking-no") || "";
+      }
+      const bookingOption = findBookingOption(bookingInput ? bookingInput.value : "");
+      syncTruckAndDriverFromShipment(bookingOption);
+      applyBookingLookup();
+      shipmentSelect.value = shipmentOption.value;
+    }
+
+    if (bookingInput) {
+      bookingInput.addEventListener("input", function () {
+        filterBookingMenu();
+        applyBookingLookup();
+      });
+      bookingInput.addEventListener("focus", filterBookingMenu);
+      bookingInput.addEventListener("change", function () {
+        applyBookingLookup();
+        hideBookingMenu();
+      });
+      applyBookingLookup();
+    }
+
+    if (bookingMenu && bookingInput) {
+      if (bookingToggle) {
+        bookingToggle.addEventListener("mousedown", function (event) {
+          event.preventDefault();
+          bookingInput.focus();
+          filterBookingMenu();
+        });
+      }
+      bookingMenu.addEventListener("mousedown", function (event) {
+        const option = event.target.closest(".tml-booking-lookup-option");
+        if (!option) return;
+        event.preventDefault();
+        bookingInput.value = option.getAttribute("data-booking-no") || "";
+        applyBookingLookup();
+        hideBookingMenu();
+      });
+      document.addEventListener("mousedown", function (event) {
+        if (
+          bookingMenu.contains(event.target) ||
+          (bookingToggle && bookingToggle.contains(event.target)) ||
+          bookingInput.contains(event.target)
+        ) {
+          return;
+        }
+        hideBookingMenu();
+      });
+    }
+
+    if (shipmentSelect) {
+      shipmentSelect.addEventListener("change", syncBookingFromShipment);
+      syncBookingFromShipment();
+    }
+  })();
+</script>
 {% endblock %}

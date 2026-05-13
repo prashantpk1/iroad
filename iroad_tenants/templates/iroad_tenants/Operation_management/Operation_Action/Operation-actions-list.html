@@ -56,6 +56,7 @@
           <th>Sequence Category</th>
           <th>Seq #</th>
           <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -68,9 +69,37 @@
           <td>{{ row.sequence_category|default:'-' }}</td>
           <td>{{ row.sequence_number }}</td>
           <td><span class="status-badge {% if row.status == 'Active' %}active{% else %}inactive{% endif %}">{{ row.status }}</span></td>
+          <td>
+            <div class="dropdown eal-actions-cell">
+              <button class="eal-row-btn" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" aria-expanded="false" title="Actions">
+                <i class="bi bi-three-dots-vertical"></i>
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius: 8px; border-color: #e2e8f0; min-width: 180px;">
+                <li>
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_actions_detail' row.action_id %}">
+                    <i class="bi bi-eye text-info me-2"></i>View
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'iroad_tenants:tenant_operation_actions_edit' row.action_id %}">
+                    <i class="bi bi-pencil text-primary me-2"></i>Edit
+                  </a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <form method="post" action="{% url 'iroad_tenants:tenant_operation_actions_delete' row.action_id %}" onsubmit="return confirm('Delete operation action {{ row.action_code|escapejs }}? This cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item text-danger">
+                      <i class="bi bi-trash3 me-2"></i>Delete
+                    </button>
+                  </form>
+                </li>
+              </ul>
+            </div>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="text-center text-muted py-4">No operation actions found.</td></tr>
+        <tr><td colspan="8" class="text-center text-muted py-4">No operation actions found.</td></tr>
         {% endfor %}
       </tbody>
     </table>
